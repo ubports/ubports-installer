@@ -6,6 +6,7 @@ This is still under development and is currently not 100% working
 
 ```
 git clone git@github.com:ubports/ubports-installer.git
+sudo apt install gir1.2-glib-2.0 libglib2.0-dev libselinux-dev libssl-dev zlib1g-dev
 npm install
 ```
 
