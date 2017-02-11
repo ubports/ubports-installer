@@ -2,8 +2,6 @@
 
 This is still under development and is currently not 100% working
 
-*This requres a never version of devices.ubports.com server due to new api*
-
 ### How to install
 
 ```

@@ -64,7 +64,7 @@ var formatNotWorking = (nw) => {
     return nw.join(", ").replace("/\,(?=[^,]*$)", " and");
 }
 
-var instructReboot = (state, rebootEvent, callback) => {
+var instructReboot = (state, button, rebootEvent, callback) => {
     adb.hasAdbAccess((hasAccess) => {
         if (hasAccess) {
             adb.reboot(state, () => {
@@ -72,7 +72,7 @@ var instructReboot = (state, rebootEvent, callback) => {
             });
         } else {
             rebootEvent.emit("user:reboot", {
-                button: "up",
+                button: button[state],
                 state: state
             });
         }
@@ -193,19 +193,19 @@ var install = (device, channel, noUserEvents, noSystemImage) => {
             systemImage.installLatestVersion(device, channel, installEvent);
         })
         installEvent.on("system-image:done", () => {
-            instructReboot("recovery", installEvent, () => {
+            instructReboot("recovery", instructs.buttons, installEvent, () => {
               installEvent.emit("install:done");
             });
         })
         installEvent.on("bootstrap:done", () => {
             utils.log("bootstrap done");
-            instructReboot("recovery", installEvent, () => {
+            instructReboot("recovery", instructs.buttons, installEvent, () => {
                 installEvent.emit("system-image:start")
             });
         })
         if (getInstallSettings(instructs, "bootstrap")) {
             // We need to be in bootloader
-            instructReboot("bootloader", installEvent, () => {
+            instructReboot("bootloader", instructs.buttons, installEvent, () => {
                 installEvent.once("download:done", () => {
                   utils.log("done downloading(once listener)");
                   instructBootstrap(getInstallSettings(instructs, "fastbootboot"), addPathToImages(instructs, device), installEvent)
@@ -214,7 +214,7 @@ var install = (device, channel, noUserEvents, noSystemImage) => {
             });
         } else {
             // We need to be in recovery
-            instructReboot("recovery", installEvent, () => {
+            instructReboot("recovery", instructs.buttons, installEvent, () => {
                 installEvent.emit("system-image:start")
             });
         }
