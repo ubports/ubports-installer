@@ -1,0 +1,3 @@
+[submodule "android-tools"]
+	path = android-tools
+	url = git@github.com:ubports/android-tools.git

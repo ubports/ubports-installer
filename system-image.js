@@ -1,10 +1,15 @@
+"use strict";
+
 const http = require("request");
 const progress = require("request-progress");
 const os = require("os");
 const fs = require("fs");
+const utils = require("./utils");
+const adb = require("./adb");
 const path = require("path");
 const events = require("events")
 const fEvent = require('forward-emitter');
+const mkdirp = require('mkdirp');
 
 class event extends events {}
 
@@ -12,19 +17,20 @@ const startCommands = "format system\n\
 load_keyring image-master.tar.xz image-master.tar.xz.asc\n\
 load_keyring image-signing.tar.xz image-signing.tar.xz.asc\n\
 mount system"
-const endCommands = "\numount system\n\
-                    installer_check"
+const endCommands = "\nunmount system\n"
 const baseUrl = "https://system-image.ubports.com/";
-const downloadPath = os.homedir() + "/.config/ubports/";
+const downloadPath = os.homedir() + "/.cache/ubports/";
+const ubuntuCommandFile = "ubuntu_command";
+const ubuntuPushDir = "/cache/recovery/"
 const gpg = ["image-signing.tar.xz", "image-signing.tar.xz.asc", "image-master.tar.xz", "image-master.tar.xz.asc"]
 
-var getInstallCommands = (files, wipe, enable) => {
+var createInstallCommands = (files, installerCheck, wipe, enable) => {
     var cmd = startCommands;
     if (wipe) cmd += "\nformat data"
     if (files.constructor !== Array)
         return false;
     files.forEach((file) => {
-        cmd += "\nupdate " + file.path + " " + file.signature;
+        cmd += "\nupdate " + path.basename(file.path) + " " + path.basename(file.signature);
     })
     if (enable) {
         if (enable.constructor === Array) {
@@ -34,7 +40,23 @@ var getInstallCommands = (files, wipe, enable) => {
         }
     }
     cmd += endCommands;
+    if (installerCheck) cmd += "\ninstaller_check";
     return cmd;
+}
+
+var createInstallCommandsFile = (cmds, device) => {
+    if (!fs.existsSync(downloadPath + "/commandfile/")) {
+        mkdirp.sync(downloadPath + "/commandfile/");
+    }
+    var file = downloadPath + "/commandfile/" + ubuntuCommandFile + device + getRandomInt(1000, 9999);
+    fs.writeFileSync(file, cmds);
+    return file;
+}
+
+var getRandomInt = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
 }
 
 var getChannes = (callback) => {
@@ -81,42 +103,13 @@ var getLatestVesion = (index) => {
     return latest;
 }
 
-// TODO use checksums
-// TODO download to temp then move to complete folder
-// TODO if exist dont download
-var downloadFiles = (urls, downloadEvent) => {
-    if (!fs.existsSync(downloadPath)) {
-        fs.mkdirSync(downloadPath);
-    }
-    downloadEvent.emit("download:start", urls.length);
-    var dl = () => {
-        progress(http(urls[0]))
-            .on('progress', (state) => {
-                console.log(state);
-                downloadEvent.emit("download:progress", state);
-            })
-            .on('error', (err) => {
-                downloadEvent.emit("download:error", err)
-            })
-            .on('end', () => {
-                if (urls.length <= 1) {
-                    downloadEvent.emit("download:done");
-                } else {
-                    urls.shift();
-                    downloadEvent.emit("download:next", urls.length);
-                    dl()
-                }
-            })
-            .pipe(fs.createWriteStream(downloadPath + path.basename(urls[0])));
-    }
-    dl();
-    return downloadEvent;
-}
-
 var getGgpUrlsArray = () => {
-    gpgUrls = [];
+    var gpgUrls = [];
     gpg.forEach((g) => {
-        gpgUrls.push(baseUrl + "/gpg/" + g);
+        gpgUrls.push({
+            url: baseUrl + "/gpg/" + g,
+            path: downloadPath + "gpg"
+        })
     })
     return gpgUrls;
 }
@@ -124,8 +117,15 @@ var getGgpUrlsArray = () => {
 var getFilesUrlsArray = (index) => {
     var ret = [];
     index.files.forEach((file) => {
-        ret.push(baseUrl + file.path);
-        ret.push(baseUrl + file.signature);
+        ret.push({
+            url: baseUrl + file.path,
+            path: downloadPath + "pool",
+            checksum: file.checksum
+        })
+        ret.push({
+            url: baseUrl + file.signature,
+            path: downloadPath + "pool"
+        })
     })
     return ret;
 }
@@ -133,40 +133,85 @@ var getFilesUrlsArray = (index) => {
 var getFileBasenameArray = (urls) => {
     var files = [];
     urls.forEach((url) => {
-        files.push(downloadPath + path.basename(url));
+        files.push(path.basename(url.url));
     });
     return files;
 }
 
-var downloadLatestVersion = (device, channel) => {
-    const thisEvent = new event();
+var getFilePathArray = (urls) => {
+    var files = [];
+    urls.forEach((url) => {
+        files.push(url.path + "/" + path.basename(url.url));
+    });
+    return files;
+}
+
+var getFilePushArray = (urls) => {
+    var files = [];
+    urls.forEach((url) => {
+        files.push({
+            src: url.path + "/" + path.basename(url.url),
+            dest: ubuntuPushDir
+        });
+    });
+    return files;
+}
+
+var downloadLatestVersion = (device, channel, ownEvent) => {
+    var thisEvent;
+    if (!ownEvent)
+        thisEvent = new event();
+    else
+        thisEvent = ownEvent;
     getDeviceIndex(device, channel, (index) => {
+        if (!index) {
+            thisEvent.emit("error", "could not find device")
+            return;
+        }
         var latest = getLatestVesion(index);
         if (!latest) {
-            thisEvent.emit("error", "Error finding latest version")
+            thisEvent.emit("error", "could not find latest version")
             return;
         }
         var urls = getFilesUrlsArray(latest)
         urls.push.apply(urls, getGgpUrlsArray());
-        thisEvent.emit("download:next", urls)
-        const downloadEvent = downloadFiles(urls);
-        fEvent(thisEvent, downloadEvent);
+        var files = getFilePushArray(urls);
+        utils.downloadFiles(urls, thisEvent);
+        utils.log(urls)
+        thisEvent.once("download:done", () => {
+            files.push({
+                src: createInstallCommandsFile(createInstallCommands(latest.files), device),
+                dest: ubuntuPushDir + ubuntuCommandFile
+            });
+            thisEvent.emit("download:pushReady", files);
+        })
     })
     return thisEvent;
 }
 
-var installLatestVersion = (device, channels, callback) => {
+var pushLatestVersion = (files, thisEvent) => {
+    adb.shell("mount -a && mkdir -p /cache/recovery", () => {
+      adb.pushMany(files, thisEvent);
+    })
+    return thisEvent;
+}
 
+var installLatestVersion = (device, channel, ownEvent) => {
+    var downloadEvent = downloadLatestVersion(device, channel, ownEvent);
+    downloadEvent.once("download:pushReady", (files) => {
+        pushLatestVersion(files, downloadEvent)
+    });
+    return downloadEvent;
 }
 
 module.exports = {
     getChannes: getChannes,
     getDeviceChannes: getDeviceChannes,
-    getInstallCommands: getInstallCommands,
+    createInstallCommands: createInstallCommands,
     getDeviceIndex: getDeviceIndex,
     getLatestVesion: getLatestVesion,
-    downloadFiles: downloadFiles,
     downloadLatestVersion: downloadLatestVersion,
     getFilesUrlsArray: getFilesUrlsArray,
-    getFileBasenameArray: getFileBasenameArray
+    getFileBasenameArray: getFileBasenameArray,
+    installLatestVersion: installLatestVersion
 }

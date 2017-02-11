@@ -1,9 +1,13 @@
+"use strict";
+
 const sys = require('util')
 const exec = require('child_process').exec;
 const path = require("path");
 const fs = require("fs");
 const events = require("events")
 const fEvent = require('forward-emitter');
+
+const adb = __dirname+"/android-tools/adb";
 
 class event extends events {}
 
@@ -19,47 +23,54 @@ var guessState = (callback) => {
 
 var getDeviceName = (callback, method) => {
   if (!method) method = "device";
-  exec("adb shell getprop ro.product."+method, (err, stdout, stderr) => {
+  exec(adb+" shell getprop ro.product."+method, (err, stdout, stderr) => {
     if (err !== null) callback(false);
-    else callback(stdout);
+    else callback(stdout.replace(/\W/g, ""));
   });
 }
 
-var push = (file, dest, callback) => {
-  const pustEvent = new event();
+var push = (file, dest, pushEvent) => {
   var done;
   var fileSize = fs.statSync(file)["size"];
-  exec("adb push "+file+" "+dest, (err, stdout, stderr) => {
+  exec(adb+" push "+file+" "+dest, (err, stdout, stderr) => {
     done=true;
-    if (err !== null) pushEvent.emit("error", err)
-    else pushEvent.emit("end")
+    if (err !== null) pushEvent.emit("adbpush:error", err)
+    else pushEvent.emit("adbpush:end")
   });
   var progress = () => {
     setTimeout(function () {
      shell("stat -t "+dest+"/"+path.basename(file)+" |awk '{print $2}'", (currentSize) => {
-       pushEvent.emit("progress", Math.ceil((currentSize/fileSize)*100))
+       pushEvent.emit("adbpush:progress", Math.ceil((currentSize/fileSize)*100))
        if(!done)
         progress();
      })
-    }, 100);
+   }, 1000);
   }
   progress();
   return pushEvent;
 }
 
-var pushMany = (files) => {
-  const pushManyEvent = new event();
-  const pushEvent = push(files[0].file, files[0].dest);
-  fEvent(pushManyEvent, pushEvent);
-  pushEvent.on("end", () => {
+var pushMany = (files, pushManyEvent) => {
+  if (files.length <= 0){
+    pushManyEvent.emit("adbpush:error", "No files provided");
+    return false;
+  }
+  pushManyEvent.emit("adbpush:start", files.length);
+  push(files[0].src, files[0].dest, pushManyEvent);
+  pushManyEvent.on("adbpush:end", () => {
         files.shift();
-        fEvent(pushManyEvent, pushMany(files));
+        if (files.length <= 0){
+          pushManyEvent.emit("adbpush:done");
+          return;
+        }
+        pushManyEvent.emit("adbpush:next", files.length)
+        push(files[0].src, files[0].dest, pushManyEvent);
   })
   return pushManyEvent
 }
 
 var shell = (cmd, callback) => {
-  exec("adb shell " + cmd, (err, stdout, stderr) => {
+  exec(adb+" shell " + cmd, (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout);
   })
@@ -72,12 +83,10 @@ var waitForDevice = (callback) => {
     shell("echo 1", (r) => {
       if(r){
         callback(true)
-        console.log("r")
       }else {
         setTimeout(() => {
-          console.log("!r")
           if(!stop) repeat();
-        }, 4000)
+        }, 1000)
       }
     })
   }
@@ -95,7 +104,7 @@ var hasAdbAccess = (callback) => {
 }
 
 var reboot = (state, callback) => {
-  exec("adb reboot " + state, (err, stdout, stderr) => {
+  exec(adb+" reboot " + state, (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(state);
   })
@@ -106,6 +115,7 @@ module.exports = {
   shell: shell,
   getDeviceName: getDeviceName,
   push: push,
+  pushMany: pushMany,
   hasAdbAccess: hasAdbAccess,
   reboot: reboot,
   getDeviceState: (callback) => {

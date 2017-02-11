@@ -1,50 +1,26 @@
-const sudo = require('electron-sudo');
+const path = require("path");
+const utils = require("./utils.js")
+const fastboot = __dirname+"/android-tools/fastboot";
+const sudo = utils.getSudo();
 
 const options = {name: 'Ubports installer'}
 
-var log = (image) => {
-  console.log("log, flashed "+image)
-}
-
-var flashBoot = (image, callback) => {
-  log(image)
-  sudo.exec("fastboot flash boot "+image, options, (c, err) => {
-    callback(c)
-  });
-}
-
-var flashRecovery = (image) => {
-  log(image)
-  sudo.exec("fastboot flash recovery "+image, options , (c, err) => {
-    callback(c)
-  });
-}
-
 var waitForDevice = (callback) => {
-  sudo.exec("fastboot w", options, (err) => {
-    callback()
-  })
+  callback()
 }
 
+// Due to limitations with sudo we combind the sudo.exec to one call to prevent
+// seperate password prompts
 var flash = (images, callback) => {
-  if (images[0].recovery){
-    flashRecovery(images[0].recovery, (c) => {
-      images.shift();
-      if (images.length <= 0)
-        callback(c)
-      else
-        flash(images, callback)
-    });
-  }
-  else if (images[0].boot) {
-    boot(images[0].boot, (c) => {
-      images.shift();
-      if (images.length <= 0)
-        callback(c)
-      else
-        flash(images, callback)
-    });
-  }
+  var cmd="";
+  images.forEach((image, l) => {
+    cmd+=fastboot+" flash "+image.type+" "+image.path + "/" + path.basename(image.url);
+    if(l !== images.length - 1)
+      cmd+=" && "
+  });
+  sudo(cmd, options , (c) => {
+    callback(c)
+  });
 }
 
 module.exports = {

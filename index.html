@@ -62,6 +62,17 @@
         </div>
       </div>
     </div>
+    <div class="main container" hidden="hidden" id="main-done">
+      <div class="row">
+        <div class="col-xs-7">
+          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen6.jpg">
+        </div>
+        <div class="col-xs-5">
+          <h4 style="font-weight: bold;">Success!</h4>
+          <p>The install process from the computer is done, now the device will do the rest. The device will reboot when it's done, this will take about 5 minutes</p>
+        </div>
+      </div>
+    </div>
     <div class="main container" hidden="hidden" id="main-reboot-up">
       <div class="row">
         <div class="col-xs-7">
@@ -114,7 +125,7 @@
     <div class="progress" id="progress" hidden="hidden"></div>
     <footer class="footer">
         <div class="container" id="waitForDevice">
-            <h3 class="text-muted">Wating for device<span id="wait-dot">.</span></h2>
+            <h3 class="text-muted footer-top">Wating for device<span id="wait-dot"></span></h2>
             <p class="text-muted">Please connect your device with an usb cable</p>
         </div>
         <div class="container" hidden="hidden" id="device">
@@ -183,34 +194,54 @@
           const installEvent= devices.install(output.device.device,
                         "ubuntu-touch/"+$("#device-channels").find(":selected").text())
 
+          installEvent.on("bootstrap:flashing", () => {
+            $("#main-installing").show();
+            $("#main-reboot-up").hide();
+            $("#main-reboot-down").hide();
+            $("#device-under-text").text("Flashing recovery and boot images")
+          })
+
+          installEvent.on("system-image:start", () => {
+            $("#main-installing").show();
+            $("#main-reboot-up").hide();
+            $("#main-reboot-down").hide();
+          })
+
+          installEvent.on("install:done", () => {
+            $("#main-done").show();
+            $("#main-installing").hide();
+            $("#main-reboot-up").hide();
+            $("#main-reboot-down").hide();
+          })
+
           installEvent.on("user:reboot", (i) => {
             $("#main-installing").hide();
             $("#main-reboot-"+i.button).show();
-            $("#reboot-to-state").text(i.state);
+            $("[id=reboot-to-state]").text(i.state);
+            $("#device-name").text("Please reboot to "+i.state);
+            $("#device-under-text").text("")
           })
           var totalFiles=0;
-          installEvent.on("download:next", (length) => {
-              $("#device-under-text").text("Downloading file "+(totalFiles-(length+1))+" of "+totalFiles)
+          installEvent.on("user:write:next", (text,length) => {
+              $("#device-under-text").text(text+" file "+(totalFiles-(length+1))+" of "+totalFiles)
               $("#progress").width("0%");
           })
-          installEvent.on("download:start", (length) => {
+          installEvent.on("user:write:start", (text, length) => {
             totalFiles=length;
-            $("#device-under-text").text("Downloading file 1 of "+totalFiles)
+            $("#device-under-text").text(text+" file 1 of "+totalFiles)
             $("#progress").width("0%");
           })
-          installEvent.on("download:progress", (ret) => {
-            var num;
-            num=Math.ceil(ret.percent*100);
-            if(num >= 100) {
-              num=100;
+          installEvent.on("user:write:progress", (length) => {
+            if(length >= 100) {
+              length=100;
             }
-            $("#progress").width(num.toString()+"%");
+            $("#progress").width(length.toString()+"%");
           })
-          installEvent.on("download:end", () => {
-
+          installEvent.on("user:write:done", () => {
+            $("#device-under-text").text("")
           })
           installEvent.on("user:write:status", (status) => {
-            $("#device-name").text(status);
+            $("#device-name").text(status).append("<span id='wait-dot'>.</span>");
           })
         })
       }
@@ -226,11 +257,11 @@
 </script>
 <script>
 var dots = window.setInterval( function() {
-    var wait = document.getElementById("wait-dot");
-    if ( wait.innerHTML.length > 3 )
-        wait.innerHTML = "";
+    var wait = $("[id=wait-dot]");
+    if ( wait.text().length > 4 )
+        wait.text("");
     else
-        wait.innerHTML += ".";
+        wait.append(".");
     }, 400);
 </script>
 

@@ -1,0 +1,124 @@
+#!/usr/bin/env node
+
+/*
+
+This tool is made for testing and to be used in scripts.
+This is not ment to be an cli install tool for ubuntu touch.
+
+Author: Marius Gripsgard <mariogrip@ubports.com>
+
+*/
+
+const cli = require("commander");
+const devices = require("./devices");
+const adb = require("./adb");
+const utils = require("./utils");
+const systemImage = require("./system-image");
+const package = require("./package.json")
+
+const defaultChannel = "ubuntu-touch/stable";
+
+process.env.NO_GUI = 1;
+
+const panic = (m) => {
+    console.log(m);
+    process.exit(1)
+}
+
+const setEvents = (downloadEvent) => {
+    downloadEvent.on("download:done", () => {
+        console.log("Download complete");
+    });
+    downloadEvent.on("download:error", (r) => {
+        console.log("Download error " + r);
+    });
+    downloadEvent.on("error", (r) => {
+        console.log("Error: " + r);
+    });
+    downloadEvent.on("download:checking", () => {
+        console.log("Download checking file");
+    });
+    downloadEvent.on("download:startCheck", () => {
+        utils.log("Download startCheck");
+    });
+    downloadEvent.on("download:start", (r) => {
+        console.log("Starting download of " + r + " files");
+    });
+    downloadEvent.on("download:next", (i) => {
+        console.log(`Downloading next file, ${i} left`);
+    });
+    downloadEvent.on("download:progress", (i) => {
+        process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% left\r`);
+    });
+    downloadEvent.on("adbpush:done", () => {
+        console.log("Done pusing files");
+        console.log("Rebooting to recovery to flash");
+        adb.reboot("recovery", () => {});
+    });
+    downloadEvent.on("adbpush:error", (e) => {
+        console.log("Adb push error", e)
+    });
+    downloadEvent.on("adbpush:progress", (r) => {
+        process.stdout.write("Adb push, " + r + "% left\r")
+    });
+    downloadEvent.on("adbpush:next", (r) => {
+        console.log("Start pusing next file, " + r + " files left")
+    });
+    downloadEvent.on("adbpush:start", (r) => {
+        console.log("Start pusing " + r + " files")
+    });
+    downloadEvent.on("user:reboot", (r) => {
+        console.log("Please reboot your device to", r.state);
+    });
+    downloadEvent.on("bootstrap:flashing", (r) => {
+        console.log("Flashing images");
+    });
+}
+
+const install = (device, ownEvent, eventSet) => {
+    console.log(`Installing on ${device}`);
+    console.log(`Using channel ${channel}`);
+    var downloadEvent = systemImage.installLatestVersion(device, channel, ownEvent);
+    if (!eventSet)
+        setEvents(downloadEvent);
+}
+
+var getDevice = (callback) => {
+    adb.hasAdbAccess((adbAccess) => {
+        if (!adbAccess) {
+            if (!cli.bootstrap)
+                panic("I do not have adb access");
+            if (!cli.device)
+                panic("Cannot detect device, plase use --device <device>");
+        }
+        if (!cli.device) {
+            adb.getDeviceName((device) => {
+                callback(device);
+            })
+        } else {
+            callback(cli.device);
+        }
+    })
+}
+
+var bootstrap = (device) => {
+    console.log(`Bootstraping on ${device}`);
+    console.log(`Using channel ${channel}`);
+    var installEvent = devices.install(device, channel, true);
+    setEvents(installEvent);
+}
+
+cli
+    .version(package.version)
+    .option('-d, --device <device>', 'Specify device')
+    .option('-c, --channel <channel>', 'Specify channel (default: ubuntu-touch/stable)')
+    .option('-v, --verbose', "Verbose output")
+    .option('-b, --bootstrap', "Flash boot and recovery from bootloader")
+    .parse(process.argv);
+
+var channel = cli.channel || defaultChannel;
+if (cli.verbose) process.env.DEBUG = 1;
+if (cli.bootstrap) {
+    getDevice(bootstrap)
+    utils.ensureRoot("Bootstrap requres root");
+} else getDevice(install)
