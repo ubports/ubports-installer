@@ -1,6 +1,6 @@
 ## Ubports installer
 
-This is still under development and is currently not 100% working
+This is still under development expect some bugs
 
 ### How to install
 
