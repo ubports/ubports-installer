@@ -2,8 +2,8 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="dist/style.css">
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/style.css">
     <title>Ubports installer</title>
 </head>
 
@@ -14,7 +14,7 @@
     <div class="main container" hidden="hidden" id="main-wait-for-device">
       <div class="row">
         <div class="col-xs-7">
-          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen1.jpg">
+          <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen1.jpg">
         </div>
         <div class="col-xs-5">
           <h4 style="font-weight: bold;">Please connect your device</h4>
@@ -40,7 +40,7 @@
     <div class="main container" hidden="hidden" id="main-not-supported">
       <div class="row">
         <div class="col-xs-7">
-          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen5.jpg">
+          <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen5.jpg">
         </div>
         <div class="col-xs-5">
           <h4 style="font-weight: bold;">Device not supported</h4>
@@ -54,7 +54,7 @@
     <div class="main container" hidden="hidden" id="main-installing">
       <div class="row">
         <div class="col-xs-7">
-          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen6.jpg">
+          <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen6.jpg">
         </div>
         <div class="col-xs-5">
           <h4 style="font-weight: bold;">Installing</h4>
@@ -65,7 +65,7 @@
     <div class="main container" hidden="hidden" id="main-done">
       <div class="row">
         <div class="col-xs-7">
-          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen6.jpg">
+          <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen6.jpg">
         </div>
         <div class="col-xs-5">
           <h4 style="font-weight: bold;">Success!</h4>
@@ -76,7 +76,7 @@
     <div class="main container" hidden="hidden" id="main-reboot-up">
       <div class="row">
         <div class="col-xs-7">
-          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen2.jpg">
+          <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen2.jpg">
         </div>
         <div class="col-xs-5">
           <h4 style="font-weight: bold;">Please reboot to <b id="reboot-to-state">bootloader</b></h4>
@@ -87,7 +87,7 @@
     <div class="main container" hidden="hidden" id="main-reboot-down">
       <div class="row">
         <div class="col-xs-7">
-          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen3.jpg">
+          <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen3.jpg">
         </div>
         <div class="col-xs-5">
           <h4 style="font-weight: bold;">Please reboot to <b id="reboot-to-state">bootloader</b></h4>
@@ -98,7 +98,7 @@
     <div class="main container" hidden="hidden" id="main-install">
       <div class="row">
         <div class="col-xs-7">
-          <img style="height: 350px; margin: auto; display: block;" src="dist/Screen6.jpg">
+          <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen6.jpg">
         </div>
         <div class="col-xs-5">
           <h4 style="font-weight: bold;">Ready to install!</h4>
@@ -157,10 +157,10 @@
 
 <script>
     require('jquery')
-    window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.js');
+    window.$ = window.jQuery = require('../../node_modules/jquery/dist/jquery.js');
     var openurl = require("openurl");
-    var devices = require('./devices.js');
-    var systemImage = require("./system-image.js");
+    var devices = require('../devices.js');
+    var systemImage = require("../system-image.js");
     $("#main-wait-for-device").show();
 
     devices.getDeviceSelects((out) => {
@@ -253,7 +253,6 @@
     })
 
     require('bootstrap')
-    require('./renderer.js')
 </script>
 <script>
 var dots = window.setInterval( function() {

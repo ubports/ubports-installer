@@ -10,10 +10,10 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const cli = require("commander");
-const devices = require("./devices");
-const adb = require("./adb");
-const utils = require("./utils");
-const systemImage = require("./system-image");
+const devices = require("./src/devices");
+const adb = require("./src/adb");
+const utils = require("./src/utils");
+const systemImage = require("./src/system-image");
 const package = require("./package.json")
 
 const defaultChannel = "ubuntu-touch/stable";
