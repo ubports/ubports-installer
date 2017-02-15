@@ -10,8 +10,8 @@ confinement: devmode
 apps:
   ubports-installer:
     command: wrapper
-    plugs: [home, x11, unity7, gsettings, opengl, pulseaudio, network]
-  ubports-installer-cli:
+    plugs: [home, x11, unity7, network]
+  cli:
     command: wrapper-cli
 
 parts:
