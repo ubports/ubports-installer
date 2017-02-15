@@ -1,0 +1,6 @@
+#!/bin/sh
+
+sudo apt install gir1.2-glib-2.0 libglib2.0-dev libselinux-dev libssl-dev zlib1g-dev npm node-legacy
+git submodule update --init --recursive
+make -C android-tool
+npm install

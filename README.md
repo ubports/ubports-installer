@@ -2,13 +2,12 @@
 
 This is still under development expect some bugs
 
-### How to install
+### How to install from source
 
 ```
-sudo apt install gir1.2-glib-2.0 libglib2.0-dev libselinux-dev libssl-dev zlib1g-dev npm node-legacy
 git clone git@github.com:ubports/ubports-installer.git
 cd ubports-installer
-npm install
+./setup-dev.sh
 ```
 
 ### How to start GUI

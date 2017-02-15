@@ -14,6 +14,10 @@ var log = (l) => {
   }
 }
 
+var isSnap = () => {
+  return process.env.SNAP_NAME != null
+}
+
 var getSudo = () => {
   if(process.env.NO_GUI)
     return exec;
@@ -137,5 +141,6 @@ module.exports = {
     checkFiles: checkFiles,
     log: log,
     getSudo: getSudo,
-    ensureRoot: ensureRoot
+    ensureRoot: ensureRoot,
+    isSnap: isSnap
 }

@@ -1,6 +1,6 @@
 const path = require("path");
 const utils = require("./utils.js")
-const fastboot = __dirname+"/android-tools/fastboot";
+const fastboot = utils.isSnap() ? "fastboot" : __dirname+"/android-tools/fastboot";
 const sudo = utils.getSudo();
 
 const options = {name: 'Ubports installer'}
