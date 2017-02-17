@@ -19,9 +19,7 @@ var isSnap = () => {
 }
 
 var getSudo = () => {
-  if(process.env.NO_GUI)
-    return exec;
-  return sudo.exec;
+  return exec;
 }
 
 var ensureRoot = (m) => {

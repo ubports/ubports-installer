@@ -17,6 +17,7 @@ function createWindow () {
     protocol: 'file:',
     slashes: true
   }))
+  mainWindow.setMenu(null);
 
   if (process.env.DEBUG)
     mainWindow.webContents.openDevTools()

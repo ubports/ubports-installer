@@ -26,6 +26,18 @@ var getDevices = (callback) => {
     })
 }
 
+var postSuccess = (info, callback) => {
+    http.post({
+        url: ubportsApi + "api/installer/success",
+        json: true,
+        body: info
+    }, (err, res, bod) => {
+        if (!err && res.statusCode === 200)
+            callback(bod);
+        else callback(false);
+    })
+}
+
 var getDevice = (device, callback) => {
     http.get({
         url: ubportsApi + "api/device/" + device,
@@ -101,11 +113,14 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
     } else {
         bootstrapEvent.emit("bootstrap:flashing")
         bootstrapEvent.emit("user:write:status", "Flashing images")
-        fastboot.flash(images, (err) => {
-            if(err)
-              bootstrapEvent.emit("error", err)
-            else
-              bootstrapEvent.emit("bootstrap:done")
+        bootstrapEvent.emit("user:password");
+        bootstrapEvent.on("password", (p) => {
+          fastboot.flash(images, (err) => {
+              if(err)
+                bootstrapEvent.emit("error", err)
+              else
+                bootstrapEvent.emit("bootstrap:done")
+          }, p)
         })
     }
 }
@@ -195,6 +210,10 @@ var install = (device, channel, noUserEvents, noSystemImage) => {
         installEvent.on("system-image:done", () => {
             instructReboot("recovery", instructs.buttons, installEvent, () => {
               installEvent.emit("install:done");
+              postSuccess({
+                device: device,
+                channel: channel
+              })
             });
         })
         installEvent.on("bootstrap:done", () => {

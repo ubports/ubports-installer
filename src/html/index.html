@@ -153,6 +153,32 @@
       </div>
     </div>
 
+    <div class="modal fade" id="password" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Password needed</h4>
+          </div>
+          <div class="modal-body">
+            <p>Please type your password</p>
+            <form class="form-horizontal">
+              <div class="form-group">
+                <label class="col-xs-3 control-label">Password</label>
+                <div class="col-xs-9">
+                  <input type="password" id="password-input">
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-password" data-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </body>
 
 <script>
@@ -212,7 +238,21 @@
             $("#main-installing").hide();
             $("#main-reboot-up").hide();
             $("#main-reboot-down").hide();
-          })
+          });
+
+          installEvent.on("user:password", () => {
+            $('#password').modal('show');
+            $("#password-input").keypress((event) => {
+              if (event.which == '13') {
+                event.preventDefault();
+                installEvent.emit("password", $("#password-input").val());
+                $('#password').modal('hide');
+              }
+            });
+            $("#btn-password").click(() => {
+              installEvent.emit("password", $("#password-input").val());
+          });
+          });
 
           installEvent.on("user:reboot", (i) => {
             $("#main-installing").hide();

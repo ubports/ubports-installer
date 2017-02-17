@@ -8,7 +8,7 @@ const events = require("events")
 const fEvent = require('forward-emitter');
 const utils = require("./utils");
 
-const adb = utils.isSnap() ? "adb" : __dirname+"/android-tools/adb";
+const adb = utils.isSnap() ? "adb" : __dirname+"/../android-tools/adb";
 
 console.log(adb);
 
