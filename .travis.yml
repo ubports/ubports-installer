@@ -20,13 +20,14 @@ addons:
     - icnsutils
     - graphicsmagick
     - xz-utils
+    - snapcraft
 install:
 - nvm install 6
 - npm install electron-builder@next
 - npm install
 - npm prune
 script:
-- npm run dist:unix
+- npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
 branches:
   only:
   - master
