@@ -44,7 +44,7 @@ const setEvents = (downloadEvent) => {
 }
 
 function build() {
-    var linuxTargets = cli.appimageOnly ? "AppImage" : ["AppImage", "snap", "deb"];
+    var linuxTargets = cli.appimageOnly ? "AppImage" : ["AppImage", "deb"];
     builder.build({
             targets: builder.createTargets(targets),
             config: {
