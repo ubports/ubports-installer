@@ -1,12 +1,27 @@
+/*
+
+This file is a part of ubports-installer
+
+Author: Marius Gripsgard <mariogrip@ubports.com>
+
+*/
+
 const http = require("request");
 const progress = require("request-progress");
 const os = require("os");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 const checksum = require('checksum');
 const mkdirp = require('mkdirp');
+const tmp = require('tmp');
 const exec = require('child_process').exec;
 const sudo = require('electron-sudo');
+
+const platforms = {
+    "linux": "linux",
+    "darwin": "mac",
+    "win32": "win"
+}
 
 var log = (l) => {
   if(process.env.DEBUG){
@@ -14,12 +29,57 @@ var log = (l) => {
   }
 }
 
+var getUbportDir = () => {
+    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : process.env.HOME + '/.cache'), needRoot() ? "ubports/": "ubports-root/")
+}
+
+var die = (e) => {
+    console.log(e);
+    process.exit(1);
+}
+
+// WORKAROUND: since we are using asar packages to compress into one package we cannot use
+// child_process.exec since it spans a shell and shell wont be able to access the files
+// inside the asar package.
+var asarExec = (file, cmd, callback) => {
+    tmp.dir((err, tmpDir, cleanup) => {
+        if (err) callback(true);
+        fs.copy(file, path.join(tmpDir, path.basename(file)), (err) => {
+            fs.chmodSync(path.join(tmpDir, path.basename(file)), 0o755);
+            if(err) die(err);
+            cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
+            exec(cmd, (err, e,r) => {
+                fs.removeSync(tmpDir);
+                console.log(err,e,r);
+                callback(err);
+            })
+        })
+    })
+
+}
+
+var maybeEXE = (platform, tool) => {
+    if(platform === "win32") tool+=".exe";
+    return tool;
+}
+
+var getPlatformTools = () => {
+    var thisPlatform = os.platform();
+    if(!platforms[thisPlatform]) die("Unsuported platform");
+    var platfromToolsPath = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
+    return {
+        fastboot: path.join(platfromToolsPath, maybeEXE(thisPlatform, "fastboot")),
+        adb: path.join(platfromToolsPath, maybeEXE(thisPlatform, "adb"))
+    }
+}
+
 var isSnap = () => {
   return process.env.SNAP_NAME != null
 }
 
-var getSudo = () => {
-  return exec;
+var needRoot = () => {
+    if (os.platform === "win32") return false;
+    return !process.env.SUDO_UID
 }
 
 var ensureRoot = (m) => {
@@ -138,7 +198,10 @@ module.exports = {
     checksumFile: checksumFile,
     checkFiles: checkFiles,
     log: log,
-    getSudo: getSudo,
+    asarExec: asarExec,
     ensureRoot: ensureRoot,
-    isSnap: isSnap
+    isSnap: isSnap,
+    getPlatformTools: getPlatformTools,
+    getUbportDir: getUbportDir,
+    needRoot: needRoot
 }

@@ -40,3 +40,6 @@ snapcraft/stage
 snapcraft/parts
 snapcraft/prime
 *.snap
+
+platform-tools
+dist

@@ -1,14 +1,21 @@
 "use strict";
 
+/*
+
+Adb wrapper, part of ubports-installer
+
+Author: Marius Gripsgard <mariogrip@ubports.com>
+
+*/
+
 const sys = require('util')
-const exec = require('child_process').exec;
+const exec = require('child_process').execFile;
 const path = require("path");
 const fs = require("fs");
 const events = require("events")
 const fEvent = require('forward-emitter');
 const utils = require("./utils");
-
-const adb = utils.isSnap() ? "adb" : __dirname+"/../android-tools/adb";
+const adb = utils.getPlatformTools().adb
 
 console.log(adb);
 
@@ -26,7 +33,7 @@ var guessState = (callback) => {
 
 var getDeviceName = (callback, method) => {
   if (!method) method = "device";
-  exec(adb+" shell getprop ro.product."+method, (err, stdout, stderr) => {
+  exec(adb, ["shell", "getprop ro.product."+method], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout.replace(/\W/g, ""));
   });
@@ -35,7 +42,7 @@ var getDeviceName = (callback, method) => {
 var push = (file, dest, pushEvent) => {
   var done;
   var fileSize = fs.statSync(file)["size"];
-  exec(adb+" push "+file+" "+dest, (err, stdout, stderr) => {
+  exec(adb, ["push", file, dest], (err, stdout, stderr) => {
     done=true;
     if (err !== null) pushEvent.emit("adbpush:error", err)
     else pushEvent.emit("adbpush:end")
@@ -73,7 +80,8 @@ var pushMany = (files, pushManyEvent) => {
 }
 
 var shell = (cmd, callback) => {
-  exec(adb+" shell " + cmd, (err, stdout, stderr) => {
+  exec(adb, ["shell", cmd], (err, stdout, stderr) => {
+//    console.log(err);
     if (err !== null) callback(false);
     else callback(stdout);
   })
@@ -107,7 +115,7 @@ var hasAdbAccess = (callback) => {
 }
 
 var reboot = (state, callback) => {
-  exec(adb+" reboot " + state, (err, stdout, stderr) => {
+  exec(adb, ["reboot", state], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(state);
   })

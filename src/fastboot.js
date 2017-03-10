@@ -1,9 +1,14 @@
+/*
+
+Fastboot wrapper, part of ubports-installer
+
+Author: Marius Gripsgard <mariogrip@ubports.com>
+
+*/
+
 const path = require("path");
 const utils = require("./utils.js")
-const fastboot = utils.isSnap() ? process.env.SNAP+"/usr/bin/fastboot" : __dirname+"/../android-tools/fastboot";
-const sudo = utils.getSudo();
-
-const options = {name: 'Ubports installer'}
+const fastboot = utils.getPlatformTools().fastboot;
 
 var waitForDevice = (callback) => {
   callback()
@@ -14,12 +19,19 @@ var waitForDevice = (callback) => {
 var flash = (images, callback, password) => {
   var cmd="";
   images.forEach((image, l) => {
-    cmd+="echo "+password+" | sudo -S "+fastboot+" flash "+image.type+" "+image.path + "/" + path.basename(image.url);
+    if (utils.needRoot())
+        cmd+="echo "+password+" | sudo -S "
+    cmd+= fastboot+" flash "+image.type+" "+image.path + "/" + path.basename(image.url);
     if(l !== images.length - 1)
       cmd+=" && "
   });
-  sudo(cmd, options , (c) => {
-    callback(c)
+  utils.asarExec(fastboot, cmd , (c) => {
+      if (c){
+          if (c.message.includes("incorrect password"))
+            callback({password: true});
+      }else {
+          callback(c)
+      }
   });
 }
 

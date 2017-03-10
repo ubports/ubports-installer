@@ -1,5 +1,13 @@
 "use strict";
 
+/*
+
+This file is a part of ubports-installer
+
+Author: Marius Gripsgard <mariogrip@ubports.com>
+
+*/
+
 const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
@@ -13,7 +21,7 @@ function createWindow () {
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'src/html/index.html'),
+    pathname: path.join(__dirname, 'html/index.html'),
     protocol: 'file:',
     slashes: true
   }))

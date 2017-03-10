@@ -1,5 +1,13 @@
 "use strict";
 
+/*
+
+This file is a part of ubports-installer
+
+Author: Marius Gripsgard <mariogrip@ubports.com>
+
+*/
+
 const http = require("request");
 const adb = require("./adb");
 const fastboot = require("./fastboot");
@@ -13,7 +21,7 @@ const fEvent = require('forward-emitter');
 class event extends events {}
 
 const ubportsApi = "https://devices.ubports.com/";
-const downloadPath = os.homedir() + "/.cache/ubports/";
+const downloadPath = utils.getUbportDir();
 
 var getDevices = (callback) => {
     http.get({
@@ -108,20 +116,32 @@ var instructReboot = (state, button, rebootEvent, callback) => {
 var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
     //TODO check bootloader name/version/device
     //TODO OEM unlock
+
+    var flash = (p) => {
+        fastboot.flash(images, (err) => {
+            if(err)
+                if(err.password)
+                    bootstrapEvent.emit("user:password:wrong");
+                 else
+                    bootstrapEvent.emit("error", err)
+            else
+              bootstrapEvent.emit("bootstrap:done")
+        }, p)
+    }
+
     if (fastbootboot) {
         bootstrapEvent.emit("user:write:status", "Booting into recovery image...")
     } else {
         bootstrapEvent.emit("bootstrap:flashing")
         bootstrapEvent.emit("user:write:status", "Flashing images")
-        bootstrapEvent.emit("user:password");
-        bootstrapEvent.on("password", (p) => {
-          fastboot.flash(images, (err) => {
-              if(err)
-                bootstrapEvent.emit("error", err)
-              else
-                bootstrapEvent.emit("bootstrap:done")
-          }, p)
-        })
+        if (!utils.needRoot()) {
+            flash(false);
+        }else {
+            bootstrapEvent.emit("user:password");
+            bootstrapEvent.on("password", (p) => {
+                flash(p);
+            })
+        }
     }
 }
 

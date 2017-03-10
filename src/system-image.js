@@ -1,5 +1,13 @@
 "use strict";
 
+/*
+
+This file is a part of ubports-installer
+
+Author: Marius Gripsgard <mariogrip@ubports.com>
+
+*/
+
 const http = require("request");
 const progress = require("request-progress");
 const os = require("os");
@@ -19,7 +27,7 @@ load_keyring image-signing.tar.xz image-signing.tar.xz.asc\n\
 mount system"
 const endCommands = "\nunmount system\n"
 const baseUrl = "https://system-image.ubports.com/";
-const downloadPath = os.homedir() + "/.cache/ubports/";
+const downloadPath = utils.getUbportDir();
 const ubuntuCommandFile = "ubuntu_command";
 const ubuntuPushDir = "/cache/recovery/"
 const gpg = ["image-signing.tar.xz", "image-signing.tar.xz.asc", "image-master.tar.xz", "image-master.tar.xz.asc"]
