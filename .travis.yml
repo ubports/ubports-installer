@@ -20,7 +20,6 @@ addons:
     - icnsutils
     - graphicsmagick
     - xz-utils
-    - snapcraft
 install:
 - nvm install 6
 - npm install electron-builder@next
