@@ -27,9 +27,6 @@ install:
 - npm prune
 script:
 - npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
-branches:
-  only:
-  - master
 deploy:
   provider: releases
   api_key:
@@ -41,3 +38,4 @@ deploy:
   overwrite: true
   on:
     tags: true
+    all_branches: true
