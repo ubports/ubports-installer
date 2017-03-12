@@ -56,7 +56,7 @@ var flash = (images, callback, password) => {
     images.forEach((image, l) => {
         if (utils.needRoot())
             cmd += "echo " + password + " | sudo -S "
-        cmd += fastboot + " flash " + image.type + " " + image.path + "/" + path.basename(image.url);
+        cmd += fastboot + " flash " + image.type + " \"" + image.path + "\"/" + path.basename(image.url);
         if (l !== images.length - 1)
             cmd += " && "
     });
