@@ -18,3 +18,16 @@ shallow_clone: true
 clone_depth: 1
 test_script:
   - npm run dist:win
+artifacts:
+  - path: dist\ubports-installer*.exe
+    name: Releases
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: kuVj7rmTfk7fuOFpF9H/G7Toqj3A27+5h2PjbYEGkuX3U4X34O/rYGUR52kvF+im
+  artifact: /ubports-installer.*\.exe/
+  draft: false
+  prerelease: true
+  on:
+    branch: master
+    appveyor_repo_tag: true
