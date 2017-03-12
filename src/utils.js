@@ -30,7 +30,7 @@ var log = (l) => {
 }
 
 var getUbportDir = () => {
-    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : process.env.HOME + '/.cache'), needRoot() ? "ubports/": "ubports-root/")
+    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.cache'), needRoot() ? "ubports/": "ubports-root/")
 }
 
 var die = (e) => {
@@ -38,21 +38,46 @@ var die = (e) => {
     process.exit(1);
 }
 
+var checkPassword = (password, callback) => {
+    if (!needRoot()) {
+        callback(true);
+        return;
+    }
+    exec("echo " + password + " | sudo -S echo correct", (err, output) => {
+        if(err){
+            if (err.message.includes("incorrect password"))
+                callback(false);
+            else
+                throw "Unknown Error"
+        }else {
+            if (output.includes("correct"))
+                callback(true);
+            else
+             throw "Unknown Error";
+        }
+    });
+}
+
 // WORKAROUND: since we are using asar packages to compress into one package we cannot use
 // child_process.exec since it spans a shell and shell wont be able to access the files
 // inside the asar package.
-var asarExec = (file, cmd, callback) => {
+var asarExec = (file, callback) => {
     tmp.dir((err, tmpDir, cleanup) => {
         if (err) callback(true);
         fs.copy(file, path.join(tmpDir, path.basename(file)), (err) => {
             fs.chmodSync(path.join(tmpDir, path.basename(file)), 0o755);
             if(err) die(err);
-            cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
-            exec(cmd, (err, e,r) => {
-                fs.removeSync(tmpDir);
-                console.log(err,e,r);
-                callback(err);
-            })
+            callback({
+                exec: (cmd, cb) => {
+                    cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
+                    exec(cmd, (err, e,r) => {
+                        cb(err,e,r);
+                    })
+                },
+                done: () => {
+                    fs.removeSync(tmpDir);
+                }
+            });
         })
     })
 
@@ -148,6 +173,7 @@ urls format:
 */
 var downloadFiles = (urls_, downloadEvent) => {
     var urls;
+    var totalFiles;
     downloadEvent.emit("download:startCheck");
     var dl = () => {
         if (!fs.existsSync(urls[0].path)) {
@@ -170,7 +196,7 @@ var downloadFiles = (urls_, downloadEvent) => {
                                     downloadEvent.emit("download:done");
                                 } else {
                                     urls.shift();
-                                    downloadEvent.emit("download:next", urls.length);
+                                    downloadEvent.emit("download:next", urls.length, totalFiles);
                                     dl()
                                 }
                             } else {
@@ -186,7 +212,8 @@ var downloadFiles = (urls_, downloadEvent) => {
             downloadEvent.emit("download:done");
         } else {
             urls = ret;
-            downloadEvent.emit("download:start", urls.length);
+            totalFiles = urls.length;
+            downloadEvent.emit("download:start", urls.length, totalFiles);
             dl();
         }
     })
@@ -203,5 +230,6 @@ module.exports = {
     isSnap: isSnap,
     getPlatformTools: getPlatformTools,
     getUbportDir: getUbportDir,
-    needRoot: needRoot
+    needRoot: needRoot,
+    checkPassword: checkPassword
 }

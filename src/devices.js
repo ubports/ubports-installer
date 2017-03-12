@@ -23,6 +23,8 @@ class event extends events {}
 const ubportsApi = "https://devices.ubports.com/";
 const downloadPath = utils.getUbportDir();
 
+var password;
+
 var getDevices = (callback) => {
     http.get({
         url: ubportsApi + "api/installer/devices",
@@ -97,11 +99,17 @@ var instructReboot = (state, button, rebootEvent, callback) => {
             });
         }
         if (state === "bootloader") {
-            fastboot.waitForDevice(() => {
-                rebootEvent.emit("reboot:done");
-                rebootEvent.emit("state:bootloader");
-                callback();
-            })
+            requestPassword(rebootEvent, (pass) => {
+                fastboot.waitForDevice(pass, (err) => {
+                    if (err){
+                        rebootEvent.emit("Error", err);
+                        return;
+                    }
+                    rebootEvent.emit("reboot:done");
+                    rebootEvent.emit("state:bootloader");
+                    callback();
+                })
+            });
         } else {
             adb.waitForDevice(() => {
                 // We expect the device state to mach installState now
@@ -111,6 +119,25 @@ var instructReboot = (state, button, rebootEvent, callback) => {
             });
         }
     })
+}
+
+var requestPassword = (bootstrapEvent, callback) => {
+    if(password){
+        callback(password);
+        return;
+    }
+    bootstrapEvent.emit("user:password");
+    bootstrapEvent.once("password", (p) => {
+        utils.checkPassword(p, (correct) => {
+            if(correct){
+                password=p;
+                callback(p);
+            }else {
+                bootstrapEvent.emit("user:password:wrong");
+                requestPassword(bootstrapEvent, callback);
+            }
+        })
+    });
 }
 
 var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
@@ -137,10 +164,9 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
         if (!utils.needRoot()) {
             flash(false);
         }else {
-            bootstrapEvent.emit("user:password");
-            bootstrapEvent.on("password", (p) => {
+            requestPassword(bootstrapEvent, (p) => {
                 flash(p);
-            })
+            });
         }
     }
 }
@@ -177,13 +203,14 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("user:write:status", "Checking Ubuntu touch files");
     utils.log("Download startCheck");
   });
-  downloadEvent.on("download:start", (r) => {
-    console.log("Starting download of "+r+" files");
+  downloadEvent.on("download:start", (i, t) => {
+    console.log("Starting download of "+i+" files");
     downloadEvent.emit("user:write:status", "Downloading Ubuntu touch");
+    downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
-  downloadEvent.on("download:next", (i) => {
+  downloadEvent.on("download:next", (i, t) => {
     console.log(`Downloading next file, ${i} left`);
-    downloadEvent.emit("user:write:next", "Downloading", i);
+    downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
   downloadEvent.on("download:progress", (i) => {
     console.log(`Downloading file, ${Math.ceil(i.percent*100)}% left`);
