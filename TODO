@@ -1,0 +1,9 @@
+TODO:
+
+- Add tests
+- Replace dir+dir with path.join()
+- Turn modules into class modules
+- Better error handeling for events
+- Use throw for errors
+- More checks around the binary wrappers (fastboot, adb)
+- Create node-gyp modules with fastboot and abd
