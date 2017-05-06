@@ -30,9 +30,9 @@ var getDeviceName = (callback, method) => {
 var push = (file, dest, pushEvent) => {
   var done;
   var fileSize = fs.statSync(file)["size"];
-  exec(adb, ["push", file, dest], (err, stdout, stderr) => {
+  cp.execFile(adb, ["push", file, dest], {maxBuffer: 2000*1024}, (err, stdout, stderr) => {
     done=true;
-    if (err !== null) pushEvent.emit("adbpush:error", err)
+    if (err !== null) pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
     else pushEvent.emit("adbpush:end")
   });
   var progress = () => {
