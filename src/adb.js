@@ -9,7 +9,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const sys = require('util')
-const exec = require('child_process').execFile;
+const cp = require('child_process');
 const path = require("path");
 const fs = require("fs");
 const events = require("events")
@@ -17,23 +17,11 @@ const fEvent = require('forward-emitter');
 const utils = require("./utils");
 const adb = utils.getPlatformTools().adb
 
-console.log(adb);
-
 class event extends events {}
-
-var guessState = (callback) => {
-  // Check for Ubuntu
-
-  // Check for Android
-
-  // Check for recovery
-
-  // Check for bootloader
-}
 
 var getDeviceName = (callback, method) => {
   if (!method) method = "device";
-  exec(adb, ["shell", "getprop ro.product."+method], (err, stdout, stderr) => {
+  cp.execFile(adb, ["shell", "getprop ro.product."+method], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout.replace(/\W/g, ""));
   });
@@ -80,8 +68,7 @@ var pushMany = (files, pushManyEvent) => {
 }
 
 var shell = (cmd, callback) => {
-  exec(adb, ["shell", cmd], (err, stdout, stderr) => {
-//    console.log(err);
+  cp.execFile(adb, ["shell", cmd], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout);
   })
@@ -115,7 +102,7 @@ var hasAdbAccess = (callback) => {
 }
 
 var reboot = (state, callback) => {
-  exec(adb, ["reboot", state], (err, stdout, stderr) => {
+  cp.execFile(adb, ["reboot", state], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(state);
   })
@@ -128,8 +115,5 @@ module.exports = {
   push: push,
   pushMany: pushMany,
   hasAdbAccess: hasAdbAccess,
-  reboot: reboot,
-  getDeviceState: (callback) => {
-
-  }
+  reboot: reboot
 }
