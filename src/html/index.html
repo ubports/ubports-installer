@@ -219,7 +219,7 @@
           $("#main-installing").show();
           $("#progress").show();
           const installEvent= devices.install(output.device.device,
-                        "ubuntu-touch/"+$("#device-channels").find(":selected").text())
+                        $("#device-channels").find(":selected").val())
 
           installEvent.on("bootstrap:flashing", () => {
             $("#main-installing").show();
