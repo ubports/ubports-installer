@@ -173,19 +173,19 @@ var downloadLatestVersion = (device, channel, ownEvent) => {
         thisEvent = ownEvent;
     getDeviceIndex(device, channel, (index) => {
         if (!index) {
-            thisEvent.emit("error", "could not find device")
+            thisEvent.emit("error", "could not find device: "+device+" on channel: "+channel+" index: "+index)
             return;
         }
         var latest = getLatestVesion(index);
         if (!latest) {
-            thisEvent.emit("error", "could not find latest version")
+            thisEvent.emit("error", "could not find latest version; "+"device: "+device+" channel: "+channel+" index: "+index)
             return;
         }
         var urls = getFilesUrlsArray(latest)
         urls.push.apply(urls, getGgpUrlsArray());
         var files = getFilePushArray(urls);
         utils.downloadFiles(urls, thisEvent);
-        utils.log(urls)
+        utils.log.debug(urls)
         thisEvent.once("download:done", () => {
             files.push({
                 src: createInstallCommandsFile(createInstallCommands(latest.files), device),

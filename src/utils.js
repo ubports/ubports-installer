@@ -16,6 +16,7 @@ const mkdirp = require('mkdirp');
 const tmp = require('tmp');
 const exec = require('child_process').exec;
 const sudo = require('electron-sudo');
+const winston = require('winston');
 
 const platforms = {
     "linux": "linux",
@@ -23,18 +24,22 @@ const platforms = {
     "win32": "win"
 }
 
-var log = (l) => {
-  if(process.env.DEBUG){
-    console.log(l);
-  }
+var log = {
+  error: (l) => {winston.log("error", l)},
+  warn:  (l) => {winston.log("warn", l)},
+  info:  (l) => {winston.log("info", l)},
+  debug: (l) => {winston.log("debug", l)}
 }
 
 var getUbportDir = () => {
-    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.cache'), needRoot() ? "ubports/": "ubports-root/")
+    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.cache'), "ubports/")
 }
 
+winston.add(winston.transports.File, { filename: getUbportDir()+'ubports-installer.log' });
+winston.level = 'debug';
+
 var die = (e) => {
-    console.log(e);
+    log.error(e);
     process.exit(1);
 }
 
@@ -110,7 +115,7 @@ var needRoot = () => {
 var ensureRoot = (m) => {
   if(process.env.SUDO_UID)
     return;
-  console.log(m)
+  log.error(m)
   process.exit(1);
 }
 
@@ -127,16 +132,16 @@ var checkFiles = (urls, callback) => {
     var check = () => {
         fs.access(urls[0].path + "/" + path.basename(urls[0].url), (err) => {
             if (err) {
-                log("Not existing " + urls[0].path + "/" + path.basename(urls[0].url))
+                log.error("Not existing " + urls[0].path + "/" + path.basename(urls[0].url))
                 urls_.push(urls[0]);
                 next();
             } else {
                 checksumFile(urls[0], (check) => {
                     if (check) {
-                        log("Exists " + urls[0].path + "/" + path.basename(urls[0].url))
+                        log.info("Exists " + urls[0].path + "/" + path.basename(urls[0].url))
                         next()
                     } else {
-                        log("Checksum no match " + urls[0].path + "/" + path.basename(urls[0].url))
+                        log.info("Checksum no match " + urls[0].path + "/" + path.basename(urls[0].url))
                         urls_.push(urls[0]);
                         next()
                     }
@@ -156,7 +161,7 @@ var checksumFile = (file, callback) => {
     checksum.file(file.path + "/" + path.basename(file.url), {
         algorithm: "sha256"
     }, function(err, sum) {
-        log("checked: " +path.basename(file.url), sum === file.checksum)
+        log.info("checked: " +path.basename(file.url), sum === file.checksum)
         callback(sum === file.checksum, sum)
     })
 }

@@ -188,54 +188,54 @@ var addPathToImages = (instructs, device) => {
 
 var setEvents = (downloadEvent) => {
   downloadEvent.on("download:done", () => {
-    console.log("Download complete");
+    utils.log.info("Download complete");
   });
   downloadEvent.on("download:error", (r) => {
-    console.log("Download error "+r);
+    utils.log.error("Devices: Download error "+r);
   });
   downloadEvent.on("error", (r) => {
-    console.log("Error: "+r);
+    utils.log.error("Devices: Error: "+r);
   });
   downloadEvent.on("download:checking", () => {
-    console.log("Download checking file");
+    utils.log.info("Download checking file");
   });
   downloadEvent.on("download:startCheck", () => {
     downloadEvent.emit("user:write:status", "Checking Ubuntu touch files");
-    utils.log("Download startCheck");
+    utils.log.info("Download startCheck");
   });
   downloadEvent.on("download:start", (i, t) => {
-    console.log("Starting download of "+i+" files");
+    utils.log.info("Starting download of "+i+" files");
     downloadEvent.emit("user:write:status", "Downloading Ubuntu touch");
     downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
   downloadEvent.on("download:next", (i, t) => {
-    console.log(`Downloading next file, ${i} left`);
+    utils.log.info(`Downloading next file, ${i} left`);
     downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
   downloadEvent.on("download:progress", (i) => {
-    console.log(`Downloading file, ${Math.ceil(i.percent*100)}% left`);
+    utils.log.info(`Downloading file, ${Math.ceil(i.percent*100)}% left`);
     downloadEvent.emit("user:write:progress", Math.ceil(i.percent*100));
   });
   downloadEvent.on("adbpush:done", () => {
-    console.log("Done pusing files");
-    console.log("Rebooting to recovery to flash");
+    utils.log.info("Done pusing files");
+    utils.log.info("Rebooting to recovery to flash");
     downloadEvent.emit("system-image:done");
     downloadEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
     downloadEvent.emit("user:write:done");
   });
   downloadEvent.on("adbpush:error", (e) => {
-    console.log("Adb push error", e)
+    utils.log.error("Devices: Adb push error: "+ e)
   });
   downloadEvent.on("adbpush:progress", (r) => {
-    console.log("Adb push, "+r+"% left");
+    utils.log.info("Adb push, "+r+"% left");
     downloadEvent.emit("user:write:progress", r);
   });
   downloadEvent.on("adbpush:next", (r) => {
-    console.log("Start pusing next file, " + r + " files left")
+    utils.log.info("Start pusing next file, " + r + " files left")
     downloadEvent.emit("user:write:next", "Pushing", r);
   });
   downloadEvent.on("adbpush:start", (r) => {
-    console.log("Start pusing "+r+" files")
+    utils.log.info("Start pusing "+r+" files")
     downloadEvent.emit("user:write:status", "Pushing files to device");
     downloadEvent.emit("user:write:start", "Pushing", r);
   });
@@ -264,7 +264,7 @@ var install = (device, channel, noUserEvents, noSystemImage) => {
             });
         })
         installEvent.on("bootstrap:done", () => {
-            utils.log("bootstrap done");
+            utils.log.info("bootstrap done");
             instructReboot("recovery", instructs.buttons, installEvent, () => {
                 installEvent.emit("system-image:start")
             });
@@ -273,7 +273,7 @@ var install = (device, channel, noUserEvents, noSystemImage) => {
             // We need to be in bootloader
             instructReboot("bootloader", instructs.buttons, installEvent, () => {
                 installEvent.once("download:done", () => {
-                  utils.log("done downloading(once listener)");
+                  utils.log.info("done downloading(once listener)");
                   instructBootstrap(getInstallSettings(instructs, "fastbootboot"), addPathToImages(instructs, device), installEvent)
                 })
                 installEvent.emit("images:startDownload")
@@ -301,9 +301,9 @@ var getChannelSelects = (device, callback) => {
                   if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
                       return;
                   if (channel === ret["system_server"]["selected"])
-                      channelsAppend.push("<option selected>" + _channel + "</option>");
+                      channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
                   else
-                      channelsAppend.push("<option>" + _channel + "</option>");
+                      channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
               });
               callback(channelsAppend.join(''));
           })

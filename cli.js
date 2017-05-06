@@ -39,7 +39,7 @@ const setEvents = (downloadEvent) => {
         console.log("Download checking file");
     });
     downloadEvent.on("download:startCheck", () => {
-        utils.log("Download startCheck");
+        utils.log.info("Download startCheck");
     });
     downloadEvent.on("download:start", (r) => {
         console.log("Starting download of " + r + " files");

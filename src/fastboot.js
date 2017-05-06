@@ -29,6 +29,7 @@ var waitForDevice = (password, callback) => {
                         asarExec.done();
                     }else {
                         // Unknown error;
+                        utils.log.error("Fastboot: Unknown error: 001");
                         callback(true);
                     }
                     return;
