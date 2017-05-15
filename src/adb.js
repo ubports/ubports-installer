@@ -15,16 +15,49 @@ const fs = require("fs");
 const events = require("events")
 const fEvent = require('forward-emitter');
 const utils = require("./utils");
+const ini = require('ini');
 const adb = utils.getPlatformTools().adb
 
 class event extends events {}
 
+var getDeviceNameFromPropFile = (callback) => {
+  shell("cat default.prop", (output) => {
+    output=output.split("\n");
+    var ret;
+    output.forEach((prop) => {
+      if (prop.includes("ro.product.device") && prop !== undefined && !ret){
+        ret = prop.split("=")[1];
+      }
+    })
+    callback(ret.replace(/\W/g, ""));
+  })
+}
+
 var getDeviceName = (callback, method) => {
   if (!method) method = "device";
   cp.execFile(adb, ["shell", "getprop ro.product."+method], (err, stdout, stderr) => {
-    if (err !== null) callback(false);
-    else callback(stdout.replace(/\W/g, ""));
+    if (stdout.includes("getprop: not found")){
+      getDeviceNameFromPropFile(callback);
+      return;
+    }
+    if (err !== null) {
+      callback(false);
+      return;
+    }
+    callback(stdout.replace(/\W/g, ""));
   });
+}
+
+var isUbuntuDevice = () => {
+  shell("cat /etc/system-image/channel.ini", (output) => {
+    return output ? true : false;
+  })
+}
+
+var readUbuntuChannelINI = () => {
+  shell("cat /etc/system-image/channel.ini", (output) => {
+    return ini.parse(output);
+  })
 }
 
 var push = (file, dest, pushEvent) => {
@@ -32,7 +65,10 @@ var push = (file, dest, pushEvent) => {
   var fileSize = fs.statSync(file)["size"];
   cp.execFile(adb, ["push", file, dest], {maxBuffer: 2000*1024}, (err, stdout, stderr) => {
     done=true;
-    if (err !== null) pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
+    if (err !== null) {
+      pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
+      console.log(stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
+    }
     else pushEvent.emit("adbpush:end")
   });
   var progress = () => {
@@ -115,5 +151,8 @@ module.exports = {
   push: push,
   pushMany: pushMany,
   hasAdbAccess: hasAdbAccess,
-  reboot: reboot
+  reboot: reboot,
+  getDeviceNameFromPropFile: getDeviceNameFromPropFile,
+  isUbuntuDevice: isUbuntuDevice,
+  readUbuntuChannelINI: readUbuntuChannelINI
 }

@@ -17,6 +17,7 @@ const os = require("os");
 const path = require("path");
 const events = require("events")
 const fEvent = require('forward-emitter');
+//const wildcard = require("wildcard");
 
 class event extends events {}
 
@@ -71,6 +72,7 @@ var getInstallInstructs = (device, callback) => {
 }
 
 var getNotWorking = (ww) => {
+    if (!ww) return false;
     var notWorking = [];
     var whatsWorking = JSON.parse(ww);
     for (var i in whatsWorking) {
@@ -83,6 +85,7 @@ var getNotWorking = (ww) => {
 }
 
 var formatNotWorking = (nw) => {
+    if (!nw) return false;
     return nw.join(", ").replace("/\,(?=[^,]*$)", " and");
 }
 
@@ -100,9 +103,9 @@ var instructReboot = (state, button, rebootEvent, callback) => {
         }
         if (state === "bootloader") {
             requestPassword(rebootEvent, (pass) => {
-                fastboot.waitForDevice(pass, (err) => {
+                fastboot.waitForDevice(pass, (err, errM) => {
                     if (err){
-                        rebootEvent.emit("Error", err);
+                        rebootEvent.emit("Error", errM);
                         return;
                     }
                     rebootEvent.emit("reboot:done");
@@ -143,31 +146,49 @@ var requestPassword = (bootstrapEvent, callback) => {
 var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
     //TODO check bootloader name/version/device
     //TODO OEM unlock
-
     var flash = (p) => {
-        fastboot.flash(images, (err) => {
+        fastboot.flash(images, (err, errM) => {
             if(err)
                 if(err.password)
                     bootstrapEvent.emit("user:password:wrong");
                  else
-                    bootstrapEvent.emit("error", err)
-            else
-              bootstrapEvent.emit("bootstrap:done")
+                    bootstrapEvent.emit("error", errM)
+            else {
+              if (fastbootboot) {
+                  utils.log.info("Booting into recovery image...");
+                  // find recovery image
+                  var recoveryImg;
+                  images.forEach((image) => {
+                    if (image.type === "recovery")
+                      recoveryImg = image;
+                  });
+                  // If we can't find it, report error!
+                  if (!recoveryImg){
+                    bootstrapEvent.emit("error", "Cant find recoveryImg to boot: "+images);
+                  }else {
+                    fastboot.boot(recoveryImg, p, (err, errM) => {
+                      if (err) {
+                        if(err.password)
+                            bootstrapEvent.emit("user:password:wrong");
+                         else
+                            bootstrapEvent.emit("error", errM)
+                      }else
+                        bootstrapEvent.emit("bootstrap:done", fastbootboot);
+                    })
+                  }
+              } else
+                  bootstrapEvent.emit("bootstrap:done", fastbootboot)
+            }
         }, p)
     }
-
-    if (fastbootboot) {
-        bootstrapEvent.emit("user:write:status", "Booting into recovery image...")
-    } else {
-        bootstrapEvent.emit("bootstrap:flashing")
-        bootstrapEvent.emit("user:write:status", "Flashing images")
-        if (!utils.needRoot()) {
-            flash(false);
-        }else {
-            requestPassword(bootstrapEvent, (p) => {
-                flash(p);
-            });
-        }
+    bootstrapEvent.emit("bootstrap:flashing")
+    bootstrapEvent.emit("user:write:status", "Flashing images")
+    if (!utils.needRoot()) {
+        flash(false);
+    }else {
+        requestPassword(bootstrapEvent, (p) => {
+            flash(p);
+        });
     }
 }
 
@@ -194,6 +215,7 @@ var setEvents = (downloadEvent) => {
     utils.log.error("Devices: Download error "+r);
   });
   downloadEvent.on("error", (r) => {
+    downloadEvent.emit("user:error", r);
     utils.log.error("Devices: Error: "+r);
   });
   downloadEvent.on("download:checking", () => {
@@ -260,14 +282,21 @@ var install = (device, channel, noUserEvents, noSystemImage) => {
               postSuccess({
                 device: device,
                 channel: channel
-              })
+              }, () => {});
             });
         })
-        installEvent.on("bootstrap:done", () => {
+        installEvent.on("bootstrap:done", (fastbootboot) => {
             utils.log.info("bootstrap done");
-            instructReboot("recovery", instructs.buttons, installEvent, () => {
-                installEvent.emit("system-image:start")
-            });
+            if (!fastbootboot){
+              instructReboot("recovery", instructs.buttons, installEvent, () => {
+                  installEvent.emit("system-image:start")
+              });
+            } else {
+              installEvent.emit("user:write:status", "Waiting for device to enter recovery mode");
+              adb.waitForDevice(() => {
+                installEvent.emit("system-image:start");
+              })
+            }
         })
         if (getInstallSettings(instructs, "bootstrap")) {
             // We need to be in bootloader
@@ -296,6 +325,7 @@ var getChannelSelects = (device, callback) => {
         setTimeout(function () {
           getInstallInstructs(device, (ret) => {
               systemImage.getDeviceChannes(device, channels).forEach((channel) => {
+                  var _channel = channel.replace("ubports-touch/", "");
                   var _channel = channel.replace("ubuntu-touch/", "");
                   // Ignore blacklisted channels
                   if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
@@ -317,6 +347,10 @@ module.exports = {
         var waitEvent = adb.waitForDevice(() => {
             adb.getDeviceName((name) => {
                 getDevice(name, (ret) => {
+                    if (!ret){
+                      callback(false, name);
+                      return;
+                    }
                     getChannelSelects(ret.device.device, (channels) => {
                         callback(ret, device, channels);
                     })

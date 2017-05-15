@@ -29,8 +29,8 @@ var waitForDevice = (password, callback) => {
                         asarExec.done();
                     }else {
                         // Unknown error;
-                        utils.log.error("Fastboot: Unknown error: 001");
-                        callback(true);
+                        utils.log.error("Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+                        callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
                     }
                     return;
                 } else {
@@ -57,7 +57,7 @@ var flash = (images, callback, password) => {
     images.forEach((image, l) => {
         if (utils.needRoot())
             cmd += "echo " + password + " | sudo -S "
-        cmd += fastboot + " flash " + image.type + " \"" + image.path + "\"/" + path.basename(image.url);
+        cmd += fastboot + " flash " + image.type + " \"" + path.join(image.path, path.basename(image.url)) + "\"";
         if (l !== images.length - 1)
             cmd += " && "
     });
@@ -68,6 +68,7 @@ var flash = (images, callback, password) => {
                     callback({
                         password: true
                     });
+                  else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
             } else {
                 callback(c, r, e)
             }
@@ -76,7 +77,29 @@ var flash = (images, callback, password) => {
     });
 }
 
+var boot = (image, password, callback) => {
+  var cmd="";
+  if (utils.needRoot())
+      cmd += "echo " + password + " | sudo -S "
+  cmd += fastboot + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
+  utils.asarExec(fastboot, (asarExec) => {
+      asarExec.exec(cmd, (c, r, e) => {
+          if (c) {
+              if (c.message.includes("incorrect password"))
+                  callback({
+                      password: true
+                  });
+              else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+          } else {
+              callback(c, r, e)
+          }
+          asarExec.done();
+      })
+  });
+}
+
 module.exports = {
     flash: flash,
-    waitForDevice: waitForDevice
+    waitForDevice: waitForDevice,
+    boot: boot
 }

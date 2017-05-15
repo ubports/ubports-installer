@@ -165,7 +165,7 @@ var getFilePushArray = (urls) => {
     return files;
 }
 
-var downloadLatestVersion = (device, channel, ownEvent) => {
+var downloadLatestVersion = (device, channel, ownEvent, callbackOn) => {
     var thisEvent;
     if (!ownEvent)
         thisEvent = new event();
@@ -173,6 +173,7 @@ var downloadLatestVersion = (device, channel, ownEvent) => {
         thisEvent = ownEvent;
     getDeviceIndex(device, channel, (index) => {
         if (!index) {
+            console.log("error!!")
             thisEvent.emit("error", "could not find device: "+device+" on channel: "+channel+" index: "+index)
             return;
         }
@@ -185,7 +186,7 @@ var downloadLatestVersion = (device, channel, ownEvent) => {
         urls.push.apply(urls, getGgpUrlsArray());
         var files = getFilePushArray(urls);
         utils.downloadFiles(urls, thisEvent);
-        utils.log.debug(urls)
+        utils.log.debug(urls);
         thisEvent.once("download:done", () => {
             files.push({
                 src: createInstallCommandsFile(createInstallCommands(latest.files), device),

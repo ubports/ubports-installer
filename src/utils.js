@@ -17,6 +17,8 @@ const tmp = require('tmp');
 const exec = require('child_process').exec;
 const sudo = require('electron-sudo');
 const winston = require('winston');
+//const decompress = require('decompress');
+//const decompressTarxz = require('decompress-tarxz');
 
 const platforms = {
     "linux": "linux",
@@ -151,6 +153,20 @@ var checkFiles = (urls, callback) => {
     }
     check();
 }
+//
+// var decompressTarxzFileOnlyImages = (file, outdir, callback) => {
+//   decompress(file, outdir, {
+//     plugins: [
+//         decompressTarxz()
+//    ],
+//     filter: (f) => {
+//       return file.path.includes("boot.img") || file.path.includes("recovery.img");
+//     },
+//     strip: 1
+//   }).then(() => {
+//       callback();
+//   });
+// }
 
 var checksumFile = (file, callback) => {
     if (!file.checksum) {
@@ -176,7 +192,7 @@ urls format:
   }
 ]
 */
-var downloadFiles = (urls_, downloadEvent) => {
+var downloadFiles = (urls_, downloadEvent, callbackOn) => {
     var urls;
     var totalFiles;
     downloadEvent.emit("download:startCheck");
@@ -196,6 +212,10 @@ var downloadFiles = (urls_, downloadEvent) => {
                     urls[0].path + "/" + path.basename(urls[0].url), () => {
                         downloadEvent.emit("download:checking");
                         checksumFile(urls[0], (check) => {
+                            if (Array.isArray(callbackOn)){
+                              if (callbackOn.indexOf(urls[0].url) > -1)
+                                downloadEvent.emit("download:callbackOn", urls[0].url);
+                            }
                             if (check) {
                                 if (urls.length <= 1) {
                                     downloadEvent.emit("download:done");
@@ -237,4 +257,5 @@ module.exports = {
     getUbportDir: getUbportDir,
     needRoot: needRoot,
     checkPassword: checkPassword
+//    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }
