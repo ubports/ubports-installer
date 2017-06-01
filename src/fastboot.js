@@ -10,7 +10,13 @@ const path = require("path");
 const utils = require("./utils.js")
 const fastboot = utils.getPlatformTools().fastboot;
 
+/*
+
+args; string, function
+
+*/
 var waitForDevice = (password, callback) => {
+    utils.log.debug("fastboot: wait for device");
     var cmd = "";
     if (utils.needRoot())
         cmd += "echo " + password + " | sudo -S "
@@ -52,7 +58,22 @@ var waitForDevice = (password, callback) => {
 
 // Due to limitations with sudo we combind the sudo.exec to one call to prevent
 // seperate password prompts
+/*
+
+args; array(object), string, function
+
+image object format
+[
+ {
+  path: string, | path of file
+  url: string, | url to extract filename
+  type: string | partition to flash
+ }
+]
+
+*/
 var flash = (images, callback, password) => {
+    utils.log.debug("fastboot: flash; " + images);
     var cmd = "";
     images.forEach((image, l) => {
         if (utils.needRoot())
@@ -77,6 +98,19 @@ var flash = (images, callback, password) => {
     });
 }
 
+/*
+
+args; array(object), string, function
+
+image object format
+[
+ {
+  path: string, | path of file
+  url: string | url to extract filename
+ }
+]
+
+*/
 var boot = (image, password, callback) => {
   var cmd="";
   if (utils.needRoot())
@@ -97,9 +131,39 @@ var boot = (image, password, callback) => {
       })
   });
 }
+/*
+
+args; array, string, function
+
+*/
+var format = (partitions, password, callback) => {
+  var cmd="";
+  partitions.forEach((partition, l) => {
+      if (utils.needRoot())
+          cmd += "echo " + password + " | sudo -S "
+      cmd += fastboot + " format " + partition;
+      if (l !== partitions.length - 1)
+          cmd += " && "
+  });
+  utils.asarExec(fastboot, (asarExec) => {
+      asarExec.exec(cmd, (c, r, e) => {
+          if (c) {
+              if (c.message.includes("incorrect password"))
+                  callback({
+                      password: true
+                  });
+              else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+          } else {
+              callback(c, r, e)
+          }
+          asarExec.done();
+      })
+  });
+}
 
 module.exports = {
     flash: flash,
     waitForDevice: waitForDevice,
-    boot: boot
+    boot: boot,
+    format: format
 }

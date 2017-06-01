@@ -6,6 +6,8 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
+const version = "0.1.2-beta"
+
 const http = require("request");
 const progress = require("request-progress");
 const os = require("os");
@@ -17,6 +19,7 @@ const tmp = require('tmp');
 const exec = require('child_process').exec;
 const sudo = require('electron-sudo');
 const winston = require('winston');
+const getos = require('getos')
 //const decompress = require('decompress');
 //const decompressTarxz = require('decompress-tarxz');
 
@@ -26,11 +29,70 @@ const platforms = {
     "win32": "win"
 }
 
+var debugScreen = () => {
+  return process.env.DEBUG ? process.env.SCREEN : null
+}
+
+var debugTrigger = (event, stage) => {
+  if (!process.env.DEBUG || !process.env.TRIGGER)
+    return
+  var args = process.env.TRIGGER.split(",");
+  if (stage ==! args[1])
+    return
+  setTimeout(function () {
+    event.emit(args[1], args[2]);
+  }, 10);
+}
+
 var log = {
   error: (l) => {winston.log("error", l)},
   warn:  (l) => {winston.log("warn", l)},
   info:  (l) => {winston.log("info", l)},
   debug: (l) => {winston.log("debug", l)}
+}
+
+var createBugReport = (title, callback) => {
+  var options = {
+  limit: 400,
+  start: 0,
+  order: 'desc'
+  };
+
+  winston.query(options, function (err, results) {
+  if (err) {
+    throw err;
+  }
+
+  var errorLog = ""
+  results.file.forEach((err) => {
+      errorLog+=err.level+" "
+      errorLog+=err.timestamp+" "
+      errorLog+=err.message+"\n"
+  })
+
+  http.post({
+    url: "http://paste.ubuntu.com",
+    form: {
+      poster: "Ubports installer bug",
+      syntax: "text",
+      content: "Title: "+title+
+      "\n"+errorLog
+    }
+  }, (err, res, bod) => {
+      if (!err && res.statusCode === 302)
+        getos((e,gOs) => {
+          callback("Automatically generated error report %0A\
+Version: "+version+" %0A\
+Host OS: "+gOs.os+" %0A\
+Host Dist: "+gOs.dist+" "+gOs.release+ "%0A\
+Host Arch: "+os.arch()+" %0A\
+Node: "+process.version+" %0A%0A\
+Error log: "+res.headers.location+" %0A")
+        })
+      else callback(false);
+  })
+});
+
 }
 
 var getUbportDir = () => {
@@ -256,6 +318,9 @@ module.exports = {
     getPlatformTools: getPlatformTools,
     getUbportDir: getUbportDir,
     needRoot: needRoot,
-    checkPassword: checkPassword
+    checkPassword: checkPassword,
+    debugScreen: debugScreen,
+    debugTrigger: debugTrigger,
+    createBugReport: createBugReport
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }

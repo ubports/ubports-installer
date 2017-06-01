@@ -231,7 +231,7 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
   downloadEvent.on("download:next", (i, t) => {
-    utils.log.info(`Downloading next file, ${i} left`);
+    utils.log.info(`Downloading next file, ${i} left, ${t} total`);
     downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
   downloadEvent.on("download:progress", (i) => {
@@ -252,9 +252,9 @@ var setEvents = (downloadEvent) => {
     utils.log.info("Adb push, "+r+"% left");
     downloadEvent.emit("user:write:progress", r);
   });
-  downloadEvent.on("adbpush:next", (r) => {
+  downloadEvent.on("adbpush:next", (r, t) => {
     utils.log.info("Start pusing next file, " + r + " files left")
-    downloadEvent.emit("user:write:next", "Pushing", r);
+    downloadEvent.emit("user:write:next", "Pushing", r, t);
   });
   downloadEvent.on("adbpush:start", (r) => {
     utils.log.info("Start pusing "+r+" files")
@@ -377,6 +377,13 @@ module.exports = {
     getDeviceSelects: (callback) => {
         getDevices((devices) => {
             var devicesAppend = [];
+            devices.sort(function(a, b){
+               var y = a.name.toLowerCase();
+               var x = b.name.toLowerCase();
+               if (x < y) {return -1;}
+               if (x > y) {return 1;}
+               return 0;
+            });
             devices.forEach((device) => {
                 devicesAppend.push("<option name=\"" + device.device + "\">" + device.name + "</option>");
             })

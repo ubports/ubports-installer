@@ -18,7 +18,10 @@ const url = require('url')
 let mainWindow
 
 function createWindow () {
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  if (process.env.DEBUG)
+    mainWindow = new BrowserWindow({width: 1600, height: 600})
+  else
+    mainWindow = new BrowserWindow({width: 800, height: 600})
 
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'html/index.html'),

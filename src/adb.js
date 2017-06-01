@@ -85,6 +85,7 @@ var push = (file, dest, pushEvent) => {
 }
 
 var pushMany = (files, pushManyEvent) => {
+  var totalLenght = files.length;
   if (files.length <= 0){
     pushManyEvent.emit("adbpush:error", "No files provided");
     return false;
@@ -97,7 +98,7 @@ var pushMany = (files, pushManyEvent) => {
           pushManyEvent.emit("adbpush:done");
           return;
         }
-        pushManyEvent.emit("adbpush:next", files.length)
+        pushManyEvent.emit("adbpush:next", files.length, totalLenght)
         push(files[0].src, files[0].dest, pushManyEvent);
   })
   return pushManyEvent
