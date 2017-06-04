@@ -326,7 +326,6 @@ var getChannelSelects = (device, callback) => {
           getInstallInstructs(device, (ret) => {
               systemImage.getDeviceChannes(device, channels).forEach((channel) => {
                   var _channel = channel.replace("ubports-touch/", "");
-                  var _channel = channel.replace("ubuntu-touch/", "");
                   // Ignore blacklisted channels
                   if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
                       return;
