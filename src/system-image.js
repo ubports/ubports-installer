@@ -81,6 +81,8 @@ var getChannes = (callback) => {
 var getDeviceChannes = (device, channels) => {
     var deviceChannels = [];
     for (var channel in channels) {
+        if (channels[channel].hidden || channels[channel].redirect)
+          continue;
         if (device in channels[channel]["devices"]) {
             deviceChannels.push(channel);
         }
