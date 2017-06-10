@@ -22,7 +22,6 @@ addons:
     - xz-utils
 install:
 - nvm install 6
-- npm install electron-builder@next
 - npm install
 - npm prune
 script:
