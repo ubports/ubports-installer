@@ -105,6 +105,7 @@ var pushMany = (files, pushManyEvent) => {
 }
 
 var shell = (cmd, callback) => {
+  if (!cmd.startsWith("stat")) utils.log.debug("adb shell: "+cmd);
   cp.execFile(adb, ["shell", cmd], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout);
@@ -145,6 +146,52 @@ var reboot = (state, callback) => {
   })
 }
 
+var format = (partition, callback) => {
+  shell("cat /etc/recovery.fstab", (fstab_) => {
+    if (!fstab_) {
+      callback(false, "cannot find recovery.fstab");
+      return;
+    }
+    var fstab = fstab_.split("\n");
+    var block;
+    fstab.forEach((fs) => {
+      if (!fs.includes(partition) || block)
+        return;
+      block = fs.split(" ")[0];
+      if (!block.startsWith("/dev"))
+        block=false;
+    })
+    if (!block) {
+      callback(false, "cannot find partition: "+partition);
+      return;
+    }
+    shell("umount /"+partition, () => {
+      shell("make_ext4fs " + block, (ret) => {
+        shell("mount /"+partition, () => {
+          if (ret)
+            callback(false, "failed to wipe "+partition)
+          else
+            callback(true);
+        })
+      });
+    })
+  })
+}
+
+
+var wipeCache = (callback) => {
+  // Try with format;
+  format("cache", (err) => {
+    if (!err){
+      callback(true);
+      return;
+    }
+
+    // If format failed, just rm the contents of cache;
+    shell("rm -rf /cache/*", callback);
+  })
+}
+
 module.exports = {
   waitForDevice: waitForDevice,
   shell: shell,
@@ -155,5 +202,7 @@ module.exports = {
   reboot: reboot,
   getDeviceNameFromPropFile: getDeviceNameFromPropFile,
   isUbuntuDevice: isUbuntuDevice,
-  readUbuntuChannelINI: readUbuntuChannelINI
+  readUbuntuChannelINI: readUbuntuChannelINI,
+  format: format,
+  wipeCache: wipeCache
 }

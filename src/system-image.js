@@ -200,10 +200,18 @@ var downloadLatestVersion = (device, channel, ownEvent, callbackOn) => {
     return thisEvent;
 }
 
-var pushLatestVersion = (files, thisEvent) => {
-    adb.shell("mount -a && mkdir -p /cache/recovery", () => {
-      adb.pushMany(files, thisEvent);
-    })
+var pushLatestVersion = (files, thisEvent, dontWipeCache) => {
+    var doPush = () => {
+      adb.shell("mount -a", () => {
+        adb.shell("mkdir -p /cache/recovery", () => {
+          adb.pushMany(files, thisEvent);
+        })
+      })
+    }
+    if (dontWipeCache)
+      doPush()
+    else
+      adb.wipeCache(doPush);
     return thisEvent;
 }
 
