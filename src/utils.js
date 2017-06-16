@@ -172,7 +172,7 @@ var isSnap = () => {
 }
 
 var needRoot = () => {
-    if (os.platform === "win32") return false;
+    if (os.platform() === "win32") return false;
     return !process.env.SUDO_UID
 }
 
