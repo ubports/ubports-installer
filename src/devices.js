@@ -125,6 +125,10 @@ var instructReboot = (state, button, rebootEvent, callback) => {
 }
 
 var requestPassword = (bootstrapEvent, callback) => {
+    if(!utils.needRoot()){
+      callback("");
+      return;
+    }
     if(password){
         callback(password);
         return;
