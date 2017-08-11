@@ -4,6 +4,33 @@
 
 This is still under development expect some bugs
 
+### How to install
+
+#### Linux:
+
+
+##### Appimage:
+1. Download the latest Appimage from https://github.com/ubports/ubports-installer/releases
+2. Open the file and follow the onscreen instructions
+
+If that does not open, you might need to chmod the file to "+x"
+
+Do this by opening the terminal, then do
+`sudo chmod +x ubports-installer-*-beta-x86_64.AppImage`
+Then try step 2 again
+
+#### Mac
+
+1. Download the latest dmg file from https://github.com/ubports/ubports-installer/releases
+2. Open the file and follow the onscreen instructions.
+
+
+#### Windows
+
+1. Download the latest exe file from https://github.com/ubports/ubports-installer/releases
+2. Open the file and follow the onscreen instructions
+
+
 ### How to install from source
 
 ```
