@@ -11,13 +11,15 @@ This is still under development expect some bugs
 
 ##### Appimage:
 1. Download the latest Appimage from https://github.com/ubports/ubports-installer/releases
-2. Open the file and follow the onscreen instructions
+2. Open terminal and chmod the file
+```
+sudo chmod +x ubports-installer-*-beta-x86_64.AppImage
+```
+3. The run the file
+```
+./ubports-installer-*-beta-x86_64.AppImage
+```
 
-If that does not open, you might need to chmod the file to "+x"
-
-Do this by opening the terminal, then do
-`sudo chmod +x ubports-installer-*-beta-x86_64.AppImage`
-Then try step 2 again
 
 #### Mac
 
