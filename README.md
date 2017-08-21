@@ -11,14 +11,8 @@ This is still under development expect some bugs
 
 ##### Appimage:
 1. Download the latest Appimage from https://github.com/ubports/ubports-installer/releases
-2. Open terminal and chmod the file
-```
-sudo chmod +x ubports-installer-*-beta-x86_64.AppImage
-```
-3. The run the file
-```
-./ubports-installer-*-beta-x86_64.AppImage
-```
+2. [Make the AppImage executable](https://github.com/AppImage/appimage.github.io/pull/44#partial-pull-merging)
+3. The run the file by double-clicking
 
 
 #### Mac
