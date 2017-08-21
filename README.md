@@ -12,7 +12,7 @@ This is still under development expect some bugs
 ##### Appimage:
 1. Download the latest Appimage from https://github.com/ubports/ubports-installer/releases
 2. [Make the AppImage executable](https://github.com/AppImage/appimage.github.io/pull/44#partial-pull-merging)
-3. The run the file by double-clicking
+3. Then run the file by double-clicking
 
 
 #### Mac
