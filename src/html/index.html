@@ -213,6 +213,7 @@
     const devices = require('../devices.js');
     const systemImage = require("../system-image.js");
     const utils = require("../utils.js")
+    const remote = require('electron').remote;
     $("#main-wait-for-device").show();
 
     var onErr = (err) => {
@@ -230,6 +231,10 @@
       $("#device-select").append(out);
     });
 
+    $("#btn-exit").click(() => {
+      var window = remote.getCurrentWindow();
+      window.close();
+    });
     if (!utils.debugScreen()) {
       var waitEvent = devices.waitForDevice((output, device, channels) => {
         $("#main-wait-for-device").hide();
