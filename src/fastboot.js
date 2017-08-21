@@ -179,8 +179,10 @@ var oem = (command, password, callback) => {
   cmd += fastboot + " oem " + command;
   utils.asarExec(fastboot, (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
-          handleError(c, r, e, password, callback);
-          asarExec.done();
+          setTimeout(() => {
+            handleError(c, r, e, password, callback);
+            asarExec.done();
+          }, 100);
       })
   });
 }
