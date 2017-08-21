@@ -41,6 +41,7 @@ function createWindow () {
 app.on('ready', createWindow)
 
 app.on('window-all-closed', function () {
+  console.log("Good bye!")
   if (process.platform !== 'darwin') {
     app.quit()
   }

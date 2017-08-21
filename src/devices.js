@@ -147,16 +147,35 @@ var requestPassword = (bootstrapEvent, callback) => {
     });
 }
 
+var instructOemUnlock = (unlockEvent, callback) => {
+  requestPassword(unlockEvent, (p) => {
+    fastboot.oemUnlock(password, (err, errM) => {
+      if (err){
+        unlockEvent.emit("error", errM)
+        callback(true)
+      }else
+        callback(false)
+    });
+  })
+}
+
+var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
+  if(err.password)
+      bootstrapEvent.emit("user:password:wrong", backToFunction);
+  else if (err.locked)
+      bootstrapEvent.emit("user:oem-lock", backToFunction);
+   else
+      bootstrapEvent.emit("error", errM)
+}
+
 var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
     //TODO check bootloader name/version/device
-    //TODO OEM unlock
     var flash = (p) => {
         fastboot.flash(images, (err, errM) => {
             if(err)
-                if(err.password)
-                    bootstrapEvent.emit("user:password:wrong");
-                 else
-                    bootstrapEvent.emit("error", errM)
+              handleBootstrapError(err, errM, bootstrapEvent, () => {
+                instructBootstrap(fastbootboot, images, bootstrapEvent);
+              });
             else {
               if (fastbootboot) {
                   utils.log.info("Booting into recovery image...");
@@ -172,10 +191,9 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
                   }else {
                     fastboot.boot(recoveryImg, p, (err, errM) => {
                       if (err) {
-                        if(err.password)
-                            bootstrapEvent.emit("user:password:wrong");
-                         else
-                            bootstrapEvent.emit("error", errM)
+                        handleBootstrapError(err, errM, bootstrapEvent, () => {
+                          instructBootstrap(fastbootboot, images, bootstrapEvent);
+                        });
                       }else
                         bootstrapEvent.emit("bootstrap:done", fastbootboot);
                     })
@@ -393,5 +411,6 @@ module.exports = {
             callback(devicesAppend.join(''));
         })
     },
-    getChannelSelects: getChannelSelects
+    getChannelSelects: getChannelSelects,
+    instructOemUnlock: instructOemUnlock
 }

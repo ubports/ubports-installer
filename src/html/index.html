@@ -204,6 +204,31 @@
       </div>
     </div>
 
+
+    <div class="modal fade" id="oem-lock" tabindex="-1" data-backdrop="static" data-keyboard="false" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Device locked</h4>
+          </div>
+          <div class="modal-body">
+            <p>
+              Device is oem locked, do you want to unlock the device?
+            </p>
+            <b>
+              NOTE: This might void your warranty, please check with your device manufacturer if they allow this. We won't be responsible for any lost warranties!
+            </b>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="btn-exit" data-dismiss="modal">Exit</button>
+            <button type="button" class="btn btn-primary" id="btn-unlock">Unlock</button>
+            <i hidden="hidden" id="unlock-prog" class="fa fa-cog fa-spin fa-2x fa-fw hidden"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </body>
 
 <script>
@@ -235,6 +260,7 @@
       var window = remote.getCurrentWindow();
       window.close();
     });
+
     if (!utils.debugScreen()) {
       var waitEvent = devices.waitForDevice((output, device, channels) => {
         $("#main-wait-for-device").hide();
@@ -307,6 +333,27 @@
                 installEvent.emit("password", $("#password-input").val());
                 $('#password-wrong').hide();
             });
+            });
+
+            installEvent.on("user:oem-lock", (callback) => {
+              $('#oem-lock').modal('show');
+
+              $("#btn-unlock").click(() => {
+                $("#btn-unlock").attr("disabled", true);
+                $("#btn-exit").attr("disabled", true);
+                $("#unlock-prog").removeClass("hidden");
+                devices.instructOemUnlock(installEvent, (err) => {
+                  $("#btn-unlock").attr("disabled", false);
+                  $("#btn-exit").attr("disabled", false);
+                  $("#unlock-prog").addClass("hidden");
+                  if (err) {
+                    $('#oem-lock').modal('hide');
+                  } else {
+                    callback(callback)
+                    $('#oem-lock').modal('hide');
+                  }
+                });
+              });
             });
 
             installEvent.on("user:password:wrong", () => {

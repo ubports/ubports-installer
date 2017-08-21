@@ -10,6 +10,36 @@ const path = require("path");
 const utils = require("./utils.js")
 const fastboot = utils.getPlatformTools().fastboot;
 
+const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
+
+
+var isLocked = (message) => {
+  var locked = false;
+  lockedErrors.forEach((l) => {
+    if (message.includes(l)){
+      locked = true;
+      return true;
+    }
+  })
+  return locked;
+}
+
+var handleError = (c, r, e, password, callback) => {
+  if (c) {
+      if (c.message.includes("incorrect password"))
+          callback({
+              password: true
+          });
+      else if (isLocked(c.message))
+          callback({
+            locked: true
+          })
+        else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+  } else {
+      callback(c, r, e)
+  }
+}
+
 /*
 
 args; string, function
@@ -84,15 +114,7 @@ var flash = (images, callback, password) => {
     });
     utils.asarExec(fastboot, (asarExec) => {
         asarExec.exec(cmd, (c, r, e) => {
-            if (c) {
-                if (c.message.includes("incorrect password"))
-                    callback({
-                        password: true
-                    });
-                  else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
-            } else {
-                callback(c, r, e)
-            }
+            handleError(c, r, e, password, callback);
             asarExec.done();
         })
     });
@@ -118,15 +140,7 @@ var boot = (image, password, callback) => {
   cmd += fastboot + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
   utils.asarExec(fastboot, (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
-          if (c) {
-              if (c.message.includes("incorrect password"))
-                  callback({
-                      password: true
-                  });
-              else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
-          } else {
-              callback(c, r, e)
-          }
+          handleError(c, r, e, password, callback);
           asarExec.done();
       })
   });
@@ -147,23 +161,44 @@ var format = (partitions, password, callback) => {
   });
   utils.asarExec(fastboot, (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
-          if (c) {
-              if (c.message.includes("incorrect password"))
-                  callback({
-                      password: true
-                  });
-              else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
-          } else {
-              callback(c, r, e)
-          }
+          handleError(c, r, e, password, callback);
           asarExec.done();
       })
   });
+}
+
+/*
+
+args; array, string, function
+
+*/
+var oem = (command, password, callback) => {
+  var cmd="";
+  if (utils.needRoot())
+      cmd += "echo " + password + " | sudo -S "
+  cmd += fastboot + " oem " + command;
+  utils.asarExec(fastboot, (asarExec) => {
+      asarExec.exec(cmd, (c, r, e) => {
+          handleError(c, r, e, password, callback);
+          asarExec.done();
+      })
+  });
+}
+
+/*
+
+args; string, function
+
+*/
+var oemUnlock = (password, callback) => {
+  oem("unlock", password, callback);
 }
 
 module.exports = {
     flash: flash,
     waitForDevice: waitForDevice,
     boot: boot,
-    format: format
+    format: format,
+    oem: oem,
+    oemUnlock: oemUnlock
 }
