@@ -209,10 +209,10 @@
 <script>
     require('jquery')
     window.$ = window.jQuery = require('../../node_modules/jquery/dist/jquery.js');
-    var openurl = require("openurl");
-    var devices = require('../devices.js');
-    var systemImage = require("../system-image.js");
-    var utils = require("../utils.js")
+    const openurl = require("openurl");
+    const devices = require('../devices.js');
+    const systemImage = require("../system-image.js");
+    const utils = require("../utils.js")
     $("#main-wait-for-device").show();
 
     var onErr = (err) => {
