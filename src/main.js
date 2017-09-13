@@ -22,9 +22,10 @@ let mainWindow
 
 function createWindow () {
   if (process.env.DEBUG)
-    mainWindow = new BrowserWindow({width: 1600, height: 600})
+    mainWindow = new BrowserWindow({width: 1600, height: 600, icon: path.join(__dirname, "../build/icons/icon.png")})
   else
-    mainWindow = new BrowserWindow({width: 800, height: 600})
+    mainWindow = new BrowserWindow({width: 800, height: 600, icon: path.join(__dirname, "../build/icons/icon.png")})
+
 
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'html/index.ejs'),

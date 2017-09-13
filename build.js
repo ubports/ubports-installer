@@ -44,24 +44,30 @@ const setEvents = (downloadEvent) => {
 }
 
 function build() {
-    var linuxTargets = cli.appimageOnly ? "AppImage" : ["AppImage", "deb"];
+    var linuxTargets = cli.appimageOnly ? "AppImage" : ["AppImage", "deb", "snap"];
+    if (cli.snapOnly)
+      linuxTargets = "snap"
     builder.build({
             targets: builder.createTargets(targets),
             config: {
                 "appId": "com.ubports.installer",
                 "linux": {
-                    "target": linuxTargets
+                    "target": linuxTargets,
+					"icon": "build/icons"
                 },
                 "mac": {
-                    "target": "dmg"
+                    "target": "dmg",
+					"icon": "build/icons/icon.icns"
                 },
                 "win": {
-                    "target": ["portable"]
+                    "target": ["portable"],
+					"icon": "build/icons/icon.ico"
                 },
                 "files": [
                     "src/**/*",
                     "node_modules/**/*",
-                    "platform-tools/${os}/**/*"
+                    "platform-tools/${os}/**/*",
+					"build/icons/icon.*"
                 ]
             }
         })
@@ -128,6 +134,7 @@ cli
     .option('-w, --windows', 'Build for Windows')
     .option('-m, --mac', 'Build for Mac')
     .option('-d, --download-only', 'Only download platformTools')
+    .option('-s, --snap-only', "Build only snap")
     .parse(process.argv);
 
 var targets = [];

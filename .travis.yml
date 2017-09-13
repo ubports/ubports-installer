@@ -27,7 +27,7 @@ install:
 script:
 - npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
 before_deploy:
-  - export FILE_TO_UPLOAD=$(ls dist/ubports-installer-*)
+  - export FILE_TO_UPLOAD=$(ls dist/ubports-installer*)
 deploy:
   provider: releases
   api_key:
