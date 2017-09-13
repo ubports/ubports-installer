@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 "use strict"
 
 /*
@@ -43,10 +45,44 @@ const setEvents = (downloadEvent) => {
     });
 }
 
-function build() {
-    var linuxTargets = cli.appimageOnly ? "AppImage" : ["AppImage", "deb", "snap"];
+function canBuildSnap(){
+    return fs.existsSync("/usr/bin/snapcraft")
+}
+
+function buildLinuxTargets(){
+    if (cli.appimageOnly)
+        return ["AppImage"];
     if (cli.snapOnly)
-      linuxTargets = "snap"
+        if (canBuildSnap())
+            return ["snap"]
+        else {
+            console.log("Cannot build snap, please install snapcraft")
+            process.exit()
+        }
+    if (cli.buildToDir)
+        return ["dir"]
+    if (cli.debOnly)
+        return ["deb"]
+    var linuxTargets = [];
+    if (!cli.ignoreSnap)
+        if (canBuildSnap())
+            linuxTargets.push("snap")
+        else 
+            console.log("Cannot build snap, please install snapcraft (ignoring bulding of snap for now)")
+    if (!cli.ignoreDeb)
+        linuxTargets.push("deb")
+    if (!cli.ignoreAppimage)
+        linuxTargets.push("AppImage")
+    if (linuxTargets.length !== 0)
+        return linuxTargets;
+    console.log("linux targets cannot be null")
+    process.exit()
+}
+
+function build() {
+    var linuxTargets = buildLinuxTargets() 
+    console.log("bulding for: " + linuxTargets.join(", "))
+    process.exit()
     builder.build({
             targets: builder.createTargets(targets),
             config: {
@@ -130,11 +166,16 @@ function extractPlatformTools(platfromToolsArray, callback) {
 cli
     .version(1)
     .option('-l, --linux', 'Build for Linux')
-    .option('-a, --appimage-only', "Build only appimage")
     .option('-w, --windows', 'Build for Windows')
     .option('-m, --mac', 'Build for Mac')
     .option('-d, --download-only', 'Only download platformTools')
     .option('-s, --snap-only', "Build only snap")
+    .option('-e, --deb-only', "Build only snap")
+    .option('-a, --appimage-only', "Build only appimage")
+    .option('-r, --ignore-snap', "Build only snap")
+    .option('-t, --ignore-deb', "Build only snap")
+    .option('-y, --ignore-appimage', "Build only appimage")
+	.option('-b, --build-to-dir', "Build only to dir")
     .parse(process.argv);
 
 var targets = [];
