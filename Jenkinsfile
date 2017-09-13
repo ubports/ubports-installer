@@ -3,8 +3,7 @@ pipeline {
   stages {
     stage('Install') {
       steps {
-        sh '''nvm install 6
-npm install
+        sh '''npm install
 npm prune'''
       }
     }
@@ -13,7 +12,7 @@ npm prune'''
         sh 'npm run dist:linux'
       }
     }
-    stage('') {
+    stage('error') {
       steps {
         archiveArtifacts(artifacts: 'dist/ubports-installer*', onlyIfSuccessful: true, fingerprint: true)
       }
