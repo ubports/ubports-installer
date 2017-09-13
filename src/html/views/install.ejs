@@ -1,0 +1,26 @@
+<div class="main container" hidden="hidden" id="main-install">
+  <div class="row">
+    <div class="col-xs-7">
+      <img style="height: 350px; margin: auto; display: block;" src="../screens/Screen6.jpg">
+    </div>
+    <div class="col-xs-5">
+      <h4 style="font-weight: bold;">Ready to install!</h4>
+      <p>Your device: <a id="your-ubp-device"></a></p>
+      <p id="not-working-block"><b>Please note</b> that this device is still under development and that <span id="not-working"></span> is currently not working!</p>
+      <p><b>Read before installing:</b> this will factory reset your device and install Ubuntu touch, this means it will remove all of your data</p>
+      <p><b>Make sure to backup all data you want to keep!</b></p>
+      <div>
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label class="col-xs-3 control-label">Channel</label>
+            <div class="col-xs-9">
+              <select id="device-channels" class="form-control space">
+              </select>
+            </div>
+          </div>
+        </form>
+        <button type="button" id="btn-inst" style="width: 100%;" hidden class="btn btn-primary">Install</button>
+      </div>
+    </div>
+  </div>
+</div>

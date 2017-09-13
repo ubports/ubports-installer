@@ -1,0 +1,23 @@
+<div class="modal fade" id="oem-lock" tabindex="-1" data-backdrop="static" data-keyboard="false" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Device locked</h4>
+      </div>
+      <div class="modal-body">
+        <p>
+          Device is oem locked, do you want to unlock the device?
+        </p>
+        <b>
+          NOTE: This might void your warranty, please check with your device manufacturer if they allow this. We won't be responsible for any lost warranties!
+        </b>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" id="btn-exit" data-dismiss="modal">Exit</button>
+        <button type="button" class="btn btn-primary" id="btn-unlock">Unlock</button>
+        <i hidden="hidden" id="unlock-prog" class="fa fa-cog fa-spin fa-2x fa-fw hidden"></i>
+      </div>
+    </div>
+  </div>
+</div>

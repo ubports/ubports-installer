@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../css/font-awesome.min.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <title>UBports installer</title>
+</head>
+
+<body>
+    <div class="header">
+        <h3 class="text-muted installer">UBports Installer</h3>
+    </div>
+
+	<!-- Views -->
+	<%- include('views/wait-for-device'); %>
+	<%- include('views/not-supported'); %>
+	<%- include('views/installing'); %>
+	<%- include('views/done'); %>
+	<%- include('views/reboot'); %>
+	<%- include('views/install'); %>
+
+
+    <div class="progress" id="progress" hidden="hidden"></div>
+    <footer class="footer">
+        <div class="container" id="waitForDevice">
+            <h3 class="text-muted footer-top">Wating for device<span id="wait-dot"></span></h2>
+            <p class="text-muted">Please connect your device with an usb cable</p>
+        </div>
+        <div class="container" hidden="hidden" id="device">
+            <h3 class="text-muted footer-top" id="device-name"></h2>
+            <p id="device-under-text" class="text-muted">Ready to install...</p>
+         </div>
+    </footer>
+
+
+	<!-- Modals -->
+	<%- include('modals/install'); %>
+	<%- include('modals/error'); %>
+	<%- include('modals/password'); %>
+	<%- include('modals/oem-lock'); %>
+
+</body>
+
+<!-- Scripts -->
+<%- include('scripts/main'); %>
+<%- include('scripts/dots'); %>
+
+</html>

@@ -8,14 +8,17 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
-const electron = require('electron')
+const electron = require('electron');
+const electronEsj = require('electron-ejs');
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 
 const path = require('path')
 const url = require('url')
 
+const ejs = new electronEsj();
 let mainWindow
+
 
 function createWindow () {
   if (process.env.DEBUG)
@@ -24,7 +27,7 @@ function createWindow () {
     mainWindow = new BrowserWindow({width: 800, height: 600})
 
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'html/index.html'),
+    pathname: path.join(__dirname, 'html/index.ejs'),
     protocol: 'file:',
     slashes: true
   }))

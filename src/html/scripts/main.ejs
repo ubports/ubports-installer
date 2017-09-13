@@ -1,0 +1,187 @@
+<script>
+    require('jquery')
+    window.$ = window.jQuery = require('../../node_modules/jquery/dist/jquery.js');
+    const openurl = require("openurl");
+    const devices = require('../devices.js');
+    const systemImage = require("../system-image.js");
+    const utils = require("../utils.js")
+    const remote = require('electron').remote;
+    $("#main-wait-for-device").show();
+
+    var onErr = (err) => {
+      $("#error-body").text(err);
+      $("#errorModal").modal("show");
+    }
+    $("#btn-bugreport").click(() => {
+      var title = $("#error-body").text();
+      utils.createBugReport(title, (body) => {
+        openurl.open("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
+      });
+    })
+
+    devices.getDeviceSelects((out) => {
+      $("#device-select").append(out);
+    });
+
+    $("#btn-exit").click(() => {
+      var window = remote.getCurrentWindow();
+      window.close();
+    });
+
+    if (!utils.debugScreen()) {
+      var waitEvent = devices.waitForDevice((output, device, channels) => {
+        $("#main-wait-for-device").hide();
+        $("#waitForDevice").hide();
+        $("#device").show();
+        if(!output) {
+          $("#device-name").text("Device not supported");
+          $("#device-under-text").text("The device " + device + " is not supported");
+          $("[id=your-device]").text(device)
+          $("#main-not-supported").show();
+          $("#btn-inst").hide();
+        }else {
+          $("#device-channels").append(channels);
+          $("#btn-inst").show();
+          $("#device-name").text(output.device.name);
+          $("#your-ubp-device").text(output.device.name+" ("+output.device.device+")")
+          $("#your-ubp-device").click(() => {
+              openurl.open("https://devices.ubports.com/#/"+output.device.device);
+          })
+          var notWorking = devices.getFormatedNotWorking(output.device.whatIsWorking);
+          if (notWorking)
+            $("#not-working").text(notWorking);
+          else
+            $("#not-working-block").hide();
+          $("#main-install").show();
+          $("#btn-inst").click(() => {
+            $('#installModal').modal('show')
+          })
+          $("#btn-installModal").click(() => {
+            $("#main-install").hide();
+            $("#main-installing").show();
+            $("#progress").show();
+            const installEvent= devices.install(output.device.device,
+                          $("#device-channels").find(":selected").val())
+
+            installEvent.on("user:error", onErr);
+
+            installEvent.on("bootstrap:flashing", () => {
+              $("#main-installing").show();
+              $("#main-reboot-up").hide();
+              $("#main-reboot-down").hide();
+              $("#device-under-text").text("Flashing recovery and boot images")
+            })
+
+            installEvent.on("system-image:start", () => {
+              $("#main-installing").show();
+              $("#main-reboot-up").hide();
+              $("#main-reboot-down").hide();
+            })
+
+            installEvent.on("install:done", () => {
+              $("#main-done").show();
+              $("#main-installing").hide();
+              $("#main-reboot-up").hide();
+              $("#main-reboot-down").hide();
+            });
+
+            installEvent.on("user:password", () => {
+              $('#password').modal('show');
+              $("#password-input").val("");
+              $("#password-input").keypress((event) => {
+                if (event.which == '13') {
+                  event.preventDefault();
+                  installEvent.emit("password", $("#password-input").val());
+                  $('#password').modal('hide');
+                  $('#password-wrong').hide();
+                }
+              });
+              $("#btn-password").click(() => {
+                installEvent.emit("password", $("#password-input").val());
+                $('#password-wrong').hide();
+            });
+            });
+
+            installEvent.on("user:oem-lock", (callback) => {
+              $('#oem-lock').modal('show');
+
+              $("#btn-unlock").click(() => {
+                $("#btn-unlock").attr("disabled", true);
+                $("#btn-exit").attr("disabled", true);
+                $("#unlock-prog").removeClass("hidden");
+                devices.instructOemUnlock(installEvent, (err) => {
+                  $("#btn-unlock").attr("disabled", false);
+                  $("#btn-exit").attr("disabled", false);
+                  $("#unlock-prog").addClass("hidden");
+                  if (err) {
+                    $('#oem-lock').modal('hide');
+                  } else {
+                    callback(callback)
+                    $('#oem-lock').modal('hide');
+                  }
+                });
+              });
+            });
+
+            installEvent.on("user:password:wrong", () => {
+                installEvent.emit("user:password");
+                $('#password-wrong').show();
+            })
+
+            installEvent.on("user:reboot", (i) => {
+              $("#main-installing").hide();
+              $("#main-reboot-"+i.button).show();
+              $("[id=reboot-to-state]").text(i.state);
+              $("#device-name").text("Please reboot to "+i.state);
+              $("#device-under-text").text("")
+            })
+            installEvent.on("user:write:next", (text,length, total) => {
+                $("#device-under-text").text(text+" file "+(total-(length-1))+" of "+total)
+                $("#progress").width("0%");
+            })
+            installEvent.on("user:write:start", (text, length) => {
+              $("#device-under-text").text(text+" file 1 of "+length)
+              $("#progress").width("0%");
+            })
+            installEvent.on("user:write:progress", (length) => {
+              if(length >= 100) {
+                length=100;
+              }
+              $("#progress").width(length.toString()+"%");
+            })
+            installEvent.on("user:write:done", () => {
+              $("#device-under-text").text("")
+              $("#progress").width("0%");
+            })
+            installEvent.on("user:write:status", (status) => {
+              $("#device-name").text(status).append("<span id='wait-dot'>.</span>");
+            })
+
+            utils.debugTrigger(installEvent, 2);
+          })
+        }
+      });
+
+      $("#btn-device-select").click(() => {
+        var device = $("#device-select").find(":selected").attr("name");
+        waitEvent.emit("device:select", device);
+      })
+    }else {
+      if (utils.debugScreen().startsWith("modal:")){
+        var modal=utils.debugScreen().split(":")[1]
+        setTimeout(function () {
+          $("#"+modal).modal("show");
+        }, 10);
+      } else {
+        $("#main-wait-for-device").hide();
+        $("#waitForDevice").hide();
+        $("#"+utils.debugScreen()).show()
+      }
+    }
+
+    waitEvent.on("user:error", onErr);
+
+    utils.debugTrigger(waitEvent, 1);
+
+    require('bootstrap')
+</script>
