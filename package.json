@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.1.5-beta",
+  "version": "0.1.7-beta",
   "description": "Ubports installer",
   "main": "src/main.js",
   "bin": "./src/main.js",
