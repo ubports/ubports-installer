@@ -15,7 +15,6 @@ const fs = require("fs");
 const events = require("events")
 const fEvent = require('forward-emitter');
 const utils = require("./utils");
-const ini = require('ini');
 const adb = utils.getPlatformTools().adb
 
 class event extends events {}
@@ -48,16 +47,37 @@ var getDeviceName = (callback, method) => {
   });
 }
 
-var isUbuntuDevice = () => {
+var isUbuntuDevice = (callback) => {
   shell("cat /etc/system-image/channel.ini", (output) => {
-    return output ? true : false;
+    callback(output ? true : false);
   })
 }
 
-var readUbuntuChannelINI = () => {
+var readUbuntuChannelINI = (callback) => {
   shell("cat /etc/system-image/channel.ini", (output) => {
-    return ini.parse(output);
+    if (!output)
+      return callback(false);
+    if (!output.startsWith("[service]"))
+      return callback(false);
+    var ret = {};
+    output.split("\n").forEach(line => {
+      if (!line.includes(": "))
+        return;
+      var split = line.replace("\r", "").split(": ");
+      ret[split[0]] = split[1];
+    });
+    callback(ret);
   })
+}
+
+var isBaseUbuntuCom = callback => {
+  if (process.env.FORCE_SWITCH)
+    return callback(true);
+  readUbuntuChannelINI(ini => {
+    if (!ini)
+      return callback(false);
+    callback(ini.base.includes("system-image.ubuntu.com"))
+  });
 }
 
 var push = (file, dest, pushEvent) => {
@@ -204,5 +224,6 @@ module.exports = {
   isUbuntuDevice: isUbuntuDevice,
   readUbuntuChannelINI: readUbuntuChannelINI,
   format: format,
-  wipeCache: wipeCache
+  wipeCache: wipeCache,
+  isBaseUbuntuCom, isBaseUbuntuCom
 }

@@ -34,7 +34,7 @@ const gpg = ["image-signing.tar.xz", "image-signing.tar.xz.asc", "image-master.t
 
 var createInstallCommands = (files, installerCheck, wipe, enable) => {
     var cmd = startCommands;
-    if (wipe) cmd += "\nformat data"
+    if (wipe === true) cmd += "\nformat data"
     if (files.constructor !== Array)
         return false;
     files.forEach((file) => {
@@ -167,21 +167,22 @@ var getFilePushArray = (urls) => {
     return files;
 }
 
-var downloadLatestVersion = (device, channel, ownEvent, callbackOn) => {
+var downloadLatestVersion = (options) => {
+    console.log("downloadLatestVersion options: ", options);
     var thisEvent;
-    if (!ownEvent)
+    if (!options.event)
         thisEvent = new event();
     else
-        thisEvent = ownEvent;
-    getDeviceIndex(device, channel, (index) => {
+        thisEvent = options.event;
+    getDeviceIndex(options.device, options.channel, (index) => {
         if (!index) {
             console.log("error!!")
-            thisEvent.emit("error", "could not find device: "+device+" on channel: "+channel+" index: "+index)
+            thisEvent.emit("error", "could not find device: "+options.device+" on channel: "+options.channel+" index: "+index)
             return;
         }
         var latest = getLatestVesion(index);
         if (!latest) {
-            thisEvent.emit("error", "could not find latest version; "+"device: "+device+" channel: "+channel+" index: "+index)
+            thisEvent.emit("error", "could not find latest version; "+"device: "+options.device+" channel: "+options.channel+" index: "+index)
             return;
         }
         var urls = getFilesUrlsArray(latest)
@@ -191,7 +192,7 @@ var downloadLatestVersion = (device, channel, ownEvent, callbackOn) => {
         utils.log.debug(urls);
         thisEvent.once("download:done", () => {
             files.push({
-                src: createInstallCommandsFile(createInstallCommands(latest.files), device),
+                src: createInstallCommandsFile(createInstallCommands(latest.files, options.installerCheck, options.wipe, options.enable), options.device),
                 dest: ubuntuPushDir + ubuntuCommandFile
             });
             thisEvent.emit("download:pushReady", files);
@@ -215,8 +216,8 @@ var pushLatestVersion = (files, thisEvent, dontWipeCache) => {
     return thisEvent;
 }
 
-var installLatestVersion = (device, channel, ownEvent) => {
-    var downloadEvent = downloadLatestVersion(device, channel, ownEvent);
+var installLatestVersion = (options) => {
+    var downloadEvent = downloadLatestVersion(options);
     downloadEvent.once("download:pushReady", (files) => {
         pushLatestVersion(files, downloadEvent)
     });
