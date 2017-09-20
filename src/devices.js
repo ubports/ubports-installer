@@ -285,25 +285,32 @@ var setEvents = (downloadEvent) => {
   });
 }
 
-var install = (device, channel, noUserEvents, noSystemImage) => {
+var install = (options) => {
+    if (!options)
+      return false;
     const installEvent = new event();
-    getInstallInstructs(device, (instructs) => {
-        if (!noUserEvents)
+    getInstallInstructs(options.device, (instructs) => {
+        if (!options.noUserEvents)
           setEvents(installEvent);
         installEvent.on("images:startDownload", () => {
             installEvent.emit("user:write:status", "Downloading images");
-            utils.downloadFiles(addPathToImages(instructs, device), installEvent)
+            utils.downloadFiles(addPathToImages(instructs, options.device), installEvent)
         })
         installEvent.on("system-image:start", () => {
-          if(!noSystemImage)
-            systemImage.installLatestVersion(device, channel, installEvent);
+          if(!options.noSystemImage)
+            systemImage.installLatestVersion({
+              device: options.device,
+              channel: options.channel,
+              event: installEvent,
+              wipe: options.wipe
+            });
         })
         installEvent.on("system-image:done", () => {
             instructReboot("recovery", instructs.buttons, installEvent, () => {
               installEvent.emit("install:done");
               postSuccess({
-                device: device,
-                channel: channel
+                device: options.device,
+                channel: options.channel
               }, () => {});
             });
         })
@@ -325,7 +332,7 @@ var install = (device, channel, noUserEvents, noSystemImage) => {
             instructReboot("bootloader", instructs.buttons, installEvent, () => {
                 installEvent.once("download:done", () => {
                   utils.log.info("done downloading(once listener)");
-                  instructBootstrap(getInstallSettings(instructs, "fastbootboot"), addPathToImages(instructs, device), installEvent)
+                  instructBootstrap(getInstallSettings(instructs, "fastbootboot"), addPathToImages(instructs, options.device), installEvent)
                 })
                 installEvent.emit("images:startDownload")
             });
@@ -373,7 +380,10 @@ module.exports = {
                       return;
                     }
                     getChannelSelects(ret.device.device, (channels) => {
-                        callback(ret, device, channels);
+                        adb.isBaseUbuntuCom(ubuntuCom => {
+                          console.log(ubuntuCom);
+                          callback(ret, device, channels, ubuntuCom);
+                        });
                     })
                 });
             })

@@ -1,0 +1,61 @@
+<div class="modal fade" id="developer-mode-info-modal" tabindex="-1" role="dialog" style="overflow-y: scroll">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">How to enable developer mode</h4>
+      </div>
+      <div class="modal-body">
+        <div class="panel-group" id="accordion" role="tablist">
+          <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+              <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseUbuntu" aria-expanded="true">
+                  Ubuntu touch
+                </a>
+              </h4>
+            </div>
+            <div id="collapseUbuntu" class="panel-collapse collapse in" role="tabpanel">
+              <div class="panel-body">
+                <p>
+                  This is done from System Settings. <br />
+                </p>
+                <ol type="1">
+                  <li>Open System Settings, About this Phone, Developer Mode.</li>
+                  <li>The adb service will be enabled if 'developer mode' is selected. Note that you must have some sort of lock screen security enabled (pin or password), and 'Developer mode' will be greyed out if that's not the case.</li>
+                  <li>The 'Lock Security' menu there can be used to turn on a pin or password</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+              <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseAndroid">
+                  Android
+                </a>
+              </h4>
+            </div>
+            <div id="collapseAndroid" class="panel-collapse collapse" role="tabpanel">
+              <div class="panel-body">
+                <p>
+                  This is done from the android settings menu. <br />
+                </p>
+                <ol type="1">
+                  <li>Go to the settings menu, and scroll down to "About phone." Tap it.</li>
+                  <li>Scroll down to the bottom again, where you see "Build number." </li>
+                  <li>Tap it seven (7) times. After the third tap, you'll see a dialog that says you're four taps away from being a developer. Keep on tapping until you see a dialog saying "You're now a developer"</li>
+                  <li>Now go back to the Settings menu and find "developer settings" (sometimes called "developer options"), Tap that.</li>
+                  <li>And find an option called "USB debugging", enable this</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

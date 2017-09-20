@@ -3,15 +3,32 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Read before installing!</h4>
+        <h4 class="modal-title user-modal-install-title">Read before installing!</h4>
       </div>
       <div class="modal-body">
-        <p><b>NOTE</b> This will factory reset your device and install Ubuntu touch, this means it will remove all of your data</p>
-        <p><b>Make sure to backup all data you want to keep before continuing!</b></p>
+        <div class="modal-install-body">
+          <div class="modal-install-body-no-wipe">
+            <p><b>NOTE</b> Installing may in rare cases lead to data loss</p>
+            <p>
+              <b>NOTE ANDROID </b>Please note you won't be able to access your android data and/or applications in ubuntu touch.
+              However the android data will take hardrive space, so if you don't want the android data please select the "wipe" option.
+            </p>
+            <p>It's always wise to backup before Installing</p>
+          </div>
+        </div>
+        <div class="modal-install-body-switch" hidden="hidden">
+          <div class="modal-install-body-no-wipe">
+            <p><b>NOTE</b> Switching may in rare cases lead to data loss</p>
+            <p>It's always wise to backup before switch</p>
+          </div>
+        </div>
+        <div class="modal-install-body-wipe" hidden="hidden">
+          <p><b>NOTE</b> You have enabled wipe! This will erase all of your data.</p>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="btn-installModal" data-dismiss="modal">Install</button>
+        <button type="button" class="btn btn-primary" id="btn-installModal" data-dismiss="modal">Continue</button>
       </div>
     </div>
   </div>

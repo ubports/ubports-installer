@@ -78,7 +78,11 @@ const setEvents = (downloadEvent) => {
 const install = (device, ownEvent, eventSet) => {
     console.log(`Installing on ${device}`);
     console.log(`Using channel ${channel}`);
-    var downloadEvent = systemImage.installLatestVersion(device, channel, ownEvent);
+    var downloadEvent = systemImage.installLatestVersion({
+      device: device,
+      channel: channel,
+      event: ownEvent
+    });
     if (!eventSet)
         setEvents(downloadEvent);
 }
