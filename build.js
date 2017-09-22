@@ -54,7 +54,10 @@ function buildLinuxTargets(){
         return ["AppImage"];
     if (cli.snapOnly)
         if (canBuildSnap())
-            return ["snap"]
+            return [{
+              "confinement": "devmode",
+              "target": "snap"
+            }]
         else {
             console.log("Cannot build snap, please install snapcraft")
             process.exit()
@@ -66,7 +69,10 @@ function buildLinuxTargets(){
     var linuxTargets = [];
     if (!cli.ignoreSnap)
         if (canBuildSnap())
-            linuxTargets.push("snap")
+            linuxTargets.push({
+              "confinement": "devmode",
+              "target": "snap"
+            })
         else
             console.log("Cannot build snap, please install snapcraft (ignoring bulding of snap for now)")
     if (!cli.ignoreDeb)
@@ -88,8 +94,7 @@ function build() {
                 "appId": "com.ubports.installer",
                 "linux": {
                     "target": linuxTargets,
-					          "icon": "build/icons",
-                    "confinement": "devmode"
+					          "icon": "build/icons"
                 },
                 "mac": {
                     "target": "dmg",
