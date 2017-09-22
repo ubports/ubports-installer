@@ -67,7 +67,7 @@ function buildLinuxTargets(){
     if (!cli.ignoreSnap)
         if (canBuildSnap())
             linuxTargets.push("snap")
-        else 
+        else
             console.log("Cannot build snap, please install snapcraft (ignoring bulding of snap for now)")
     if (!cli.ignoreDeb)
         linuxTargets.push("deb")
@@ -80,9 +80,8 @@ function buildLinuxTargets(){
 }
 
 function build() {
-    var linuxTargets = buildLinuxTargets() 
+    var linuxTargets = buildLinuxTargets()
     console.log("bulding for: " + linuxTargets.join(", "))
-    process.exit()
     builder.build({
             targets: builder.createTargets(targets),
             config: {
