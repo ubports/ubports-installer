@@ -88,7 +88,8 @@ function build() {
                 "appId": "com.ubports.installer",
                 "linux": {
                     "target": linuxTargets,
-					"icon": "build/icons"
+					          "icon": "build/icons",
+                    "confinement": "devmode"
                 },
                 "mac": {
                     "target": "dmg",
