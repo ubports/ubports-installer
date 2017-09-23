@@ -84,6 +84,9 @@ function build() {
     console.log("bulding for: " + linuxTargets.join(", "))
     builder.build({
             targets: builder.createTargets(targets),
+            snap: {
+              confinement: "devmode"
+            },
             config: {
                 "appId": "com.ubports.installer",
                 "linux": {
