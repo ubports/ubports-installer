@@ -99,6 +99,9 @@ var getUbportDir = () => {
     return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.cache'), "ubports/")
 }
 
+if (!fs.existsSync(getUbportDir())) {
+    mkdirp.sync(getUbportDir());
+}
 winston.add(winston.transports.File, { filename: getUbportDir()+'ubports-installer.log' });
 winston.level = 'debug';
 
