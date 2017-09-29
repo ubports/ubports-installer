@@ -17,14 +17,21 @@
             </div>
             <div id="collapseUbuntu" class="panel-collapse collapse in" role="tabpanel">
               <div class="panel-body">
-                <p>
-                  This is done from System Settings. <br />
-                </p>
-                <ol type="1">
-                  <li>Open System Settings, About this Phone, Developer Mode.</li>
-                  <li>The adb service will be enabled if 'developer mode' is selected. Note that you must have some sort of lock screen security enabled (pin or password), and 'Developer mode' will be greyed out if that's not the case.</li>
-                  <li>The 'Lock Security' menu there can be used to turn on a pin or password</li>
-                </ol>
+                <div class="row">
+                  <div class="col-xs-6">
+                    <p>
+                      This is done from System Settings. <br />
+                    </p>
+                    <ol type="1">
+                      <li>Open System Settings, go to About this Phone, and then Developer Mode.</li>
+                      <li>The adb service will be enabled if 'developer mode' is selected. Note that you must have some sort of lock screen security enabled (pin or password), and 'Developer mode' will be greyed out if that's not the case.</li>
+                      <li>The 'Lock Security' menu there can be used to turn on a pin or password</li>
+                    </ol>
+                  </div>
+                  <div class="col-xs-6">
+                    <img src="../screens/ubuntu-dev-mode.gif" style="width: 100%">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -38,16 +45,25 @@
             </div>
             <div id="collapseAndroid" class="panel-collapse collapse" role="tabpanel">
               <div class="panel-body">
-                <p>
-                  This is done from the android settings menu. <br />
-                </p>
-                <ol type="1">
-                  <li>Go to the settings menu, and scroll down to "About phone." Tap it.</li>
-                  <li>Scroll down to the bottom again, where you see "Build number." </li>
-                  <li>Tap it seven (7) times. After the third tap, you'll see a dialog that says you're four taps away from being a developer. Keep on tapping until you see a dialog saying "You're now a developer"</li>
-                  <li>Now go back to the Settings menu and find "developer settings" (sometimes called "developer options"), Tap that.</li>
-                  <li>And find an option called "USB debugging", enable this</li>
-                </ol>
+                <div class="row">
+                  <div class="col-xs-6">
+                    <p>
+                      This is done from the android settings menu. <br />
+                    </p>
+                    <ol type="1">
+                      <li>Go to the settings menu, and scroll down to "About phone." Tap it.</li>
+                      <li>Scroll down to the bottom again, where you see "Build number." </li>
+                      <li>Tap it seven (7) times. After the third tap, you'll see a dialog that says you're four taps away from being a developer. Keep on tapping until you see a dialog saying "You're now a developer"</li>
+                      <li>Now go back to the Settings menu and find "developer settings" (sometimes called "developer options"), Tap that.</li>
+                      <li>Find the option called "OEM unlock", enable this</li>
+                      <li>And the option called "USB debugging", also enable this</li>
+                    </ol>
+                  </div>
+                  <div class="col-xs-6">
+                    <img src="../screens/android-dev-mode.gif" style="width: 100%">
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
