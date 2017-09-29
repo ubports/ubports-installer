@@ -112,20 +112,32 @@ var die = (e) => {
 
 var checkPassword = (password, callback) => {
     if (!needRoot()) {
+        log.debug("no root needed")
         callback(true);
         return;
     }
+    log.debug("checking password")
     exec("echo " + password + " | sudo -S echo correct", (err, output) => {
         if(err){
-            if (err.message.includes("incorrect password"))
-                callback(false);
-            else
-                throw "Unknown Error"
+            if (err.message.includes("incorrect password")) {
+                log.debug("incorrect password")
+                callback(false, {
+                  password: true
+                });
+            } else{
+              // Replace password with "" to make sure it wont get logged
+              // with password
+              log.debug("unknown sudo error")
+              callback(false, {
+                message: err.message.replace(password, "")
+              });
+            }
         }else {
+            log.debug("correct password")
             if (output.includes("correct"))
                 callback(true);
             else
-             throw "Unknown Error";
+                callback(false);
         }
     });
 }

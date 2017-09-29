@@ -135,13 +135,15 @@ var requestPassword = (bootstrapEvent, callback) => {
     }
     bootstrapEvent.emit("user:password");
     bootstrapEvent.once("password", (p) => {
-        utils.checkPassword(p, (correct) => {
+        utils.checkPassword(p, (correct, err) => {
             if(correct){
                 password=p;
                 callback(p);
+            }else if (err.password) {
+              bootstrapEvent.emit("user:password:wrong");
+              requestPassword(bootstrapEvent, callback);
             }else {
-                bootstrapEvent.emit("user:password:wrong");
-                requestPassword(bootstrapEvent, callback);
+              bootstrapEvent.emit("error", err.message)
             }
         })
     });
@@ -268,6 +270,7 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("user:write:done");
   });
   downloadEvent.on("adbpush:error", (e) => {
+    downloadEvent.emit("error", e)
     utils.log.error("Devices: Adb push error: "+ e)
   });
   downloadEvent.on("adbpush:progress", (r) => {
