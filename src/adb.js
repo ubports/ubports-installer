@@ -19,6 +19,24 @@ const adb = utils.getPlatformTools().adb
 
 class event extends events {}
 
+// TODO: remove lazy override alias, this should be handled by the server
+// NOT localy.
+const lazyOverrideAlias = (func, arg, callback) => {
+  var alias = {
+    "A0001": "bacon",
+    "a0001": "bacon",
+    "find7op": "bacon",
+    "nexus5": "hammerhead",
+    "fairphone2": "FP2"
+  }
+  func(device => {
+    if (device in alias)
+      callback(alias[device]);
+    else
+      callback(device);
+  }, arg)
+}
+
 var getDeviceNameFromPropFile = (callback) => {
   shell("cat default.prop", (output) => {
     output=output.split("\n");
@@ -32,7 +50,7 @@ var getDeviceNameFromPropFile = (callback) => {
   })
 }
 
-var getDeviceName = (callback, method) => {
+var _getDeviceName = (callback, method) => {
   if (!method) method = "device";
   cp.execFile(adb, ["shell", "getprop ro.product."+method], (err, stdout, stderr) => {
     if (stdout.includes("getprop: not found")){
@@ -46,6 +64,8 @@ var getDeviceName = (callback, method) => {
     callback(stdout.replace(/\W/g, ""));
   });
 }
+
+var getDeviceName = (callback, method) => lazyOverrideAlias(_getDeviceName, method, callback)
 
 var isUbuntuDevice = (callback) => {
   shell("cat /etc/system-image/channel.ini", (output) => {
