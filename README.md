@@ -43,7 +43,7 @@ This is still under development expect some bugs
 ## How to run the program from source
 
 ```
-git clone git@github.com:ubports/ubports-installer.git
+git clone https://github.com/ubports/ubports-installer.git
 cd ubports-installer
 ./setup-dev.sh
 ```
