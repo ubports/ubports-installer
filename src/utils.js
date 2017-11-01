@@ -73,7 +73,7 @@ var createBugReport = (title, callback) => {
   http.post({
     url: "http://paste.ubuntu.com",
     form: {
-      poster: "Ubports installer bug",
+      poster: "UBports Installer bug",
       syntax: "text",
       content: "Title: "+title+
       "\n"+errorLog
