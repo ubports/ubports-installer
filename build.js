@@ -105,7 +105,8 @@ function build() {
           "build/icons/icon.*"
         ],
         snap: {
-          confinement: "devmode"
+          confinement: "classic",
+          plugs: ["home", "x11", "unity7", "browser-support", "network", "gsettings", "pulseaudio", "opengl", "raw-usb", "serial-port"]
         }
       }
     })
