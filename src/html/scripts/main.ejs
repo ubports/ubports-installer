@@ -1,8 +1,8 @@
-views.show("wait-for-device")
-
+// CATCH ANY ERRORS!
 var onErr = (err) => {
   $("#error-body").text(err);
   $("#errorModal").modal("show");
+  modals.hide("password");
 }
 $("#btn-bugreport").click(() => {
   var title = $("#error-body").text();
@@ -10,6 +10,16 @@ $("#btn-bugreport").click(() => {
     openurl.open("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
   });
 })
+
+window.onerror = (err, url, line) => {
+    onErr(err+" (MainRenderer:"+line+")");
+}
+// START
+
+particles.show();
+views.show("start");
+footer.topText.set("UBports installer is starting up").append("<span id='wait-dot'>.</span>");
+footer.underText.set("Starting adb service...");
 
 devices.getDeviceSelects((out) => {
   $("#device-select").append(out);
@@ -21,8 +31,45 @@ $("#btn-exit").click(() => {
 });
 
 if (!utils.debugScreen()) {
+   // START ADB
+   adb.start(false, false, (err) => {
+       particles.hide();
+       footer.topText.set("Wating for device").append("<span id='wait-dot'>.</span>");
+       footer.underText.set("Please connect your device with an usb cable");
+       views.show("wait-for-device");
+       var waitEvent = devices.waitForDevice(mainEvent);
+         // Select device button
+      $("#btn-select-device").click(() => {
+        var device = $("#device-select").find(":selected").attr("name");
+        waitEvent.emit("device:select", device);
+        $('#select-device-modal').modal('hide');
+      });
+      waitEvent.on("user:error", onErr);
+      utils.debugTrigger(waitEvent, 1);
+   });
 
-  var waitEvent = devices.waitForDevice((output, device, channels, ubuntuCom) => {
+  $("#btn-modal-select-device").click(() => {
+    $('#select-device-modal').modal('show');
+  })
+
+  $("#btn-modal-dev-mode").click(() => {
+    $('#developer-mode-info-modal').modal('show');
+  })
+
+  modals.bind("options");
+  options.init();
+}else {
+  if (utils.debugScreen().startsWith("modal:")){
+    var modal=utils.debugScreen().split(":")[1]
+    setTimeout(function () {
+      $("#"+modal).modal("show");
+    }, 10);
+  } else {
+    views.show(utils.debugScreen());
+  }
+}
+
+const mainEvent = (output, device, channels, ubuntuCom) => {
     $("#waitForDevice").hide();
     $("#device").show();
     if(!output) {
@@ -151,38 +198,4 @@ if (!utils.debugScreen()) {
         utils.debugTrigger(installEvent, 2);
       })
     }
-  });
-
-  // Select device button
-  $("#btn-select-device").click(() => {
-    var device = $("#device-select").find(":selected").attr("name");
-    waitEvent.emit("device:select", device);
-    $('#select-device-modal').modal('hide');
-  })
-
-  $("#btn-modal-select-device").click(() => {
-    $('#select-device-modal').modal('show');
-  })
-
-  $("#btn-modal-dev-mode").click(() => {
-    $('#developer-mode-info-modal').modal('show');
-  })
-
-  modals.bind("options");
-  options.init();
-}else {
-  if (utils.debugScreen().startsWith("modal:")){
-    var modal=utils.debugScreen().split(":")[1]
-    setTimeout(function () {
-      $("#"+modal).modal("show");
-    }, 10);
-  } else {
-    views.show(utils.debugScreen());
-  }
-}
-
-waitEvent.on("user:error", onErr);
-
-utils.debugTrigger(waitEvent, 1);
-
-require('bootstrap')
+};

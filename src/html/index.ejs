@@ -12,8 +12,11 @@
     <div class="header">
         <h3 class="text-muted installer">UBports Installer</h3>
     </div>
+    <div id="particles-background" class="vertical-centered-box"></div>
+    <div id="particles-foreground" class="vertical-centered-box"></div>
 
 	<!-- Views -->
+	<%- include('views/start'); %>
 	<%- include('views/wait-for-device'); %>
 	<%- include('views/not-supported'); %>
 	<%- include('views/installing'); %>
@@ -21,16 +24,15 @@
 	<%- include('views/reboot'); %>
 	<%- include('views/install'); %>
 
-
     <div class="progress" id="progress" hidden="hidden"></div>
     <footer class="footer">
-        <div class="container" id="waitForDevice">
+        <div class="container" hidden="hidden" id="waitForDevice">
             <h3 class="text-muted footer-top">Wating for device<span id="wait-dot"></span></h2>
             <p class="text-muted">Please connect your device with an usb cable</p>
         </div>
-        <div class="container" hidden="hidden" id="device">
-            <h3 class="text-muted footer-top" id="device-name"></h2>
-            <p id="device-under-text" class="text-muted">Ready to install...</p>
+        <div class="container" id="device">
+            <h3 class="text-muted footer-top" id="device-name">UBports installer is starting up</h2>
+            <p id="device-under-text" class="text-muted">Starting adb service...</p>
          </div>
     </footer>
 
@@ -40,15 +42,17 @@
 	<%- include('modals/error'); %>
 	<%- include('modals/password'); %>
 	<%- include('modals/oem-lock'); %>
-  <%- include('modals/select-device'); %>
-  <%- include('modals/developer-mode'); %>
-  <%- include('modals/options'); %>
+    <%- include('modals/select-device'); %>
+    <%- include('modals/developer-mode'); %>
+    <%- include('modals/options'); %>
 
 </body>
 
 <!-- Scripts -->
 
 <script>
+<%- include('scripts/particleground'); %>
+<%- include('scripts/start'); %>
 <%- include('scripts/root'); %>
 <%- include('scripts/ui'); %>
 <%- include('scripts/main'); %>

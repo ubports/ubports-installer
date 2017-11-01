@@ -92,8 +92,9 @@ var formatNotWorking = (nw) => {
 var instructReboot = (state, button, rebootEvent, callback) => {
     adb.hasAdbAccess((hasAccess) => {
         if (hasAccess) {
-            adb.reboot(state, () => {
-                rebootEvent.emit("adb:rebooted");
+            adb.reboot(state, (err, out, eout) => {
+                if (err) rebootEvent.emit("error", "Adb failed to reboot!, " + out + " : " + eout)
+                else rebootEvent.emit("adb:rebooted");
             });
         } else {
             rebootEvent.emit("user:reboot", {
@@ -270,7 +271,7 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("user:write:done");
   });
   downloadEvent.on("adbpush:error", (e) => {
-    downloadEvent.emit("error", e)
+    downloadEvent.emit("error", "Adb push error: " + e)
     utils.log.error("Devices: Adb push error: "+ e)
   });
   downloadEvent.on("adbpush:progress", (r) => {
@@ -377,18 +378,26 @@ module.exports = {
     waitForDevice: (callback) => {
         var waitEvent = adb.waitForDevice(() => {
             adb.getDeviceName((name) => {
-                getDevice(name, (ret) => {
-                    if (!ret){
-                      callback(false, name);
-                      return;
-                    }
-                    getChannelSelects(ret.device.device, (channels) => {
-                        adb.isBaseUbuntuCom(ubuntuCom => {
-                          console.log(ubuntuCom);
-                          callback(ret, device, channels, ubuntuCom);
-                        });
-                    })
-                });
+                // Have a small delay here, without this it seems to trigger
+                // some prevent_dual_callback function in "requests"    
+                setTimeout(function () {
+                    getDevice(name, (ret) => {
+                        if (!ret){
+                          callback(false, name);
+                          return;
+                        }
+                        // Have a small delay here, without this it seems to trigger
+                        // some prevent_dual_callback function in "requests"  
+                        setTimeout(() => {
+                            getChannelSelects(ret.device.device, (channels) => {
+                                adb.isBaseUbuntuCom(ubuntuCom => {
+                                  console.log(ubuntuCom);
+                                  callback(ret, device, channels, ubuntuCom);
+                                });
+                            })
+                        }, 10);
+                    });
+                }, 10);
             })
         })
         waitEvent.on("device:select", (device) => {
