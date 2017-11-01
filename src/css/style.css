@@ -8,6 +8,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   -webkit-user-select: none;
+  image-rendering: crisp-edges;
 }
 body .vertical-centered-box {
   position: absolute;
@@ -63,6 +64,9 @@ body .vertical-centered-box .content {
   -moz-transition: all 0.7s ease;
   -o-transition: all 0.7s ease;
   transition: all 0.7s ease;
+  image-rendering: crisp-edges;
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0) scale(1.0, 1.0);
 } 
 
 * {
