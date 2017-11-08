@@ -117,7 +117,7 @@ var checkPassword = (password, callback) => {
         return;
     }
     log.debug("checking password")
-    exec("echo '" + password + "' | sudo -S echo correct", (err, output) => {
+    exec("echo '" + password.replace("'", "\\'") + "' | sudo -S echo correct", (err, output) => {
         if(err){
             if (err.message.includes("incorrect password")) {
                 log.debug("incorrect password")
