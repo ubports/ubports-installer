@@ -1,0 +1,46 @@
+name: ubports-installer
+version: 0.1.8-beta
+summary: ubports-installer
+description: UBports installer, install ubuntu touch on your device.
+icon: build/icons/icon.png
+
+grade: devel
+confinement: devmode
+
+apps:
+  ubports-installer:
+    command:  desktop-launch $SNAP/app/ubports-installer
+    plugs:
+      - home
+      - x11
+      - unity7
+      - browser-support
+      - network
+      - gsettings
+      - pulseaudio
+      - opengl
+      - raw-usb
+
+parts:
+  ubports-installer:
+    plugin: nodejs
+    stage-packages:
+      - libnotify4
+      - libappindicator1
+      - libxtst6
+      - libnss3
+      - libxss1
+      - fontconfig-config
+      - gconf2
+    after:
+      - desktop-glib-only
+    build: ./build.js -lb
+    install: |
+      mkdir $SNAPCRAFT_PART_INSTALL/app
+      mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
+    prime:
+      - -node_modules
+      - -lib/node_modules
+  android-tools:
+    source: https://github.com/ubports/android-tools.git
+    plugin: make

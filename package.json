@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.1.7-beta",
+  "version": "0.1.8-beta",
   "description": "UBports Installer",
   "main": "src/main.js",
   "bin": "./src/main.js",
@@ -20,8 +20,8 @@
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "electron": "^1.4.1",
-    "electron-builder": "^15.2.0",
     "electron-packager": "^8.5.2",
+    "electron-builder": "^19.42.2",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
     "sinon": "^1.17.7",
@@ -31,6 +31,7 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "checksum": "^0.1.1",
+    "command-exists": "^1.2.2",
     "commander": "^2.9.0",
     "electron-ejs": "^1.1.1",
     "electron-open-link-in-browser": "^1.0.2",

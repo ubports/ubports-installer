@@ -15,9 +15,45 @@ const fs = require("fs");
 const events = require("events")
 const fEvent = require('forward-emitter');
 const utils = require("./utils");
-const adb = utils.getPlatformTools().adb
+
+// DEFAULT = 5037
+const PORT = 5038
 
 class event extends events {}
+
+// Since we need root anyway, why not start adb with root
+const start = (password, sudo, callback) => {
+  // Make sure the server is not running
+  stop(err => {
+    var cmd="";
+    if (utils.needRoot() && sudo)
+        cmd += "echo " + password + " | sudo -S "
+    cmd += adb + " -P " + PORT + " start-server";
+    utils.platfromToolsExecAsar("adb", (platfromToolsExecAsar) => {
+        platfromToolsExecAsar.exec(cmd, (c, r, e) => {
+            console.log(c, r, e);
+            if (r.includes("incorrect password"))
+              callback({
+                  password: true
+                });
+            else
+              callback()
+            platfromToolsExecAsar.done();
+        })
+    });
+  })
+}
+
+const stop = (callback) => {
+  utils.platfromToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
+      utils.platfromToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
+        console.log(stdout)
+        if (err !== null) callback(false);
+        else callback();
+      })
+  })
+
+}
 
 // TODO: remove lazy override alias, this should be handled by the server
 // NOT localy.
@@ -52,15 +88,18 @@ var getDeviceNameFromPropFile = (callback) => {
 
 var _getDeviceName = (callback, method) => {
   if (!method) method = "device";
-  cp.execFile(adb, ["shell", "getprop ro.product."+method], (err, stdout, stderr) => {
+  shell("getprop ro.product."+method, (stdout) => {
     if (stdout.includes("getprop: not found")){
+      utils.log.debug("getprop: not found")
       getDeviceNameFromPropFile(callback);
       return;
     }
-    if (err !== null) {
+    if (stdout === null) {
+      util.log.debug("getprop: error");
       callback(false);
       return;
     }
+    utils.log.debug("getprop: "+stdout.replace(/\W/g, ""))
     callback(stdout.replace(/\W/g, ""));
   });
 }
@@ -103,7 +142,7 @@ var isBaseUbuntuCom = callback => {
 var push = (file, dest, pushEvent) => {
   var done;
   var fileSize = fs.statSync(file)["size"];
-  cp.execFile(adb, ["push", file, dest], {maxBuffer: 2000*1024}, (err, stdout, stderr) => {
+  utils.platfromToolsExec("adb", ["-P", PORT, "push", file, dest], {maxBuffer: 2000*1024}, (err, stdout, stderr) => {
     done=true;
     if (err !== null) {
       pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
@@ -146,7 +185,7 @@ var pushMany = (files, pushManyEvent) => {
 
 var shell = (cmd, callback) => {
   if (!cmd.startsWith("stat")) utils.log.debug("adb shell: "+cmd);
-  cp.execFile(adb, ["shell", cmd], (err, stdout, stderr) => {
+  utils.platfromToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout);
   })
@@ -180,9 +219,14 @@ var hasAdbAccess = (callback) => {
 }
 
 var reboot = (state, callback) => {
-  cp.execFile(adb, ["reboot", state], (err, stdout, stderr) => {
-    if (err !== null) callback(false);
-    else callback(state);
+  utils.log.debug("reboot to "+state);
+  utils.platfromToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
+    utils.log.debug("reboot to "+state+ " [DONE] err:" + err+stdout+stderr);
+    console.log(stderr)
+    if (stdout.includes("failed")) callback(true, stdout, stderr)
+    else if (stderr.includes("failed")) callback(true, stdout, stderr)
+    else if (err !== null) callback(true, stdout, stderr);
+    else callback(false);
   })
 }
 
@@ -245,5 +289,7 @@ module.exports = {
   readUbuntuChannelINI: readUbuntuChannelINI,
   format: format,
   wipeCache: wipeCache,
-  isBaseUbuntuCom, isBaseUbuntuCom
+  isBaseUbuntuCom, isBaseUbuntuCom,
+  start: start,
+  stop: stop
 }

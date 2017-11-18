@@ -6,7 +6,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
-const version = "0.1.5-beta"
+const version = "0.1.8-beta"
 
 const http = require("request");
 const progress = require("request-progress");
@@ -17,9 +17,11 @@ const checksum = require('checksum');
 const mkdirp = require('mkdirp');
 const tmp = require('tmp');
 const exec = require('child_process').exec;
+const cp = require('child_process');
 const sudo = require('electron-sudo');
 const winston = require('winston');
-const getos = require('getos')
+const getos = require('getos');
+const commandExistsSync = require('command-exists').sync;
 //const decompress = require('decompress');
 //const decompressTarxz = require('decompress-tarxz');
 
@@ -28,6 +30,9 @@ const platforms = {
     "darwin": "mac",
     "win32": "win"
 }
+
+var platfromToolsLoged;
+var platfromToolsLogedF;
 
 var debugScreen = () => {
   return process.env.DEBUG ? process.env.SCREEN : null
@@ -95,6 +100,21 @@ Error log: "+res.headers.location+" %0A")
 
 }
 
+const checkForNewUpdate = (callback) => {
+  http.get({
+              url: "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
+              json: true,
+              headers: {
+                'User-Agent': 'request'
+              }
+           },
+           (err, res, bod) => {
+             if (!err && res.statusCode === 200) {
+               console.log(bod.tag_name !== version)
+             }
+           })
+}
+
 var getUbportDir = () => {
     return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.cache'), "ubports/")
 }
@@ -102,7 +122,7 @@ var getUbportDir = () => {
 if (!fs.existsSync(getUbportDir())) {
     mkdirp.sync(getUbportDir());
 }
-winston.add(winston.transports.File, { filename: getUbportDir()+'ubports-installer.log' });
+winston.add(winston.transports.File, { filename: path.join(getUbportDir(), 'ubports-installer.log') });
 winston.level = 'debug';
 
 var die = (e) => {
@@ -154,6 +174,7 @@ var asarExec = (file, callback) => {
             callback({
                 exec: (cmd, cb) => {
                     cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
+                    log.debug("Running platform tool fallback exec asar cmd "+cmd);
                     exec(cmd, (err, e,r) => {
                         cb(err,e,r);
                     })
@@ -167,12 +188,106 @@ var asarExec = (file, callback) => {
 
 }
 
+const logPlatformNativeToolsOnce = () => {
+  if (!platfromToolsLoged) {
+    log.debug("Using native platform tools!");
+    platfromToolsLoged=true;
+  }
+}
+
+const logPlatformFallbackToolsOnce = () => {
+  if (!platfromToolsLogedF) {
+    log.warning("Using fallback platform tools!");
+    platfromToolsLogedF=true;
+  }
+}
+
+const callbackHook = (callback) => {
+  return (a,b,c) => {
+    log.debug(a,b,c);
+    callback(a,b,c)
+  }
+}
+
+const platfromToolsExec = (tool, arg, callback) => {
+  var tools = getPlatformTools();
+
+  // Check first for native
+  if (tools[tool]) {
+    logPlatformNativeToolsOnce();
+    var cmd = tools[tool] + " " + arg.join(" ");
+    log.debug("Running platform tool exec cmd "+cmd);
+    cp.exec(cmd, callbackHook(callback));
+    return true;
+  }
+
+  if (tools.fallback[tool]) {
+    logPlatformFallbackToolsOnce();
+    log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
+    cp.execFile(tools.fallback[tool], arg, callbackHook(callback));
+    return true;
+  }
+  log.error("NO PLATFORM TOOL USED!");
+  callback(true, false);
+  return false;
+}
+
+const platfromToolsExecAsar = (tool, callback) => {
+  var tools = getPlatformTools();
+
+  // Check first for native
+  if (tools[tool]) {
+    logPlatformNativeToolsOnce();
+    callback({
+        exec: (cmd, cb) => {
+            log.debug("Running platform tool exec asar cmd "+cmd);
+            exec(cmd, (err, e,r) => {
+                cb(err,e,r);
+            })
+        },
+        done: () => { console.log("done platform tools") }
+    });
+    return true;
+  }
+
+  if (tools.fallback[tool]) {
+    logPlatformFallbackToolsOnce();
+    asarExec(tools.fallback[tool], callback);
+    return true;
+  }
+  log.error("NO PLATFORM TOOL USED!");
+  callback(true, false);
+  return false;
+}
+
 var maybeEXE = (platform, tool) => {
     if(platform === "win32") tool+=".exe";
     return tool;
 }
 
-var getPlatformTools = () => {
+var getPlatform = () => {
+  var thisPlatform = os.platform();
+  if(!platforms[thisPlatform]) die("Unsuported platform");
+  return platforms[thisPlatform];
+}
+
+// Check if we have native platform tools
+const getPlatformTools = () => {
+  var p = getNativePlatfromTools();
+  p["fallback"] = getFallbackPlatformTools();
+  return p;
+}
+
+const getNativePlatfromTools = () => {
+  var ret = {};
+  if (commandExistsSync("adb"))
+    ret["adb"] = "adb";
+  if (commandExistsSync("fastboot"))
+    ret["fastboot"] = "fastboot";
+  return ret;
+}
+
+const getFallbackPlatformTools = () => {
     var thisPlatform = os.platform();
     if(!platforms[thisPlatform]) die("Unsuported platform");
     var platfromToolsPath = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
@@ -209,7 +324,7 @@ var checkFiles = (urls, callback) => {
         }
     }
     var check = () => {
-        fs.access(urls[0].path + "/" + path.basename(urls[0].url), (err) => {
+        fs.access(path.join(urls[0].path, path.basename(urls[0].url)), (err) => {
             if (err) {
                 log.error("Not existing " + urls[0].path + "/" + path.basename(urls[0].url))
                 urls_.push(urls[0]);
@@ -251,7 +366,7 @@ var checksumFile = (file, callback) => {
         callback(true);
         return;
     }
-    checksum.file(file.path + "/" + path.basename(file.url), {
+    checksum.file(path.join(file.path, path.basename(file.url)), {
         algorithm: "sha256"
     }, function(err, sum) {
         log.info("checked: " +path.basename(file.url), sum === file.checksum)
@@ -285,8 +400,8 @@ var downloadFiles = (urls_, downloadEvent, callbackOn) => {
                 downloadEvent.emit("download:error", err)
             })
             .on('end', () => {
-                fs.rename(urls[0].path + "/" + path.basename(urls[0].url) + ".tmp",
-                    urls[0].path + "/" + path.basename(urls[0].url), () => {
+                fs.rename(path.join(urls[0].path, path.basename(urls[0].url + ".tmp")),
+                    path.join(urls[0].path, path.basename(urls[0].url)), () => {
                         downloadEvent.emit("download:checking");
                         checksumFile(urls[0], (check) => {
                             if (Array.isArray(callbackOn)){
@@ -307,7 +422,7 @@ var downloadFiles = (urls_, downloadEvent, callbackOn) => {
                         })
                     })
             })
-            .pipe(fs.createWriteStream(urls[0].path + "/" + path.basename(urls[0].url) + ".tmp"));
+            .pipe(fs.createWriteStream(path.join(urls[0].path, path.basename(urls[0].url + ".tmp"))));
     }
     checkFiles(urls_, (ret) => {
         if (ret.length <= 0) {
@@ -327,7 +442,8 @@ module.exports = {
     checksumFile: checksumFile,
     checkFiles: checkFiles,
     log: log,
-    asarExec: asarExec,
+    platfromToolsExec: platfromToolsExec,
+    platfromToolsExecAsar: platfromToolsExecAsar,
     ensureRoot: ensureRoot,
     isSnap: isSnap,
     getPlatformTools: getPlatformTools,
@@ -336,6 +452,8 @@ module.exports = {
     checkPassword: checkPassword,
     debugScreen: debugScreen,
     debugTrigger: debugTrigger,
-    createBugReport: createBugReport
+    createBugReport: createBugReport,
+    checkForNewUpdate: checkForNewUpdate,
+    getPlatform: getPlatform
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }

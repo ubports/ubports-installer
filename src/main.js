@@ -15,6 +15,7 @@ const BrowserWindow = electron.BrowserWindow
 
 const path = require('path')
 const url = require('url')
+const adb = require("./adb")
 
 const ejs = new electronEsj();
 let mainWindow
@@ -44,7 +45,12 @@ function createWindow () {
 
 app.on('ready', createWindow)
 
+app.on('uncaughtException', function (error) {
+    console.log("CRAP!");
+})
+
 app.on('window-all-closed', function () {
+  adb.stop(console.log)
   console.log("Good bye!")
   if (process.platform !== 'darwin') {
     app.quit()

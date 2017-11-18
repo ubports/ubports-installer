@@ -105,7 +105,8 @@ function build() {
           "build/icons/icon.*"
         ],
         snap: {
-          confinement: "devmode"
+          confinement: "devmode",
+          plugs: ["home", "x11", "unity7", "browser-support", "network", "gsettings", "pulseaudio", "opengl", "raw-usb", "serial-port"]
         }
       }
     })
@@ -180,6 +181,7 @@ cli
   .option('-t, --ignore-deb', "Build only snap")
   .option('-y, --ignore-appimage', "Build only appimage")
   .option('-b, --build-to-dir', "Build only to dir")
+  .option('-n, --no-platfrom-tools', "Build without platform tools")
   .parse(process.argv);
 
 var targets = [];
@@ -190,4 +192,4 @@ if (cli.mac) targets.push(Platform.MAC);
 
 if (targets.length === 0) targets = [Platform.MAC, Platform.WINDOWS, Platform.LINUX];
 
-downloadPlatformTools()
+if (cli.platfromTools) downloadPlatformTools();
