@@ -15,7 +15,6 @@ const fs = require("fs");
 const events = require("events")
 const fEvent = require('forward-emitter');
 const utils = require("./utils");
-const adb = utils.getPlatformTools().adb
 
 // DEFAULT = 5037
 const PORT = 5038
@@ -30,8 +29,8 @@ const start = (password, sudo, callback) => {
     if (utils.needRoot() && sudo)
         cmd += "echo " + password + " | sudo -S "
     cmd += adb + " -P " + PORT + " start-server";
-    utils.asarExec(adb, (asarExec) => {
-        asarExec.exec(cmd, (c, r, e) => {
+    utils.platfromToolsExecAsar("adb", (platfromToolsExecAsar) => {
+        platfromToolsExecAsar.exec(cmd, (c, r, e) => {
             console.log(c, r, e);
             if (r.includes("incorrect password"))
               callback({
@@ -39,15 +38,15 @@ const start = (password, sudo, callback) => {
                 });
             else
               callback()
-            asarExec.done();
+            platfromToolsExecAsar.done();
         })
     });
   })
 }
 
 const stop = (callback) => {
-  cp.execFile(adb, ["kill-server"], (err, stdout, stderr) => {
-      cp.execFile(adb, ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
+  utils.platfromToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
+      utils.platfromToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
         console.log(stdout)
         if (err !== null) callback(false);
         else callback();
@@ -143,7 +142,7 @@ var isBaseUbuntuCom = callback => {
 var push = (file, dest, pushEvent) => {
   var done;
   var fileSize = fs.statSync(file)["size"];
-  cp.execFile(adb, ["-P", PORT, "push", file, dest], {maxBuffer: 2000*1024}, (err, stdout, stderr) => {
+  utils.platfromToolsExec("adb", ["-P", PORT, "push", file, dest], {maxBuffer: 2000*1024}, (err, stdout, stderr) => {
     done=true;
     if (err !== null) {
       pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
@@ -186,7 +185,7 @@ var pushMany = (files, pushManyEvent) => {
 
 var shell = (cmd, callback) => {
   if (!cmd.startsWith("stat")) utils.log.debug("adb shell: "+cmd);
-  cp.execFile(adb, ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
+  utils.platfromToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout);
   })
@@ -221,7 +220,7 @@ var hasAdbAccess = (callback) => {
 
 var reboot = (state, callback) => {
   utils.log.debug("reboot to "+state);
-  cp.execFile(adb, ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
+  utils.platfromToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
     utils.log.debug("reboot to "+state+ " [DONE] err:" + err+stdout+stderr);
     console.log(stderr)
     if (stdout.includes("failed")) callback(true, stdout, stderr)

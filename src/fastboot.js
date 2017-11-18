@@ -8,7 +8,6 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 const path = require("path");
 const utils = require("./utils.js")
-const fastboot = utils.getPlatformTools().fastboot;
 
 const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
 
@@ -52,7 +51,7 @@ var waitForDevice = (password, callback) => {
         cmd += "echo " + password + " | sudo -S "
     cmd += fastboot + " devices";
     var stop;
-    utils.asarExec(fastboot, (asarExec) => {
+    utils.platfromToolsExecAsar("fastboot", (asarExec) => {
         var repeat = () => {
             asarExec.exec(cmd, (err, r, e) => {
                 if (r) {
@@ -112,7 +111,7 @@ var flash = (images, callback, password) => {
         if (l !== images.length - 1)
             cmd += " && "
     });
-    utils.asarExec(fastboot, (asarExec) => {
+    utils.platfromToolsExecAsar("fastboot", (asarExec) => {
         asarExec.exec(cmd, (c, r, e) => {
             handleError(c, r, e, password, callback);
             asarExec.done();
@@ -138,7 +137,7 @@ var boot = (image, password, callback) => {
   if (utils.needRoot())
       cmd += "echo " + password + " | sudo -S "
   cmd += fastboot + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
-  utils.asarExec(fastboot, (asarExec) => {
+  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           handleError(c, r, e, password, callback);
           asarExec.done();
@@ -159,7 +158,7 @@ var format = (partitions, password, callback) => {
       if (l !== partitions.length - 1)
           cmd += " && "
   });
-  utils.asarExec(fastboot, (asarExec) => {
+  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           handleError(c, r, e, password, callback);
           asarExec.done();
@@ -177,7 +176,7 @@ var oem = (command, password, callback) => {
   if (utils.needRoot())
       cmd += "echo " + password + " | sudo -S "
   cmd += fastboot + " oem " + command;
-  utils.asarExec(fastboot, (asarExec) => {
+  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           setTimeout(() => {
             handleError(c, r, e, password, callback);

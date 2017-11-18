@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=ubports-installer
+Comment=Ubports installer
+Exec=ubports-installer
+Terminal=false
+Type=Application
+Icon=${SNAP}/meta/gui/icon.png

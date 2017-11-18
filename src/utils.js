@@ -17,9 +17,11 @@ const checksum = require('checksum');
 const mkdirp = require('mkdirp');
 const tmp = require('tmp');
 const exec = require('child_process').exec;
+const cp = require('child_process');
 const sudo = require('electron-sudo');
 const winston = require('winston');
-const getos = require('getos')
+const getos = require('getos');
+const commandExistsSync = require('command-exists').sync;
 //const decompress = require('decompress');
 //const decompressTarxz = require('decompress-tarxz');
 
@@ -28,6 +30,9 @@ const platforms = {
     "darwin": "mac",
     "win32": "win"
 }
+
+var platfromToolsLoged;
+var platfromToolsLogedF;
 
 var debugScreen = () => {
   return process.env.DEBUG ? process.env.SCREEN : null
@@ -169,6 +174,7 @@ var asarExec = (file, callback) => {
             callback({
                 exec: (cmd, cb) => {
                     cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
+                    log.debug("Running platform tool fallback exec asar cmd "+cmd);
                     exec(cmd, (err, e,r) => {
                         cb(err,e,r);
                     })
@@ -182,6 +188,78 @@ var asarExec = (file, callback) => {
 
 }
 
+const logPlatformNativeToolsOnce = () => {
+  if (!platfromToolsLoged) {
+    log.debug("Using native platform tools!");
+    platfromToolsLoged=true;
+  }
+}
+
+const logPlatformFallbackToolsOnce = () => {
+  if (!platfromToolsLogedF) {
+    log.warning("Using fallback platform tools!");
+    platfromToolsLogedF=true;
+  }
+}
+
+const callbackHook = (callback) => {
+  return (a,b,c) => {
+    log.debug(a,b,c);
+    callback(a,b,c)
+  }
+}
+
+const platfromToolsExec = (tool, arg, callback) => {
+  var tools = getPlatformTools();
+
+  // Check first for native
+  if (tools[tool]) {
+    logPlatformNativeToolsOnce();
+    var cmd = tools[tool] + " " + arg.join(" ");
+    log.debug("Running platform tool exec cmd "+cmd);
+    cp.exec(cmd, callbackHook(callback));
+    return true;
+  }
+
+  if (tools.fallback[tool]) {
+    logPlatformFallbackToolsOnce();
+    log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
+    cp.execFile(tools.fallback[tool], arg, callbackHook(callback));
+    return true;
+  }
+  log.error("NO PLATFORM TOOL USED!");
+  callback(true, false);
+  return false;
+}
+
+const platfromToolsExecAsar = (tool, callback) => {
+  var tools = getPlatformTools();
+
+  // Check first for native
+  if (tools[tool]) {
+    logPlatformNativeToolsOnce();
+    callback({
+        exec: (cmd, cb) => {
+            log.debug("Running platform tool exec asar cmd "+cmd);
+            exec(cmd, (err, e,r) => {
+                cb(err,e,r);
+            })
+        },
+        done: () => { console.log("done platform tools") }
+    });
+    return true;
+  }
+
+  if (tools.fallback[tool]) {
+    logPlatformFallbackToolsOnce();
+    asarExec(tools.fallback[tool], callback);
+    return true;
+  }
+  log.error("NO PLATFORM TOOL USED!");
+  callback(true, false);
+  return false;
+}
+
 var maybeEXE = (platform, tool) => {
     if(platform === "win32") tool+=".exe";
     return tool;
@@ -193,7 +271,23 @@ var getPlatform = () => {
   return platforms[thisPlatform];
 }
 
-var getPlatformTools = () => {
+// Check if we have native platform tools
+const getPlatformTools = () => {
+  var p = getNativePlatfromTools();
+  p["fallback"] = getFallbackPlatformTools();
+  return p;
+}
+
+const getNativePlatfromTools = () => {
+  var ret = {};
+  if (commandExistsSync("adb"))
+    ret["adb"] = "adb";
+  if (commandExistsSync("fastboot"))
+    ret["fastboot"] = "fastboot";
+  return ret;
+}
+
+const getFallbackPlatformTools = () => {
     var thisPlatform = os.platform();
     if(!platforms[thisPlatform]) die("Unsuported platform");
     var platfromToolsPath = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
@@ -348,7 +442,8 @@ module.exports = {
     checksumFile: checksumFile,
     checkFiles: checkFiles,
     log: log,
-    asarExec: asarExec,
+    platfromToolsExec: platfromToolsExec,
+    platfromToolsExecAsar: platfromToolsExecAsar,
     ensureRoot: ensureRoot,
     isSnap: isSnap,
     getPlatformTools: getPlatformTools,

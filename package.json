@@ -31,6 +31,7 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "checksum": "^0.1.1",
+    "command-exists": "^1.2.2",
     "commander": "^2.9.0",
     "electron-ejs": "^1.1.1",
     "electron-open-link-in-browser": "^1.0.2",
