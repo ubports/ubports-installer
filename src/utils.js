@@ -78,7 +78,7 @@ var createBugReport = (title, callback) => {
   http.post({
     url: "http://paste.ubuntu.com",
     form: {
-      poster: "Ubports installer bug",
+      poster: "UBports Installer bug",
       syntax: "text",
       content: "Title: "+title+
       "\n"+errorLog
@@ -137,7 +137,7 @@ var checkPassword = (password, callback) => {
         return;
     }
     log.debug("checking password")
-    exec("echo " + password + " | sudo -S echo correct", (err, output) => {
+    exec("echo '" + password.replace("'", "\\'") + "' | sudo -S echo correct", (err, output) => {
         if(err){
             if (err.message.includes("incorrect password")) {
                 log.debug("incorrect password")
