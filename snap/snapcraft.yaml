@@ -44,3 +44,12 @@ parts:
   android-tools:
     source: https://github.com/ubports/android-tools.git
     plugin: make
+    build-packages:
+      - gir1.2-glib-2.0
+      - libglib2.0-dev
+      - libselinux-dev
+      - libhybris-dev
+      - libsystemd-dev
+      - libssl-dev
+      - python
+      - zlib1g-dev
