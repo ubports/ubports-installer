@@ -32,6 +32,8 @@ parts:
       - libxss1
       - fontconfig-config
       - gconf2
+      - libasound2
+      - pulseaudio
     after:
       - desktop-glib-only
     build: ./build.js -lb
