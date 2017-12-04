@@ -49,7 +49,7 @@ var waitForDevice = (password, callback) => {
     var cmd = "";
     if (utils.needRoot())
         cmd += "echo " + password + " | sudo -S "
-    cmd += fastboot + " devices";
+    cmd += "fastboot" + " devices";
     var stop;
     utils.platfromToolsExecAsar("fastboot", (asarExec) => {
         var repeat = () => {
@@ -107,7 +107,7 @@ var flash = (images, callback, password) => {
     images.forEach((image, l) => {
         if (utils.needRoot())
             cmd += "echo " + password + " | sudo -S "
-        cmd += fastboot + " flash " + image.type + " \"" + path.join(image.path, path.basename(image.url)) + "\"";
+        cmd += "fastboot" + " flash " + image.type + " \"" + path.join(image.path, path.basename(image.url)) + "\"";
         if (l !== images.length - 1)
             cmd += " && "
     });
@@ -136,7 +136,7 @@ var boot = (image, password, callback) => {
   var cmd="";
   if (utils.needRoot())
       cmd += "echo " + password + " | sudo -S "
-  cmd += fastboot + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
+  cmd += "fastboot" + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
   utils.platfromToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           handleError(c, r, e, password, callback);
@@ -154,7 +154,7 @@ var format = (partitions, password, callback) => {
   partitions.forEach((partition, l) => {
       if (utils.needRoot())
           cmd += "echo " + password + " | sudo -S "
-      cmd += fastboot + " format " + partition;
+      cmd += "fastboot" + " format " + partition;
       if (l !== partitions.length - 1)
           cmd += " && "
   });
@@ -175,7 +175,7 @@ var oem = (command, password, callback) => {
   var cmd="";
   if (utils.needRoot())
       cmd += "echo " + password + " | sudo -S "
-  cmd += fastboot + " oem " + command;
+  cmd += "fastboot" + " oem " + command;
   utils.platfromToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           setTimeout(() => {

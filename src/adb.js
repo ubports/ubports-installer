@@ -142,7 +142,7 @@ var isBaseUbuntuCom = callback => {
 var push = (file, dest, pushEvent) => {
   var done;
   var fileSize = fs.statSync(file)["size"];
-  utils.platfromToolsExec("adb", ["-P", PORT, "push", file, dest], {maxBuffer: 2000*1024}, (err, stdout, stderr) => {
+  utils.platfromToolsExec("adb", ["-P", PORT, "push", file, dest], (err, stdout, stderr) => {
     done=true;
     if (err !== null) {
       pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
