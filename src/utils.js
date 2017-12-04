@@ -210,21 +210,22 @@ const callbackHook = (callback) => {
 }
 
 const platfromToolsExec = (tool, arg, callback) => {
+  console.log("plat")
   var tools = getPlatformTools();
-
+  console.log(tools)
   // Check first for native
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     var cmd = tools[tool] + " " + arg.join(" ");
     log.debug("Running platform tool exec cmd "+cmd);
-    cp.exec(cmd, callbackHook(callback));
+    cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
 
   if (tools.fallback[tool]) {
     logPlatformFallbackToolsOnce();
     log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
-    cp.execFile(tools.fallback[tool], arg, callbackHook(callback));
+    cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
   log.error("NO PLATFORM TOOL USED!");
@@ -454,6 +455,7 @@ module.exports = {
     debugTrigger: debugTrigger,
     createBugReport: createBugReport,
     checkForNewUpdate: checkForNewUpdate,
-    getPlatform: getPlatform
+    getPlatform: getPlatform,
+    asarExec: asarExec
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }
