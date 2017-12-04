@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![Coverage Status](https://coveralls.io/repos/github/ubports/ubports-installer/badge.svg?branch=master)](https://coveralls.io/github/ubports/ubports-installer?branch=master)
 
-This is still under development expect some bugs
+This tool is still under development, bugreports are appreciated.
 
 ## How to install
 
@@ -41,7 +41,7 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="04e8", MODE="0666", GROUP="plugdev"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="04dd", MODE="0666", GROUP="plugdev"  
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0fce", MODE="0666", GROUP="plugdev"  
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0930", MODE="0666", GROUP="plugdev"  
-SUBSYSTEM=="usb", ATTRS{idVendor}=="19d2", MODE="0666", GROUP="plugdev" 
+SUBSYSTEM=="usb", ATTRS{idVendor}=="19d2", MODE="0666", GROUP="plugdev"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="2ae5", MODE="0666", GROUP="plugdev"
 ```
 2a. If this file does not exist or has not all the rules inside, create it as su or add accordingly.
@@ -70,7 +70,7 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="2ae5", MODE="0666", GROUP="plugdev"
 
 1. Download the latest dmg file from https://github.com/ubports/ubports-installer/releases
 2. Open the file and follow the onscreen instructions.
-3. Launch the program from the application list. 
+3. Launch the program from the application list.
 
 ### Windows
 
