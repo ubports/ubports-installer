@@ -11,7 +11,7 @@ This tool is still under development, bugreports are appreciated.
 **Snap:**
 
 1. Open a terminal
-2. Run `sudo snap install ubports-installer --devmode` to install
+2. Run `sudo snap install ubports-installer --edge --devmode` to install
 3. Run `ubports-installer` or select the icon in your application list to start the program
 
 **Deb:**
