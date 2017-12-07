@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=ubports-installer
-Comment=Ubports installer
+Comment=UBports Installer
 Exec=ubports-installer
 Terminal=false
 Type=Application
