@@ -197,7 +197,7 @@ const logPlatformNativeToolsOnce = () => {
 
 const logPlatformFallbackToolsOnce = () => {
   if (!platfromToolsLogedF) {
-    log.warning("Using fallback platform tools!");
+    log.debug("Using fallback platform tools!");
     platfromToolsLogedF=true;
   }
 }
