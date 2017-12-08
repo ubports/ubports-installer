@@ -17,7 +17,7 @@ const utils = require("./src/utils");
 const systemImage = require("./src/system-image");
 const package = require("./package.json")
 
-const defaultChannel = "ubports-touch/legacy";
+const defaultChannel = "15.04/stable";
 
 process.env.NO_GUI = 1;
 
