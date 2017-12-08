@@ -13,7 +13,7 @@
     "dist:win": "node ./build.js -w"
   },
   "repository": "https://github.com/ubports/ubports-installer",
-  "author": "The Ubports developers <list@ubports.com>",
+  "author": "The UBports developers <list@ubports.com>",
   "license": "GPL-3.0",
   "devDependencies": {
     "chai": "^3.5.0",
