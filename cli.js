@@ -2,8 +2,9 @@
 
 /*
 
-This tool is made for testing and to be used in scripts.
-This is not ment to be an cli install tool for ubuntu touch.
+This tool is meant to be used for testing or for being wrapped by other scripts
+and programs. It is not meant to be a user-facing cli installation tool and
+does *not* try to be user-friendly.
 
 Author: Marius Gripsgard <mariogrip@ubports.com>
 
