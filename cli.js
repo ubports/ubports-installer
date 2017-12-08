@@ -116,7 +116,7 @@ var bootstrap = (device) => {
 cli
     .version(package.version)
     .option('-d, --device <device>', 'Specify device')
-    .option('-c, --channel <channel>', 'Specify channel (default: ubports-touch/legacy)')
+    .option('-c, --channel <channel>', 'Specify channel (default: 15.04/stable)')
     .option('-v, --verbose', "Verbose output")
     .option('-b, --bootstrap', "Flash boot and recovery from bootloader")
     .parse(process.argv);
