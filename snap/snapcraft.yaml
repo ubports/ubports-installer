@@ -1,5 +1,5 @@
 name: ubports-installer
-version: 0.1.8-beta
+version: 0.1.9-beta
 summary: ubports-installer
 description: UBports Installer, install Ubuntu Touch on your device.
 icon: build/icons/icon.png
