@@ -34,7 +34,7 @@ if (!utils.debugScreen()) {
    // START ADB
    adb.start(false, false, (err) => {
        particles.hide();
-       footer.topText.set("Wating for device").append("<span id='wait-dot'>.</span>");
+       footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
        footer.underText.set("Please connect your device with an usb cable");
        views.show("wait-for-device");
        var waitEvent = devices.waitForDevice(mainEvent);
