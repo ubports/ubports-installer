@@ -41,7 +41,7 @@ const setEvents = (downloadEvent) => {
     console.log(`Downloading next file, ${i} left`);
   });
   downloadEvent.on("download:progress", (i) => {
-    process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% left\r`);
+    process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% complete\r`);
   });
 }
 

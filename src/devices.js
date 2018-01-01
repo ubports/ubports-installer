@@ -260,7 +260,7 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
   downloadEvent.on("download:progress", (i) => {
-    utils.log.info(`Downloading file, ${Math.ceil(i.percent*100)}% left`);
+    utils.log.info(`Downloading file, ${Math.ceil(i.percent*100)}% complete`);
     downloadEvent.emit("user:write:progress", Math.ceil(i.percent*100));
   });
   downloadEvent.on("adbpush:done", () => {
