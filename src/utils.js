@@ -116,7 +116,7 @@ const checkForNewUpdate = (callback) => {
 }
 
 var getUbportDir = () => {
-    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.cache'), "ubports/")
+    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/ApplicationSupport' : process.env.HOME + '/.cache'), "ubports/")
 }
 
 if (!fs.existsSync(getUbportDir())) {
