@@ -48,7 +48,7 @@ var waitForDevice = (password, callback) => {
     utils.log.debug("fastboot: wait for device");
     var cmd = "";
     if (utils.needRoot())
-        cmd += "echo " + password + " | sudo -S "
+        cmd += utils.sudoCommand(password);
     cmd += "fastboot" + " devices";
     var stop;
     utils.platfromToolsExecAsar("fastboot", (asarExec) => {
@@ -106,7 +106,7 @@ var flash = (images, callback, password) => {
     var cmd = "";
     images.forEach((image, l) => {
         if (utils.needRoot())
-            cmd += "echo " + password + " | sudo -S "
+            cmd += utils.sudoCommand(password);
         cmd += "fastboot" + " flash " + image.type + " \"" + path.join(image.path, path.basename(image.url)) + "\"";
         if (l !== images.length - 1)
             cmd += " && "
@@ -135,7 +135,7 @@ image object format
 var boot = (image, password, callback) => {
   var cmd="";
   if (utils.needRoot())
-      cmd += "echo " + password + " | sudo -S "
+      cmd += utils.sudoCommand(password);
   cmd += "fastboot" + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
   utils.platfromToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
@@ -153,7 +153,7 @@ var format = (partitions, password, callback) => {
   var cmd="";
   partitions.forEach((partition, l) => {
       if (utils.needRoot())
-          cmd += "echo " + password + " | sudo -S "
+          cmd += utils.sudoCommand(password);
       cmd += "fastboot" + " format " + partition;
       if (l !== partitions.length - 1)
           cmd += " && "
@@ -174,7 +174,7 @@ args; array, string, function
 var oem = (command, password, callback) => {
   var cmd="";
   if (utils.needRoot())
-      cmd += "echo " + password + " | sudo -S "
+      cmd += utils.sudoCommand(password);
   cmd += "fastboot" + " oem " + command;
   utils.platfromToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
