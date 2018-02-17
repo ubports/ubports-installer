@@ -130,6 +130,10 @@ var die = (e) => {
     process.exit(1);
 }
 
+var sudoCommand = (password, cmd) => {
+    return "echo \'" + password.replace(/\'/g, "'\\''") + "\' | sudo -S " + cmd;
+}
+
 var checkPassword = (password, callback) => {
     if (!needRoot()) {
         log.debug("no root needed")
@@ -137,7 +141,7 @@ var checkPassword = (password, callback) => {
         return;
     }
     log.debug("checking password")
-    exec("echo \"" + password.replace(/\"/g, "\\\"") + "\" | sudo -S echo correct", (err, output) => {
+    exec(sudoCommand(password, "echo correct"), (err, output) => {
         if(err){
             if (err.message.includes("incorrect password")) {
                 log.debug("incorrect password")
@@ -450,6 +454,7 @@ module.exports = {
     getPlatformTools: getPlatformTools,
     getUbportDir: getUbportDir,
     needRoot: needRoot,
+    sudoCommand: sudoCommand,
     checkPassword: checkPassword,
     debugScreen: debugScreen,
     debugTrigger: debugTrigger,
