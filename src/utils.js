@@ -130,8 +130,8 @@ var die = (e) => {
     process.exit(1);
 }
 
-var sudoCommand = (password, cmd) => {
-    return "echo \'" + password.replace(/\'/g, "'\\''") + "\' | sudo -S " + cmd;
+var sudoCommand = (password) => {
+    return "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
 }
 
 var checkPassword = (password, callback) => {
@@ -141,7 +141,7 @@ var checkPassword = (password, callback) => {
         return;
     }
     log.debug("checking password")
-    exec(sudoCommand(password, "echo correct"), (err, output) => {
+    exec(sudoCommand(password) + "echo correct", (err, output) => {
         if(err){
             if (err.message.includes("incorrect password")) {
                 log.debug("incorrect password")

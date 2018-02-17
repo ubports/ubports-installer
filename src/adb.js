@@ -27,7 +27,7 @@ const start = (password, sudo, callback) => {
   stop(err => {
     var cmd="";
     if (utils.needRoot() && sudo)
-        cmd += utils.sudoCommand(password, "");
+        cmd += utils.sudoCommand(password);
     cmd += adb + " -P " + PORT + " start-server";
     utils.platfromToolsExecAsar("adb", (platfromToolsExecAsar) => {
         platfromToolsExecAsar.exec(cmd, (c, r, e) => {
