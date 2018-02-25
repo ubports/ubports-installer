@@ -247,12 +247,12 @@ var setEvents = (downloadEvent) => {
     utils.log.info("Download checking file");
   });
   downloadEvent.on("download:startCheck", () => {
-    downloadEvent.emit("user:write:status", "Checking Ubuntu touch files");
+    downloadEvent.emit("user:write:status", "Checking Ubuntu Touch files");
     utils.log.info("Download startCheck");
   });
   downloadEvent.on("download:start", (i, t) => {
     utils.log.info("Starting download of "+i+" files");
-    downloadEvent.emit("user:write:status", "Downloading Ubuntu touch");
+    downloadEvent.emit("user:write:status", "Downloading Ubuntu Touch");
     downloadEvent.emit("user:write:next", "Downloading", i, t);
   });
   downloadEvent.on("download:next", (i, t) => {
@@ -264,7 +264,7 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("user:write:progress", Math.ceil(i.percent*100));
   });
   downloadEvent.on("adbpush:done", () => {
-    utils.log.info("Done pusing files");
+    utils.log.info("Done pushing files");
     utils.log.info("Rebooting to recovery to flash");
     downloadEvent.emit("system-image:done");
     downloadEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
@@ -279,11 +279,11 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("user:write:progress", r);
   });
   downloadEvent.on("adbpush:next", (r, t) => {
-    utils.log.info("Start pusing next file, " + r + " files left")
+    utils.log.info("Start pushing next file, " + r + " files left")
     downloadEvent.emit("user:write:next", "Pushing", r, t);
   });
   downloadEvent.on("adbpush:start", (r) => {
-    utils.log.info("Start pusing "+r+" files")
+    utils.log.info("Start pushing "+r+" files")
     downloadEvent.emit("user:write:status", "Pushing files to device");
     downloadEvent.emit("user:write:start", "Pushing", r);
   });
@@ -379,7 +379,7 @@ module.exports = {
         var waitEvent = adb.waitForDevice(() => {
             adb.getDeviceName((name) => {
                 // Have a small delay here, without this it seems to trigger
-                // some prevent_dual_callback function in "requests"    
+                // some prevent_dual_callback function in "requests"
                 setTimeout(function () {
                     getDevice(name, (ret) => {
                         if (!ret){
@@ -387,7 +387,7 @@ module.exports = {
                           return;
                         }
                         // Have a small delay here, without this it seems to trigger
-                        // some prevent_dual_callback function in "requests"  
+                        // some prevent_dual_callback function in "requests"
                         setTimeout(() => {
                             getChannelSelects(ret.device.device, (channels) => {
                                 adb.isBaseUbuntuCom(ubuntuCom => {
