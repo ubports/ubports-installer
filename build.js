@@ -104,9 +104,12 @@ function build() {
           "platform-tools/${os}/**/*",
           "build/icons/icon.*"
         ],
-        snap: {
-          confinement: "devmode",
-          plugs: ["home", "x11", "unity7", "browser-support", "network", "gsettings", "pulseaudio", "opengl", "raw-usb", "serial-port"]
+        "snap": {
+          "confinement": "devmode",
+          "plugs": ["home", "x11", "unity7", "browser-support", "network", "gsettings", "pulseaudio", "opengl", "raw-usb", "serial-port"]
+        },
+        "deb": {
+          "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
         }
       }
     })
