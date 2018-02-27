@@ -20,7 +20,7 @@
     "chai-as-promised": "^6.0.0",
     "electron": "^1.4.1",
     "electron-packager": "^8.5.2",
-    "electron-builder": "^19.42.2",
+    "electron-builder": "^20.2.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
     "sinon": "^1.17.7",
