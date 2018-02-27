@@ -115,14 +115,14 @@ const checkForNewUpdate = (callback) => {
            })
 }
 
-var getUbportDir = () => {
-    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME + '/.cache'), "ubports/")
+var getUbuntuTouchDir = () => {
+    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Downloads' : process.env.HOME + '/.cache'), "ubports/")
 }
 
-if (!fs.existsSync(getUbportDir())) {
-    mkdirp.sync(getUbportDir());
+if (!fs.existsSync(getUbuntuTouchDir())) {
+    mkdirp.sync(getUbuntuTouchDir());
 }
-winston.add(winston.transports.File, { filename: path.join(getUbportDir(), 'ubports-installer.log') });
+winston.add(winston.transports.File, { filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log') });
 winston.level = 'debug';
 
 var die = (e) => {
@@ -452,7 +452,7 @@ module.exports = {
     ensureRoot: ensureRoot,
     isSnap: isSnap,
     getPlatformTools: getPlatformTools,
-    getUbportDir: getUbportDir,
+    getUbuntuTouchDir: getUbuntuTouchDir,
     needRoot: needRoot,
     sudoCommand: sudoCommand,
     checkPassword: checkPassword,

@@ -27,7 +27,7 @@ load_keyring image-signing.tar.xz image-signing.tar.xz.asc\n\
 mount system"
 const endCommands = "\nunmount system\n"
 const baseUrl = "https://system-image.ubports.com/";
-const downloadPath = utils.getUbportDir();
+const downloadPath = utils.getUbuntuTouchDir();
 const ubuntuCommandFile = "ubuntu_command";
 const ubuntuPushDir = "/cache/recovery/"
 const gpg = ["image-signing.tar.xz", "image-signing.tar.xz.asc", "image-master.tar.xz", "image-master.tar.xz.asc"]

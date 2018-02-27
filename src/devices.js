@@ -22,7 +22,7 @@ const fEvent = require('forward-emitter');
 class event extends events {}
 
 const ubportsApi = "https://devices.ubports.com/";
-const downloadPath = utils.getUbportDir();
+const downloadPath = utils.getUbuntuTouchDir();
 
 var password;
 
