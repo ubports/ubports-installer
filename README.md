@@ -34,11 +34,9 @@ This tool is still under development, bugreports are appreciated.
 
 ### Windows
 
-1. Download the latest exe file from https://github.com/ubports/ubports-installer/releases
-2. Open the file and follow the onscreen instructions
-3. Launch the program from your application list.
-
-*You might have to install the windows/android/adb drivers required for your device.*
+1. Install the [universal adb driver](http://adb.clockworkmod.com/) or a device-specific driver.
+2. Download the [latest .exe file](https://github.com/ubports/ubports-installer/releases/latest).
+3. Launch the file and follow the onscreen instructions
 
 ## How to run the program from source
 
