@@ -2,4 +2,5 @@
 Name=UBports Installer
 Exec=ubports-installer
 Type=Application
-Icon=/snap/ubports-installer/current/meta/gui/icon.png
+Icon=ubports-installer
+Categories=System;
