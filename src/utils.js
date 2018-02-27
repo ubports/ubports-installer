@@ -178,7 +178,7 @@ var asarExec = (file, callback) => {
             callback({
                 exec: (cmd, cb) => {
                     cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
-                    log.debug("Running platform tool fallback exec asar cmd "+cmd);
+                    // log.debug("Running platform tool fallback exec asar cmd "+cmd);
                     exec(cmd, (err, e,r) => {
                         cb(err,e,r);
                     })
@@ -221,14 +221,14 @@ const platfromToolsExec = (tool, arg, callback) => {
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     var cmd = tools[tool] + " " + arg.join(" ");
-    log.debug("Running platform tool exec cmd "+cmd);
+    // log.debug("Running platform tool exec cmd "+cmd);
     cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
 
   if (tools.fallback[tool]) {
     logPlatformFallbackToolsOnce();
-    log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
+    // log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
     cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
@@ -245,7 +245,7 @@ const platfromToolsExecAsar = (tool, callback) => {
     logPlatformNativeToolsOnce();
     callback({
         exec: (cmd, cb) => {
-            log.debug("Running platform tool exec asar cmd "+cmd);
+            // log.debug("Running platform tool exec asar cmd "+cmd);
             exec(cmd, (err, e,r) => {
                 cb(err,e,r);
             })
