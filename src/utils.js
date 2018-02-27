@@ -116,7 +116,7 @@ const checkForNewUpdate = (callback) => {
 }
 
 var getUbuntuTouchDir = () => {
-    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Downloads' : process.env.HOME + '/.cache'), "ubports/")
+    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Caches' : process.env.HOME + '/.cache'), "ubports/")
 }
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
