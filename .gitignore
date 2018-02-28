@@ -36,10 +36,13 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 
-snapcraft/stage
-snapcraft/parts
-snapcraft/prime
+# Snapcraft build
+stage
+parts
+prime
+snap/.snapcraft
 *.snap
+*.tar.bz2
 
 platform-tools
 dist
