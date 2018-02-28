@@ -73,7 +73,10 @@ Options:
 
 # Troubleshooting
 
-**Prerequisites: udev rules:**
+## Device not detected
+
+If the device not detected, you might be missing **udev-rules**.
+
 1. See if cat `/etc/udev/rules.d/51-android.rules` exists and contains the following rules:
 ```
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0bb4", MODE="0666", GROUP="plugdev"
@@ -112,3 +115,7 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="2ae5", MODE="0666", GROUP="plugdev"
 2a. If this file does not exist or has not all the rules inside, create it as su or add accordingly.
 2b. Also check if other files contain similar rules
 3. Restart udev daemon by issuing `sudo service udev restart`
+
+## Connection lost during installation
+
+Try a different USB cable and a different USB port on your computer. Cheap and old cables tend to loose connection during the installation.
