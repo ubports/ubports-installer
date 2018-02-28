@@ -11,14 +11,15 @@ This tool is still under development, bugreports are appreciated.
 **Snap:**
 
 1. Open a terminal
-2. Run `sudo snap install ubports-installer --edge --devmode` to install
-3. Run `ubports-installer` or select the icon in your application list to start the program
+2. Run `sudo snap install ubports-installer --beta` to install
+3. Run `sudo snap connect ubports-installer:raw-usb` to hook up the interface
+4. Run `ubports-installer` or select the icon in your application list to start the program
 
 **Deb:**
 
 1. Download the latest deb from https://github.com/ubports/ubports-installer/releases
 2. Open the deb package with your software installation tool and follow the on-screen instructions
-3. Launch the program from your application list.
+3. Launch the program from your application list
 
 **Appimage:**
 
@@ -29,8 +30,8 @@ This tool is still under development, bugreports are appreciated.
 ### Mac
 
 1. Download the latest dmg file from https://github.com/ubports/ubports-installer/releases
-2. Open the file and follow the onscreen instructions.
-3. Launch the program from the application list.
+2. Open the file and follow the onscreen instructions
+3. Launch the program from the application list
 
 ### Windows
 
