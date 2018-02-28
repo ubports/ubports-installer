@@ -15,6 +15,7 @@ const fs = require("fs");
 const events = require("events")
 const fEvent = require('forward-emitter');
 const utils = require("./utils");
+const exec = require('child_process').exec;
 
 // DEFAULT = 5037
 const PORT = 5038
@@ -29,6 +30,9 @@ const start = (password, sudo, callback) => {
     if (utils.needRoot() && sudo)
         cmd += utils.sudoCommand(password);
     cmd += adb + " -P " + PORT + " start-server";
+    // Authorize Fairphone 2 vendor ID if necessary
+    if (utils.isSnap())
+        exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
     utils.platfromToolsExecAsar("adb", (platfromToolsExecAsar) => {
         platfromToolsExecAsar.exec(cmd, (c, r, e) => {
             console.log(c, r, e);
