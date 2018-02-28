@@ -9,7 +9,7 @@ confinement: strict
 
 apps:
   ubports-installer:
-    command:  desktop-launch $SNAP/app/ubports-installer
+    command: desktop-launch $SNAP/bin/snap-wrapper
     plugs:
       - unity7
       - browser-support
@@ -38,6 +38,7 @@ parts:
     install: |
       mkdir $SNAPCRAFT_PART_INSTALL/app
       mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
+      mv bin/* $SNAPCRAFT_PART_INSTALL/bin
     prime:
       - -node_modules
       - -lib/node_modules
