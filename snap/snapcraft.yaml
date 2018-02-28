@@ -4,15 +4,13 @@ summary: ubports-installer
 description: UBports Installer, install Ubuntu Touch on your device.
 icon: build/icons/icon.png
 
-grade: devel
-confinement: devmode
+grade: stable
+confinement: strict
 
 apps:
   ubports-installer:
     command:  desktop-launch $SNAP/app/ubports-installer
     plugs:
-      - home
-      - x11
       - unity7
       - browser-support
       - network

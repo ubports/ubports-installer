@@ -131,7 +131,7 @@ var die = (e) => {
 }
 
 var sudoCommand = (password) => {
-    return "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
+    return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
 }
 
 var checkPassword = (password, callback) => {
