@@ -18,6 +18,8 @@ const path = require("path");
 const events = require("events")
 const fEvent = require('forward-emitter');
 const mkdirp = require('mkdirp');
+const systemImageClient = require("system-image-node-module").Client;
+const systemImage = new systemImageClient();
 
 class event extends events {}
 
@@ -67,50 +69,8 @@ var getRandomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-var getChannes = (callback) => {
-    http.get({
-        url: baseUrl + "channels.json",
-        json: true
-    }, (err, res, bod) => {
-        if (!err && res.statusCode === 200)
-            callback(bod);
-        else callback(false);
-    });
-}
-
-var getDeviceChannes = (device, channels) => {
-    var deviceChannels = [];
-    for (var channel in channels) {
-        if (channels[channel].hidden || channels[channel].redirect)
-          continue;
-        if (device in channels[channel]["devices"]) {
-            deviceChannels.push(channel);
-        }
-    }
-    return deviceChannels;
-}
-
-var getDeviceIndex = (device, channel, callback) => {
-    http({
-        url: baseUrl + channel + "/" + device + "/index.json",
-        json: true
-    }, (err, res, bod) => {
-        if (!err && res.statusCode === 200)
-            callback(bod);
-        else callback(false);
-    });
-}
-
-var getLatestVesion = (index) => {
-    //TODO optimize with searching in reverse, but foreach is safer
-    // to use now to be sure we get latest version
-    var latest = false;
-    index.images.forEach((img) => {
-        if (img.type === "full" && (!latest || latest.version < img.version)) {
-            latest = img;
-        }
-    })
-    return latest;
+const getDeviceChannels = (device) => {
+    return systemImage.getDeviceChannels(device);
 }
 
 var getGgpUrlsArray = () => {
@@ -174,17 +134,7 @@ var downloadLatestVersion = (options) => {
         thisEvent = new event();
     else
         thisEvent = options.event;
-    getDeviceIndex(options.device, options.channel, (index) => {
-        if (!index) {
-            console.log("error!!")
-            thisEvent.emit("error", "could not find device: "+options.device+" on channel: "+options.channel+" index: "+index)
-            return;
-        }
-        var latest = getLatestVesion(index);
-        if (!latest) {
-            thisEvent.emit("error", "could not find latest version; "+"device: "+options.device+" channel: "+options.channel+" index: "+index)
-            return;
-        }
+    systemImage.getLatestVesion(options.device, options.channel).then((latest) => {
         var urls = getFilesUrlsArray(latest)
         urls.push.apply(urls, getGgpUrlsArray());
         var files = getFilePushArray(urls);
@@ -197,7 +147,9 @@ var downloadLatestVersion = (options) => {
             });
             thisEvent.emit("download:pushReady", files);
         })
-    })
+    }).catch(() => {
+      thisEvent.emit("error", "could not find latest version; "+"device: "+options.device+" channel: "+options.channel)
+    });
     return thisEvent;
 }
 
@@ -225,11 +177,8 @@ var installLatestVersion = (options) => {
 }
 
 module.exports = {
-    getChannes: getChannes,
-    getDeviceChannes: getDeviceChannes,
+    getDeviceChannels: getDeviceChannels,
     createInstallCommands: createInstallCommands,
-    getDeviceIndex: getDeviceIndex,
-    getLatestVesion: getLatestVesion,
     downloadLatestVersion: downloadLatestVersion,
     getFilesUrlsArray: getFilesUrlsArray,
     getFileBasenameArray: getFileBasenameArray,

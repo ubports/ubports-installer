@@ -351,25 +351,21 @@ var install = (options) => {
 }
 
 var getChannelSelects = (device, callback) => {
-    systemImage.getChannes((channels) => {
-        var channelsAppend = [];
-        // Have a small delay here, without this it seems to trigger
-        // some prevent_dual_callback function in "requests"
-        setTimeout(function () {
-          getInstallInstructs(device, (ret) => {
-              systemImage.getDeviceChannes(device, channels).forEach((channel) => {
-                  var _channel = channel.replace("ubports-touch/", "");
-                  // Ignore blacklisted channels
-                  if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
-                      return;
-                  if (channel === ret["system_server"]["selected"])
-                      channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
-                  else
-                      channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
-              });
-              callback(channelsAppend.join(''));
-          })
-        }, 10);
+    var channelsAppend = [];
+    systemImage.getDeviceChannels(device).then((channels) => {
+      getInstallInstructs(device, (ret) => {
+          channels.forEach((channel) => {
+              var _channel = channel.replace("ubports-touch/", "");
+              // Ignore blacklisted channels
+              if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
+                  return;
+              if (channel === ret["system_server"]["selected"])
+                  channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
+              else
+                  channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
+          });
+          callback(channelsAppend.join(''));
+      })
     });
 }
 
