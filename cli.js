@@ -60,7 +60,7 @@ const setEvents = (downloadEvent) => {
         console.log("Adb push error", e)
     });
     downloadEvent.on("adbpush:progress", (r) => {
-        process.stdout.write("Adb push, " + r + "% left\r")
+        process.stdout.write("ADB push, " + r + "%\r")
     });
     downloadEvent.on("adbpush:next", (r) => {
         console.log("Start pusing next file, " + r + " files left")

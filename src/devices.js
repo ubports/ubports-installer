@@ -275,7 +275,7 @@ var setEvents = (downloadEvent) => {
     utils.log.error("Devices: Adb push error: "+ e)
   });
   downloadEvent.on("adbpush:progress", (r) => {
-    utils.log.info("Adb push, "+r+"% left");
+    utils.log.info("ADB push "+r+"%");
     downloadEvent.emit("user:write:progress", r);
   });
   downloadEvent.on("adbpush:next", (r, t) => {
