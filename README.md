@@ -52,6 +52,12 @@ cd ubports-installer
 npm start
 ```
 
+### Build the snap
+
+```
+snapcraft cleanbuild
+```
+
 ### How to use CLI
 
 *Please note that the command line interface was created for testing purposes only and does not necessarily try to be user-friendly.*
