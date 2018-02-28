@@ -442,6 +442,12 @@ var downloadFiles = (urls_, downloadEvent, callbackOn) => {
     return downloadEvent;
 }
 
+const getRandomInt = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
 module.exports = {
     downloadFiles: downloadFiles,
     checksumFile: checksumFile,
@@ -461,6 +467,7 @@ module.exports = {
     createBugReport: createBugReport,
     checkForNewUpdate: checkForNewUpdate,
     getPlatform: getPlatform,
-    asarExec: asarExec
+    asarExec: asarExec,
+    getRandomInt: getRandomInt
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }
