@@ -1,0 +1,31 @@
+#installModal.modal.fade(tabindex='-1', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title.user-modal-install-title Read before installing!
+      .modal-body
+        .modal-install-body
+          .modal-install-body-no-wipe
+            p
+              b NOTE
+              | : Installing may in rare cases lead to data loss
+            p
+              b NOTE ANDROID
+              | : Please note you won't be able to access your android data and/or applications in ubuntu touch.
+              |               However the android data will take hardrive space, so if you don't want the android data please select the "wipe" option.
+            p It's always wise to backup before Installing
+        .modal-install-body-switch(hidden='hidden')
+          .modal-install-body-no-wipe
+            p
+              b NOTE
+              |  Switching may in rare cases lead to data loss
+            p It's always wise to backup before switch
+        .modal-install-body-wipe(hidden='hidden')
+          p
+            b NOTE
+            |  You have enabled wipe! This will erase all of your data.
+      .modal-footer
+        button.btn.btn-default(type='button', data-dismiss='modal') Cancel
+        button#btn-installModal.btn.btn-primary(type='button', data-dismiss='modal') Continue

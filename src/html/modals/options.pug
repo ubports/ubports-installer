@@ -1,0 +1,26 @@
+#options-modal.modal.fade(tabindex='-1', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title Install options
+      .modal-body
+        div
+          form.form-horizontal
+            .form-group
+              label.col-xs-3.control-label Channel
+              .col-xs-9
+                select#options-channel.form-control.space
+            .form-group
+              .col-sm-offset-3.col-xs-9
+                label
+                  input#options-wipe(type='checkbox')
+                  |  Wipe
+                #options-wipe-note(hidden='hidden')
+                  p
+                    b NOTE:
+                    |  If the wipe option is enabled all data stored on the device will be erased. 
+                    b Please create an external backup of the data you want to keep!
+      .modal-footer
+        button#btn-options-close.btn.btn-default(type='button', data-dismiss='modal') Close

@@ -1,0 +1,27 @@
+#views-install.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
+    .col-xs-6(style='height: 100%')
+      h4.user-install-header(style='font-weight: bold;') Ready to install!
+      p
+        | Your device:
+        a#your-ubp-device
+      #switch-note(hidden='hidden')
+        p This device is running old Canonical images!
+      p#not-working-block
+        b Please note
+        |  that this device is still under development and that
+        span#not-working
+        |  is currently not fully supported!
+      h3
+        small Install options
+      table.table
+        tr
+          td Channel
+          td.user-channel
+        tr
+          td Wipe
+          td.user-wipe
+      button#btn-modal-options.btn.btn-default(type='button', style='width: 100%;', hidden='') Change options
+      button#btn-inst.btn.btn-primary(type='button', style='width: 100%; margin-top: 10px;', hidden='') Install
