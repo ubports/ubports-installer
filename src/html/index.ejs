@@ -2,61 +2,61 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="../css/font-awesome.min.css" />
-    <link rel="stylesheet" href="../css/style.css" />
-    <title>UBports Installer</title>
+  <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../css/font-awesome.min.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <title>UBports Installer</title>
 </head>
 
 <body>
-    <div class="header">
-        <h3 class="text-muted installer">UBports Installer</h3>
+  <div class="header">
+    <h3 class="text-muted installer">UBports Installer</h3>
+  </div>
+  <div id="particles-background" class="vertical-centered-box"></div>
+  <div id="particles-foreground" class="vertical-centered-box"></div>
+
+  <!-- Views -->
+  <%- include('views/start'); %>
+  <%- include('views/wait-for-device'); %>
+  <%- include('views/not-supported'); %>
+  <%- include('views/installing'); %>
+  <%- include('views/done'); %>
+  <%- include('views/reboot'); %>
+  <%- include('views/install'); %>
+
+  <div class="progress" id="progress" hidden="hidden"></div>
+  <footer class="footer">
+    <div class="container" hidden="hidden" id="waitForDevice">
+      <h3 class="text-muted footer-top">Waiting for a device<span id="wait-dot"></span></h2>
+      <p class="text-muted">Connect the device to the computer with a USB cable.</p>
     </div>
-    <div id="particles-background" class="vertical-centered-box"></div>
-    <div id="particles-foreground" class="vertical-centered-box"></div>
-
-	<!-- Views -->
-	<%- include('views/start'); %>
-	<%- include('views/wait-for-device'); %>
-	<%- include('views/not-supported'); %>
-	<%- include('views/installing'); %>
-	<%- include('views/done'); %>
-	<%- include('views/reboot'); %>
-	<%- include('views/install'); %>
-
-    <div class="progress" id="progress" hidden="hidden"></div>
-    <footer class="footer">
-        <div class="container" hidden="hidden" id="waitForDevice">
-            <h3 class="text-muted footer-top">Waiting for a device<span id="wait-dot"></span></h2>
-            <p class="text-muted">Connect the device to the computer with a USB cable.</p>
-        </div>
-        <div class="container" id="device">
-            <h3 class="text-muted footer-top" id="device-name">UBports Installer is starting up</h2>
-            <p id="device-under-text" class="text-muted">Starting adb service...</p>
-         </div>
-    </footer>
+    <div class="container" id="device">
+      <h3 class="text-muted footer-top" id="device-name">UBports Installer is starting up</h2>
+      <p id="device-under-text" class="text-muted">Starting adb service...</p>
+    </div>
+  </footer>
 
 
-	<!-- Modals -->
-	<%- include('modals/install'); %>
-	<%- include('modals/error'); %>
-	<%- include('modals/password'); %>
-	<%- include('modals/oem-lock'); %>
-    <%- include('modals/select-device'); %>
-    <%- include('modals/developer-mode'); %>
-    <%- include('modals/options'); %>
+  <!-- Modals -->
+  <%- include('modals/install'); %>
+  <%- include('modals/error'); %>
+  <%- include('modals/password'); %>
+  <%- include('modals/oem-lock'); %>
+  <%- include('modals/select-device'); %>
+  <%- include('modals/developer-mode'); %>
+  <%- include('modals/options'); %>
 
 </body>
 
-<!-- Scripts -->
+    <!-- Scripts -->
 
 <script>
-<%- include('scripts/particleground'); %>
-<%- include('scripts/start'); %>
-<%- include('scripts/root'); %>
-<%- include('scripts/ui'); %>
-<%- include('scripts/main'); %>
-<%- include('scripts/dots'); %>
+  <%- include('scripts/particleground'); %>
+  <%- include('scripts/start'); %>
+  <%- include('scripts/root'); %>
+  <%- include('scripts/ui'); %>
+  <%- include('scripts/main'); %>
+  <%- include('scripts/dots'); %>
 </script>
 
 </html>
