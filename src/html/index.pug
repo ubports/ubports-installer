@@ -11,14 +11,13 @@ html
     #particles-background.vertical-centered-box
     #particles-foreground.vertical-centered-box
     // Views
-    script.
-      <%- include('views/start'); %>
-      <%- include('views/wait-for-device'); %>
-      <%- include('views/not-supported'); %>
-      <%- include('views/installing'); %>
-      <%- include('views/done'); %>
-      <%- include('views/reboot'); %>
-      <%- include('views/install'); %>
+    include views/start
+    include views/wait-for-device
+    include views/not-supported
+    include views/installing
+    include views/done
+    include views/reboot
+    include views/install
     #progress.progress(hidden='hidden')
     footer.footer
       #waitForDevice.container(hidden='hidden')
@@ -31,19 +30,17 @@ html
           | UBports Installer is starting up
           p#device-under-text.text-muted Starting adb service...
     // Modals
-    script.
-      <%- include('modals/install'); %>
-      <%- include('modals/error'); %>
-      <%- include('modals/password'); %>
-      <%- include('modals/oem-lock'); %>
-      <%- include('modals/select-device'); %>
-      <%- include('modals/developer-mode'); %>
-      <%- include('modals/options'); %>
+    include modals/install
+    include modals/error
+    include modals/password
+    include modals/oem-lock
+    include modals/select-device
+    include modals/developer-mode
+    include modals/options
   // Scripts
-  script.
-    <%- include('scripts/particleground'); %>
-    <%- include('scripts/start'); %>
-    <%- include('scripts/root'); %>
-    <%- include('scripts/ui'); %>
-    <%- include('scripts/main'); %>
-    <%- include('scripts/dots'); %>
+  include scripts/particleground
+  include scripts/start
+  include scripts/root
+  include scripts/ui
+  include scripts/main
+  include scripts/dots
