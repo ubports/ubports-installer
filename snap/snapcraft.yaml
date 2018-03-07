@@ -18,6 +18,9 @@ apps:
       - pulseaudio
       - opengl
       - raw-usb
+      - desktop
+      - desktop-legacy
+      - wayland
 
 parts:
   ubports-installer:
