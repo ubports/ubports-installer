@@ -43,7 +43,7 @@ const getGgpUrlsArray = () => {
     gpg.forEach((g) => {
         gpgUrls.push({
             url: baseUrl + "/gpg/" + g,
-            path: downloadPath + "gpg"
+            path: path.join(downloadPath, "gpg")
         })
     })
     return gpgUrls;
@@ -54,12 +54,12 @@ const getFilesUrlsArray = (index) => {
     index.files.forEach((file) => {
         ret.push({
             url: baseUrl + file.path,
-            path: downloadPath + "pool",
+            path: path.join(downloadPath, "pool"),
             checksum: file.checksum
         })
         ret.push({
             url: baseUrl + file.signature,
-            path: downloadPath + "pool"
+            path: path.join(downloadPath, "pool")
         })
     })
     return ret;

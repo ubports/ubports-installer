@@ -116,7 +116,21 @@ const checkForNewUpdate = (callback) => {
 }
 
 var getUbuntuTouchDir = () => {
-    return path.join(process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Caches' : process.env.HOME + '/.cache'), "ubports/")
+    var osCacheDir;
+    switch (process.platform) {
+        case "linux":
+            osCacheDir = path.join(process.env.HOME, '.cache');
+            break;
+        case "darwin":
+            osCacheDir = path.join(process.env.HOME, 'Library/Caches');
+            break;
+        case "win32":
+            osCacheDir = process.env.HOME;
+            break;
+        default:
+            throw Error("Unknown platform " + process.platform);
+    }
+    return path.join(osCacheDir, "ubports")
 }
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
