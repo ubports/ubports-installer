@@ -9,7 +9,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const electron = require('electron');
-const electronEsj = require('electron-ejs');
+const electronPug = require('electron-pug');
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 
@@ -17,7 +17,7 @@ const path = require('path')
 const url = require('url')
 const adb = require("./adb")
 
-const ejs = new electronEsj();
+const pug = new electronPug();
 let mainWindow
 
 
@@ -29,7 +29,7 @@ function createWindow () {
 
 
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'html/index.ejs'),
+    pathname: path.join(__dirname, 'html/index.pug'),
     protocol: 'file:',
     slashes: true
   }))

@@ -1,0 +1,16 @@
+#errorModal.modal.fade(tabindex='-1', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title Yikes!
+      .modal-body
+        p
+          b Yikes!
+          |  We ran into a problem, please try again. If this continues to happen, consider reporting a bug.
+        pre#error-body.
+          \n
+      .modal-footer
+        button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal') Try again
+        button#btn-bugreport.btn.btn-primary(type='button') Report a bug
