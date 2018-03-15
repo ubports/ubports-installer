@@ -1,0 +1,14 @@
+#windows-drivers-modal.modal.fade(tabindex='-1', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title ADB drivers needed
+      .modal-body
+        p
+          | You need to install the #[a(onclick="openurl.open('https://adb.clockworkmod.com/')") Universal ADB driver] and re-start the program to continue with the installation.
+        p
+          | If the installer does not detect you device after the driver installation, please #[a(onclick="openurl.open('https://github.com/ubports/ubports-installer/issues')") report a bug]. Don't forget to mention your device in the report!
+      .modal-footer
+        button.btn.btn-default(type='button', data-dismiss='modal') Continue

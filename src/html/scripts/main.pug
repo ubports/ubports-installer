@@ -37,6 +37,8 @@ script.
          particles.hide();
          footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
          footer.underText.set("Please connect your device with an usb cable");
+         if (process.platform === "win32")
+           $('#windows-drivers-modal').modal('show');
          views.show("wait-for-device");
          var waitEvent = devices.waitForDevice(mainEvent);
            // Select device button
