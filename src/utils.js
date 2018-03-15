@@ -6,7 +6,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
-const version = "0.1.11-beta"
+const version = require('../package.json').version;
 
 const http = require("request");
 const progress = require("request-progress");
