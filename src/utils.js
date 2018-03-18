@@ -80,20 +80,20 @@ var createBugReport = (title, callback) => {
     form: {
       poster: "UBports Installer bug",
       syntax: "text",
-      content: "Title: "+title+
-      "\n"+errorLog
+      content: "Title: " + title + "\n\n" + errorLog
     }
   }, (err, res, bod) => {
       if (!err && res.statusCode === 302)
         getos((e,gOs) => {
-          callback("Automatically generated error report %0A\
-Version: "+version+" %0A\
-Host OS: "+gOs.os+" %0A\
-Host Dist: "+gOs.dist+" "+gOs.release+ "%0A\
-Host Arch: "+os.arch()+" %0A\
-Node: "+process.version+" %0A%0A\
-Error log: "+res.headers.location+" %0A")
-        })
+          callback("Automatically generated error report %0A" +
+            "Version: " + version + " %0A" +
+            "Host OS: " + gOs.os + " %0A" +
+            "Host Dist: " + gOs.dist + " " + gOs.release + "%0A" +
+            (isSnap() ? "Package: Snap %0A" : "") +
+            "Host Arch: " + os.arch() + " %0A" +
+            "Node: " + process.version + " %0A%0A" +
+            "Error log: " + res.headers.location + " %0A");
+        });
       else callback(false);
   })
 });
