@@ -1,6 +1,6 @@
 # UBports Installer
 
-[![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![Coverage Status](https://coveralls.io/repos/github/ubports/ubports-installer/badge.svg?branch=master)](https://coveralls.io/github/ubports/ubports-installer?branch=master)
+[![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) <!-- [![Coverage Status](https://coveralls.io/repos/github/ubports/ubports-installer/badge.svg?branch=master)](https://coveralls.io/github/ubports/ubports-installer?branch=master) -->
 
 This tool is still under development, bugreports are appreciated.
 
@@ -11,32 +11,31 @@ This tool is still under development, bugreports are appreciated.
 **Snap:**
 
 1. Open a terminal
-2. Run `sudo snap install ubports-installer --beta` to install
-3. Run `sudo snap connect ubports-installer:raw-usb` to hook up the interface
+2. Run `snap install ubports-installer` to install
 4. Run `ubports-installer` or select the icon in your application list to start the program
 
 **Deb:**
 
-1. Download the latest deb from https://github.com/ubports/ubports-installer/releases
+1. Download the latest `.deb` file from https://github.com/ubports/ubports-installer/releases/latest
 2. Open the deb package with your software installation tool and follow the on-screen instructions
 3. Launch the program from your application list
 
 **Appimage:**
 
-1. Download the latest Appimage from https://github.com/ubports/ubports-installer/releases
+1. Download the latest `.AppImage` file from https://github.com/ubports/ubports-installer/releases/latest
 2. [Make the AppImage executable](https://discourse.appimage.org/t/how-to-make-an-appimage-executable/80)
-3. Then run the file by double-clicking
+3. Run the file by double-clicking
 
 ### Mac
 
-1. Download the latest dmg file from https://github.com/ubports/ubports-installer/releases
+1. Download the latest `.dmg` file from https://github.com/ubports/ubports-installer/releases/latest
 2. Open the file and follow the onscreen instructions
 3. Launch the program from the application list
 
 ### Windows
 
-1. Install the [universal adb driver](http://adb.clockworkmod.com/) or a device-specific driver.
-2. Download the [latest .exe file](https://github.com/ubports/ubports-installer/releases/latest).
+1. Install the [universal adb driver](http://adb.clockworkmod.com/) or a device-specific driver
+2. Download the latest `.exe` file from https://github.com/ubports/ubports-installer/releases/latest
 3. Launch the file and follow the onscreen instructions
 
 ## How to run the program from source
@@ -80,7 +79,7 @@ Options:
 
 # Troubleshooting
 
-## Device not detected
+<!-- ## Device not detected
 
 If the device not detected, you might be missing **udev-rules**.
 
@@ -122,7 +121,7 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="2ae5", MODE="0666", GROUP="plugdev"
 2a. If this file does not exist or has not all the rules inside, create it as su or add accordingly.
 2b. Also check if other files contain similar rules
 3. Restart udev daemon by issuing `sudo service udev restart`
-
+-->
 ## Connection lost during installation
 
 Try a different USB cable and a different USB port on your computer. Cheap and old cables tend to loose connection during the installation.
