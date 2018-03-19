@@ -125,7 +125,7 @@ var getUbuntuTouchDir = () => {
             osCacheDir = path.join(process.env.HOME, 'Library/Caches');
             break;
         case "win32":
-            osCacheDir = process.env.HOME;
+            osCacheDir = process.env.APPDATA;
             break;
         default:
             throw Error("Unknown platform " + process.platform);
