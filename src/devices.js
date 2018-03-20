@@ -415,18 +415,23 @@ module.exports = {
     },
     getDeviceSelects: (callback) => {
         getDevices((devices) => {
+          if (devices) {
             var devicesAppend = [];
             devices.sort(function(a, b){
-               var y = a.name.toLowerCase();
-               var x = b.name.toLowerCase();
-               if (x < y) {return -1;}
-               if (x > y) {return 1;}
-               return 0;
+              var y = a.name.toLowerCase();
+              var x = b.name.toLowerCase();
+              if (x < y) {return 1;}
+              if (x > y) {return -1;}
+              return 0;
             });
             devices.forEach((device) => {
-                devicesAppend.push("<option name=\"" + device.device + "\">" + device.name + "</option>");
-            })
+              devicesAppend.push("<option name=\"" + device.device + "\">" + device.name + "</option>");
+            });
+            utils.log.debug("Successfully downloaded devices list");
             callback(devicesAppend.join(''));
+          } else {
+            callback(false);
+          }
         })
     },
     getChannelSelects: getChannelSelects,

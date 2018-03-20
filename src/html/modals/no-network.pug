@@ -1,0 +1,12 @@
+#no-network-modal.modal.fade(tabindex='-1', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title Could not download devices list
+      .modal-body
+        p
+          | The installer could not connect to UBports' servers to download the devices list. Are you connected to the internet?
+      .modal-footer
+        button.btn.btn-default(type='button', data-dismiss='modal', onclick="location.reload()") Try again
