@@ -23,7 +23,11 @@ script.
   footer.underText.set("Starting adb service...");
 
   devices.getDeviceSelects((out) => {
-    $("#device-select").append(out);
+    if (out) {
+      $("#device-select").append(out);
+    } else {
+      $('#no-network-modal').modal('show');
+    }
   });
 
   $("#btn-exit").click(() => {
