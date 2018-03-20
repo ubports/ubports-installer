@@ -419,8 +419,8 @@ module.exports = {
             devices.sort(function(a, b){
                var y = a.name.toLowerCase();
                var x = b.name.toLowerCase();
-               if (x < y) {return -1;}
-               if (x > y) {return 1;}
+               if (x < y) {return 1;}
+               if (x > y) {return -1;}
                return 0;
             });
             devices.forEach((device) => {
