@@ -85,14 +85,14 @@ var createBugReport = (title, callback) => {
   }, (err, res, bod) => {
       if (!err && res.statusCode === 302)
         getos((e,gOs) => {
-          callback("Automatically generated error report %0A" +
-            "Version: " + version + " %0A" +
-            "Host OS: " + gOs.os + " %0A" +
-            "Host Dist: " + gOs.dist + " " + gOs.release + "%0A" +
-            (isSnap() ? "Package: Snap %0A" : "") +
-            "Host Arch: " + os.arch() + " %0A" +
-            "Node: " + process.version + " %0A%0A" +
-            "Error log: " + res.headers.location + " %0A");
+          callback("Automatically generated error report %0D%0A" +
+            "Version: " + version + " %0D%0A" +
+            "Host OS: " + gOs.os + " %0D%0A" +
+            "Host Dist: " + gOs.dist + " " + gOs.release + "%0D%0A" +
+            (isSnap() ? "Package: Snap %0D%0A" : "") +
+            "Host Arch: " + os.arch() + " %0D%0A" +
+            "Node: " + process.version + " %0D%0A%0D%0A" +
+            "Error log: " + res.headers.location + " %0D%0A");
         });
       else callback(false);
   })
