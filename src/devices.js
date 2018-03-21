@@ -93,10 +93,19 @@ var instructReboot = (state, button, rebootEvent, callback) => {
     adb.hasAdbAccess((hasAccess) => {
         if (hasAccess) {
             adb.reboot(state, (err, out, eout) => {
-                if (err) rebootEvent.emit("error", "Adb failed to reboot!, " + out + " : " + eout)
-                else rebootEvent.emit("adb:rebooted");
+                if (err) {
+                  utils.log.warn("Adb failed to reboot!, " + out + " : " + eout);
+                  utils.log.info("Instructing manual reboot");
+                  rebootEvent.emit("user:reboot", {
+                      button: button[state],
+                      state: state
+                  });
+                } else {
+                  rebootEvent.emit("adb:rebooted");
+                }
             });
         } else {
+            utils.log.info("Instructing manual reboot");
             rebootEvent.emit("user:reboot", {
                 button: button[state],
                 state: state
