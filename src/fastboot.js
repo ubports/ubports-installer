@@ -51,7 +51,7 @@ var waitForDevice = (password, callback) => {
         cmd += utils.sudoCommand(password);
     cmd += "fastboot" + " devices";
     var stop;
-    utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+    utils.platformToolsExecAsar("fastboot", (asarExec) => {
         var repeat = () => {
             asarExec.exec(cmd, (err, r, e) => {
                 if (r) {
@@ -111,7 +111,7 @@ var flash = (images, callback, password) => {
         if (l !== images.length - 1)
             cmd += " && "
     });
-    utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+    utils.platformToolsExecAsar("fastboot", (asarExec) => {
         asarExec.exec(cmd, (c, r, e) => {
             handleError(c, r, e, password, callback);
             asarExec.done();
@@ -137,7 +137,7 @@ var boot = (image, password, callback) => {
   if (utils.needRoot())
       cmd += utils.sudoCommand(password);
   cmd += "fastboot" + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
-  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+  utils.platformToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           handleError(c, r, e, password, callback);
           asarExec.done();
@@ -158,7 +158,7 @@ var format = (partitions, password, callback) => {
       if (l !== partitions.length - 1)
           cmd += " && "
   });
-  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+  utils.platformToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           handleError(c, r, e, password, callback);
           asarExec.done();
@@ -176,7 +176,7 @@ var oem = (command, password, callback) => {
   if (utils.needRoot())
       cmd += utils.sudoCommand(password);
   cmd += "fastboot" + " oem " + command;
-  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+  utils.platformToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           setTimeout(() => {
             handleError(c, r, e, password, callback);

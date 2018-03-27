@@ -171,16 +171,16 @@ var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
       bootstrapEvent.emit("error", errM)
 }
 
-var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
+var instructBootstrap = (fastboot, images, bootstrapEvent) => {
     //TODO check bootloader name/version/device
     var flash = (p) => {
         fastboot.flash(images, (err, errM) => {
             if(err)
               handleBootstrapError(err, errM, bootstrapEvent, () => {
-                instructBootstrap(fastbootboot, images, bootstrapEvent);
+                instructBootstrap(fastboot, images, bootstrapEvent);
               });
             else {
-              if (fastbootboot) {
+              if (fastboot) {
                   utils.log.info("Booting into recovery image...");
                   // find recovery image
                   var recoveryImg;
@@ -195,14 +195,14 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
                     fastboot.boot(recoveryImg, p, (err, errM) => {
                       if (err) {
                         handleBootstrapError(err, errM, bootstrapEvent, () => {
-                          instructBootstrap(fastbootboot, images, bootstrapEvent);
+                          instructBootstrap(fastboot, images, bootstrapEvent);
                         });
                       }else
-                        bootstrapEvent.emit("bootstrap:done", fastbootboot);
+                        bootstrapEvent.emit("bootstrap:done", fastboot);
                     })
                   }
               } else
-                  bootstrapEvent.emit("bootstrap:done", fastbootboot)
+                  bootstrapEvent.emit("bootstrap:done", fastboot)
             }
         }, p)
     }
@@ -318,9 +318,9 @@ var install = (options) => {
               }, () => {});
             });
         })
-        installEvent.on("bootstrap:done", (fastbootboot) => {
+        installEvent.on("bootstrap:done", (fastboot) => {
             utils.log.info("bootstrap done");
-            if (!fastbootboot){
+            if (!fastboot){
               instructReboot("recovery", instructs.buttons, installEvent, () => {
                   installEvent.emit("system-image:start")
               });
@@ -336,7 +336,7 @@ var install = (options) => {
             instructReboot("bootloader", instructs.buttons, installEvent, () => {
                 installEvent.once("download:done", () => {
                   utils.log.info("done downloading(once listener)");
-                  instructBootstrap(getInstallSettings(instructs, "fastbootboot"), addPathToImages(instructs, options.device), installEvent)
+                  instructBootstrap(getInstallSettings(instructs, "fastboot"), addPathToImages(instructs, options.device), installEvent)
                 })
                 installEvent.emit("images:startDownload")
             });
