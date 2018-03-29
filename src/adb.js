@@ -33,8 +33,8 @@ const start = (password, sudo, callback) => {
     // Authorize Fairphone 2 vendor ID if necessary
     if (utils.isSnap())
         exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
-    utils.platfromToolsExecAsar("adb", (platfromToolsExecAsar) => {
-        platfromToolsExecAsar.exec(cmd, (c, r, e) => {
+    utils.platformToolsExecAsar("adb", (platformToolsExecAsar) => {
+        platformToolsExecAsar.exec(cmd, (c, r, e) => {
             console.log(c, r, e);
             if (r.includes("incorrect password"))
               callback({
@@ -42,15 +42,15 @@ const start = (password, sudo, callback) => {
                 });
             else
               callback()
-            platfromToolsExecAsar.done();
+            platformToolsExecAsar.done();
         })
     });
   })
 }
 
 const stop = (callback) => {
-  utils.platfromToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
-      utils.platfromToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
+  utils.platformToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
+      utils.platformToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
         console.log(stdout)
         if (err !== null) callback(false);
         else callback();
@@ -146,7 +146,7 @@ var isBaseUbuntuCom = callback => {
 var push = (file, dest, pushEvent) => {
   var done;
   var fileSize = fs.statSync(file)["size"];
-  utils.platfromToolsExec("adb", ["-P", PORT, "push", "'" + file.replace("'","\'") + "'", dest], (err, stdout, stderr) => {
+  utils.platformToolsExec("adb", ["-P", PORT, "push", "'" + file.replace("'","\'") + "'", dest], (err, stdout, stderr) => {
     done=true;
     if (err !== null) {
       pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
@@ -168,7 +168,7 @@ var push = (file, dest, pushEvent) => {
 }
 
 var pushMany = (files, pushManyEvent) => {
-  var totalLenght = files.length;
+  var totalLength = files.length;
   if (files.length <= 0){
     pushManyEvent.emit("adbpush:error", "No files provided");
     return false;
@@ -181,7 +181,7 @@ var pushMany = (files, pushManyEvent) => {
           pushManyEvent.emit("adbpush:done");
           return;
         }
-        pushManyEvent.emit("adbpush:next", files.length, totalLenght)
+        pushManyEvent.emit("adbpush:next", files.length, totalLength)
         push(files[0].src, files[0].dest, pushManyEvent);
   })
   return pushManyEvent
@@ -189,7 +189,7 @@ var pushMany = (files, pushManyEvent) => {
 
 var shell = (cmd, callback) => {
   if (!cmd.startsWith("stat")) utils.log.debug("adb shell: "+cmd);
-  utils.platfromToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
+  utils.platformToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
     if (err !== null) callback(false);
     else callback(stdout);
   })
@@ -224,7 +224,7 @@ var hasAdbAccess = (callback) => {
 
 var reboot = (state, callback) => {
   utils.log.debug("reboot to "+state);
-  utils.platfromToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
+  utils.platformToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
     utils.log.debug("reboot to "+state+ " [DONE] err:" + err+stdout+stderr);
     console.log(stderr)
     if (stdout.includes("failed")) callback(true, stdout, stderr)

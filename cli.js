@@ -52,7 +52,7 @@ const setEvents = (downloadEvent) => {
         process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% complete\r`);
     });
     downloadEvent.on("adbpush:done", () => {
-        console.log("Done pusing files");
+        console.log("Done pushing files");
         console.log("Rebooting to recovery to flash");
         adb.reboot("recovery", () => {});
     });
@@ -63,10 +63,10 @@ const setEvents = (downloadEvent) => {
         process.stdout.write("ADB push, " + r + "%\r")
     });
     downloadEvent.on("adbpush:next", (r) => {
-        console.log("Start pusing next file, " + r + " files left")
+        console.log("Start pushing next file, " + r + " files left")
     });
     downloadEvent.on("adbpush:start", (r) => {
-        console.log("Start pusing " + r + " files")
+        console.log("Start pushing " + r + " files")
     });
     downloadEvent.on("user:reboot", (r) => {
         console.log("Please reboot your device to", r.state);
@@ -94,7 +94,7 @@ var getDevice = (callback) => {
             if (!cli.bootstrap)
                 panic("I do not have adb access");
             if (!cli.device)
-                panic("Cannot detect device, plase use --device <device>");
+                panic("Cannot detect device, please use --device <device>");
         }
         if (!cli.device) {
             adb.getDeviceName((device) => {
@@ -107,7 +107,7 @@ var getDevice = (callback) => {
 }
 
 var bootstrap = (device) => {
-    console.log(`Bootstraping on ${device}`);
+    console.log(`Bootstrapping on ${device}`);
     console.log(`Using channel ${channel}`);
     var installEvent = devices.install(device, channel, true);
     setEvents(installEvent);
@@ -125,5 +125,5 @@ var channel = cli.channel || defaultChannel;
 if (cli.verbose) process.env.DEBUG = 1;
 if (cli.bootstrap) {
     getDevice(bootstrap)
-    utils.ensureRoot("Bootstrap requres root");
+    utils.ensureRoot("Bootstrap requires root");
 } else getDevice(install)

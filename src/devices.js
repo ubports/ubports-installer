@@ -180,7 +180,7 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
                 instructBootstrap(fastbootboot, images, bootstrapEvent);
               });
             else {
-              if (fastbootboot) {
+              if (fastboot) {
                   utils.log.info("Booting into recovery image...");
                   // find recovery image
                   var recoveryImg;
