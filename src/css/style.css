@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css?family=Ubuntu');
 html {
   position: relative;
   min-height: 100%;
@@ -70,6 +71,7 @@ body .vertical-centered-box .content {
 }
 
 * {
+  font-family: "Ubuntu", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   -webkit-transition: all 0.3s;
   -moz-transition: all 0.3s;
   -o-transition: all 0.3s;
