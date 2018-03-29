@@ -351,22 +351,26 @@ var install = (options) => {
 }
 
 var getChannelSelects = (device, callback) => {
-    var channelsAppend = [];
-    systemImage.getDeviceChannels(device).then((channels) => {
-      getInstallInstructs(device, (ret) => {
-          channels.forEach((channel) => {
-              var _channel = channel.replace("ubports-touch/", "");
-              // Ignore blacklisted channels
-              if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
-                  return;
-              if (channel === ret["system_server"]["selected"])
-                  channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
-              else
-                  channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
-          });
-          callback(channelsAppend.join(''));
-      })
+  var channelsAppend = [];
+  systemImage.getDeviceChannels(device).then((channels) => {
+    getInstallInstructs(device, (ret) => {
+      if (ret) {
+        channels.forEach((channel) => {
+          var _channel = channel.replace("ubports-touch/", "");
+          // Ignore blacklisted channels
+          if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
+            return;
+          if (channel === ret["system_server"]["selected"])
+            channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
+          else
+            channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
+        });
+        callback(channelsAppend.join(''));
+      } else {
+        callback(false);
+      }
     });
+  });
 }
 
 module.exports = {
@@ -399,9 +403,13 @@ module.exports = {
         waitEvent.on("device:select", (device) => {
             waitEvent.emit("stop");
             getDevice(device, (ret) => {
-                getChannelSelects(ret.device.device, (channels) => {
-                    callback(ret, ret.device.device, channels);
-                })
+                if (ret) {
+                    getChannelSelects(ret.device.device, (channels) => {
+                        callback(ret, ret.device.device, channels);
+                    });
+                } else {
+                    callback(false, name);
+                }
             });
         })
         return waitEvent;
