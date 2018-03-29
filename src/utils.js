@@ -31,8 +31,8 @@ const platforms = {
     "win32": "win"
 }
 
-var platfromToolsLoged;
-var platfromToolsLogedF;
+var platformToolsLogged;
+var platformToolsLoggedF;
 
 var debugScreen = () => {
   return process.env.DEBUG ? process.env.SCREEN : null
@@ -207,16 +207,16 @@ var asarExec = (file, callback) => {
 }
 
 const logPlatformNativeToolsOnce = () => {
-  if (!platfromToolsLoged) {
+  if (!platformToolsLogged) {
     log.debug("Using native platform tools!");
-    platfromToolsLoged=true;
+    platformToolsLogged=true;
   }
 }
 
 const logPlatformFallbackToolsOnce = () => {
-  if (!platfromToolsLogedF) {
+  if (!platformToolsLoggedF) {
     log.debug("Using fallback platform tools!");
-    platfromToolsLogedF=true;
+    platformToolsLoggedF=true;
   }
 }
 
@@ -227,7 +227,7 @@ const callbackHook = (callback) => {
   }
 }
 
-const platfromToolsExec = (tool, arg, callback) => {
+const platformToolsExec = (tool, arg, callback) => {
   console.log("plat")
   var tools = getPlatformTools();
   console.log(tools)
@@ -251,7 +251,7 @@ const platfromToolsExec = (tool, arg, callback) => {
   return false;
 }
 
-const platfromToolsExecAsar = (tool, callback) => {
+const platformToolsExecAsar = (tool, callback) => {
   var tools = getPlatformTools();
 
   // Check first for native
@@ -292,12 +292,12 @@ var getPlatform = () => {
 
 // Check if we have native platform tools
 const getPlatformTools = () => {
-  var p = getNativePlatfromTools();
+  var p = getNativePlatformTools();
   p["fallback"] = getFallbackPlatformTools();
   return p;
 }
 
-const getNativePlatfromTools = () => {
+const getNativePlatformTools = () => {
   var ret = {};
   if (commandExistsSync("adb"))
     ret["adb"] = "adb";
@@ -308,11 +308,11 @@ const getNativePlatfromTools = () => {
 
 const getFallbackPlatformTools = () => {
     var thisPlatform = os.platform();
-    if(!platforms[thisPlatform]) die("Unsuported platform");
-    var platfromToolsPath = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
+    if(!platforms[thisPlatform]) die("Unsupported platform");
+    var platformToolsPath = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
     return {
-        fastboot: path.join(platfromToolsPath, maybeEXE(thisPlatform, "fastboot")),
-        adb: path.join(platfromToolsPath, maybeEXE(thisPlatform, "adb"))
+        fastboot: path.join(platformToolsPath, maybeEXE(thisPlatform, "fastboot")),
+        adb: path.join(platformToolsPath, maybeEXE(thisPlatform, "adb"))
     }
 }
 
@@ -467,8 +467,8 @@ module.exports = {
     checksumFile: checksumFile,
     checkFiles: checkFiles,
     log: log,
-    platfromToolsExec: platfromToolsExec,
-    platfromToolsExecAsar: platfromToolsExecAsar,
+    platformToolsExec: platformToolsExec,
+    platformToolsExecAsar: platformToolsExecAsar,
     ensureRoot: ensureRoot,
     isSnap: isSnap,
     getPlatformTools: getPlatformTools,

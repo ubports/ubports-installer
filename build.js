@@ -19,7 +19,7 @@ const fs = require("fs-extra");
 const events = require("events");
 class event extends events {}
 const Platform = builder.Platform
-const platfromToolsPath = "./platform-tools"
+const platformToolsPath = "./platform-tools"
 const platformToolsUrls = {
   "linux": "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
   "mac": "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
@@ -68,7 +68,7 @@ function buildLinuxTargets() {
     if (canBuildSnap())
       linuxTargets.push("snap")
   else
-    console.log("Cannot build snap, please install snapcraft (ignoring bulding of snap for now)")
+    console.log("Cannot build snap, please install snapcraft (ignoring building of snap for now)")
   if (!cli.ignoreDeb)
     linuxTargets.push("deb")
   if (!cli.ignoreAppimage)
@@ -81,7 +81,7 @@ function buildLinuxTargets() {
 
 function build() {
   var linuxTargets = buildLinuxTargets()
-  console.log("bulding for: " + linuxTargets.join(", "))
+  console.log("building for: " + linuxTargets.join(", "))
   builder.build({
       targets: builder.createTargets(targets),
       config: {
@@ -119,7 +119,7 @@ function build() {
     .catch(console.log)
 }
 
-function getAndroidPlatfromTools() {
+function getAndroidPlatformTools() {
   var targets = [];
   var downloadArray = [];
   if (cli.linux) targets.push("linux");
@@ -130,7 +130,7 @@ function getAndroidPlatfromTools() {
   targets.forEach((target) => {
     downloadArray.push({
       url: platformToolsUrls[target],
-      path: platfromToolsPath,
+      path: platformToolsPath,
       target: target
     })
   });
@@ -140,16 +140,16 @@ function getAndroidPlatfromTools() {
 function downloadPlatformTools() {
   const downloadEvent = new event();
   setEvents(downloadEvent);
-  utils.downloadFiles(getAndroidPlatfromTools(), downloadEvent);
+  utils.downloadFiles(getAndroidPlatformTools(), downloadEvent);
   downloadEvent.on("download:done", () => {
-    extractPlatformTools(getAndroidPlatfromTools(), () => {
+    extractPlatformTools(getAndroidPlatformTools(), () => {
       if (!cli.downloadOnly) build();
     });
   });
 };
 
-function extractPlatformTools(platfromToolsArray, callback) {
-  var i = platfromToolsArray[0];
+function extractPlatformTools(platformToolsArray, callback) {
+  var i = platformToolsArray[0];
   fs.createReadStream(path.join(i.path, path.basename(i.url))).pipe(unzip.Extract({
     path: path.join(i.path, i.target + "_tmp")
   })).on("close", () => {
@@ -161,11 +161,11 @@ function extractPlatformTools(platfromToolsArray, callback) {
         fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
         fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
       }
-      if (platfromToolsArray.length <= 1) {
+      if (platformToolsArray.length <= 1) {
         callback()
       } else {
-        platfromToolsArray.shift();
-        extractPlatformTools(platfromToolsArray, callback);
+        platformToolsArray.shift();
+        extractPlatformTools(platformToolsArray, callback);
       }
     });
   });
@@ -184,7 +184,7 @@ cli
   .option('-t, --ignore-deb', "Build only snap")
   .option('-y, --ignore-appimage', "Build only appimage")
   .option('-b, --build-to-dir', "Build only to dir")
-  .option('-n, --no-platfrom-tools', "Build without platform tools")
+  .option('-n, --no-platform-tools', "Build without platform tools")
   .parse(process.argv);
 
 var targets = [];
@@ -195,4 +195,4 @@ if (cli.mac) targets.push(Platform.MAC);
 
 if (targets.length === 0) targets = [Platform.MAC, Platform.WINDOWS, Platform.LINUX];
 
-if (cli.platfromTools) downloadPlatformTools();
+if (cli.platformTools) downloadPlatformTools();
