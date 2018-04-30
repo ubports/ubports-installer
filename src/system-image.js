@@ -33,7 +33,7 @@ var downloadLatestVersion = (options) => {
     thisEvent = new event();
   else
     thisEvent = options.event;
-  systemImage.getLatestVesion(options.device, options.channel).then((latest) => {
+  systemImage.getLatestVersion(options.device, options.channel).then((latest) => {
     var urls = systemImage.getFilesUrlsArray(latest)
     urls.push.apply(urls, systemImage.getGgpUrlsArray());
     var files = systemImage.getFilePushArray(urls);
