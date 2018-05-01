@@ -1,5 +1,5 @@
 osx_image: xcode7.3
-sudo: false
+sudo: true
 dist: trusty
 language: c
 matrix:
@@ -24,6 +24,8 @@ install:
 - nvm install 6
 - npm install
 - npm prune
+- sudo apt-get --yes install snapd
+- sudo snap install snapcraft
 script:
 - npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
 deploy:
