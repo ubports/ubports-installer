@@ -102,7 +102,7 @@ image object format
 
 */
 var flash = (images, callback, password) => {
-    utils.log.debug("fastboot: flash; " + images);
+    utils.log.debug("fastboot: flash; " + JSON.stringify(images));
     var cmd = "";
     images.forEach((image, l) => {
         if (utils.needRoot())
