@@ -351,7 +351,7 @@ var checkFiles = (urls, callback) => {
             } else {
                 checksumFile(urls[0], (check) => {
                     if (check) {
-                        log.info("Exists " + urls[0].path + "/" + path.basename(urls[0].url))
+                        log.info(urls[0].path + "/" + path.basename(urls[0].url) + " already exists with the expected checksum, so download will be skipped")
                         next()
                     } else {
                         log.info("Checksum no match " + urls[0].path + "/" + path.basename(urls[0].url))
