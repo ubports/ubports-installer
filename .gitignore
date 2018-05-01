@@ -46,6 +46,3 @@ snap/.snapcraft
 
 platform-tools
 dist
-test
-testgpg
-testpool

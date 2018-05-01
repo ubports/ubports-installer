@@ -16,7 +16,7 @@ const events = require("events")
 const mkdirp = require('mkdirp');
 const systemImageClient = require("system-image-node-module").Client;
 
-const systemImage = new systemImageClient();
+const systemImage = new systemImageClient({path: utils.getUbuntuTouchDir()});
 class event extends events {}
 
 const ubuntuCommandFile = "ubuntu_command";
