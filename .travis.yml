@@ -20,12 +20,12 @@ addons:
     - icnsutils
     - graphicsmagick
     - xz-utils
+    - snapd
 install:
 - nvm install 6
 - npm install
 - npm prune
-- sudo apt-get --yes install snapd
-- sudo snap install snapcraft
+- sudo snap install snapcraft --classic
 script:
 - npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
 deploy:
