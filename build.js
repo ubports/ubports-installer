@@ -46,7 +46,7 @@ const setEvents = (downloadEvent) => {
 }
 
 function canBuildSnap() {
-  return fs.existsSync("/usr/bin/snapcraft")
+  return fs.existsSync("/usr/bin/snapcraft") || fs.existsSync("/snap/bin/snapcraft")
 }
 
 function buildLinuxTargets() {
