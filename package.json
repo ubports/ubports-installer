@@ -46,7 +46,7 @@
     "openurl": "^1.1.1",
     "request": "^2.79.0",
     "request-progress": "^3.0.0",
-    "system-image-node-module": "1.0.2",
+    "system-image-node-module": "1.0.3",
     "tmp": "0.0.31",
     "wildcard": "^1.1.2",
     "winston": "^2.3.1"
