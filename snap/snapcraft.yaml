@@ -1,5 +1,5 @@
 name: ubports-installer
-version: 0.1.12-beta
+version: 0.1.13-beta
 summary: The easy way to install Ubuntu Touch on UBports devices.
 description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest. The snap can run in strict confinement, but you will have to run `sudo snap connect ubports-installer:raw-usb` before using it.
 icon: build/icons/icon.png
