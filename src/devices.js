@@ -235,7 +235,7 @@ var getInstallSettings = (instructs, setting) => {
 var addPathToImages = (instructs, device) => {
     var images = [];
     instructs.images.forEach((image) => {
-        image["path"] = downloadPath+"images/"+device;
+        image["path"] = path.join(downloadPath, "images", device);
         images.push(image);
     })
     return images;
