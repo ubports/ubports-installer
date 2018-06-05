@@ -35,8 +35,8 @@ parts:
       - pulseaudio
     after:
       - desktop-glib-only
-    build: ./build.js -lb
-    install: |
+    override-build: |
+      ./build.js -lb
       mkdir $SNAPCRAFT_PART_INSTALL/app
       mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
       mv bin/* $SNAPCRAFT_PART_INSTALL/bin
