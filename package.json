@@ -25,7 +25,8 @@
     "mocha": "^3.2.0",
     "sinon": "^1.17.7",
     "spectron": "^3.6.0",
-    "unzip": "^0.1.11"
+    "unzip": "^0.1.11",
+    "ajv": "^6.5.0"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
