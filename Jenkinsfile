@@ -12,10 +12,10 @@ pipeline {
         sh 'npm run dist:linux'
       }
     }
-    post {
-      succes {
-        archiveArtifacts(artifacts: 'dist/ubports-installer*', onlyIfSuccessful: true, fingerprint: true)
-      }
+  }
+  post {
+    success {
+      archiveArtifacts(artifacts: 'dist/ubports-installer*', onlyIfSuccessful: true, fingerprint: true)
     }
   }
 }
