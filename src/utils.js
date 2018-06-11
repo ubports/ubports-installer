@@ -87,8 +87,7 @@ var createBugReport = (title, callback) => {
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + version + " %0D%0A" +
-        "Operating System: " + (gOs.os == "win32" ? cp.execSync('ver').toString().trim() : gOs.os) + " %0D%0A" +
-        (gOs.dist =! undefined ? "Distribution: " + gOs.dist + (gOs.release =! undefined ? " " + gOs.release : "") + "%0D%0A" : "") +
+        "Operating System: " + getCleanOs() + " %0D%0A" +
         (isSnap() ? "Package: Snap %0D%0A" : "") +
         "Processor Architecture: " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
@@ -97,6 +96,25 @@ var createBugReport = (title, callback) => {
       else callback(false);
     })
   });
+}
+
+var getCleanOs = () => {
+  try {
+    return getos((e,gOs) => {
+      if(gOs.os == "linux")
+        return gOs.dist + (gOs.release =! undefined ? " " + gOs.release : "") + (gOs.codename =! undefined ? " " + gOs.codename : "");
+      else if(gOs.os == "darwin")
+        return "macOS " + cp.execSync('sw_vers -productVersion').toString().trim() + cp.execSync('sw_vers -buildVersion').toString().trim();
+      else if(gOs.os == "win32")
+        return cp.execSync('ver').toString().trim();
+      else {
+        return gOs.os;
+      }
+    });
+  } catch (e) {
+    log.error(e);
+    return process.platform;
+  }
 }
 
 const checkForNewUpdate = (callback) => {
