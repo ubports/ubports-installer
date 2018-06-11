@@ -112,8 +112,32 @@ function build() {
           "build/icons/icon.*"
         ],
         "snap": {
-          "confinement": "devmode",
-          "plugs": ["home", "x11", "unity7", "browser-support", "network", "gsettings", "pulseaudio", "opengl", "raw-usb", "serial-port"]
+          "grade": "stable",
+          "confinement": "strict",
+          "plugs": [
+            "unity7",
+            "browser-support",
+            "network",
+            "gsettings",
+            "pulseaudio",
+            "opengl",
+            "raw-usb"
+          ],
+          "stagePackages": [
+            "libnotify4",
+            "libappindicator1",
+            "libxtst6",
+            "libnss3",
+            "libxss1",
+            "libc6",
+            "fontconfig-config",
+            "gconf2",
+            "libasound2",
+            "pulseaudio"
+          ],
+          "after": [
+            "desktop-glib-only"
+          ]
         },
         "deb": {
           "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
