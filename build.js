@@ -50,33 +50,40 @@ function canBuildSnap() {
 }
 
 function buildLinuxTargets() {
-  if (cli.appimageOnly)
+  if (cli.appimageOnly) {
     return ["AppImage"];
-  if (cli.snapOnly)
-    if (canBuildSnap())
-      return ["snap"]
-  else {
-    console.log("Cannot build snap, please install snapcraft")
+  } else if (cli.snapOnly) {
+    if (canBuildSnap()) {
+      return ["snap"];
+    } else {
+      console.log("Cannot build snap, please install snapcraft")
+      process.exit();
+    }
+  } else if (cli.buildToDir) {
+    return ["dir"];
+  } else if (cli.debOnly) {
+    return ["deb"];
+  }
+
+  var linuxTargets = [];
+  if (!cli.ignoreSnap && canBuildSnap()) {
+    linuxTargets.push("snap")
+  } else {
+    console.log("Cannot build snap, please install snapcraft (ignoring building of snap for now)")
+  }
+  if (!cli.ignoreDeb) {
+    linuxTargets.push("deb")
+  }
+  if (!cli.ignoreAppimage) {
+    linuxTargets.push("AppImage")
+  }
+
+  if (linuxTargets.length !== 0) {
+    return linuxTargets;
+  } else {
+    console.log("linux targets cannot be null")
     process.exit()
   }
-  if (cli.buildToDir)
-    return ["dir"]
-  if (cli.debOnly)
-    return ["deb"]
-  var linuxTargets = [];
-  if (!cli.ignoreSnap)
-    if (canBuildSnap())
-      linuxTargets.push("snap")
-  else
-    console.log("Cannot build snap, please install snapcraft (ignoring building of snap for now)")
-  if (!cli.ignoreDeb)
-    linuxTargets.push("deb")
-  if (!cli.ignoreAppimage)
-    linuxTargets.push("AppImage")
-  if (linuxTargets.length !== 0)
-    return linuxTargets;
-  console.log("linux targets cannot be null")
-  process.exit()
 }
 
 function build() {
