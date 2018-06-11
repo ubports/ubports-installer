@@ -4,8 +4,10 @@
       .modal-header
         button.close(type='button', data-dismiss='modal', aria-label='Close')
           span(aria-hidden='true') ×
-        h4.modal-title ADB drivers needed
+        h4.modal-title Warning!
       .modal-body
+        p
+          | This version of the UBports Installer is known to have some issues on Windows. You can still try to use it, but we recommend using #[a(onclick="openurl.open('https://github.com/ubports/ubports-installer/releases/download/0.1.9-beta/ubports-installer.0.1.9-beta.exe')") an older version]. Sorry for the inconvenience...
         p
           | You need to install the #[a(onclick="openurl.open('https://adb.clockworkmod.com/')") Universal ADB driver] and re-start the program to continue with the installation.
         p
