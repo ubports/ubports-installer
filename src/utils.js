@@ -86,11 +86,11 @@ var createBugReport = (title, callback) => {
       if (!err && res.statusCode === 302)
         getos((e,gOs) => {
           callback("Automatically generated error report %0D%0A" +
-            "Version: " + version + " %0D%0A" +
-            "Operating System: " + gOs.os + " %0D%0A" +
+            "UBports Installer Version: " + version + " %0D%0A" +
+            "Operating System: " + (gOs.os == "win32" ? cp.execSync('ver').toString().trim() : gOs.os) + " %0D%0A" +
             (gOs.dist =! undefined ? "Distribution: " + gOs.dist + (gOs.release =! undefined ? " " + gOs.release : "") + "%0D%0A" : "") +
             (isSnap() ? "Package: Snap %0D%0A" : "") +
-            "Architecture: " + os.arch() + " %0D%0A" +
+            "Processor Architecture: " + os.arch() + " %0D%0A" +
             "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
             "Error log: " + res.headers.location + " %0D%0A");
         });
