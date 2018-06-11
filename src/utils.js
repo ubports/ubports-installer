@@ -345,16 +345,16 @@ var checkFiles = (urls, callback) => {
     var check = () => {
         fs.access(path.join(urls[0].path, path.basename(urls[0].url)), (err) => {
             if (err) {
-                log.error("Not existing " + urls[0].path + "/" + path.basename(urls[0].url))
+                log.error("Not existing " + path.join(urls[0].path, path.basename(urls[0].url)));
                 urls_.push(urls[0]);
                 next();
             } else {
                 checksumFile(urls[0], (check) => {
                     if (check) {
-                        log.info(urls[0].path + "/" + path.basename(urls[0].url) + " already exists with the expected checksum, so download will be skipped")
+                        log.info(path.join(urls[0].path, path.basename(urls[0].url)) + " already exists with the expected checksum, so download will be skipped")
                         next()
                     } else {
-                        log.info("Checksum no match " + urls[0].path + "/" + path.basename(urls[0].url))
+                        log.info("Checksum no match " + path.join(urls[0].path, path.basename(urls[0].url)))
                         urls_.push(urls[0]);
                         next()
                     }
@@ -364,20 +364,6 @@ var checkFiles = (urls, callback) => {
     }
     check();
 }
-//
-// var decompressTarxzFileOnlyImages = (file, outdir, callback) => {
-//   decompress(file, outdir, {
-//     plugins: [
-//         decompressTarxz()
-//    ],
-//     filter: (f) => {
-//       return file.path.includes("boot.img") || file.path.includes("recovery.img");
-//     },
-//     strip: 1
-//   }).then(() => {
-//       callback();
-//   });
-// }
 
 var checksumFile = (file, callback) => {
     if (!file.checksum) {
