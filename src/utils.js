@@ -87,11 +87,11 @@ var createBugReport = (title, callback) => {
         getos((e,gOs) => {
           callback("Automatically generated error report %0D%0A" +
             "Version: " + version + " %0D%0A" +
-            "Host OS: " + gOs.os + " %0D%0A" +
-            "Host Dist: " + gOs.dist + " " + gOs.release + "%0D%0A" +
+            "Operating System: " + gOs.os + " %0D%0A" +
+            (gOs.dist =! undefined ? "Distribution: " + gOs.dist + (gOs.release =! undefined ? " " + gOs.release : "") + "%0D%0A" : "") +
             (isSnap() ? "Package: Snap %0D%0A" : "") +
-            "Host Arch: " + os.arch() + " %0D%0A" +
-            "Node: " + process.version + " %0D%0A%0D%0A" +
+            "Architecture: " + os.arch() + " %0D%0A" +
+            "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
             "Error log: " + res.headers.location + " %0D%0A");
         });
       else callback(false);
