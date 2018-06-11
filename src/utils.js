@@ -58,46 +58,45 @@ var log = {
 
 var createBugReport = (title, callback) => {
   var options = {
-  limit: 400,
-  start: 0,
-  order: 'desc'
+    limit: 400,
+    start: 0,
+    order: 'desc'
   };
 
   winston.query(options, function (err, results) {
-  if (err) {
-    throw err;
-  }
+    if (err) {
+      throw err;
+    }
 
-  var errorLog = ""
-  results.file.forEach((err) => {
+    var errorLog = "";
+    results.file.forEach((err) => {
       errorLog+=err.level+" "
       errorLog+=err.timestamp+" "
       errorLog+=err.message+"\n"
-  })
+    })
 
-  http.post({
-    url: "http://paste.ubuntu.com",
-    form: {
-      poster: "UBports Installer bug",
-      syntax: "text",
-      content: "Title: " + title + "\n\n" + errorLog
-    }
-  }, (err, res, bod) => {
+    http.post({
+      url: "http://paste.ubuntu.com",
+      form: {
+        poster: "UBports Installer bug",
+        syntax: "text",
+        content: "Title: " + title + "\n\n" + errorLog
+      }
+    }, (err, res, bod) => {
       if (!err && res.statusCode === 302)
-        getos((e,gOs) => {
-          callback("Automatically generated error report %0D%0A" +
-            "UBports Installer Version: " + version + " %0D%0A" +
-            "Operating System: " + (gOs.os == "win32" ? cp.execSync('ver').toString().trim() : gOs.os) + " %0D%0A" +
-            (gOs.dist =! undefined ? "Distribution: " + gOs.dist + (gOs.release =! undefined ? " " + gOs.release : "") + "%0D%0A" : "") +
-            (isSnap() ? "Package: Snap %0D%0A" : "") +
-            "Processor Architecture: " + os.arch() + " %0D%0A" +
-            "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
-            "Error log: " + res.headers.location + " %0D%0A");
-        });
+      getos((e,gOs) => {
+        callback("*Automatically generated error report* %0D%0A" +
+        "UBports Installer Version: " + version + " %0D%0A" +
+        "Operating System: " + (gOs.os == "win32" ? cp.execSync('ver').toString().trim() : gOs.os) + " %0D%0A" +
+        (gOs.dist =! undefined ? "Distribution: " + gOs.dist + (gOs.release =! undefined ? " " + gOs.release : "") + "%0D%0A" : "") +
+        (isSnap() ? "Package: Snap %0D%0A" : "") +
+        "Processor Architecture: " + os.arch() + " %0D%0A" +
+        "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
+        "Error log: " + res.headers.location + " %0D%0A");
+      });
       else callback(false);
-  })
-});
-
+    })
+  });
 }
 
 const checkForNewUpdate = (callback) => {
