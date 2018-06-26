@@ -33,8 +33,7 @@ const start = (password, sudo, callback) => {
     // Authorize Fairphone 2 vendor ID if necessary
     if (utils.isSnap())
         exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
-        
-    console.log("Starting: " + cmd);
+
     utils.platformToolsExecAsar("adb", (platformToolsExecAsar) => {
         platformToolsExecAsar.exec(cmd, (c, r, e) => {
             console.log(c, r, e);
