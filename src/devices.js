@@ -138,12 +138,10 @@ var requestPassword = (bootstrapEvent, callback) => {
     if(!utils.needRoot()){
       callback("");
       return;
-    }
-    if(process.env.SUDO_ASKPASS != null && process.env.SUDO_ASKPASS != undefined){
+    } else if(process.env.SUDO_ASKPASS){
         callback("");
         return;
-	}
-    if(password){
+    } else if(password){
         callback(password);
         return;
     }
@@ -196,8 +194,8 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
           else if (bootImg == null && image.type == "boot")
             bootImg = image;
           else
-             bootstrapEvent.emit("error", "Unknown or duplicate image type: "+image.type);
-             return;
+            bootstrapEvent.emit("error", "Unknown or duplicate image type: "+image.type);
+          return;
         });
         if(bootImg == null || recoveryImg == null) {
             bootstrapEvent.emit("error", "Missing " + (bootImg == null ? "boot" : "recovery") + " image.");
@@ -216,9 +214,8 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
                     utils.log.error("error while flashing recovery image, retrying");
                     handleBootstrapError(err, errM, bootstrapEvent, () => {
                       instructBootstrap(fastbootboot, images, bootstrapEvent);
-                      return;
                     });
-                  }else{
+                  } else {
                     if (fastboot) {
                       utils.log.info("Booting into recovery image...");
                       // If we can't find it, report error!
@@ -226,17 +223,15 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
                         if (err) {
                           handleBootstrapError(err, errM, bootstrapEvent, () => {
                             instructBootstrap(fastbootboot, images, bootstrapEvent);
-                            return;
                           });
-                        }else
+                        } else {
                           bootstrapEvent.emit("bootstrap:done", fastbootboot);
-                          return;
+                        }
                       })
-                      return;
-                    } else
+                    } else {
                       bootstrapEvent.emit("bootstrap:done", fastbootboot)
-                      return;
                     }
+                  }
               });
             }
         }, p)

@@ -28,11 +28,11 @@ const start = (password, sudo, callback) => {
   stop(err => {
     var cmd="";
     if (utils.needRoot() && sudo)
-        cmd += utils.sudoCommand(password);
+      cmd += utils.sudoCommand(password);
     cmd += adb + " -P " + PORT + " start-server";
     // Authorize Fairphone 2 vendor ID if necessary
     if (utils.isSnap())
-        exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
+      exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
 
     utils.platformToolsExecAsar("adb", (platformToolsExecAsar) => {
         platformToolsExecAsar.exec(cmd, (c, r, e) => {
@@ -42,7 +42,7 @@ const start = (password, sudo, callback) => {
                   password: true
                 });
             else
-              callback()
+              callback();
             platformToolsExecAsar.done();
         })
     });
@@ -51,17 +51,17 @@ const start = (password, sudo, callback) => {
 
 const stop = (callback) => {
   utils.platformToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
-      var childProcess = utils.platformToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
-        console.log(stdout)
-      })
-      childProcess.on('exit', (code, signal) => {
-          if(0 == code)  {
-              callback();
-          }else{
-             callback(false);
-          }
-        });
-      });
+    var childProcess = utils.platformToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
+      console.log(stdout);
+    });
+    childProcess.on('exit', (code, signal) => {
+      if(0 == code)  {
+        callback();
+      } else {
+        callback(false);
+      }
+    });
+  });
 }
 
 // TODO: remove lazy override alias, this should be handled by the server
@@ -103,8 +103,7 @@ var _getDeviceName = (callback, method) => {
       utils.log.debug("getprop: not found")
       getDeviceNameFromPropFile(callback);
       return;
-    }
-    if (output === null) {
+    } else if (output === null) {
       util.log.debug("getprop: error");
       callback(false);
       return;
@@ -145,60 +144,54 @@ var isBaseUbuntuCom = callback => {
   readUbuntuChannelINI(ini => {
     if (!ini)
       return callback(false);
-    callback(ini.base.includes("system-image.ubuntu.com"))
+    callback(ini.base.includes("system-image.ubuntu.com"));
   });
 }
 
 var push = (file, dest, pushEvent) => {
   var fileSize = fs.statSync(file)["size"];
- 
+
   var childProcess = utils.platformToolsExec("adb", ["-P", PORT, "push", "'" + file.replace("'","\'") + "'", dest], (err, stdout, stderr) => {}, null);
   var buffer = "";
   var regex = /\[([^%]+)%\].*/g;
-  //var stdoutListeners = process.stdout.listeners('data');
-  //process.stdout.removeAllListeners('data');
-  
+
   var oldmatch = "";
   childProcess.stdout.on('data', (data) => {
-	buffer += data.toString();
-	var match;
-	while((null !== (match = regex.exec(buffer))) && (match.length > 0)) {
-		var tmp = match[1].trim();
-		if(tmp !== oldmatch) {
-			pushEvent.emit("adbpush:progress", match[1]);
-			oldmatch = tmp;
-		}
-		buffer = buffer.substring(regex.lastIndex);
-	}
-	//utils.log.debug("BUFFER: " + buffer.toString());
+    buffer += data.toString();
+    var match;
+    while((null !== (match = regex.exec(buffer))) && (match.length > 0)) {
+      var tmp = match[1].trim();
+      if(tmp !== oldmatch) {
+        pushEvent.emit("adbpush:progress", match[1]);
+        oldmatch = tmp;
+      }
+      buffer = buffer.substring(regex.lastIndex);
+    }
+    //utils.log.debug("BUFFER: " + buffer.toString());
   });
 
-  //childProcess.stderr.on('data', (data) => {
-  //  utils.log.error("ERR: " + data);
-  //});
-  
   childProcess.on('exit', (code, signal) => {
-	  //utils.log.debug("restored " + stdoutListeners);
-	  if(0 == code) {
-		pushEvent.emit("adbpush:end");
-	  }else{
-		pushEvent.emit("adbpush:error", "processing '" + file + "' exited with code " + code + " and signal " + signal);
-	  }
+    //utils.log.debug("restored " + stdoutListeners);
+    if(0 == code) {
+      pushEvent.emit("adbpush:end");
+    } else {
+      pushEvent.emit("adbpush:error", "processing '" + file + "' exited with code " + code + " and signal " + signal);
+    }
   });
   return pushEvent;
 }
 
 var shell = (cmd, callback) => {
-    var arg = ["-P", PORT, "shell", cmd];
-    utils.platformToolsExecAsar("adb", (asarExec) => {
-        var ret = asarExec.execSync("adb " + arg.join(" "));
-        if(null == ret.ex || undefined == ret.ex) {
-            //utils.log.debug("adb " + arg.join(" ") + " successful " + ret.out);
-            callback(ret.out + "");
-        }else{
-            callback(false);
-        }
-    });
+  var arg = ["-P", PORT, "shell", cmd];
+  utils.platformToolsExecAsar("adb", (asarExec) => {
+    var ret = asarExec.execSync("adb " + arg.join(" "));
+    if(null == ret.ex || undefined == ret.ex) {
+      //utils.log.debug("adb " + arg.join(" ") + " successful " + ret.out);
+      callback(ret.out + "");
+    } else {
+      callback(false);
+    }
+  });
 }
 
 var waitForDevice = (callback) => {
@@ -232,14 +225,14 @@ var reboot = (state, callback) => {
   utils.log.debug("reboot to "+state);
   var arg = ["-P", PORT, "reboot", state];
   utils.platformToolsExecAsar("adb", (asarExec) => {
-        var ret = asarExec.execSync("adb " + arg.join(" "));
-        if(null == ret.ex || undefined == ret.ex) {
-            utils.log.debug(arg.join(" ") + " successful " + ret.out);
-            callback(false);
-        }else{
-			callback(true, stdout, stderr);
-        }
-    });
+    var ret = asarExec.execSync("adb " + arg.join(" "));
+    if(null == ret.ex || undefined == ret.ex) {
+      utils.log.debug(arg.join(" ") + " successful " + ret.out);
+      callback(false);
+    }else{
+      callback(true, stdout, stderr);
+    }
+  });
 }
 
 var format = (partition, callback) => {

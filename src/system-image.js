@@ -58,18 +58,18 @@ var pushMany = (files, pushManyEvent) => {
     pushManyEvent.emit("adbpush:error", "No files provided");
     return false;
   }
-  
+
   pushManyEvent.emit("adbpush:start", files.length);
-  
+
   adb.push(files[0].src, files[0].dest, pushManyEvent);
   pushManyEvent.on("adbpush:end", () => {
-        files.shift();
-        if (files.length <= 0){
-          pushManyEvent.emit("adbpush:done");
-          return;
-        }
-        pushManyEvent.emit("adbpush:next", files.length, totalLength)
-        adb.push(files[0].src, files[0].dest, pushManyEvent);
+    files.shift();
+    if (files.length <= 0){
+      pushManyEvent.emit("adbpush:done");
+      return;
+    }
+    pushManyEvent.emit("adbpush:next", files.length, totalLength)
+    adb.push(files[0].src, files[0].dest, pushManyEvent);
   })
   return pushManyEvent
 }

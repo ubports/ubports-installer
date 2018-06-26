@@ -161,12 +161,13 @@ var die = (e) => {
 }
 
 var sudoCommand = (password) => {
-	password += "";
+    password += "";
     if(process.env.SUDO_ASKPASS != null && process.env.SUDO_ASKPASS != undefined) {
         log.info("using sudo askpass: " + process.env.SUDO_ASKPASS)
         return isSnap() ? "" : "sudo -A ";
-    }else
+    } else {
         return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
+    }
 }
 
 var checkPassword = (password, callback) => {
@@ -247,16 +248,16 @@ const callbackHook = (callback) => {
 }
 
 const platformToolsExec = (tool, arg, callback, environment) => {
-	if(environment == undefined)
-		environment = null;
-		
+  if(environment == undefined)
+    environment = null;
+
   var tools = getPlatformTools();
   log.debug("trying tool " + tool );
   // Check first for native
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     // log.debug("Running platform tool exec cmd "+cmd);
-    
+
     return cp.exec(tools[tool] + " " + arg.join(" "), {maxBuffer:2000*1024, stdio:[ null, "pipe", null ], env:environment }, callback);
   }
 
@@ -277,17 +278,17 @@ const platformToolsExecAsar = (tool, callback) => {
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     callback({
-        execSync: (cmd) => {
-			var stdout;
-			try{
-				stdout = cp.execSync(cmd, {timeout: 60000 } /*1 min. timeout*/);
-			}catch(e){
-				//log.error("exception: " + e);
-				return { out: null, ex: e};
-			}
-			return { out: stdout, ex: null };
-        },
-        exec: (cmd, cb) => {
+      execSync: (cmd) => {
+        var stdout;
+        try{
+          stdout = cp.execSync(cmd, {timeout: 60000 } /*1 min. timeout*/);
+        } catch(e){
+          //log.error("exception: " + e);
+          return { out: null, ex: e};
+        }
+        return { out: stdout, ex: null };
+      },
+      exec: (cmd, cb) => {
             // log.debug("Running platform tool exec asar cmd "+cmd);
             exec(cmd, (err, e,r) => {
                 cb(err,e,r);

@@ -142,7 +142,7 @@ var boot = (image, password, callback) => {
         if(null == ret.e || undefined == ret.e) {
             utils.log.debug("fastboot: flash; " + JSON.stringify(image) + " successful");
             callback(false, ret.out);
-        }else{
+        } else {
             handleError(ret.e.error, ret.e.stdout, ret.e.stderr, password, callback);
         }
   });
