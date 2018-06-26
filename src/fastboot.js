@@ -89,7 +89,7 @@ var waitForDevice = (password, callback) => {
 // seperate password prompts
 /*
 
-args; array(object), string, function
+args; object, string, function
 
 image object format
 [
@@ -101,21 +101,21 @@ image object format
 ]
 
 */
-var flash = (images, callback, password) => {
-    utils.log.debug("fastboot: flash; " + JSON.stringify(images));
+var flash = (image, callback, password) => {
+    utils.log.debug("fastboot: flash; " + JSON.stringify(image));
     var cmd = "";
-    images.forEach((image, l) => {
-        if (utils.needRoot())
-            cmd += utils.sudoCommand(password);
-        cmd += "fastboot" + " flash " + image.type + " \"" + path.join(image.path, path.basename(image.url)) + "\"";
-        if (l !== images.length - 1)
-            cmd += " && "
-    });
+    if (utils.needRoot())
+        cmd += utils.sudoCommand(password);
+    cmd += "fastboot" + " flash " + image.type + " \"" + path.join(image.path, path.basename(image.url)) + "\"";
+
     utils.platformToolsExecAsar("fastboot", (asarExec) => {
-        asarExec.exec(cmd, (c, r, e) => {
-            handleError(c, r, e, password, callback);
-            asarExec.done();
-        })
+        var ret = asarExec.execSync(cmd);
+        if(null == ret.e || undefined == ret.e) {
+            utils.log.debug("fastboot: flash; " + JSON.stringify(image) + " successful");
+            callback(false, ret.out);
+        }else{
+            handleError(ret.e.error, ret.e.stdout, ret.e.stderr, password, callback);
+        }
     });
 }
 
@@ -138,10 +138,13 @@ var boot = (image, password, callback) => {
       cmd += utils.sudoCommand(password);
   cmd += "fastboot" + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
   utils.platformToolsExecAsar("fastboot", (asarExec) => {
-      asarExec.exec(cmd, (c, r, e) => {
-          handleError(c, r, e, password, callback);
-          asarExec.done();
-      })
+      var ret = asarExec.execSync(cmd);
+        if(null == ret.e || undefined == ret.e) {
+            utils.log.debug("fastboot: flash; " + JSON.stringify(image) + " successful");
+            callback(false, ret.out);
+        }else{
+            handleError(ret.e.error, ret.e.stdout, ret.e.stderr, password, callback);
+        }
   });
 }
 /*

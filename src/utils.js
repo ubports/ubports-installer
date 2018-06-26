@@ -161,7 +161,12 @@ var die = (e) => {
 }
 
 var sudoCommand = (password) => {
-    return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
+	password += "";
+    if(process.env.SUDO_ASKPASS != null && process.env.SUDO_ASKPASS != undefined) {
+        log.info("using sudo askpass: " + process.env.SUDO_ASKPASS)
+        return isSnap() ? "" : "sudo -A ";
+    }else
+        return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
 }
 
 var checkPassword = (password, callback) => {
@@ -209,9 +214,7 @@ var asarExec = (file, callback) => {
                 exec: (cmd, cb) => {
                     cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
                     // log.debug("Running platform tool fallback exec asar cmd "+cmd);
-                    exec(cmd, (err, e,r) => {
-                        cb(err,e,r);
-                    })
+                    exec(cmd, (err, e,r) => {})
                 },
                 done: () => {
                     fs.removeSync(tmpDir);
@@ -243,28 +246,28 @@ const callbackHook = (callback) => {
   }
 }
 
-const platformToolsExec = (tool, arg, callback) => {
-  console.log("plat")
+const platformToolsExec = (tool, arg, callback, environment) => {
+	if(environment == undefined)
+		environment = null;
+		
   var tools = getPlatformTools();
-  console.log(tools)
+  log.debug("trying tool " + tool );
   // Check first for native
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
-    var cmd = tools[tool] + " " + arg.join(" ");
     // log.debug("Running platform tool exec cmd "+cmd);
-    cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
-    return true;
+    
+    return cp.exec(tools[tool] + " " + arg.join(" "), {maxBuffer:2000*1024, stdio:[ null, "pipe", null ], env:environment }, callback);
   }
 
   if (tools.fallback[tool]) {
     logPlatformFallbackToolsOnce();
     // log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
-    cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024}, callbackHook(callback));
-    return true;
+    return cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024, env: environment}, callbackHook(callback));
   }
   log.error("NO PLATFORM TOOL USED!");
   callback(true, false);
-  return false;
+  return null;
 }
 
 const platformToolsExecAsar = (tool, callback) => {
@@ -274,6 +277,16 @@ const platformToolsExecAsar = (tool, callback) => {
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     callback({
+        execSync: (cmd) => {
+			var stdout;
+			try{
+				stdout = cp.execSync(cmd, {timeout: 60000 } /*1 min. timeout*/);
+			}catch(e){
+				//log.error("exception: " + e);
+				return { out: null, ex: e};
+			}
+			return { out: stdout, ex: null };
+        },
         exec: (cmd, cb) => {
             // log.debug("Running platform tool exec asar cmd "+cmd);
             exec(cmd, (err, e,r) => {

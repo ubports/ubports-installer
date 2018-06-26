@@ -139,10 +139,15 @@ var requestPassword = (bootstrapEvent, callback) => {
       callback("");
       return;
     }
+    if(process.env.SUDO_ASKPASS != null && process.env.SUDO_ASKPASS != undefined){
+        callback("");
+        return;
+	}
     if(password){
         callback(password);
         return;
     }
+
     bootstrapEvent.emit("user:password");
     bootstrapEvent.once("password", (p) => {
         utils.checkPassword(p, (correct, err) => {
@@ -183,35 +188,56 @@ var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
 var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
     //TODO check bootloader name/version/device
     var flash = (p) => {
-        fastboot.flash(images, (err, errM) => {
-            if(err)
+        var recoveryImg = null;
+        var bootImg = null;
+        images.forEach((image) => {
+          if (recoveryImg == null && image.type == "recovery")
+            recoveryImg = image;
+          else if (bootImg == null && image.type == "boot")
+            bootImg = image;
+          else
+             bootstrapEvent.emit("error", "Unknown or duplicate image type: "+image.type);
+             return;
+        });
+        if(bootImg == null || recoveryImg == null) {
+            bootstrapEvent.emit("error", "Missing " + (bootImg == null ? "boot" : "recovery") + " image.");
+            return;
+        }
+        fastboot.flash(bootImg, (err, errM) => {
+            if(err) {
+              utils.log.error("error while flashing boot image, retrying");
               handleBootstrapError(err, errM, bootstrapEvent, () => {
                 instructBootstrap(fastbootboot, images, bootstrapEvent);
+                return;
               });
-            else {
-              if (fastboot) {
-                  utils.log.info("Booting into recovery image...");
-                  // find recovery image
-                  var recoveryImg;
-                  images.forEach((image) => {
-                    if (image.type === "recovery")
-                      recoveryImg = image;
-                  });
-                  // If we can't find it, report error!
-                  if (!recoveryImg){
-                    bootstrapEvent.emit("error", "Cant find recoveryImg to boot: "+images);
-                  }else {
-                    fastboot.boot(recoveryImg, p, (err, errM) => {
-                      if (err) {
-                        handleBootstrapError(err, errM, bootstrapEvent, () => {
-                          instructBootstrap(fastbootboot, images, bootstrapEvent);
-                        });
-                      }else
-                        bootstrapEvent.emit("bootstrap:done", fastbootboot);
-                    })
-                  }
-              } else
-                  bootstrapEvent.emit("bootstrap:done", fastbootboot)
+            } else {
+              fastboot.flash(recoveryImg, (err, errM) => {
+                  if(err) {
+                    utils.log.error("error while flashing recovery image, retrying");
+                    handleBootstrapError(err, errM, bootstrapEvent, () => {
+                      instructBootstrap(fastbootboot, images, bootstrapEvent);
+                      return;
+                    });
+                  }else{
+                    if (fastboot) {
+                      utils.log.info("Booting into recovery image...");
+                      // If we can't find it, report error!
+                      fastboot.boot(recoveryImg, p, (err, errM) => {
+                        if (err) {
+                          handleBootstrapError(err, errM, bootstrapEvent, () => {
+                            instructBootstrap(fastbootboot, images, bootstrapEvent);
+                            return;
+                          });
+                        }else
+                          bootstrapEvent.emit("bootstrap:done", fastbootboot);
+                          return;
+                      })
+                      return;
+                    } else
+                      bootstrapEvent.emit("bootstrap:done", fastbootboot)
+                      return;
+                    }
+              });
             }
         }, p)
     }

@@ -13,7 +13,7 @@ script.
   })
 
   window.onerror = (err, url, line) => {
-      onErr(err+" (MainRenderer:"+line+")");
+      onErr(err+" (MainRenderer:"+line+") in "+url);
   }
   // START
 
