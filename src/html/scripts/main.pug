@@ -93,7 +93,7 @@ script.
         $("#device-name").text(output.device.name);
         $("#your-ubp-device").text(output.device.name+" ("+output.device.device+")")
         $("#your-ubp-device").click(() => {
-            openurl.open("https://devices.ubports.com/#/"+output.device.device);
+            openurl.open("https://devices.ubuntu-touch.io/device/"+output.device.device);
         })
         var notWorking = devices.getFormatedNotWorking(output.device.whatIsWorking);
         if (notWorking)
