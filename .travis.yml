@@ -25,7 +25,7 @@ install:
 - nvm install 6
 - npm install
 - npm prune
-- sudo snap install snapcraft --classic || echo ""
+- sudo snap install snapcraft --classic 2> /dev/null || echo "Can not install snapcraft."
 script:
 - npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
 deploy:
