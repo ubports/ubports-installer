@@ -26,7 +26,6 @@ const platformToolsUrls = {
   "win": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
 }
 
-
 const setEvents = (downloadEvent) => {
   downloadEvent.on("download:error", (r) => {
     console.log("Download error " + r);
@@ -49,7 +48,7 @@ function canBuildSnap() {
   return fs.existsSync("/usr/bin/snapcraft") || fs.existsSync("/snap/bin/snapcraft")
 }
 
-function buildLinuxTargets() {
+function getLinuxTargets() {
   if (cli.appimageOnly) {
     return ["AppImage"];
   } else if (cli.snapOnly) {
@@ -87,70 +86,22 @@ function buildLinuxTargets() {
 }
 
 function build() {
-  var linuxTargets = buildLinuxTargets()
-  console.log("building for: " + linuxTargets.join(", "))
   builder.build({
       targets: builder.createTargets(targets),
-      config: Object.assign({
-        "linux": {
-          "target": linuxTargets,
-          "icon": "build/icons"
-        },
-        "mac": {
-          "target": "dmg",
-          "icon": "build/icons/icon.icns"
-        },
-        "win": {
-          "target": ["portable"],
-          "icon": "build/icons/icon.ico"
-        },
-        "snap": {
-          "grade": "stable",
-          "confinement": "strict",
-          "plugs": [
-            "unity7",
-            "browser-support",
-            "network",
-            "gsettings",
-            "pulseaudio",
-            "opengl",
-            "raw-usb"
-          ],
-          "stagePackages": [
-            "libnotify4",
-            "libappindicator1",
-            "libxtst6",
-            "libnss3",
-            "libxss1",
-            "libc6",
-            "fontconfig-config",
-            "gconf2",
-            "libasound2",
-            "pulseaudio"
-          ],
-          "after": [
-            "desktop-glib-only"
-          ]
-        },
-        "deb": {
-          "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
-        }
-      }, require("./buildconfig-generic.json"))
+      config: buildConfig
     })
     .then(() => {
       console.log("Done")
     })
-    .catch(console.log)
 }
 
 function getAndroidPlatformTools() {
   var targets = [];
-  var downloadArray = [];
   if (cli.linux) targets.push("linux");
   if (cli.windows) targets.push("win");
   if (cli.mac) targets.push("mac");
   if (targets.length === 0) targets = ["linux", "win", "mac"];
-
+  var downloadArray = [];
   targets.forEach((target) => {
     downloadArray.push({
       url: platformToolsUrls[target],
@@ -167,7 +118,8 @@ function downloadPlatformTools() {
   utils.downloadFiles(getAndroidPlatformTools(), downloadEvent);
   downloadEvent.on("download:done", () => {
     extractPlatformTools(getAndroidPlatformTools(), () => {
-      if (!cli.downloadOnly) build();
+      console.log("Platform tools downloaded successfully!");
+      if(!cli.downloadOnly) build();
     });
   });
 };
@@ -212,11 +164,46 @@ cli
   .parse(process.argv);
 
 var targets = [];
+var buildConfig = require("./buildconfig-generic.json");
 
-if (cli.linux) targets.push(Platform.LINUX);
-if (cli.windows) targets.push(Platform.WINDOWS);
-if (cli.mac) targets.push(Platform.MAC);
+if (cli.linux) {
+  targets.push(Platform.LINUX);
+  buildConfig = Object.assign(buildConfig, {
+      "linux": {
+        "target": getLinuxTargets(),
+        "icon": "build/icons",
+        "synopsis": "Install Ubuntu Touch on UBports devices",
+        "category": "Utility"
+      },
+      "deb": {
+        "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
+      }
+    }
+  );
+}
+if (cli.windows) {
+  targets.push(Platform.WINDOWS);
+  buildConfig = Object.assign(buildConfig, {
+      "win": {
+        "target": ["portable"],
+        "icon": "build/icons/icon.ico"
+      }
+    }
+  );
+}
+if (cli.mac) {
+  targets.push(Platform.MAC);
+  buildConfig = Object.assign(buildConfig, {
+      "mac": {
+        "target": "dmg",
+        "icon": "build/icons/icon.icns",
+        "category": "public.app-category.utilities"
+      }
+    }
+  );
+}
 
 if (targets.length === 0) targets = [Platform.MAC, Platform.WINDOWS, Platform.LINUX];
 
 if (cli.platformTools) downloadPlatformTools();
+else build();
