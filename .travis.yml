@@ -28,7 +28,7 @@ install:
 - sudo snap install snapcraft --classic || echo "Can not install snapcraft."
 script:
 - npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
-- $([ "$TRAVIS_OS_NAME" == "linux" ] && ./snap/bin/snapcraft cleanbuild || echo "Can not build snap")
+- $([ "$TRAVIS_OS_NAME" == "linux" ]) && snapcraft cleanbuild
 deploy:
   provider: releases
   api_key:
