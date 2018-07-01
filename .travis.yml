@@ -22,7 +22,7 @@ addons:
     - xz-utils
     - snapd
 install:
-- nvm install 6
+- nvm install 8
 - npm install
 - npm prune
 - sudo snap install snapcraft --classic 2> /dev/null || echo "Can not install snapcraft."
