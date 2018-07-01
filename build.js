@@ -56,7 +56,7 @@ function buildLinuxTargets() {
     if (canBuildSnap()) {
       return ["snap"];
     } else {
-      console.log("Cannot build snap, please install snapcraft")
+      console.log("Snapcraft is not installed. Aborting build...")
       process.exit();
     }
   } else if (cli.buildToDir) {
@@ -91,8 +91,7 @@ function build() {
   console.log("building for: " + linuxTargets.join(", "))
   builder.build({
       targets: builder.createTargets(targets),
-      config: {
-        "appId": "com.ubports.installer",
+      config: Object.assign({
         "linux": {
           "target": linuxTargets,
           "icon": "build/icons"
@@ -105,12 +104,6 @@ function build() {
           "target": ["portable"],
           "icon": "build/icons/icon.ico"
         },
-        "files": [
-          "src/**/*",
-          "node_modules/**/*",
-          "platform-tools/${os}/**/*",
-          "build/icons/icon.*"
-        ],
         "snap": {
           "grade": "stable",
           "confinement": "strict",
@@ -142,7 +135,7 @@ function build() {
         "deb": {
           "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
         }
-      }
+      }, require("./buildconfig-generic.json"))
     })
     .then(() => {
       console.log("Done")

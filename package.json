@@ -1,7 +1,16 @@
 {
   "name": "ubports-installer",
   "version": "0.1.15-beta",
-  "description": "UBports Installer",
+  "description": "UBports Installer: The easy way to install Ubuntu Touch on UBports devices.\nA friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
+  "keywords": ["Ubuntu", "Ubuntu Touch", "UBports", "UBports Installer", "Android", "ADB", "Fastboot", "Heimdall"],
+  "homepage": "https://devices.ubuntu-touch.io",
+  "bugs": {
+    "url" : "https://github.com/ubports/ubports-installer/issues",
+    "email" : "info@ubports.com"
+  },
+  "repository": "https://github.com/ubports/ubports-installer",
+  "author": "UBports Foundation <info@ubports.com>",
+  "license": "GPL-3.0",
   "main": "src/main.js",
   "bin": "./src/main.js",
   "scripts": {
@@ -12,9 +21,6 @@
     "dist:mac": "node ./build.js -m",
     "dist:win": "node ./build.js -w"
   },
-  "repository": "https://github.com/ubports/ubports-installer",
-  "author": "The UBports developers <list@ubports.com>",
-  "license": "GPL-3.0",
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
