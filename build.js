@@ -44,20 +44,9 @@ const setEvents = (downloadEvent) => {
   });
 }
 
-function canBuildSnap() {
-  return fs.existsSync("/usr/bin/snapcraft") || fs.existsSync("/snap/bin/snapcraft")
-}
-
 function getLinuxTargets() {
   if (cli.appimageOnly) {
     return ["AppImage"];
-  } else if (cli.snapOnly) {
-    if (canBuildSnap()) {
-      return ["snap"];
-    } else {
-      console.log("Snapcraft is not installed. Aborting build...")
-      process.exit(1);
-    }
   } else if (cli.buildToDir) {
     return ["dir"];
   } else if (cli.debOnly) {
@@ -65,11 +54,6 @@ function getLinuxTargets() {
   }
 
   var linuxTargets = [];
-  if (!cli.ignoreSnap && canBuildSnap()) {
-    linuxTargets.push("snap")
-  } else {
-    console.log("Cannot build snap, please install snapcraft (ignoring building of snap for now)")
-  }
   if (!cli.ignoreDeb) {
     linuxTargets.push("deb")
   }
@@ -164,10 +148,8 @@ cli
   .option('-w, --windows', 'Build for Windows')
   .option('-m, --mac', 'Build for Mac')
   .option('-d, --download-only', 'Only download platformTools')
-  .option('-s, --snap-only', "Build only snap")
-  .option('-e, --deb-only', "Build only snap")
+  .option('-e, --deb-only', "Build only deb")
   .option('-a, --appimage-only', "Build only appimage")
-  .option('-r, --ignore-snap', "Do not build snap")
   .option('-t, --ignore-deb', "Do not build deb")
   .option('-y, --ignore-appimage', "Do not build appimage")
   .option('-b, --build-to-dir', "Build only to dir")

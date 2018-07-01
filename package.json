@@ -16,8 +16,8 @@
   "scripts": {
     "test-unit": "NODE_ENV=test mocha 'tests/unit-tests/*.js'",
     "start": "electron .",
-    "dist:unix": "node ./build.js -lmr",
-    "dist:linux": "node ./build.js -lr",
+    "dist:unix": "node ./build.js -lm",
+    "dist:linux": "node ./build.js -l",
     "dist:mac": "node ./build.js -m",
     "dist:win": "node ./build.js -w"
   },
