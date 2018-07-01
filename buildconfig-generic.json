@@ -1,6 +1,6 @@
 {
   "appId": "com.ubports.installer",
-  "productName": "UBports Installer",
+  "productName": "ubports-installer",
   "copyright": "Copyright © year UBports Foundation",
   "files": [
     "src/**/*",
