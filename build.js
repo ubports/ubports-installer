@@ -56,7 +56,7 @@ function getLinuxTargets() {
       return ["snap"];
     } else {
       console.log("Snapcraft is not installed. Aborting build...")
-      process.exit();
+      process.exit(1);
     }
   } else if (cli.buildToDir) {
     return ["dir"];
@@ -81,7 +81,7 @@ function getLinuxTargets() {
     return linuxTargets;
   } else {
     console.log("linux targets cannot be null")
-    process.exit()
+    process.exit(1)
   }
 }
 
@@ -89,10 +89,16 @@ function build() {
   builder.build({
       targets: builder.createTargets(targets),
       config: buildConfig
-    })
-    .then(() => {
-      console.log("Done")
-    })
+    }
+  )
+  .then(() => {
+      console.log("Done");
+    }
+  )
+  .catch((e) => {
+    console.log(e);
+    process.exit(1);
+  })
 }
 
 function getAndroidPlatformTools() {
