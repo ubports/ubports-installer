@@ -3,6 +3,8 @@ pipeline {
   stages {
     stage('Install') {
       steps {
+        sh 'npm install nvm'
+        sh 'nvm install 8'
         sh 'npm install'
         sh 'npm prune'
       }
