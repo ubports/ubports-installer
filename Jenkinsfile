@@ -13,6 +13,7 @@ pipeline {
     stage('Build dist') {
       steps {
         sh 'npm run dist:linux'
+        sh 'snapcraft cleanbuild'
       }
     }
   }
