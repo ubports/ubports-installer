@@ -162,9 +162,9 @@ cli
   .option('-s, --snap-only', "Build only snap")
   .option('-e, --deb-only', "Build only snap")
   .option('-a, --appimage-only', "Build only appimage")
-  .option('-r, --ignore-snap', "Build only snap")
-  .option('-t, --ignore-deb', "Build only snap")
-  .option('-y, --ignore-appimage', "Build only appimage")
+  .option('-r, --ignore-snap', "Do not build snap")
+  .option('-t, --ignore-deb', "Do not build deb")
+  .option('-y, --ignore-appimage', "Do not build appimage")
   .option('-b, --build-to-dir', "Build only to dir")
   .option('-n, --no-platform-tools', "Build without platform tools")
   .parse(process.argv);
