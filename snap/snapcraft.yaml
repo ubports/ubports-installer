@@ -23,6 +23,7 @@ apps:
 parts:
   ubports-installer:
     plugin: nodejs
+    node-engine: 8.10.0
     stage-packages:
       - libnotify4
       - libappindicator1
