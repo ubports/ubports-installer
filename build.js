@@ -96,8 +96,13 @@ function build() {
     }
   )
   .catch((e) => {
-    console.log(e);
-    process.exit(1);
+    if(e.message.indexOf("GitHub Personal Access Token is not set") !== -1) {
+      console.log("Done");
+      process.exit(0);
+    } else {
+      console.log(e);
+      process.exit(1);
+    }
   })
 }
 
