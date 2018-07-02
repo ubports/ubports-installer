@@ -43,6 +43,12 @@ script.
          footer.underText.set("Please connect your device with an usb cable");
          if (process.platform === "win32")
            $('#windows-drivers-modal').modal('show');
+         if (utils.getUpdateAvailable()) {
+           utils.log.warn("This is not the latest stable release!")
+           $('#new-update-modal').modal('show');
+         } else {
+           utils.log.info("Running latest stable version.");
+         }
          views.show("wait-for-device");
          var waitEvent = devices.waitForDevice(mainEvent);
            // Select device button

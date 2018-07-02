@@ -6,10 +6,8 @@
           span(aria-hidden='true') ×
         h4.modal-title Update available!
       .modal-body
-        p
-          | A new version is available. Do you want to update now?
-        pre#error-body.
-          \n
+        p You are not running the latest stable version. Using the latest stable release is recommended for most users. You can still use this version, but there might be bugs and issues that do not affect the stable release.
+        p Click the button below to download the latest version or dismiss to continue using this version.
       .modal-footer
-        button.btn.btn-default(type='button', data-dismiss='modal') Not now
-        button#btn-update.btn.btn-primary(type='button') Update
+        button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
+        button#btn-update.btn.btn-primary(type='button', onclick="openurl.open('https://github.com/ubports/ubports-installer/releases/latest')") Download
