@@ -11,6 +11,7 @@
         p If your problem is not yet known, klick the button below to report a new bug.
         pre#error-body.
           \n
+        p#not-latest-stable(hidden='hidden') You are not using the latest stable version of the UBports Installer. You can  #[a(onclick="openurl.open('https://github.com/ubports/ubports-installer/releases/latest')") download the latest stable release on GitHub].
       .modal-footer
         button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick="location.reload()") Try again
         button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal') Ignore
