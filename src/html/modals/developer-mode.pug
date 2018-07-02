@@ -6,12 +6,12 @@
           span(aria-hidden='true') ×
         h4.modal-title How to enable developer mode
       .modal-body
+        p Please select the operating system that is currently installed on your device to learn how to enable developer mode.
         #accordion.panel-group(role='tablist')
           .panel.panel-default(role='button', data-toggle='collapse', data-parent='#accordion', href='#collapseUbuntu')
             .panel-heading(role='tab')
-              h4.panel-title
-                p Ubuntu Touch
-            #collapseUbuntu.panel-collapse.collapse.in(role='tabpanel')
+              h4.panel-title Ubuntu Touch
+            #collapseUbuntu.panel-collapse.collapse(role='tabpanel')
               .panel-body
                 .row
                   .col-xs-6
@@ -29,8 +29,7 @@
                     img(src='../screens/ubuntu-dev-mode.gif', style='width: 100%')
           .panel.panel-default(role='button', data-toggle='collapse', data-parent='#accordion', href='#collapseAndroid')
             .panel-heading(role='tab')
-              h4.panel-title
-                p Android
+              h4.panel-title Android
             #collapseAndroid.panel-collapse.collapse(role='tabpanel')
               .panel-body
                 .row
