@@ -116,19 +116,28 @@ var getCleanOs = () => {
   }
 }
 
-const checkForNewUpdate = (callback) => {
-  http.get({
-              url: "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
-              json: true,
-              headers: {
-                'User-Agent': 'request'
-              }
-           },
-           (err, res, bod) => {
-             if (!err && res.statusCode === 200) {
-               console.log(bod.tag_name !== version)
-             }
-           })
+async function getLatestInstallerVersion() {
+  return new Promise( (resolve) => {
+    http.get({
+      url: "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
+      json: true,
+      headers: { 'User-Agent': 'request' }
+    },
+    (err, res, bod) => {
+      if (!err && res.statusCode === 200) {
+        resolve(bod.tag_name)
+      } else {
+        resolve(undefined);
+      }
+    })
+  })
+}
+
+async function getUpdateAvailable() {
+  latestVersion = await getLatestInstallerVersion();
+  return (latestVersion === undefined) ?
+    undefined : latestVersion != version ?
+    latestVersion : false;
 }
 
 var getUbuntuTouchDir = () => {
@@ -481,7 +490,7 @@ module.exports = {
     debugScreen: debugScreen,
     debugTrigger: debugTrigger,
     createBugReport: createBugReport,
-    checkForNewUpdate: checkForNewUpdate,
+    getUpdateAvailable: getUpdateAvailable,
     getPlatform: getPlatform,
     asarExec: asarExec,
     getRandomInt: getRandomInt
