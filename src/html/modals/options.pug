@@ -12,11 +12,13 @@
               label.col-xs-3.control-label Channel
               .col-xs-9
                 select#options-channel.form-control.space
+                p #[a(onclick="openurl.open('https://docs.ubports.com/en/latest/about/process/release-schedule.html')") What is this]?
             .form-group
-              .col-sm-offset-3.col-xs-9
+              label.col-xs-3.control-label Wipe
+              .col-xs-9
                 label
                   input#options-wipe(type='checkbox')
-                  |  Wipe
+                  |  Clear internal storage
                 #options-wipe-note(hidden='hidden')
                   p
                     b NOTE:
