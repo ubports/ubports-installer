@@ -1,7 +1,7 @@
 script.
   // CATCH ANY ERRORS!
   var onErr = (err) => {
-    if(utils.getUpdateAvailable())
+    if(utils.getUpdateAvailable() && !utils.isSnap())
       $("#not-latest-stable").show();
     $("#error-body").text(err);
     $("#errorModal").modal("show");
