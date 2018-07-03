@@ -172,14 +172,20 @@ script.
           installEvent.on("user:password:wrong", () => {
               installEvent.emit("user:password");
               $('#password-wrong').show();
-          })
+          });
 
           installEvent.on("user:reboot", (i) => {
             views.show("reboot-"+i.button);
             $("[id=reboot-to-state]").text(i.state);
             $("#device-name").text("Please reboot to "+i.state);
             $("#device-under-text").text("");
-          })
+          });
+          
+          installEvent.on("adb:rebooted", () => {
+            $('#views-reboot-up').hide();
+            $('#views-reboot-down').hide();
+          });
+          
           installEvent.on("user:write:next", (text,length, total) => {
               $("#device-under-text").text(text+" file "+(total-(length-1))+" of "+total)
               $("#progress").width("0%");
