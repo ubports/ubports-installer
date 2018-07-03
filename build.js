@@ -51,15 +51,15 @@ function getLinuxTargets() {
 
   var linuxTargets = [];
   if (!cli.ignoreDeb)
-    linuxTargets.push("deb")
+    linuxTargets.push("deb");
   if (!cli.ignoreAppimage)
-    linuxTargets.push("AppImage")
+    linuxTargets.push("AppImage");
   if (!cli.ignoreFreebsd)
-    linuxTargets.push("freebsd")
+    linuxTargets.push("freebsd");
   if (!cli.ignorePacman)
-    linuxTargets.push("pacman")
+    linuxTargets.push("pacman");
   if (!cli.ignoreRpm)
-    linuxTargets.push("rpm")
+    linuxTargets.push("rpm");
 
   if (linuxTargets.length !== 0) {
     return linuxTargets;

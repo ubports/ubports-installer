@@ -16,8 +16,9 @@
   "scripts": {
     "test-unit": "NODE_ENV=test mocha 'tests/unit-tests/*.js'",
     "start": "electron .",
-    "dist:unix": "node ./build.js -lm",
-    "dist:linux": "node ./build.js -l",
+    "dist:unix": "node ./build.js -lmPR",
+    "dist:linux": "node ./build.js -lPR",
+    "dist:snap": "snapcraft cleanbuild",
     "dist:mac": "node ./build.js -m",
     "dist:win": "node ./build.js -w"
   },
