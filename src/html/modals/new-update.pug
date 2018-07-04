@@ -7,7 +7,8 @@
         h4.modal-title Update available!
       .modal-body
         p You are not running the latest stable version. Using the latest stable release is recommended for most users. You can still use this version, but there might be bugs and issues that do not affect the stable release.
-        p Click the button below to download the latest version or dismiss to continue using this version.
+        #generic-update-instructions.p(hidden='hidden') Click the button below to download the latest version.
+        #snap-update-instructions.p(hidden='hidden') Run #[code snap refresh ubports-installer --stable] in your terminal to install the latest version.
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
-        button#btn-update.btn.btn-primary(type='button', onclick="openurl.open('https://github.com/ubports/ubports-installer/releases/latest')") Download
+        button#btn-update-installer.btn.btn-primary(type='button', onclick="openurl.open('https://github.com/ubports/ubports-installer/releases/latest')") Download
