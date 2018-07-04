@@ -1,8 +1,14 @@
 script.
   // CATCH ANY ERRORS!
   var onErr = (err) => {
-    if(utils.getUpdateAvailable() && !utils.isSnap())
+    if(utils.getUpdateAvailable()) {
       $("#not-latest-stable").show();
+      if (utils.isSnap()) {
+        $("#snap-update-instructions-error").show();
+      } else {
+        $("#generic-update-instructions-error").show();
+      }
+    }
     $("#error-body").text(err);
     $("#errorModal").modal("show");
     modals.hide("password");
@@ -13,7 +19,6 @@ script.
       openurl.open("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
     });
   })
-
   window.onerror = (err, url, line) => {
       onErr(err+" (MainRenderer:"+line+")");
   }
@@ -47,6 +52,12 @@ script.
            $('#windows-drivers-modal').modal('show');
          if (utils.getUpdateAvailable()) {
            utils.log.warn("This is not the latest stable release!")
+           if (utils.isSnap()) {
+             $("#snap-update-instructions").show();
+             $("#btn-update-installer").hide();
+           } else {
+             $("#generic-update-instructions").show();
+           }
            $('#new-update-modal').modal('show');
          } else {
            utils.log.info("Running latest stable version.");

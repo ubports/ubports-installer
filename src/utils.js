@@ -342,11 +342,11 @@ const getFallbackPlatformTools = () => {
 }
 
 var isSnap = () => {
-  return process.env.SNAP_NAME != null
+  return process.env.SNAP_NAME
 }
 
 var needRoot = () => {
-    if (os.platform() === "win32") return false;
+    if ((os.platform() === "win32") || isSnap()) return false;
     return !process.env.SUDO_UID
 }
 
