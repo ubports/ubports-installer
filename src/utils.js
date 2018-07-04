@@ -116,28 +116,29 @@ var getCleanOs = () => {
   }
 }
 
-async function getLatestInstallerVersion() {
-  return new Promise( (resolve) => {
+function getLatestInstallerVersion() {
+  return new Promise((resolve, reject) => {
     http.get({
       url: "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
       json: true,
       headers: { 'User-Agent': 'request' }
     },
     (err, res, bod) => {
+      log.info(bod.tag_name);
       if (!err && res.statusCode === 200) {
-        resolve(bod.tag_name)
+        resolve(bod.tag_name);
       } else {
-        resolve(undefined);
+        reject();
       }
-    })
-  })
+    });
+  });
 }
 
-async function getUpdateAvailable() {
-  latestVersion = await getLatestInstallerVersion();
-  return (latestVersion === undefined) ?
-    undefined : latestVersion != version ?
-    latestVersion : false;
+function getUpdateAvailable() {
+  return getLatestInstallerVersion().then((latestVersion) => {
+    log.warn(`${latestVersion} == ${version}`);
+    return latestVersion != version;
+  });
 }
 
 var getUbuntuTouchDir = () => {
