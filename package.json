@@ -16,8 +16,14 @@
   "scripts": {
     "test-unit": "NODE_ENV=test mocha 'tests/unit-tests/*.js'",
     "start": "electron .",
-    "dist:unix": "node ./build.js -lm",
-    "dist:linux": "node ./build.js -l",
+    "dist:unix": "node ./build.js -lmPR",
+    "dist:linux": "node ./build.js -lPR",
+    "dist:linux:deb": "node ./build.js -lPRAF",
+    "dist:linux:snap": "snapcraft cleanbuild",
+    "dist:linux:appimage": "node ./build.js -lDPRF",
+    "dist:linux:pacman": "node ./build.js -lDARF",
+    "dist:linux:rpm": "node ./build.js -lDPFA",
+    "dist:freebsd": "node ./build.js -lDPRA",
     "dist:mac": "node ./build.js -m",
     "dist:win": "node ./build.js -w"
   },

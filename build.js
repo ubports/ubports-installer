@@ -45,21 +45,21 @@ const setEvents = (downloadEvent) => {
 }
 
 function getLinuxTargets() {
-  if (cli.appimageOnly) {
-    return ["AppImage"];
-  } else if (cli.buildToDir) {
+  if (cli.buildToDir) {
     return ["dir"];
-  } else if (cli.debOnly) {
-    return ["deb"];
   }
 
   var linuxTargets = [];
-  if (!cli.ignoreDeb) {
-    linuxTargets.push("deb")
-  }
-  if (!cli.ignoreAppimage) {
-    linuxTargets.push("AppImage")
-  }
+  if (!cli.ignoreDeb)
+    linuxTargets.push("deb");
+  if (!cli.ignoreAppimage)
+    linuxTargets.push("AppImage");
+  if (!cli.ignoreFreebsd)
+    linuxTargets.push("freebsd");
+  if (!cli.ignorePacman)
+    linuxTargets.push("pacman");
+  if (!cli.ignoreRpm)
+    linuxTargets.push("rpm");
 
   if (linuxTargets.length !== 0) {
     return linuxTargets;
@@ -148,10 +148,11 @@ cli
   .option('-w, --windows', 'Build for Windows')
   .option('-m, --mac', 'Build for Mac')
   .option('-d, --download-only', 'Only download platformTools')
-  .option('-e, --deb-only', "Build only deb")
-  .option('-a, --appimage-only', "Build only appimage")
-  .option('-t, --ignore-deb', "Do not build deb")
-  .option('-y, --ignore-appimage', "Do not build appimage")
+  .option('-D, --ignore-deb', "Do not build deb")
+  .option('-A, --ignore-appimage', "Do not build appimage")
+  .option('-F, --ignore-freebsd', "Do not build freebsd")
+  .option('-P, --ignore-pacman', "Do not build pacman")
+  .option('-R, --ignore-rpm', "Do not build rpm")
   .option('-b, --build-to-dir', "Build only to dir")
   .option('-n, --no-platform-tools', "Build without platform tools")
   .parse(process.argv);
@@ -170,6 +171,24 @@ if (cli.linux) {
       },
       "deb": {
         "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
+      },
+      "freebsd": {
+        "depends": ["android-tools-adb", "android-tools-fastboot"],
+        "packageCategory": "Utility",
+        "vendor": "UBports Foundation",
+        "maintainer": "UBports Foundation"
+      },
+      "pacman": {
+        "depends": ["android-sdk-platform-tools"],
+        "packageCategory": "Utility",
+        "vendor": "UBports Foundation",
+        "maintainer": "UBports Foundation"
+      },
+      "rpm": {
+        "depends": ["android-tools"],
+        "packageCategory": "Utility",
+        "vendor": "UBports Foundation",
+        "maintainer": "UBports Foundation"
       }
     }
   );
