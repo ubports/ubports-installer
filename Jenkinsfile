@@ -11,9 +11,13 @@ pipeline {
       }
     }
     stage('Build dist') {
-      steps {
-        sh 'npm run dist:linux'
-        sh 'snapcraft cleanbuild'
+      parallel {
+        stage("Deb") {
+          steps { sh 'npm run dist:linux' }
+        }
+        stage("Snap") {
+          steps { sh 'npm run dist:linux:snap' }
+        }
       }
     }
   }
