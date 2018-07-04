@@ -12,7 +12,7 @@ pipeline {
     }
     stage('Build dist') {
       parallel {
-        stage("Deb") {
+        stage("Deb, AppImage, Freebsd") {
           steps { sh 'npm run dist:linux' }
         }
         stage("Snap") {
