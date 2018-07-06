@@ -77,6 +77,9 @@ script.
           $('#select-device-modal').modal('hide');
         });
         waitEvent.on("user:error", onErr);
+        waitEvent.on("device:select", (device) => {
+          $("#waitForDevice").hide();
+        });
         utils.debugTrigger(waitEvent, 1);
      });
 
@@ -101,7 +104,7 @@ script.
     }
   }
 
-  const mainEvent = (output, device, channels, ubuntuCom) => {
+  const mainEvent = (output, device, channels, ubuntuCom, autoDetected) => {
       $("#waitForDevice").hide();
       $("#device").show();
       if(!output) {
@@ -116,6 +119,10 @@ script.
         $('#select-device-modal').modal('hide')
         $("#btn-inst").show();
         $("#device-name").text(output.device.name);
+        if (autoDetected)
+          footer.underText.set("Are you ready for Ubuntu Touch on your " + output.device.name + "?");
+        else
+          footer.underText.set("Please connect your " + output.device.name + " with a USB cable.");
         $("#your-ubp-device").text(output.device.name+" ("+output.device.device+")")
         $("#your-ubp-device").click(() => {
             openurl.open("https://devices.ubuntu-touch.io/device/"+output.device.device);
@@ -138,11 +145,11 @@ script.
         $("#btn-installModal").click(() => {
           views.show("installing");
           $("#progress").show();
-          const installEvent= devices.install({
+          const installEvent = devices.install({
             device: output.device.device,
             channel: options.get("channel", true),
             wipe: options.get("wipe", true)
-          })
+          });
 
           installEvent.on("user:error", onErr);
 
