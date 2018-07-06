@@ -35,8 +35,8 @@ This tool is still under development, bugreports are appreciated.
 ### Windows
 
 1. Install the [universal adb driver](http://adb.clockworkmod.com/) or a device-specific driver
-2. Download the latest `.exe` file from https://github.com/ubports/ubports-installer/releases/download/0.1.9-beta/ubports-installer.0.1.9-beta.exe
-3. Launch the file and follow the onscreen instructions
+2. Download the latest `.exe` file from https://github.com/ubports/ubports-installer/releases/latest
+3. Launch the program and follow the on-screen instructions
 
 ## Troubleshooting
 
@@ -48,9 +48,13 @@ Try a different USB cable and a different USB port on your computer. Cheap and o
 
 Install the [universal adb driver](http://adb.clockworkmod.com/) and try again.
 
-### File not found error (Windows)
+### Windows Defender prevents Installer from starting
 
-Try again with [this version](https://github.com/ubports/ubports-installer/releases/download/0.1.9-beta/ubports-installer.0.1.9-beta.exe).
+We have contacted Microsoft about this problem, but they seem to think it's [enjoyable](https://twitter.com/Windows/status/1014984163433295875). To dismiss the warning, click on "More Information", then select "Run anyway".
+
+### Device not detected
+
+You might want to try using custom adb and fastboot binaries. For that, tick the "Custom tools" checkbox in the options and specify the path to adb and fastboot in the text-boxes below.
 
 ### Device not detected (Linux)
 
@@ -95,7 +99,7 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="2a45", MODE="0666", GROUP="plugdev"
 
 ## How to run the program from source
 
-Clone the repository and 
+Clone the repository and
 
 ```
 git clone https://github.com/ubports/ubports-installer.git
