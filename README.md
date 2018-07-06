@@ -99,8 +99,6 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="2a45", MODE="0666", GROUP="plugdev"
 
 ## How to run the program from source
 
-Clone the repository and
-
 ```
 git clone https://github.com/ubports/ubports-installer.git
 cd ubports-installer
