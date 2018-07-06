@@ -26,13 +26,13 @@ const commandExistsSync = require('command-exists').sync;
 //const decompressTarxz = require('decompress-tarxz');
 
 const platforms = {
-    "linux": "linux",
-    "darwin": "mac",
-    "win32": "win"
+  "linux": "linux",
+  "darwin": "mac",
+  "win32": "win"
 }
 
-var platformToolsLogged;
-var platformToolsLoggedF;
+var platformNativeToolsLogged;
+var platformFallbackToolsLogged;
 
 var debugScreen = () => {
   return process.env.DEBUG ? process.env.SCREEN : null
@@ -124,7 +124,6 @@ function getLatestInstallerVersion() {
       headers: { 'User-Agent': 'request' }
     },
     (err, res, bod) => {
-      log.info(bod.tag_name);
       if (!err && res.statusCode === 200) {
         resolve(bod.tag_name);
       } else {
@@ -136,7 +135,6 @@ function getLatestInstallerVersion() {
 
 function getUpdateAvailable() {
   return getLatestInstallerVersion().then((latestVersion) => {
-    log.warn(`${latestVersion} == ${version}`);
     return latestVersion != version;
   });
 }
@@ -229,20 +227,19 @@ var asarExec = (file, callback) => {
             });
         })
     })
-
 }
 
 const logPlatformNativeToolsOnce = () => {
-  if (!platformToolsLogged) {
+  if (!platformNativeToolsLogged) {
     log.debug("Using native platform tools!");
-    platformToolsLogged=true;
+    platformNativeToolsLogged=true;
   }
 }
 
 const logPlatformFallbackToolsOnce = () => {
-  if (!platformToolsLoggedF) {
+  if (!platformFallbackToolsLogged) {
     log.debug("Using fallback platform tools!");
-    platformToolsLoggedF=true;
+    platformFallbackToolsLogged=true;
   }
 }
 
