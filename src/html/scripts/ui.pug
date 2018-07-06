@@ -1,5 +1,6 @@
 script.
   const optionsVal = [{id: "channel", type: "select"}, {id: "wipe", type: "checkbox", note: true}];
+    {id: "eye-candy", type: "checkbox"},
   const particleViews = ["start", "installing"]
   const viewsExeptions = {
     switch: () => {
@@ -154,8 +155,10 @@ script.
 
   const particles = {
       show: () => {
-          id.show("particles-foreground");
-          id.show("particles-background");
+          if (getOptionVal("eye-candy", true)) {
+              id.show("particles-foreground");
+              id.show("particles-background");
+          }
       },
       hide: () => {
           id.hide("particles-foreground");
