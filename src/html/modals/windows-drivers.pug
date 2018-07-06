@@ -8,7 +8,7 @@
       .modal-body
         p
           | You need to install the #[a(onclick="openurl.open('https://adb.clockworkmod.com/')") Universal ADB driver] and re-start the program to continue with the installation.
-        p
-          | If the installer does not detect you device after the driver installation, please #[a(onclick="openurl.open('https://github.com/ubports/ubports-installer/issues')") report a bug]. Don't forget to mention your device in the report!
+          | If you have already installed adb drivers, you can dismiss this message and simply continue with the installation.
+          | If installer still does not detect you device, you might want to try installing   #[a(onclick="openurl.open('https://developer.android.com/studio/releases/')") Android Studio] from Google. After that, you can specify custom adb and fastboot tools in the options in the next step.
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Continue
