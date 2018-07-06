@@ -237,7 +237,7 @@ var addPathToImages = (instructs, device) => {
     instructs.images.forEach((image) => {
         image["path"] = path.join(downloadPath, "images", device);
         images.push(image);
-    })
+    });
     return images;
 }
 
@@ -401,7 +401,7 @@ module.exports = {
                             getChannelSelects(ret.device.device, (channels) => {
                                 adb.isBaseUbuntuCom(ubuntuCom => {
                                   console.log(ubuntuCom);
-                                  callback(ret, device, channels, ubuntuCom);
+                                  callback(ret, device, channels, ubuntuCom, true);
                                 });
                             })
                         }, 10);
@@ -414,7 +414,7 @@ module.exports = {
             getDevice(device, (ret) => {
                 if (ret) {
                     getChannelSelects(ret.device.device, (channels) => {
-                        callback(ret, ret.device.device, channels);
+                        callback(ret, ret.device.device, channels, false, false);
                     });
                 } else {
                     callback(false, name);
