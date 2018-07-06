@@ -25,6 +25,11 @@ const commandExistsSync = require('command-exists').sync;
 //const decompress = require('decompress');
 //const decompressTarxz = require('decompress-tarxz');
 
+var customTools = {
+  adb: undefined,
+  fastboot: undefined
+}
+
 const platforms = {
   "linux": "linux",
   "darwin": "mac",
@@ -251,18 +256,18 @@ const callbackHook = (callback) => {
 }
 
 const platformToolsExec = (tool, arg, callback) => {
-  console.log("plat")
   var tools = getPlatformTools();
-  console.log(tools)
-  // Check first for native
+
+  // First check for native tools
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     var cmd = tools[tool] + " " + arg.join(" ");
-    // log.debug("Running platform tool exec cmd "+cmd);
+    log.debug("Running platform tool exec cmd "+cmd);
     cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
 
+  // Try using fallback tools
   if (tools.fallback[tool]) {
     logPlatformFallbackToolsOnce();
     // log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
@@ -277,7 +282,7 @@ const platformToolsExec = (tool, arg, callback) => {
 const platformToolsExecAsar = (tool, callback) => {
   var tools = getPlatformTools();
 
-  // Check first for native
+  // First check for native
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     callback({
@@ -292,6 +297,7 @@ const platformToolsExecAsar = (tool, callback) => {
     return true;
   }
 
+  // Use fallback tools if there are no native tools installed
   if (tools.fallback[tool]) {
     logPlatformFallbackToolsOnce();
     asarExec(tools.fallback[tool], callback);
@@ -314,6 +320,12 @@ var getPlatform = () => {
 }
 
 // Check if we have native platform tools
+const setCustomPlatformTool = (tool, executable) => {
+  log.info(tool + " has been set to " + executable)
+  customTools[tool] = executable;
+}
+
+// Check if we have native platform tools
 const getPlatformTools = () => {
   var p = getNativePlatformTools();
   p["fallback"] = getFallbackPlatformTools();
@@ -322,10 +334,15 @@ const getPlatformTools = () => {
 
 const getNativePlatformTools = () => {
   var ret = {};
-  if (commandExistsSync("adb"))
+  if (customTools["adb"])
+    ret["adb"] = customTools["adb"];
+  else if (commandExistsSync("adb"))
     ret["adb"] = "adb";
-  if (commandExistsSync("fastboot"))
+  if (customTools["fastboot"])
+    ret["fastboot"] = customTools["fastboot"];
+  else if (commandExistsSync("fastboot"))
     ret["fastboot"] = "fastboot";
+
   return ret;
 }
 
@@ -472,6 +489,7 @@ const getRandomInt = (min, max) => {
 }
 
 module.exports = {
+    setCustomPlatformTool: setCustomPlatformTool,
     downloadFiles: downloadFiles,
     checksumFile: checksumFile,
     checkFiles: checkFiles,

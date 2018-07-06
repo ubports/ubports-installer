@@ -23,11 +23,15 @@ script.
       onErr(err+" (MainRenderer:"+line+")");
   }
   // START
-
-  particles.show();
+  utils.log.debug("Welcome to the party")
   views.show("start");
   footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
   footer.underText.set("Starting adb service...");
+
+  if(utils.isSnap()) {
+    $("#options-custom-tools").prop("disabled", true);
+    $("#options-custom-tools-snap-note").show();
+  }
 
   devices.getDeviceSelects((out) => {
     if (out) {
@@ -125,8 +129,12 @@ script.
         views.show(ubuntuCom ? "switch" : "install")
 
         $("#btn-inst").click(() => {
-          $('#installModal').modal('show')
-        })
+          $('#installModal').modal('show');
+          if(options.get("custom-tools", true)) {
+            utils.setCustomPlatformTool("adb", options.get("custom-tools-adb"));
+            utils.setCustomPlatformTool("fastboot", options.get("custom-tools-fastboot"));
+          }
+        });
         $("#btn-installModal").click(() => {
           views.show("installing");
           $("#progress").show();
@@ -201,12 +209,12 @@ script.
             $("#device-name").text("Please reboot to "+i.state);
             $("#device-under-text").text("");
           });
-          
+
           installEvent.on("adb:rebooted", () => {
             $('#views-reboot-up').hide();
             $('#views-reboot-down').hide();
           });
-          
+
           installEvent.on("user:write:next", (text,length, total) => {
               $("#device-under-text").text(text+" file "+(total-(length-1))+" of "+total)
               $("#progress").width("0%");

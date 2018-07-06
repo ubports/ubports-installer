@@ -1,6 +1,12 @@
 script.
-  const optionsVal = [{id: "channel", type: "select"}, {id: "wipe", type: "checkbox", note: true}];
+  const optionsVal = [
+    {id: "channel", type: "select"},
+    {id: "wipe", type: "checkbox", note: true},
     {id: "eye-candy", type: "checkbox"},
+    {id: "custom-tools", type: "checkbox"},
+    {id: "custom-tools-adb", type: "input"},
+    {id: "custom-tools-fastboot", type: "input"}
+  ];
   const particleViews = ["start", "installing"]
   const viewsExeptions = {
     switch: () => {
@@ -131,7 +137,7 @@ script.
   const optionsValToUser = () => {
     optionsVal.forEach(option => {
       userText.set(option.id, getOptionVal(option.id));
-    })
+    });
   }
 
   const options = {
@@ -147,6 +153,13 @@ script.
           } else {
             $("#options-wipe-note").hide();
             switchHide("modal-install-body-wipe", "modal-install-body-no-wipe");
+          }
+        });
+        $("#options-custom-tools").change(() => {
+          if (getOptionVal("custom-tools", true)) {
+            $("#options-custom-tools-area").show();
+          } else {
+            $("#options-custom-tools-area").hide();
           }
         });
       },
