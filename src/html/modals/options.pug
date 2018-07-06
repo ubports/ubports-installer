@@ -12,21 +12,37 @@
               label.col-xs-3.control-label Channel
               .col-xs-9
                 select#options-channel.form-control.space
-                p #[a(onclick="openurl.open('https://docs.ubports.com/en/latest/about/process/release-schedule.html')") What is this]?
+                .help-block  #[a(onclick="openurl.open('https://docs.ubports.com/en/latest/about/process/release-schedule.html')") What is this]?
             .form-group
-              label.col-xs-3.control-label Wipe
-              .col-xs-9
+              .col-xs-3
                 label
                   input#options-wipe(type='checkbox')
-                  |  Clear internal storage
-                #options-wipe-note(hidden='hidden')
-                  p
-                    b NOTE:
-                    |  If the wipe option is enabled all data stored on the device will be erased. 
-                    b Please create an external backup of the data you want to keep!
+                  |  Wipe storage
               .col-xs-3
                 label
                   input#options-eye-candy(type='checkbox', checked='true')
                   |  Eye candy
+              .col-xs-3
+                label
+                  input#options-custom-tools(type='checkbox')
+                  |  Custom tools
+              .col-xs-12
+                p#options-custom-tools-snap-note(hidden='hidden')
+                  b NOTE:
+                  |  Custom tools can not be specified for confined snaps.
+              .col-xs-12
+                p#options-wipe-note(hidden='hidden')
+                  b NOTE:
+                  |  If the wipe option is enabled all data stored on the device will be erased. 
+                  b Please create an external backup of the data you want to keep!
+            .div#options-custom-tools-area(hidden='hidden')
+              .form-group
+                label.col-xs-3.control-label adb
+                .col-xs-9
+                  input#options-custom-tools-adb.form-control.space(placeholder="path to adb executable")
+              .form-group
+                label.col-xs-3.control-label fastboot
+                .col-xs-9
+                  input#options-custom-tools-fastboot.form-control.space(placeholder="path to fastboot executable")
       .modal-footer
         button#btn-options-close.btn.btn-default(type='button', data-dismiss='modal') Close

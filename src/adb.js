@@ -30,7 +30,7 @@ const start = (password, sudo, callback) => {
     if (utils.needRoot() && sudo)
         cmd += utils.sudoCommand(password);
     cmd += adb + " -P " + PORT + " start-server";
-    // Authorize Fairphone 2 vendor ID if necessary
+    // HACK: Authorize Fairphone 2 vendor ID if necessary
     if (utils.isSnap())
         exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
     utils.platformToolsExecAsar("adb", (platformToolsExecAsar) => {
@@ -39,7 +39,7 @@ const start = (password, sudo, callback) => {
             if (r.includes("incorrect password"))
               callback({
                   password: true
-                });
+              });
             else
               callback()
             platformToolsExecAsar.done();
@@ -49,6 +49,7 @@ const start = (password, sudo, callback) => {
 }
 
 const stop = (callback) => {
+  utils.log.debug("Killing all running adb servers...")
   utils.platformToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
       utils.platformToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
         console.log(stdout)
