@@ -110,6 +110,8 @@ script.
   }
 
   const mainEvent = (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+      if (output.device.name) utils.setInstallDevice(output.device.name);
+      else if (device) utils.setInstallDevice(device);
       $("#waitForDevice").hide();
       $("#device").show();
       if(!output) {
