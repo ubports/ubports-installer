@@ -108,7 +108,7 @@ script.
     }
   }
 
-  const mainEvent = (output, device, channels, ubuntuCom, autoDetected) => {
+  const mainEvent = (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
       $("#waitForDevice").hide();
       $("#device").show();
       if(!output) {
@@ -123,6 +123,8 @@ script.
         $('#select-device-modal').modal('hide')
         $("#btn-inst").show();
         $("#device-name").text(output.device.name);
+        if (isLegacyAndroid && !ubuntuCom)
+          $("#legacy-android-note").show();
         if (autoDetected)
           footer.underText.set("Are you ready for Ubuntu Touch on your " + output.device.name + "?");
         else

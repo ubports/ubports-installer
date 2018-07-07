@@ -71,6 +71,23 @@ var getInstallInstructs = (device, callback) => {
     }).o
 }
 
+// HACK: This should be handled by the server, not locally
+var isLegacyAndroid = (device) => {
+  switch (device) {
+    case "krillin":
+    case "vegetahd":
+    case "cooler":
+    case "frieza":
+    case "turbo":
+    case "arale":
+      console.log("This is a legacy android device")
+      return true;
+    default:
+      console.log("This is NOT a legacy android device")
+      return false;
+  }
+}
+
 var getNotWorking = (ww) => {
     if (!ww) return false;
     var notWorking = [];
@@ -401,7 +418,7 @@ module.exports = {
                             getChannelSelects(ret.device.device, (channels) => {
                                 adb.isBaseUbuntuCom(ubuntuCom => {
                                   console.log(ubuntuCom);
-                                  callback(ret, device, channels, ubuntuCom, true);
+                                  callback(ret, device, channels, ubuntuCom, true, isLegacyAndroid(ret.device.device));
                                 });
                             })
                         }, 10);
@@ -414,7 +431,7 @@ module.exports = {
             getDevice(device, (ret) => {
                 if (ret) {
                     getChannelSelects(ret.device.device, (channels) => {
-                        callback(ret, ret.device.device, channels, false, false);
+                        callback(ret, ret.device.device, channels, false, false, isLegacyAndroid(ret.device.device));
                     });
                 } else {
                     callback(false, name);
