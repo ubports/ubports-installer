@@ -96,6 +96,12 @@ script.
       $('#developer-mode-info-modal').modal('show');
     });
 
+    $("#help").click(() => {
+      utils.createBugReport("user-requested error report", (body) => {
+        openurl.open("https://github.com/ubports/ubports-installer/issues/new?title=please describe the problem you are experiencing&body="+body);
+      });
+    });
+
     modals.bind("options");
     options.init();
   }else {
