@@ -16,5 +16,5 @@
         #snap-update-instructions-error.p(hidden='hidden') Run #[code snap refresh ubports-installer --stable] in your terminal to install the latest version.
       .modal-footer
         button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick="location.reload(); utils.log.info('STARTING OVER')") Try again
-        button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal') Ignore
+        button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick="utils.log.info('ERROR IGNORED')") Ignore
         button#btn-bugreport.btn.btn-primary(type='button') Report a bug
