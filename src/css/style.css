@@ -37,6 +37,15 @@ body .vertical-centered-box .content {
   z-index: 6;
 }
 
+.help-button {
+  top: 15px !important;
+  position: absolute;
+  right: 15px !important;
+  height: 30px !important;
+  margin-bottom: 0px !important;
+  margin-right: 0px !important;
+}
+
 .ubp-robot-foot {
   bottom: 10px !important;
   position: absolute;
