@@ -25,6 +25,8 @@ const commandExistsSync = require('command-exists').sync;
 //const decompress = require('decompress');
 //const decompressTarxz = require('decompress-tarxz');
 
+var installDevice;
+
 var customTools = {
   adb: undefined,
   fastboot: undefined
@@ -61,6 +63,10 @@ var log = {
   debug: (l) => {winston.log("debug", l)}
 }
 
+const setInstallDevice = (device) => {
+  installDevice = device;
+}
+
 var createBugReport = (title, callback) => {
   var options = {
     limit: 400,
@@ -92,6 +98,7 @@ var createBugReport = (title, callback) => {
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + version + " %0D%0A" +
+        "Device: " + (installDevice ? installDevice : "Not detected") + "%0D%0A" +
         (isSnap() ? "Package: Snap %0D%0A" : (fs.existsSync(".git") ? "Package: Running from source %0D%0A" : "")) +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
@@ -489,6 +496,7 @@ const getRandomInt = (min, max) => {
 }
 
 module.exports = {
+    setInstallDevice: setInstallDevice,
     setCustomPlatformTool: setCustomPlatformTool,
     downloadFiles: downloadFiles,
     checksumFile: checksumFile,
