@@ -93,7 +93,7 @@ var createBugReport = (title, callback) => {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + version + " %0D%0A" +
         (isSnap() ? "Package: Snap %0D%0A" : (fs.existsSync(".git") ? "Package: Running from source %0D%0A" : "")) +
-        "Operating System: " + getCleanOs() + os.arch() + " %0D%0A" +
+        "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
         "Error log: " + res.headers.location + " %0D%0A");
       });
