@@ -85,11 +85,15 @@ script.
 
     $("#btn-modal-select-device").click(() => {
       $('#select-device-modal').modal('show');
-    })
+    });
+
+    $("#btn-modal-select-device-unsupported").click(() => {
+      $('#select-device-modal').modal('show');
+    });
 
     $("#btn-modal-dev-mode").click(() => {
       $('#developer-mode-info-modal').modal('show');
-    })
+    });
 
     modals.bind("options");
     options.init();
