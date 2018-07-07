@@ -69,7 +69,11 @@ const lazyOverrideAlias = (func, arg, callback) => {
     "find7op": "bacon",
     "nexus5": "hammerhead",
     "fairphone2": "FP2",
-    "PRO5": "turbo"
+    "PRO5": "turbo",
+    "Aquaris_E45": "krillin",
+    "Aquaris_E5": "vegetahd",
+    "Aquaris_M10HD": "cooler",
+    "Aquaris_M10FHD": "frieza"
   }
   func(device => {
     if (device in alias)
