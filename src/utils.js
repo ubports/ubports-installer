@@ -94,12 +94,13 @@ var createBugReport = (title, callback) => {
         content: "Title: " + title + "\n\n" + errorLog
       }
     }, (err, res, bod) => {
+      log.warn(getPackage())
       if (!err && res.statusCode === 302)
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + version + " %0D%0A" +
         "Device: " + (installDevice ? installDevice : "Not detected") + "%0D%0A" +
-        (isSnap() ? "Package: Snap %0D%0A" : (fs.existsSync(".git") ? "Package: Running from source %0D%0A" : "")) +
+        "Package: " + getPackage() + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
         "Error log: " + res.headers.location + " %0D%0A");
@@ -107,6 +108,23 @@ var createBugReport = (title, callback) => {
       else callback(false);
     })
   });
+}
+
+var getPackage = () => {
+  try {
+    if (isSnap())
+      return "snap";
+    else if (fs.existsSync(".git"))
+      return "source";
+    else if (process.platform == "win32")
+      return "exe";
+    else if (process.platform == "darwin")
+      return "dmg";
+    else
+      return "unknown"
+  } catch (e) {
+    return "unknown";
+  }
 }
 
 var getCleanOs = () => {
