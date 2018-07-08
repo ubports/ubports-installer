@@ -23,7 +23,7 @@ pipeline {
   }
   post {
     success {
-      archiveArtifacts(artifacts: 'dist/ubports-installer*', onlyIfSuccessful: true, fingerprint: true)
+      archiveArtifacts(artifacts: ['dist/ubports-installer*', 'ubports-installer*.snap'], onlyIfSuccessful: true, fingerprint: true)
     }
   }
 }
