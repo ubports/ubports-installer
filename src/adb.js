@@ -70,6 +70,7 @@ const lazyOverrideAlias = (func, arg, callback) => {
     "nexus5": "hammerhead",
     "fairphone2": "FP2",
     "PRO5": "turbo",
+    "mx4": "arale",
     "Aquaris_E45": "krillin",
     "Aquaris_E5": "vegetahd",
     "Aquaris_M10HD": "cooler",
