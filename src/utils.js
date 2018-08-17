@@ -44,7 +44,10 @@ var platformFallbackToolsLogged;
 var debugScreen = () => {
   return process.env.DEBUG ? process.env.SCREEN : null
 }
-
+let getVersion = () => {
+  //console.log("Version:"+version);
+  return "HELLO";// strtolower(version);
+}
 var debugTrigger = (event, stage) => {
   if (!process.env.DEBUG || !process.env.TRIGGER)
     return
@@ -535,6 +538,7 @@ module.exports = {
     getUpdateAvailable: getUpdateAvailable,
     getPlatform: getPlatform,
     asarExec: asarExec,
-    getRandomInt: getRandomInt
+    getRandomInt: getRandomInt,
+    getVersion: getVersion
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }

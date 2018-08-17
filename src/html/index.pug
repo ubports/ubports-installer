@@ -3,10 +3,10 @@ html
   head
     link(rel='stylesheet', href='../../node_modules/bootstrap/dist/css/bootstrap.min.css')
     link(rel='stylesheet', href='../css/style.css')
-    title UBports Installer
+    
   body
     .header
-      h3.text-muted.installer UBports Installer
+      h3.text-muted.installer UBports Installer #{version_info}
     button#help.help-button.btn.btn-primary Report a bug
     #particles-background.vertical-centered-box(hidden='hidden')
     #particles-foreground.vertical-centered-box(hidden='hidden')
@@ -47,3 +47,5 @@ html
   include scripts/ui
   include scripts/main
   include scripts/dots
+  script.
+    document.title= UB
