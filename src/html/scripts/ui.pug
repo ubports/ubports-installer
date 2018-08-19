@@ -1,4 +1,5 @@
 script.
+  
   const optionsVal = [
     {id: "channel", type: "select"},
     {id: "wipe", type: "checkbox", note: true},
@@ -78,9 +79,18 @@ script.
       }
   }
 
+  
   const userText = {
       set: (id, text) => setText("user", id, text),
       remove: id => setText("user", id, "")
+  }
+
+  const header = {
+    version_info: {
+      set: (text) => {
+        return $('#header-text').text('UBports Installer ('+text+')');
+      }
+    }
   }
 
   const footer = {
