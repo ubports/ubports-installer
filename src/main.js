@@ -19,14 +19,6 @@ const adb = require("./adb")
 const pug = new electronPug();
 let mainWindow
 
-// const viewRenderer = new ElectronViewRenderer({
-//   viewPath: 'views',
-//   viewProtcolName: 'view',
-//   useAssets: true,
-//   assetsPath: 'assets',
-//   assetsProtocolName: 'asset',
-// })
-// viewRenderer.use('pug')
 
 
 function createWindow () {
