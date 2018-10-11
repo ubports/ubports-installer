@@ -1,7 +1,7 @@
 script.
   require('jquery')
   window.$ = window.jQuery = require('../../node_modules/jquery/dist/jquery.js');
-  const openurl = require("openurl");
+  const { shell } = require('electron');
   const devices = require('../devices.js');
   const systemImage = require("../system-image.js");
   const adb = require("../adb.js");
