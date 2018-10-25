@@ -312,10 +312,21 @@ const platformToolsExecAsar = (tool, callback) => {
     logPlatformNativeToolsOnce();
     callback({
         exec: (cmd, cb) => {
-            // log.debug("Running platform tool exec asar cmd "+cmd);
-            exec(cmd, (err, e,r) => {
-                cb(err,e,r);
-            })
+          if (tool === "fastboot" && -1 === cmd.indexOf("fastboot devices")) {
+            // log.debug("workaround fastboot flash");
+            var stdout;
+            try {
+              stdout = cp.execSync(cmd, {timeout: 60000} /*1 min. timeout*/);
+            } catch (e) {
+              cb(e.error, e.stdout, e.stderr);
+            }
+            cb(null, stdout, "");
+          } else {
+            // log.debug("Running platform tool exec asar cmd " + cmd);
+            exec(cmd, (err, e, r) => {
+              cb(err, e, r);
+            });
+          }
         },
         done: () => { console.log("done platform tools") }
     });
