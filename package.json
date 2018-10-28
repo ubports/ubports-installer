@@ -2,11 +2,20 @@
   "name": "ubports-installer",
   "version": "0.1.21-beta",
   "description": "UBports Installer: The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
-  "keywords": ["Ubuntu", "Ubuntu Touch", "UBports", "UBports Installer", "Android", "ADB", "Fastboot", "Heimdall"],
+  "keywords": [
+    "Ubuntu",
+    "Ubuntu Touch",
+    "UBports",
+    "UBports Installer",
+    "Android",
+    "ADB",
+    "Fastboot",
+    "Heimdall"
+  ],
   "homepage": "https://devices.ubuntu-touch.io",
   "bugs": {
-    "url" : "https://github.com/ubports/ubports-installer/issues",
-    "email" : "info@ubports.com"
+    "url": "https://github.com/ubports/ubports-installer/issues",
+    "email": "info@ubports.com"
   },
   "repository": "https://github.com/ubports/ubports-installer",
   "author": "UBports Foundation <info@ubports.com>",
@@ -28,17 +37,17 @@
     "dist:win": "node ./build.js -w"
   },
   "devDependencies": {
+    "ajv": "^6.5.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "electron": "^1.4.1",
-    "electron-packager": "^12.1.0",
     "electron-builder": "^20.15.1",
+    "electron-packager": "^12.1.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
     "sinon": "^1.17.7",
     "spectron": "^3.6.0",
-    "unzip": "^0.1.11",
-    "ajv": "^6.5.0"
+    "unzipper": "^0.9.4"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
