@@ -221,7 +221,7 @@ var checkPassword = (password, callback) => {
               // with password
               log.debug("unknown sudo error")
               callback(false, {
-                message: err.message.replace(password, "")
+                message: err.message.replace(password, "***")
               });
             }
         }else {
@@ -398,11 +398,11 @@ var isSnap = () => {
 
 var needRoot = () => {
     if ((os.platform() === "win32") || isSnap()) return false;
-    return !process.env.SUDO_UID
+    return !(process.env.SUDO_UID || process.geteuid() === 0)
 }
 
 var ensureRoot = (m) => {
-  if(process.env.SUDO_UID)
+  if(process.env.SUDO_UID || process.geteuid() === 0)
     return;
   log.error(m)
   process.exit(1);
@@ -524,6 +524,14 @@ const getRandomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+const hidePassword = (output, pw) => {
+  if (needRoot()) {
+    return output.replace(pw, "***");
+  } else {
+    return output;
+  }
+}
+
 module.exports = {
     setInstallDevice: setInstallDevice,
     setCustomPlatformTool: setCustomPlatformTool,
@@ -546,6 +554,7 @@ module.exports = {
     getUpdateAvailable: getUpdateAvailable,
     getPlatform: getPlatform,
     asarExec: asarExec,
-    getRandomInt: getRandomInt
+    getRandomInt: getRandomInt,
+    hidePassword: hidePassword
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }
