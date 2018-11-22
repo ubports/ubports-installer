@@ -1,4 +1,7 @@
 script.
+  let version_name = utils.getVersion();
+  
+    
   // CATCH ANY ERRORS!
   var onErr = (err) => {
     if(utils.getUpdateAvailable()) {
@@ -16,7 +19,7 @@ script.
   $("#btn-bugreport").click(() => {
     var title = $("#error-body").text();
     utils.createBugReport(title, (body) => {
-      openurl.open("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
+      shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
     });
   })
   window.onerror = (err, url, line) => {
@@ -24,8 +27,9 @@ script.
   }
 
   // START
-  utils.log.debug("Welcome to the party")
+  utils.log.debug("Welcome to the party");
   views.show("start");
+  header.version_info.set(version_name);
   footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
   footer.underText.set("Starting adb service...");
 
@@ -47,7 +51,7 @@ script.
     window.close();
   });
 
-  if (!utils.debugScreen()) {
+  if(!utils.debugScreen()) {
      // START ADB
      adb.start(false, false, (err) => {
          particles.hide();
@@ -98,7 +102,7 @@ script.
 
     $("#help").click(() => {
       utils.createBugReport("user-requested error report", (body) => {
-        openurl.open("https://github.com/ubports/ubports-installer/issues/new?title=please describe the problem you are experiencing&body="+body);
+        shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title=please describe the problem you are experiencing&body="+body);
       });
     });
 
@@ -143,7 +147,7 @@ script.
           footer.underText.set("Please connect your " + output.device.name + " with a USB cable.");
         $("#your-ubp-device").text(output.device.name+" ("+output.device.device+")")
         $("#your-ubp-device").click(() => {
-            openurl.open("https://devices.ubuntu-touch.io/device/"+output.device.device);
+            shell.openExternal("https://devices.ubuntu-touch.io/device/"+output.device.device);
         })
         var notWorking = devices.getFormatedNotWorking(output.device.whatIsWorking);
         if (notWorking)

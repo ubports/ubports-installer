@@ -16,9 +16,9 @@ const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 const url = require('url')
 const adb = require("./adb")
-
 const pug = new electronPug();
 let mainWindow
+
 
 
 function createWindow () {
@@ -27,6 +27,7 @@ function createWindow () {
   else
     mainWindow = new BrowserWindow({width: 800, height: 600, icon: path.join(__dirname, "../build/icons/icon.png")})
 
+  
 
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'html/index.pug'),
@@ -41,6 +42,10 @@ function createWindow () {
   mainWindow.on('closed', function () {
     mainWindow = null
   })
+  mainWindow.webContents.on('did-finish-load', () =>{
+    let version = require('../package.json').version;
+    mainWindow.setTitle("UBports Installer ("+version+")");
+  });
 }
 
 app.on('ready', createWindow)

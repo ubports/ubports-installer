@@ -13,7 +13,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 const builder = require("electron-builder")
 const cli = require("commander");
 const utils = require("./src/utils");
-const unzip = require("unzip");
+const unzip = require("unzipper");
 const path = require("path");
 const fs = require("fs-extra");
 const events = require("events");
