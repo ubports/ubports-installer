@@ -40,7 +40,7 @@
     "ajv": "^6.5.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
-    "electron": "^1.4.1",
+    "electron": "^1.8.8",
     "electron-builder": "^20.15.1",
     "electron-packager": "^12.1.0",
     "istanbul": "^0.4.5",
