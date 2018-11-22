@@ -6,8 +6,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
-const version = require('../package.json').version;
-
+const version_info = require('../package.json').version;
 const http = require("request");
 const progress = require("request-progress");
 const os = require("os");
@@ -44,7 +43,9 @@ var platformFallbackToolsLogged;
 var debugScreen = () => {
   return process.env.DEBUG ? process.env.SCREEN : null
 }
-
+var getVersion = () => {
+  return version_info;
+}
 var debugTrigger = (event, stage) => {
   if (!process.env.DEBUG || !process.env.TRIGGER)
     return
@@ -535,6 +536,7 @@ module.exports = {
     getUpdateAvailable: getUpdateAvailable,
     getPlatform: getPlatform,
     asarExec: asarExec,
-    getRandomInt: getRandomInt
+    getRandomInt: getRandomInt,
+    getVersion: getVersion
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }

@@ -1,4 +1,7 @@
 script.
+  let version_name = utils.getVersion();
+  
+    
   // CATCH ANY ERRORS!
   var onErr = (err) => {
     if(utils.getUpdateAvailable()) {
@@ -24,8 +27,9 @@ script.
   }
 
   // START
-  utils.log.debug("Welcome to the party")
+  utils.log.debug("Welcome to the party");
   views.show("start");
+  header.version_info.set(version_name);
   footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
   footer.underText.set("Starting adb service...");
 
@@ -47,7 +51,7 @@ script.
     window.close();
   });
 
-  if (!utils.debugScreen()) {
+  if(!utils.debugScreen()) {
      // START ADB
      adb.start(false, false, (err) => {
          particles.hide();
