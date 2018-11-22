@@ -99,7 +99,7 @@ var createBugReport = (title, callback) => {
       if (!err && res.statusCode === 302)
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
-        "UBports Installer Version: " + version + " %0D%0A" +
+        "UBports Installer Version: " + version_info + " %0D%0A" +
         "Device: " + (installDevice ? installDevice : "Not detected") + "%0D%0A" +
         "Package: " + getPackage() + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
@@ -166,7 +166,7 @@ function getLatestInstallerVersion() {
 
 function getUpdateAvailable() {
   return getLatestInstallerVersion().then((latestVersion) => {
-    return latestVersion != version;
+    return latestVersion != version_info;
   });
 }
 
