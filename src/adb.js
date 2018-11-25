@@ -156,7 +156,7 @@ var push = (file, dest, pushEvent) => {
   utils.platformToolsExec("adb", ["-P", PORT, "push", "\"" + file.replace('"','\"') + "\"", dest], (err, stdout, stderr) => {
     done=true;
     if (err !== null) {
-      pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
+      pushEvent.emit("adbpush:error", err+", stdout: " + (stdout.length > 50*1024 ? "overflow" : stdout) + ", stderr: " + (stderr.length > 50*1024 ? "overflow" : stderr))
       console.log(stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
     }
     else pushEvent.emit("adbpush:end")
