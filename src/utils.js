@@ -222,7 +222,7 @@ var checkPassword = (password, callback) => {
               // with password
               log.debug("unknown sudo error")
               callback(false, {
-                message: err.message.replace(password, "")
+                message: err.message.replace(password, "***")
               });
             }
         }else {
@@ -514,6 +514,14 @@ const getRandomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+const hidePassword = (output, pw) => {
+  if (needRoot()) {
+    return output.replace(pw, "***");
+  } else {
+    return output;
+  }
+}
+
 module.exports = {
     setInstallDevice: setInstallDevice,
     setCustomPlatformTool: setCustomPlatformTool,
@@ -537,6 +545,7 @@ module.exports = {
     getPlatform: getPlatform,
     asarExec: asarExec,
     getRandomInt: getRandomInt,
-    getVersion: getVersion
+    getVersion: getVersion,
+    hidePassword: hidePassword
 //    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }
