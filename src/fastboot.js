@@ -8,9 +8,13 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 const path = require("path");
 const utils = require("./utils.js")
+if (typeof String.prototype.hidePw !== 'function') {
+    String.prototype.hidePw = function(pw) {
+        return utils.hidePassword(this, pw);
+    }
+}
 
 const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
-
 
 var isLocked = (message) => {
   var locked = false;
@@ -33,7 +37,7 @@ var handleError = (c, r, e, password, callback) => {
           callback({
             locked: true
           })
-        else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+        else callback(true, "Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
   } else {
       callback(c, r, e)
   }
@@ -45,12 +49,13 @@ args; string, function
 
 */
 var waitForDevice = (password, callback) => {
-    utils.log.debug("fastboot: wait for device");
+    utils.log.info("fastboot: wait for device");
     var cmd = "";
     if (utils.needRoot())
         cmd += utils.sudoCommand(password);
     cmd += "fastboot" + " devices";
     var stop;
+    utils.log.debug("Executing: " + cmd.hidePw(password));
     utils.platformToolsExecAsar("fastboot", (asarExec) => {
         var repeat = () => {
             asarExec.exec(cmd, (err, r, e) => {
@@ -62,13 +67,16 @@ var waitForDevice = (password, callback) => {
                     else if (r.includes("fastboot")) {
                         callback(false);
                         asarExec.done();
-                    }else {
+                    } else {
                         // Unknown error;
-                        utils.log.error("Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
-                        callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+                        utils.log.error("Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+                        callback(true, "Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
                     }
                     return;
                 } else {
+                    if (e) {
+                        utils.log.error("Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+                    }
                     setTimeout(() => {
                         if (!stop) repeat();
                         else asarExec.done();
