@@ -60,7 +60,7 @@ You might want to try using custom adb and fastboot binaries. For that, tick the
 
 If the device not detected, you might be missing **udev-rules**.
 
-1. See if cat `/etc/udev/rules.d/51-android.rules` exists and contains the rules below. If not, add them to the file and run `sudo service udev restart`.
+1. See if cat `/etc/udev/rules.d/51-android.rules` exists and contains the rules below. If not, add them to the file and run `sudo service udev restart` or `udevadm control --reload-rules && udevadm trigger`.
 
 ```
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0e79", MODE="0666", GROUP="plugdev"
@@ -96,8 +96,6 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="19d2", MODE="0666", GROUP="plugdev"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="2ae5", MODE="0666", GROUP="plugdev"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="2a45", MODE="0666", GROUP="plugdev"
 ```
-
-Reload udev rules: `udevadm control --reload-rules && udevadm trigger`
 
 ## How to run the program from source
 
