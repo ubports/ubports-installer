@@ -97,6 +97,8 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="2ae5", MODE="0666", GROUP="plugdev"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="2a45", MODE="0666", GROUP="plugdev"
 ```
 
+Reload udev rules: `udevadm control --reload-rules && udevadm trigger`
+
 ## How to run the program from source
 
 ```
