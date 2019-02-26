@@ -55,7 +55,7 @@ script.
      adb.start(false, false, (err) => {
          particles.hide();
          footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
-         footer.underText.set("Please connect your device with an usb cable");
+         footer.underText.set("Please connect your device with a USB cable");
          if (process.platform === "win32")
            $('#windows-drivers-modal').modal('show');
          utils.getUpdateAvailable().then((updateAvailable) => {
