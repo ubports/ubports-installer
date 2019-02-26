@@ -19,6 +19,7 @@ apps:
       - pulseaudio
       - opengl
       - raw-usb
+      - adb-support
 
 parts:
   ubports-installer:
