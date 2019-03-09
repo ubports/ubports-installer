@@ -8,11 +8,6 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 const path = require("path");
 const utils = require("./utils.js")
-if (typeof String.prototype.hidePw !== 'function') {
-    String.prototype.hidePw = function(pw) {
-        return utils.hidePassword(this, pw);
-    }
-}
 
 const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
 
@@ -37,7 +32,7 @@ var handleError = (c, r, e, password, callback) => {
           callback({
             locked: true
           })
-        else callback(true, "Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+        else callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + hidePassword(e,password));
   } else {
       callback(c, r, e)
   }
@@ -55,7 +50,7 @@ var waitForDevice = (password, callback) => {
         cmd += utils.sudoCommand(password);
     cmd += "fastboot" + " devices";
     var stop;
-    utils.log.debug("Executing: " + cmd.hidePw(password));
+    utils.log.debug("Executing: " + utils.hidePassword(cmd, password));
     utils.platformToolsExecAsar("fastboot", (asarExec) => {
         var repeat = () => {
             asarExec.exec(cmd, (err, r, e) => {
@@ -69,13 +64,13 @@ var waitForDevice = (password, callback) => {
                         asarExec.done();
                     } else {
                         // Unknown error;
-                        utils.log.error("Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
-                        callback(true, "Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+                        utils.log.error("Fastboot: Unknown error: " + hidePassword(r,password) + " " + hidePassword(e,password));
+                        callback(true, "Fastboot: Unknown error: " + hidePassword(r,password) + " " + hidePassword(e,password));
                     }
                     return;
                 } else {
                     if (e) {
-                        utils.log.error("Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+                        utils.log.error("Fastboot: Unknown error: " + hidePassword(r,password) + " " + hidePassword(e,password));
                     }
                     setTimeout(() => {
                         if (!stop) repeat();

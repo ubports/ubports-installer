@@ -27,7 +27,7 @@ const getDeviceChannels = (device) => {
 }
 
 var downloadLatestVersion = (options) => {
-  console.log("downloadLatestVersion options: ", options);
+  utils.log.debug("downloadLatestVersion options: ", options);
   var thisEvent;
   if (!options.event)
     thisEvent = new event();
@@ -41,7 +41,15 @@ var downloadLatestVersion = (options) => {
     utils.log.debug(urls);
     thisEvent.once("download:done", () => {
       files.push({
-        src: systemImage.createInstallCommandsFile(systemImage.createInstallCommands(latest.files, options.installerCheck, options.wipe, options.enable), options.device),
+        src: systemImage.createInstallCommandsFile(
+          systemImage.createInstallCommands(
+            latest.files,
+            options.installerCheck,
+            options.wipe,
+            options.enable
+          ),
+          options.device
+        ),
         dest: ubuntuPushDir + ubuntuCommandFile
       });
       thisEvent.emit("download:pushReady", files);
@@ -77,6 +85,5 @@ var installLatestVersion = (options) => {
 
 module.exports = {
   getDeviceChannels: getDeviceChannels,
-  downloadLatestVersion: downloadLatestVersion,
   installLatestVersion: installLatestVersion
 }

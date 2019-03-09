@@ -1,5 +1,5 @@
 script.
-  require('jquery')
+  require('jquery');
   window.$ = window.jQuery = require('../../node_modules/jquery/dist/jquery.js');
   const { shell } = require('electron');
   const devices = require('../devices.js');
@@ -7,4 +7,36 @@ script.
   const adb = require("../adb.js");
   const utils = require("../utils.js");
   const remote = require('electron').remote;
-  require('bootstrap')
+  require('bootstrap');
+
+  var properties = {
+    gui: true,
+    verbose: false,
+    install: {
+      device: undefined,
+      channel: undefined,
+      bootstrap: undefined
+    },
+    installer: {
+      version: utils.getVersion(),
+      updateAvailable: utils.getUpdateAvailable().then((r) => { return r; }),
+      isSnap: utils.isSnap()
+    }
+  }
+
+  // set cli parameters from url
+  utils.log.debug("Data:" + global.location.search)
+  global.location.search.replace("?","").split("&").forEach(function(part) {
+    var eq = part.indexOf("=");
+    var key = eq>-1 ? part.substr(0,eq) : part;
+    var val = eq>-1 ? decodeURIComponent(part.substr(eq+1)) : "";
+    if (!val) return;
+    if (decodeURIComponent(key) == "verbose") {
+      properties[decodeURIComponent(key)] = val;
+      if (val) utils.setVerbose();
+    } else {
+      properties.install[decodeURIComponent(key)] = val;
+      properties.gui = false;
+    }
+    utils.log.debug(decodeURIComponent(key) + ": " + val)
+  });

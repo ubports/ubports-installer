@@ -4,19 +4,20 @@ html
     link(rel='stylesheet', href='../../node_modules/bootstrap/dist/css/bootstrap.min.css')
     link(rel='stylesheet', href='../css/style.css')
   body
+    include scripts/root
     .header
       h3#header-text.text-muted.installer UBports Installer
     button#help.help-button.btn.btn-primary Report a bug
     #particles-background.vertical-centered-box(hidden='hidden')
     #particles-foreground.vertical-centered-box(hidden='hidden')
     // Views
-    include views/start
-    include views/wait-for-device
-    include views/not-supported
-    include views/installing
     include views/done
+    include views/installing
     include views/reboot
     include views/install
+    include views/not-supported
+    include views/wait-for-device
+    include views/start
     #progress.progress(hidden='hidden')
     footer.footer
       #waitForDevice.container(hidden='hidden')
@@ -28,7 +29,7 @@ html
         h3#device-name.text-muted.footer-top
           | UBports Installer is starting up
         p#device-under-text.text-muted Starting adb service...
-    // Modals
+    // --- Modals ---
     include modals/install
     include modals/error
     include modals/password
@@ -39,10 +40,12 @@ html
     include modals/windows-drivers
     include modals/new-update
     include modals/no-network
-  // Scripts
+  // --- Scripts ---
+  // Animated loading screen
   include scripts/particleground
   include scripts/start
-  include scripts/root
+  // UI-related event management
   include scripts/ui
+  // Functionality-related event management
   include scripts/main
   include scripts/dots

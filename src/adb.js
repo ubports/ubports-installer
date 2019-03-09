@@ -29,13 +29,12 @@ const start = (password, sudo, callback) => {
     var cmd="";
     if (utils.needRoot() && sudo)
         cmd += utils.sudoCommand(password);
-    cmd += adb + " -P " + PORT + " start-server";
+    cmd += "adb -P " + PORT + " start-server";
     // HACK: Authorize Fairphone 2 vendor ID if necessary
     if (utils.isSnap())
         exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
     utils.platformToolsExecAsar("adb", (platformToolsExecAsar) => {
         platformToolsExecAsar.exec(cmd, (c, r, e) => {
-            console.log(c, r, e);
             if (r.includes("incorrect password"))
               callback({
                   password: true
@@ -52,7 +51,7 @@ const stop = (callback) => {
   utils.log.debug("Killing all running adb servers...")
   utils.platformToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
       utils.platformToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
-        console.log(stdout)
+        // console.log(stdout)
         if (err !== null) callback(false);
         else callback();
       })
@@ -152,10 +151,11 @@ var isBaseUbuntuCom = callback => {
 
 var push = (file, dest, pushEvent) => {
   var done;
+  var hundredEmitted;
   var fileSize = fs.statSync(file)["size"];
-  utils.platformToolsExec("adb", ["-P", PORT, "push", "\"" + file.replace('"','\"') + "\"", dest], (err, stdout, stderr) => {
+  utils.platformToolsExec("adb", ["-P", PORT, "push", file.replace(' ','\ '), dest], (err, stdout, stderr) => {
     done=true;
-    if (err !== null) {
+    if (err) {
       var stdoutShort = stdout && stdout.length > 50*1024 ? "[...]" + stdout.substr(-(50*1024 - 5), 50*1024 - 5) : stdout;
       var stderrShort = stderr && stderr.length > 50*1024 ? "[...]" + stderr.substr(-(50*1024 - 5), 50*1024 - 5) : stderr;
       pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
@@ -165,16 +165,16 @@ var push = (file, dest, pushEvent) => {
   });
   var progress = () => {
     setTimeout(function () {
-     shell("stat -t "+dest+"/"+path.basename(file), (stat) => {
-       try {
-         var currentSize = stat.split(" ")[1];
-         var percentage = Math.ceil((currentSize/fileSize)*100);
-         pushEvent.emit("adbpush:progress", percentage === NaN ? 100 : percentage);
-         if(!done && (currentSize < fileSize))
-          progress();
-       } catch (e) { }
-     })
-   }, 1000);
+      shell("stat -t "+dest+"/"+path.basename(file), (stat) => {
+        try {
+          var currentSize = stat.split(" ")[1];
+          var percentage = Math.ceil((currentSize/fileSize)*100);
+          if(!isNaN(percentage) && !hundredEmitted) pushEvent.emit("adbpush:progress", percentage);
+          if(percentage == 100) hundredEmitted = true;
+          if(!done && (percentage < fileSize)) progress();
+        } catch (e) { }
+      });
+    }, 1000);
   }
   progress();
   return pushEvent;
@@ -193,9 +193,10 @@ var pushMany = (files, pushManyEvent) => {
         if (files.length <= 0){
           pushManyEvent.emit("adbpush:done");
           return;
+        } else {
+          pushManyEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
+          push(files[0].src, files[0].dest, pushManyEvent);
         }
-        pushManyEvent.emit("adbpush:next", files.length, totalLength)
-        push(files[0].src, files[0].dest, pushManyEvent);
   })
   return pushManyEvent
 }
@@ -203,28 +204,24 @@ var pushMany = (files, pushManyEvent) => {
 var shell = (cmd, callback) => {
   if (!cmd.startsWith("stat")) utils.log.debug("adb shell: "+cmd);
   utils.platformToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
-    if (err !== null) callback(false);
+    if (err) callback(false);
     else callback(stdout);
   })
 }
 
 var waitForDevice = (callback) => {
-  var stop;
   var waitEvent = new event();
-  var repeat = () => {
+  let timer = setInterval(() => {
     shell("echo 1", (r) => {
       if(r){
-        callback(true)
-      }else {
-        setTimeout(() => {
-          if(!stop) repeat();
-        }, 1000)
+        clearInterval(timer);
+        callback(true);
+        return;
       }
-    })
-  }
-  repeat();
+    });
+  }, 2000);
   waitEvent.on("stop", () => {
-    stop=true;
+    clearInterval(timer);
   });
   return waitEvent;
 }
@@ -238,13 +235,12 @@ var hasAdbAccess = (callback) => {
 var reboot = (state, callback) => {
   utils.log.debug("reboot to "+state);
   utils.platformToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
-    utils.log.debug("reboot to "+state+ " [DONE] err:" + err+stdout+stderr);
-    console.log(stderr)
-    if (stdout.includes("failed")) callback(true, stdout, stderr)
-    else if (stderr.includes("failed")) callback(true, stdout, stderr)
+    utils.log.debug("reboot to " + state + " done");
+    if (stdout.includes("failed")) callback(true, stdout, stderr);
+    else if (stderr.includes("failed")) callback(true, stdout, stderr);
     else if (err !== null) callback(true, stdout, stderr);
     else callback(false);
-  })
+  });
 }
 
 var format = (partition, callback) => {

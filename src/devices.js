@@ -9,6 +9,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const http = require("request");
+const ubportsApi = require("ubports-api-node-module");
 const adb = require("./adb");
 const fastboot = require("./fastboot");
 const systemImage = require("./system-image");
@@ -21,55 +22,10 @@ const fEvent = require('forward-emitter');
 
 class event extends events {}
 
-const ubportsApi = "https://devices.ubports.com/";
+const devicesApi = new ubportsApi.Devices();
 const downloadPath = utils.getUbuntuTouchDir();
 
 var password;
-
-var getDevices = (callback) => {
-    http.get({
-        url: ubportsApi + "api/installer/devices",
-        json: true
-    }, (err, res, bod) => {
-        if (!err && res.statusCode === 200)
-            callback(bod);
-        else callback(false);
-    })
-}
-
-var postSuccess = (info, callback) => {
-    http.post({
-        url: ubportsApi + "api/installer/success",
-        json: true,
-        body: info
-    }, (err, res, bod) => {
-        if (!err && res.statusCode === 200)
-            callback(bod);
-        else callback(false);
-    })
-}
-
-var getDevice = (device, callback) => {
-    http.get({
-        url: ubportsApi + "api/device/" + device,
-        json: true
-    }, (err, res, bod) => {
-        if (!err && res.statusCode === 200)
-            callback(bod, device);
-        else callback(false, device);
-    })
-}
-
-var getInstallInstructs = (device, callback) => {
-    http.get({
-        url: ubportsApi + "api/installer/" + device,
-        json: true
-    }, (err, res, bod) => {
-        if (!err && res.statusCode === 200)
-            callback(bod);
-        else callback(false);
-    }).o
-}
 
 // HACK: This should be handled by the server, not locally
 var isLegacyAndroid = (device) => {
@@ -113,8 +69,10 @@ var instructReboot = (state, button, rebootEvent, callback) => {
                 if (err) {
                   utils.log.warn("Adb failed to reboot!, " + out + " : " + eout);
                   utils.log.info("Instructing manual reboot");
+                  utils.log.info(button[state]["button"]);
                   rebootEvent.emit("user:reboot", {
-                      button: button[state],
+                      button: button[state]["button"],
+                      instruction: button[state]["instruction"],
                       state: state
                   });
                 } else {
@@ -123,8 +81,10 @@ var instructReboot = (state, button, rebootEvent, callback) => {
             });
         } else {
             utils.log.info("Instructing manual reboot");
+            utils.log.info(button[state]["button"]);
             rebootEvent.emit("user:reboot", {
-                button: button[state],
+                button: button[state]["button"],
+                instruction: button[state]["instruction"],
                 state: state
             });
         }
@@ -243,24 +203,19 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
     }
 }
 
-var getInstallSettings = (instructs, setting) => {
-    if (instructs.install_settings[setting])
-        return instructs.install_settings[setting]
-    return false;
-}
-
-var addPathToImages = (instructs, device) => {
-    var images = [];
-    instructs.images.forEach((image) => {
-        image["path"] = path.join(downloadPath, "images", device);
-        images.push(image);
-    });
-    return images;
+var addPathToImages = (images, device) => {
+  var ret = [];
+  images.forEach((image) => {
+      image["path"] = path.join(downloadPath, "images", device);
+      ret.push(image);
+  });
+  return ret;
 }
 
 var setEvents = (downloadEvent) => {
   downloadEvent.on("download:done", () => {
     utils.log.info("Download complete");
+    downloadEvent.emit("user:write:progress", 0);
   });
   downloadEvent.on("download:error", (r) => {
     utils.log.error("Devices: Download error "+r);
@@ -274,20 +229,26 @@ var setEvents = (downloadEvent) => {
   });
   downloadEvent.on("download:startCheck", () => {
     downloadEvent.emit("user:write:status", "Checking Ubuntu Touch files");
-    utils.log.info("Download startCheck");
+    utils.log.debug("Download startCheck");
   });
-  downloadEvent.on("download:start", (i, t) => {
-    utils.log.info("Starting download of "+i+" files");
+  downloadEvent.on("download:start", (total) => {
+    downloadEvent.nextTotal = total;
+    downloadEvent.nextCurrent = 1;
+    downloadEvent.nextBaseProgress = 0;
+    utils.log.info("Starting download of "+total+" files");
     downloadEvent.emit("user:write:status", "Downloading Ubuntu Touch");
-    downloadEvent.emit("user:write:next", "Downloading", i, t);
+    downloadEvent.emit("user:write:next", "Downloading", 1, total);
   });
-  downloadEvent.on("download:next", (i, t) => {
-    utils.log.info(`Downloading next file, ${i} left, ${t} total`);
-    downloadEvent.emit("user:write:next", "Downloading", i, t);
+  downloadEvent.on("download:next", (current, total) => {
+    downloadEvent.nextCurrent = current;
+    downloadEvent.nextBaseProgress = Math.abs(Math.ceil((current-1)/total*100));
+    utils.log.info(`Downloading file ${downloadEvent.nextCurrent}/${downloadEvent.nextTotal}`);
+    downloadEvent.emit("user:write:next", "Downloading", downloadEvent.nextCurrent, downloadEvent.nextTotal);
+    downloadEvent.emit("user:write:progress", downloadEvent.nextBaseProgress);
   });
-  downloadEvent.on("download:progress", (i) => {
-    utils.log.info(`Downloading file, ${Math.ceil(i.percent*100)}% complete`);
-    downloadEvent.emit("user:write:progress", Math.ceil(i.percent*100));
+  downloadEvent.on("download:progress", (percent) => {
+    utils.log.debug(`Downloading file ${downloadEvent.nextCurrent} of ${downloadEvent.nextTotal}, ${Math.ceil(percent)}% complete`);
+    downloadEvent.emit("user:write:progress", Math.ceil(percent/downloadEvent.nextTotal+downloadEvent.nextBaseProgress));
   });
   downloadEvent.on("adbpush:done", () => {
     utils.log.info("Done pushing files");
@@ -295,179 +256,187 @@ var setEvents = (downloadEvent) => {
     downloadEvent.emit("system-image:done");
     downloadEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
     downloadEvent.emit("user:write:done");
+    downloadEvent.emit("user:write:progress", 0);
   });
   downloadEvent.on("adbpush:error", (e) => {
     downloadEvent.emit("error", "Adb push error: " + e)
     utils.log.error("Devices: Adb push error: "+ e)
   });
-  downloadEvent.on("adbpush:progress", (r) => {
-    utils.log.info("ADB push "+r+"%");
-    downloadEvent.emit("user:write:progress", r);
+  downloadEvent.on("adbpush:progress", (percent) => {
+    if (percent != NaN) {
+      utils.log.debug(`Pushing file ${downloadEvent.nextCurrent} of ${downloadEvent.nextTotal}, ${Math.ceil(percent)}% complete`);
+      downloadEvent.emit("user:write:progress", Math.ceil(percent/downloadEvent.nextTotal+downloadEvent.nextBaseProgress));
+    }
   });
-  downloadEvent.on("adbpush:next", (r, t) => {
-    utils.log.info("Start pushing next file, " + r + " files left")
-    downloadEvent.emit("user:write:next", "Pushing", r, t);
+  downloadEvent.on("adbpush:next", (current, total) => {
+    downloadEvent.nextCurrent = current;
+    downloadEvent.nextBaseProgress = Math.abs(Math.ceil((current-1)/total*100));
+    utils.log.info(`Pushing file ${downloadEvent.nextCurrent}/${downloadEvent.nextTotal}`);
+    downloadEvent.emit("user:write:next", "Pushing", downloadEvent.nextCurrent, downloadEvent.nextTotal);
+    downloadEvent.emit("user:write:progress", downloadEvent.nextBaseProgress);
   });
-  downloadEvent.on("adbpush:start", (r) => {
-    utils.log.info("Start pushing "+r+" files")
+  downloadEvent.on("adbpush:start", (total) => {
+    downloadEvent.nextTotal = total;
+    downloadEvent.nextCurrent = 1;
+    downloadEvent.nextBaseProgress = 0;
+    utils.log.info("Start pushing " + total + " files");
     downloadEvent.emit("user:write:status", "Pushing files to device");
-    downloadEvent.emit("user:write:start", "Pushing", r);
+    downloadEvent.emit("user:write:start", "Pushing", total);
   });
 }
 
 var install = (options) => {
-    if (!options)
-      return false;
-    const installEvent = new event();
-    getInstallInstructs(options.device, (instructs) => {
-        if (!options.noUserEvents)
-          setEvents(installEvent);
-        installEvent.on("images:startDownload", () => {
-            installEvent.emit("user:write:status", "Downloading images");
-            utils.downloadFiles(addPathToImages(instructs, options.device), installEvent)
-        })
-        installEvent.on("system-image:start", () => {
-          if(!options.noSystemImage)
-            systemImage.installLatestVersion({
-              device: options.device,
-              channel: options.channel,
-              event: installEvent,
-              wipe: options.wipe
-            });
-        })
-        installEvent.on("system-image:done", () => {
-            instructReboot("recovery", instructs.buttons, installEvent, () => {
-              installEvent.emit("install:done");
-              postSuccess({
-                device: options.device,
-                channel: options.channel
-              }, () => {});
-            });
-        })
-        installEvent.on("bootstrap:done", (fastbootboot) => {
-            utils.log.info("bootstrap done");
-            if (!fastbootboot){
-              instructReboot("recovery", instructs.buttons, installEvent, () => {
-                  installEvent.emit("system-image:start")
-              });
-            } else {
-              installEvent.emit("user:write:status", "Waiting for device to enter recovery mode");
-              adb.waitForDevice(() => {
-                installEvent.emit("system-image:start");
-              })
-            }
-        })
-        if (getInstallSettings(instructs, "bootstrap")) {
-            // We need to be in bootloader
-            instructReboot("bootloader", instructs.buttons, installEvent, () => {
-                installEvent.once("download:done", () => {
-                  utils.log.info("done downloading(once listener)");
-                  instructBootstrap(getInstallSettings(instructs, "fastbootboot"), addPathToImages(instructs, options.device), installEvent)
-                })
-                installEvent.emit("images:startDownload")
-            });
-        } else {
-            // We need to be in recovery
-            instructReboot("recovery", instructs.buttons, installEvent, () => {
-                installEvent.emit("system-image:start")
-            });
-        }
+  // helper vars for progress events
+  var nextCurrent;
+  var nextTotal;
+  var nextBaseProgress;
+  if (!options)
+    return false;
+  const installEvent = new event();
+  utils.log.debug("install event started with options: " + JSON.stringify(options))
+  devicesApi.getInstallInstructs(options.device).then((instructs) => {
+    setEvents(installEvent);
+    installEvent.on("images:startDownload", () => {
+      installEvent.emit("user:write:status", "Downloading images");
+      utils.downloadFiles(addPathToImages(instructs.images, options.device), installEvent);
     });
-    return installEvent;
+    installEvent.on("system-image:start", () => {
+      systemImage.installLatestVersion({
+        device: options.device,
+        channel: options.channel,
+        event: installEvent,
+        wipe: options.wipe
+      });
+    });
+    installEvent.on("system-image:done", () => {
+      instructReboot("recovery", instructs.buttons, installEvent, () => {
+        installEvent.emit("install:done");
+      });
+    });
+    installEvent.on("bootstrap:done", (fastbootboot) => {
+      utils.log.info("bootstrap done");
+      if (!fastbootboot){
+        instructReboot("recovery", instructs.buttons, installEvent, () => {
+          installEvent.emit("system-image:start")
+        });
+      } else {
+        installEvent.emit("user:write:status", "Waiting for device to enter recovery mode");
+        adb.waitForDevice(() => {
+          installEvent.emit("system-image:start");
+        });
+      }
+    });
+    if (devicesApi.getInstallSetting(options.device, "bootstrap")) {
+      // We need to be in bootloader
+      instructReboot("bootloader", instructs.buttons, installEvent, () => {
+        installEvent.once("download:done", () => {
+          utils.log.debug("done downloading (once listener)");
+          instructBootstrap(devicesApi.getInstallSetting(options.device, "fastbootboot"), addPathToImages(instructs.images, options.device), installEvent);
+        });
+        installEvent.emit("images:startDownload");
+      });
+    } else {
+      // We need to be in recovery
+      instructReboot("recovery", instructs.buttons, installEvent, () => {
+        installEvent.emit("system-image:start");
+      });
+    }
+  });
+  return installEvent;
 }
 
 var getChannelSelects = (device, callback) => {
+  if (!device) {
+    callback (false);
+    return;
+  }
   var channelsAppend = [];
   systemImage.getDeviceChannels(device).then((channels) => {
-    getInstallInstructs(device, (ret) => {
+    devicesApi.getInstallInstructs(device).then((ret) => {
       if (ret) {
         channels.forEach((channel) => {
           var _channel = channel.replace("ubports-touch/", "");
           // Ignore blacklisted channels
-          if (ret["system_server"]["blacklist"].indexOf(channel) > -1)
-            return;
-          if (channel === ret["system_server"]["selected"])
-            channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
-          else
-            channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
+          if (ret["systemServer"]["blacklist"].indexOf(channel) == -1) {
+            if (channel === ret["systemServer"]["selected"])
+              channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
+            else
+              channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
+          }
         });
         callback(channelsAppend.join(''));
+        return;
       } else {
         callback(false);
+        return;
       }
     });
   });
 }
 
 module.exports = {
-    getDevice: getDevice,
-    waitForDevice: (callback) => {
-        var waitEvent = adb.waitForDevice(() => {
-            adb.getDeviceName((name) => {
-                // Have a small delay here, without this it seems to trigger
-                // some prevent_dual_callback function in "requests"
-                setTimeout(function () {
-                    getDevice(name, (ret) => {
-                        if (!ret){
-                          callback(false, name);
-                          return;
-                        }
-                        // Have a small delay here, without this it seems to trigger
-                        // some prevent_dual_callback function in "requests"
-                        setTimeout(() => {
-                            getChannelSelects(ret.device.device, (channels) => {
-                                adb.isBaseUbuntuCom(ubuntuCom => {
-                                  console.log(ubuntuCom);
-                                  callback(ret, device, channels, ubuntuCom, true, isLegacyAndroid(ret.device.device));
-                                });
-                            })
-                        }, 10);
-                    });
-                }, 10);
-            })
-        })
-        waitEvent.on("device:select", (device) => {
-            waitEvent.emit("stop");
-            getDevice(device, (ret) => {
-                if (ret) {
-                    getChannelSelects(ret.device.device, (channels) => {
-                        callback(ret, ret.device.device, channels, false, false, isLegacyAndroid(ret.device.device));
-                    });
-                } else {
-                    callback(false, name);
-                }
-            });
-        })
-        return waitEvent;
-    },
-    getInstallInstructs: getInstallInstructs,
-    getNotWorking: getNotWorking,
-    formatNotWorking: formatNotWorking,
-    install: install,
-    getFormatedNotWorking: (ww) => {
-        return formatNotWorking(getNotWorking(ww));
-    },
-    getDeviceSelects: (callback) => {
-        getDevices((devices) => {
-          if (devices) {
-            var devicesAppend = [];
-            devices.sort(function(a, b){
-              var y = a.name.toLowerCase();
-              var x = b.name.toLowerCase();
-              if (x < y) {return 1;}
-              if (x > y) {return -1;}
-              return 0;
-            });
-            devices.forEach((device) => {
-              devicesAppend.push("<option name=\"" + device.device + "\">" + device.name + "</option>");
-            });
-            utils.log.debug("Successfully downloaded devices list");
-            callback(devicesAppend.join(''));
-          } else {
-            callback(false);
-          }
-        })
-    },
-    getChannelSelects: getChannelSelects,
-    instructOemUnlock: instructOemUnlock
+  getDevice: devicesApi.getDevice,
+  waitForDevice: (callback) => {
+    var waitEvent = adb.waitForDevice((deviceDetected) => {
+      if (deviceDetected) {
+        adb.getDeviceName((name) => {
+          devicesApi.getDevice(name).then((ret) => {
+            if (!ret) {
+              callback(false, name);
+              return;
+            } else {
+              adb.isBaseUbuntuCom(ubuntuCom => {
+                utils.log.debug(ubuntuCom ? "ubuntuCom": "no ubuntuCom");
+                getChannelSelects(name, (channels) => {
+                  callback(ret, name, channels, ubuntuCom, true, isLegacyAndroid(ret.device.device));
+                  return;
+                });
+              });
+            }
+          });
+        });
+      }
+    });
+    waitEvent.on("device:select", (device) => {
+      waitEvent.emit("stop");
+      utils.log.info(device + " selected");
+      devicesApi.getDevice(device).then((ret) => {
+        if (ret) {
+          getChannelSelects(device, (channels) => {
+            callback(ret, device, channels, false, false, isLegacyAndroid(device));
+            return;
+          });
+        } else {
+          callback(false, name);
+          return;
+        }
+      });
+    });
+    return waitEvent;
+  },
+  getNotWorking: getNotWorking,
+  formatNotWorking: formatNotWorking,
+  install: install,
+  getDeviceSelects: (callback) => {
+    devicesApi.getDevices().then((devices) => {
+      if (devices) {
+        var devicesAppend = [];
+        devices.sort(function(a, b){
+          var y = a.name.toLowerCase();
+          var x = b.name.toLowerCase();
+          if (x < y) {return 1;}
+          if (x > y) {return -1;}
+          return 0;
+        });
+        devices.forEach((device) => {
+          devicesAppend.push("<option name=\"" + device.device + "\">" + device.name + "</option>");
+        });
+        utils.log.debug("Successfully downloaded devices list");
+        callback(devicesAppend.join(''));
+      } else {
+        callback(false);
+      }
+    });
+  },
+  instructOemUnlock: instructOemUnlock
 }
