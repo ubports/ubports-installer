@@ -10,7 +10,7 @@ script.
       }
     }
     $("#error-body").text(err);
-    $("#errorModal").modal("show");
+    modals.show("error");
     modals.hide("password");
   }
   window.onerror = (err, url, line) => {
@@ -28,7 +28,7 @@ script.
     if (out) {
       $("#device-select").append(out);
     } else {
-      $('#no-network-modal').modal('show');
+      modals.show('no-network');
     }
   });
 
@@ -43,7 +43,7 @@ script.
       // Button to open device selector
       $("#btn-modal-select-device").click(() => {
         waitEvent.emit("stop");
-        $('#select-device-modal').modal('show');
+        modals.show('select-device');
       });
       // Button to confirm device selection
       $("#btn-select-device").click(() => {
@@ -54,7 +54,7 @@ script.
       waitEvent.on("user:error", onErr);
       waitEvent.on("device:select", (device) => {
         console.log("device selected recieved" + device)
-        $('#select-device-modal').modal('hide');
+        modals.hide('select-device');
       });
     });
 
@@ -73,7 +73,7 @@ script.
       views.show("install");
       $("#options-channel").append(channels);
       options.optionsValToUser();
-      $('#select-device-modal').modal('hide')
+      modals.hide('select-device');
       $("#btn-inst").show();
       $("#device-name").text(output.name);
       if (isLegacyAndroid && !ubuntuCom)
@@ -90,7 +90,7 @@ script.
       views.show(ubuntuCom ? "switch" : "install")
 
       $("#btn-inst").click(() => {
-        $('#installModal').modal('show');
+        modals.show('install');
         if(options.get("custom-tools", true)) {
           utils.setCustomPlatformTool("adb", options.get("custom-tools-adb"));
           utils.setCustomPlatformTool("fastboot", options.get("custom-tools-fastboot"));
@@ -139,8 +139,7 @@ script.
         });
 
         installEvent.on("user:oem-lock", (callback) => {
-          $('#oem-lock').modal('show');
-
+          modals.show('oem-lock');
           $("#btn-unlock").click(() => {
             $("#btn-unlock").attr("disabled", true);
             $("#btn-exit").attr("disabled", true);
@@ -150,10 +149,10 @@ script.
               $("#btn-exit").attr("disabled", false);
               $("#unlock-prog").addClass("hidden");
               if (err) {
-                $('#oem-lock').modal('hide');
+                modals.hide('oem-lock');
               } else {
                 callback(callback)
-                $('#oem-lock').modal('hide');
+                modals.hide('oem-lock');
               }
             });
           });

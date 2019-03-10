@@ -9,15 +9,6 @@ script.
   ];
   const particleViews = ["start", "installing"]
 
-  // const id = {
-  //   show: (id) => {
-  //     $("#"+id).show();
-  //   },
-  //   hide: (id) => {
-  //     $("#"+id).hide();
-  //   }
-  // }
-
   const switchHide = (from, to) => {
     $("."+from).hide();
     $("."+to).show();
@@ -48,25 +39,22 @@ script.
     hideAll: () => hideAll("views"),
     show: id => {
       if ($.inArray(id, particleViews) != -1){
-        // particles.show();
-        $("#particles-foreground").show()
-        $("#particles-background").show()
-        $(".ubp-robot").removeClass("ubp-robot-foot")
-        $(".ubp-robot").removeClass("ubp-robot-side")
-      } else if (id === "done") {
-        // particles.hide();
-        $("#particles-foreground").hide()
-        $("#particles-background").hide()
-        $(".ubp-robot").addClass("ubp-robot-side")
-        $(".ubp-robot").removeClass("ubp-robot-foot")
+        $("#particles-foreground").show();
+        $("#particles-background").show();
+        $(".ubp-robot").removeClass("ubp-robot-side");
+        $(".ubp-robot").removeClass("ubp-robot-foot");
       } else {
-        // particles.hide();
-        $("#particles-foreground").hide()
-        $("#particles-background").hide()
-        $(".ubp-robot").addClass("ubp-robot-foot")
-        $(".ubp-robot").removeClass("ubp-robot-side")
+        $("#particles-foreground").hide();
+        $("#particles-background").hide();
+        if (id == "done") {
+          $(".ubp-robot").addClass("ubp-robot-side");
+          $(".ubp-robot").removeClass("ubp-robot-foot");
+        } else {
+          $(".ubp-robot").removeClass("ubp-robot-side");
+          $(".ubp-robot").addClass("ubp-robot-foot");
+        }
       }
-      show("views", id)
+      show("views", id);
     }
   }
 
@@ -166,17 +154,6 @@ script.
     optionsValToUser: optionsValToUser
   }
 
-  // const particles = {
-  //   show: () => {
-  //     id.show("particles-foreground");
-  //     id.show("particles-background");
-  //   },
-  //   hide: () => {
-  //     id.hide("particles-foreground");
-  //     id.hide("particles-background");
-  //   }
-  // }
-
   $("#btn-bugreport").click(() => {
     var title = $("#error-body").text();
     utils.createBugReport(title, (body) => {
@@ -197,11 +174,11 @@ script.
 
 
   $("#btn-modal-select-device-unsupported").click(() => {
-    $('#select-device-modal').modal('show');
+    modals.show('select-device');
   });
 
   $("#btn-modal-dev-mode").click(() => {
-    $('#developer-mode-info-modal').modal('show');
+    modals.show('developer-mode-info');
   });
 
   if(utils.isSnap()) {
@@ -210,7 +187,7 @@ script.
   }
 
   if (process.platform === "win32") {
-    $('#windows-drivers-modal').modal('show');
+    modals.show('windows-drivers');
   }
 
   utils.getUpdateAvailable().then((updateAvailable) => {
@@ -222,7 +199,7 @@ script.
       } else {
         $("#generic-update-instructions").show();
       }
-      $('#new-update-modal').modal('show');
+      modals.show('new-update');
     } else {
       utils.log.debug("Running latest stable version.");
     }
