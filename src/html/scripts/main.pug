@@ -21,8 +21,6 @@ script.
   utils.log.info("Welcome to the UBports Installer version " + properties.installer.version + "!");
   header.version_info.set(properties.installer.version);
   views.show("start");
-  // $(".particles-foreground").show()
-  // $(".particles-background").show()
   footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
   footer.underText.set("Starting adb service...");
 
@@ -34,12 +32,9 @@ script.
     }
   });
 
-  if(!utils.debugScreen()) {
     // START ADB
     adb.start(false, false, (err) => {
       setTimeout(() => {
-        // $(".particles-foreground").hide()
-        // $(".particles-background").hide()
         footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
         footer.underText.set("Please connect your device with a USB cable");
         views.show("wait-for-device");
@@ -61,21 +56,10 @@ script.
         console.log("device selected recieved" + device)
         $('#select-device-modal').modal('hide');
       });
-      utils.debugTrigger(waitEvent, 1);
     });
 
     modals.bind("options");
     options.init();
-  }else {
-    if (utils.debugScreen().startsWith("modal:")){
-      var modal=utils.debugScreen().split(":")[1]
-      setTimeout(function () {
-        $("#"+modal).modal("show");
-      }, 10);
-    } else {
-      views.show(utils.debugScreen());
-    }
-  }
 
   const mainEvent = (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
     views.show("install");
@@ -220,7 +204,7 @@ script.
           $("#device-name").text(status).append("<span id='wait-dot'>.</span>");
         });
 
-        utils.debugTrigger(installEvent, 2);
+        // utils.debugTrigger(installEvent, 2);
       })
     }
   };

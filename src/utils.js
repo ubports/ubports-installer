@@ -21,8 +21,6 @@ const sudo = require('electron-sudo');
 const winston = require('winston');
 const getos = require('getos');
 const commandExistsSync = require('command-exists').sync;
-//const decompress = require('decompress');
-//const decompressTarxz = require('decompress-tarxz');
 
 var customTools = {
   adb: undefined,
@@ -38,21 +36,8 @@ const platforms = {
 var platformNativeToolsLogged;
 var platformFallbackToolsLogged;
 
-var debugScreen = () => {
-  return process.env.DEBUG ? process.env.SCREEN : null
-}
 var getVersion = () => {
   return version_info;
-}
-var debugTrigger = (event, stage) => {
-  if (!process.env.DEBUG || !process.env.TRIGGER)
-    return
-  var args = process.env.TRIGGER.split(",");
-  if (stage ==! args[1])
-    return
-  setTimeout(function () {
-    event.emit(args[1], args[2]);
-  }, 10);
 }
 
 var log = {
@@ -524,8 +509,6 @@ module.exports = {
     needRoot: needRoot,
     sudoCommand: sudoCommand,
     checkPassword: checkPassword,
-    debugScreen: debugScreen,
-    debugTrigger: debugTrigger,
     createBugReport: createBugReport,
     getUpdateAvailable: getUpdateAvailable,
     getPlatform: getPlatform,
@@ -534,5 +517,4 @@ module.exports = {
     getVersion: getVersion,
     hidePassword: hidePassword,
     setVerbose: () => { winston.level = "debug"; }
-//    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
 }
