@@ -5,21 +5,24 @@ html
     link(rel='stylesheet', href='../css/style.css')
   body
     include scripts/root
-    .header
+    .header.is-over
       h3#header-text.text-muted.installer UBports Installer
     button#help.help-button.btn.btn-primary Report a bug
-    #particles-background.vertical-centered-box(hidden='hidden')
-    #particles-foreground.vertical-centered-box(hidden='hidden')
+    #particles-background.vertical-centered-box
+    #particles-foreground.vertical-centered-box
+    #download-animation.vertical-centered-box.download-animation.is-under
+      i.is-under
+    #push-animation.vertical-centered-box.push-animation.is-under
+      i.is-under
     // Views
     include views/done
-    include views/installing
     include views/reboot
     include views/install
     include views/not-supported
     include views/wait-for-device
-    include views/start
+    include views/working
     #progress.progress(hidden='hidden')
-    footer.footer
+    footer.footer.is-over
       #waitForDevice.container(hidden='hidden')
         h3.text-muted.footer-top
           | Waiting for a device

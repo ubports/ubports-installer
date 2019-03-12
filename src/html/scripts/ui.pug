@@ -7,7 +7,6 @@ script.
     {id: "custom-tools-adb", type: "input"},
     {id: "custom-tools-fastboot", type: "input"}
   ];
-  const particleViews = ["start", "installing"]
 
   const switchHide = (from, to) => {
     $("."+from).hide();
@@ -35,17 +34,37 @@ script.
     return $("#"+cat+"-"+id).val();
   }
 
+  const animations = {
+    hideAll: () => {
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+      $("#push-animation").hide();
+      $("#download-animation").hide();
+    },
+    particles: () => {
+      $("#particles-foreground").show();
+      $("#particles-background").show();
+      $("#push-animation").hide();
+      $("#download-animation").hide();
+    },
+    download: () => {
+      $("#download-animation").show();
+      $("#push-animation").hide();
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+    },
+    push: () => {
+      $("#push-animation").show();
+      $("#download-animation").hide();
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+    }
+  }
+
   const views = {
     hideAll: () => hideAll("views"),
-    show: id => {
-      if ($.inArray(id, particleViews) != -1){
-        $("#particles-foreground").show();
-        $("#particles-background").show();
-        $(".ubp-robot").removeClass("ubp-robot-side");
-        $(".ubp-robot").removeClass("ubp-robot-foot");
-      } else {
-        $("#particles-foreground").hide();
-        $("#particles-background").hide();
+    show: (id, animation) => {
+      if (id != "working"){
         if (id == "done") {
           $(".ubp-robot").addClass("ubp-robot-side");
           $(".ubp-robot").removeClass("ubp-robot-foot");
@@ -53,8 +72,27 @@ script.
           $(".ubp-robot").removeClass("ubp-robot-side");
           $(".ubp-robot").addClass("ubp-robot-foot");
         }
+        animations.hideAll();
+        show("views", id);
+        return;
+      } else {
+        $(".ubp-robot").removeClass("ubp-robot-side");
+        $(".ubp-robot").removeClass("ubp-robot-foot");
+        show("views", "working");
+        switch (animation) {
+          case "particles":
+            animations.particles()
+            break;
+          case "download":
+            animations.download()
+            break;
+          case "push":
+            animations.push()
+            break;
+          default:
+            animations.hideAll();
+        }
       }
-      show("views", id);
     }
   }
 
@@ -171,7 +209,6 @@ script.
       shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title=please describe the problem you are experiencing&body="+body);
     });
   });
-
 
   $("#btn-modal-select-device-unsupported").click(() => {
     modals.show('select-device');

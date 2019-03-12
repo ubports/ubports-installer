@@ -10,8 +10,8 @@ script.
       }
     }
     $("#error-body").text(err);
-    modals.show("error");
-    modals.hide("password");
+    $("error-modal").modal("show");
+    $("password-modal").modal("show");
   }
   window.onerror = (err, url, line) => {
     onErr(err+" (MainRenderer:"+line+")");
@@ -20,7 +20,7 @@ script.
   // START
   utils.log.info("Welcome to the UBports Installer version " + properties.installer.version + "!");
   header.version_info.set(properties.installer.version);
-  views.show("start");
+  views.show("working", "particles");
   footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
   footer.underText.set("Starting adb service...");
 
@@ -38,7 +38,7 @@ script.
         footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
         footer.underText.set("Please connect your device with a USB cable");
         views.show("wait-for-device");
-      }, 1000);
+      }, 500);
       var waitEvent = devices.waitForDevice(mainEvent);
       // Button to open device selector
       $("#btn-modal-select-device").click(() => {
@@ -97,7 +97,7 @@ script.
         }
       });
       $("#btn-installModal").click(() => {
-        views.show("installing");
+        views.show("working", "particles");
         $("#progress").show();
         const installEvent = devices.install({
           device: output.device,
@@ -108,17 +108,30 @@ script.
         installEvent.on("user:error", onErr);
 
         installEvent.on("bootstrap:flashing", () => {
-          views.show("installing");
+          views.show("working", "particles");
           $("#device-under-text").text("Flashing recovery and boot images")
-        })
+        });
 
         installEvent.on("system-image:start", () => {
-          views.show("installing");
-        })
+          views.show("working", "particles");
+        });
+
+        installEvent.on("download:start", () => {
+          views.show("working", "download");
+        });
+
+        installEvent.on("adbpush:start", () => {
+          views.show("working", "push");
+        });
+
+        installEvent.on("adbpush:done", () => {
+          views.show("working", "particles");
+        });
 
         installEvent.on("install:done", () => {
           views.show("done");
           $("#device-name").text("Done");
+          $("#progress").width("0%");
         });
 
         installEvent.on("user:password", () => {
@@ -176,7 +189,7 @@ script.
         });
 
         installEvent.on("reboot:done", () => {
-          views.show("installing");
+          views.show("working", "particles");
           $('#views-reboot-up').hide();
           $('#views-reboot-down').hide();
         });
