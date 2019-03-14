@@ -228,6 +228,7 @@ var asarExec = (file, callback) => {
                     let name = file.split('/').pop();
                     cmd = cmd.replace(new RegExp(name, 'g'), path.join(tmpDir, path.basename(file)));
                     exec(cmd, (err, e,r) => {
+                        // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
                         cb(err,e,r);
                     })
                 },
@@ -267,6 +268,7 @@ const platformToolsExec = (tool, arg, callback) => {
   if (tools[tool]) {
     logPlatformNativeToolsOnce();
     var cmd = tools[tool] + " " + arg.join(" ");
+    // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
     cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
@@ -274,6 +276,7 @@ const platformToolsExec = (tool, arg, callback) => {
   // Try using fallback tools
   if (tools.fallback[tool]) {
     logPlatformFallbackToolsOnce();
+    // log.debug(tools.fallback[tool] + " " + arg.join(" ")) // CAREFUL! THIS MIGHT LOG PASSWORDS!
     cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
@@ -290,7 +293,9 @@ const platformToolsExecAsar = (tool, callback) => {
     logPlatformNativeToolsOnce();
     callback({
         exec: (cmd, cb) => {
-            exec(cmd, (err, e,r) => {
+            var _cmd = cmd.replace(tool, tools[tool]);
+            exec(_cmd, (err, e,r) => {
+                // log.debug(_cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
                 cb(err,e,r);
             })
         },
@@ -344,7 +349,6 @@ const getNativePlatformTools = () => {
     ret["fastboot"] = customTools["fastboot"];
   else if (commandExistsSync("fastboot"))
     ret["fastboot"] = "fastboot";
-
   return ret;
 }
 
@@ -363,8 +367,12 @@ var isSnap = () => {
 }
 
 var needRoot = () => {
-    if ((os.platform() === "win32") || isSnap()) return false;
-    return !process.env.SUDO_UID
+    if (
+      (os.platform() === "win32") ||
+      isSnap() ||
+      !commandExistsSync("sudo")
+    ) return false;
+    else return !process.env.SUDO_UID
 }
 
 var ensureRoot = (m) => {
