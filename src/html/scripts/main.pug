@@ -10,8 +10,8 @@ script.
       }
     }
     $("#error-body").text(err);
-    $("error-modal").modal("show");
-    $("password-modal").modal("show");
+    $("#error-modal").modal("show");
+    $("#password-modal").modal("hide");
   }
 
   window.onerror = (err, url, line) => {
