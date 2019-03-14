@@ -40,11 +40,11 @@ const start = (password, sudo, callback) => {
                   password: true
               });
             else
-              callback()
+              callback();
             platformToolsExecAsar.done();
-        })
+        });
     });
-  })
+  });
 }
 
 const stop = (callback) => {
@@ -54,9 +54,8 @@ const stop = (callback) => {
         // console.log(stdout)
         if (err !== null) callback(false);
         else callback();
-      })
-  })
-
+      });
+  });
 }
 
 // TODO: remove lazy override alias, this should be handled by the server
@@ -91,22 +90,21 @@ var getDeviceNameFromPropFile = (callback) => {
       if (prop.includes("ro.product.device") && prop !== undefined && !ret){
         ret = prop.split("=")[1];
       }
-    })
+    });
     callback(ret.replace(/\W/g, ""));
-  })
+  });
 }
 
 var _getDeviceName = (callback, method) => {
   if (!method) method = "device";
   shell("getprop ro.product."+method, (stdout) => {
-    if (stdout.includes("getprop: not found")){
+    if (!stdout) {
+      utils.log.debug("getprop: error");
+      callback(false);
+      return;
+    } else if (stdout.includes("getprop: not found")){
       utils.log.debug("getprop: not found")
       getDeviceNameFromPropFile(callback);
-      return;
-    }
-    if (stdout === null) {
-      util.log.debug("getprop: error");
-      callback(false);
       return;
     }
     utils.log.debug("getprop: "+stdout.replace(/\W/g, ""))
@@ -114,12 +112,14 @@ var _getDeviceName = (callback, method) => {
   });
 }
 
-var getDeviceName = (callback, method) => lazyOverrideAlias(_getDeviceName, method, callback)
+var getDeviceName = (callback, method) => {
+  lazyOverrideAlias(_getDeviceName, method, callback)
+}
 
 var isUbuntuDevice = (callback) => {
   shell("cat /etc/system-image/channel.ini", (output) => {
     callback(output ? true : false);
-  })
+  });
 }
 
 var readUbuntuChannelINI = (callback) => {
@@ -140,8 +140,10 @@ var readUbuntuChannelINI = (callback) => {
 }
 
 var isBaseUbuntuCom = callback => {
-  if (process.env.FORCE_SWITCH)
-    return callback(true);
+  if (global.installProperties.simulate) {
+    callback(global.installProperties.currentOs == "ubuntu");
+    return;
+  }
   readUbuntuChannelINI(ini => {
     if (!ini)
       return callback(false);
@@ -150,6 +152,12 @@ var isBaseUbuntuCom = callback => {
 }
 
 var push = (file, dest, pushEvent) => {
+  if (global.installProperties.simulate) {
+    return setTimeout(() => {
+      pushEvent.emit("adbpush:progress", 50);
+      pushEvent.emit("adbpush:end");
+    }, 50);
+  }
   var done;
   var hundredEmitted;
   var fileSize = fs.statSync(file)["size"];
@@ -206,10 +214,16 @@ var shell = (cmd, callback) => {
   utils.platformToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
     if (err) callback(false);
     else callback(stdout);
-  })
+  });
 }
 
 var waitForDevice = (callback) => {
+  if (global.installProperties.simulate) {
+    setTimeout(() => {
+      callback(true);
+      return new event();
+    }, 1000);
+  }
   var waitEvent = new event();
   let timer = setInterval(() => {
     shell("echo 1", (r) => {
@@ -233,6 +247,10 @@ var hasAdbAccess = (callback) => {
 }
 
 var reboot = (state, callback) => {
+  if (global.installProperties.simulate) {
+    callback(true);
+    return;
+  }
   utils.log.debug("reboot to "+state);
   utils.platformToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
     utils.log.debug("reboot to " + state + " done");
@@ -244,6 +262,10 @@ var reboot = (state, callback) => {
 }
 
 var format = (partition, callback) => {
+  if (global.installProperties.simulate) {
+    callback(true);
+    return;
+  }
   shell("cat /etc/recovery.fstab", (fstab_) => {
     if (!fstab_) {
       callback(false, "cannot find recovery.fstab");
@@ -275,8 +297,11 @@ var format = (partition, callback) => {
   })
 }
 
-
 var wipeCache = (callback) => {
+  if (global.installProperties.simulate) {
+    callback(true);
+    return;
+  }
   // Try with format;
   format("cache", (err) => {
     if (!err){

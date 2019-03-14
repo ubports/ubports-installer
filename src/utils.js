@@ -85,7 +85,8 @@ var createBugReport = (title, callback) => {
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + version_info + " %0D%0A" +
-        "Device: " + (installDevice ? installDevice : "Not detected") + "%0D%0A" +
+        "Device: " + (global.installProperties.device ? global.installProperties.device : "Not detected") + "%0D%0A" +
+        "Channel: " + (global.installProperties.channel ? global.installProperties.channel : "Not yet set") + "%0D%0A" +
         "Package: " + getPackage() + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
@@ -270,7 +271,7 @@ const platformToolsExec = (tool, arg, callback) => {
   var tools = getPlatformTools();
 
   // First check for native tools
-  if (tools[tool]) {
+  if (tools[tool] && !global.installProperties.forceFallback) {
     logPlatformNativeToolsOnce();
     var cmd = tools[tool] + " " + arg.join(" ");
     // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
@@ -294,7 +295,7 @@ const platformToolsExecAsar = (tool, callback) => {
   var tools = getPlatformTools();
 
   // First check for native
-  if (tools[tool]) {
+  if (tools[tool] && !global.installProperties.forceFallback) {
     logPlatformNativeToolsOnce();
     callback({
         exec: (cmd, cb) => {
@@ -375,7 +376,9 @@ var needRoot = () => {
     if (
       (os.platform() === "win32") ||
       isSnap() ||
-      !commandExistsSync("sudo")
+      !commandExistsSync("sudo") ||
+      global.installProperties.noRoot ||
+      global.installProperties.simulate
     ) return false;
     else return !process.env.SUDO_UID
 }

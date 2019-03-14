@@ -13,39 +13,61 @@ const electron = require('electron');
 const electronPug = require('electron-pug');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
+var ipcMain = require('electron').ipcMain;
 
 const path = require('path');
 const url = require('url');
-const adb = require("./adb");
 const pug = new electronPug();
 let mainWindow;
 
-const package_info = require('../package.json');
-const cli_mode = (cli.device ? true : false);
+global.packageInfo = require('../package.json');
+
+cli
+  .name(global.packageInfo.name)
+  .version(global.packageInfo.version)
+  .description(global.packageInfo.description)
+  .option('-d, --device <device>', 'Override detected device-id (codename)')
+  .option('-c, --channel <channel>', 'Override the recommended release-channel for the device')
+  .option('-C, --cli', "Run without GUI", undefined, 'false')
+  .option('-F, --force-fallback', "Use the android-tools packaged with the UBports Installer", undefined, 'false')
+  .option('-n, --no-root', "Do not ask for the password and run fastboot without elevated privilleges", undefined, 'false')
+  .option('-v, --verbose', "Enable verbose logging", undefined, 'false')
+  .option('-D, --debug', "Enable debugging tools and verbose logging", undefined, 'false')
+  .option('-s, --simulate', "Run through every step except actually installing", undefined, 'false')
+  .parse(process.argv);
+
+global.installProperties = {
+  device: cli.device,
+  channel: cli.channel,
+  cli: cli.cli,
+  forceFallback: cli.forceFallback,
+  noRoot: !cli.root,
+  verbose: (cli.verbose || cli.debug),
+  debug: cli.debug,
+  simulate: cli.simulate
+};
+
+ipcMain.on( "setInstallProperties", ( event, installProperties ) => {
+  global.myGlobalVariable = Object.assign(global.installProperties, installProperties);
+});
 
 function createWindow () {
   mainWindow = new BrowserWindow({
-    width: cli_mode ? 0 : (process.env.DEBUG ? 1600 : 800),
-    height: cli_mode ? 0 : 600,
-    show: !cli_mode,
+    width: cli.cli ? 0 : (cli.debug ? 1600 : 800),
+    height: cli.cli ? 0 : 600,
+    show: !cli.cli,
     icon: path.join(__dirname, "../build/icons/icon.png"),
-    title: "UBports Installer ("+package_info.version+")"
+    title: "UBports Installer ("+global.packageInfo.version+")"
   });
 
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'html/index.pug'),
     protocol: 'file:',
-    slashes: true,
-    query: {
-      verbose: cli.verbose || false,
-      device: cli.device || false,
-      channel: cli.channel || false,
-      bootstrap: cli.bootstrap || false
-    }
+    slashes: true
   }));
   mainWindow.setMenu(null);
 
-  if (process.env.DEBUG) {
+  if (cli.debug) {
     mainWindow.webContents.openDevTools();
   }
 
@@ -61,7 +83,6 @@ app.on('uncaughtException', function (error) {
 });
 
 app.on('window-all-closed', function () {
-  adb.stop(console.log);
   console.log("Good bye!");
   if (process.platform !== 'darwin') {
     app.quit();
@@ -73,13 +94,3 @@ app.on('activate', function () {
     createWindow();
   }
 });
-
-cli
-  .name(package_info.name)
-  .version(package_info.version)
-  .description(package_info.description)
-  .option('-v, --verbose', "Enable verbose logging and debugging tools")
-  .option('-d, --device <device>', 'Specify device-id (codename).')
-  .option('-c, --channel <channel>', 'Specify channel. Overrides the recommended option for the device.')
-  .option('-b, --bootstrap', "Flash boot and recovery from bootloader. Overrides the recommended option for the device.")
-  .parse(process.argv);

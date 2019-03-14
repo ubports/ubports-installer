@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![Snap Status](https://build.snapcraft.io/badge/ubports/ubports-installer.svg)](https://build.snapcraft.io/user/ubports/ubports-installer)
 
-This tool is still under development, bugreports are appreciated.
+This tool is still under development, [bugreports](https://github.com/ubports/ubports-installer/issues/new) and [contributions](https://github.com/ubports/ubports-installer/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are appreciated!
 
 ## How to install
 
@@ -16,37 +16,58 @@ This tool is still under development, bugreports are appreciated.
 
 **Deb:**
 
-1. Download the latest `.deb` file from https://github.com/ubports/ubports-installer/releases/latest
+1. Download the latest [deb](https://devices.ubuntu-touch.io/installer/deb) file from https://github.com/ubports/ubports-installer/releases/latest
 2. Open the deb package with your software installation tool and follow the on-screen instructions
 3. Launch the program from your application list
 
 **Appimage:**
 
-1. Download the latest `.AppImage` file from https://github.com/ubports/ubports-installer/releases/latest
+1. Download the latest [AppImage](https://devices.ubuntu-touch.io/installer/appimage) file from https://github.com/ubports/ubports-installer/releases/latest
 2. [Make the AppImage executable](https://discourse.appimage.org/t/how-to-make-an-appimage-executable/80)
 3. Run the file by double-clicking
 
 ### Mac
 
-1. Download the latest `.dmg` file from https://github.com/ubports/ubports-installer/releases/latest
+1. Download the latest [dmg](https://devices.ubuntu-touch.io/installer/mac) file from https://github.com/ubports/ubports-installer/releases/latest
 2. Open the file and follow the onscreen instructions
 3. Launch the program from the application list
 
 ### Windows
 
 1. Install the [universal adb driver](http://adb.clockworkmod.com/) or a device-specific driver
-2. Download the latest `.exe` file from https://github.com/ubports/ubports-installer/releases/latest
+2. Download the latest [exe](https://devices.ubuntu-touch.io/installer/windows) file from https://github.com/ubports/ubports-installer/releases/latest
 3. Launch the program and follow the on-screen instructions
 
+
+## Usage
+
+Using the graphical user interface of the UBports Installer is recommended for most cases. Powerusers can also make use of the command-line interface:
+
+```
+$ ubports-installer -h
+
+Usage: ubports-installer [options]
+
+Options:
+  -V, --version            output the version number
+  -d, --device <device>    Override detected device-id (codename)
+  -c, --channel <channel>  Override the recommended release-channel for the device
+  -C, --cli                Run without GUI
+  -F, --force-fallback     Use the android-tools packaged with the UBports Installer
+  -n, --no-root            Do not ask for the password and run fastboot without elevated privilleges
+  -v, --verbose            Enable verbose logging
+  -D, --debug              Enable debugging tools and verbose logging
+  -s, --simulate           Run through every step except actually installing
+  -h, --help               output usage information
+```
+
 ## Troubleshooting
+
+If you need help, you can join UBports' support channels on [telegram](https://t.me/WelcomePlus) or [matrix](https://matrix.to/#/!KwdniMNeTmClpgHkND:matrix.org?via=matrix.org&via=ubports.chat&via=disroot.org) or ask a question [in the forum](https://forums.ubports.com/) or on [askubuntu](https://askubuntu.com). If you believe that the UBports Installer is not working correctly, you can also [file a new issue](https://github.com/ubports/ubports-installer/issues/new) to help us solve the problem. As a last resort, we also have [manual installation instructions for every device](https://devices.ubuntu-touch.io), that you can follow if you want to install without using the UBports Installer.
 
 ### Connection lost during installation
 
 Try a different USB cable and a different USB port on your computer. Cheap and old cables tend to loose connection during the installation.
-
-### Device not detected (Windows)
-
-Install the [universal adb driver](http://adb.clockworkmod.com/) and try again.
 
 ### Windows Defender prevents Installer from starting
 
@@ -56,7 +77,19 @@ We have contacted Microsoft about this problem, but they seem to think it's [enj
 
 You might want to try using custom adb and fastboot binaries. For that, tick the "Custom tools" checkbox in the options and specify the path to adb and fastboot in the text-boxes below.
 
-### Device not detected (Linux)
+### Device not detected (Virtual Machine)
+
+Make sure the virtual machine is allowed to access the USB port.
+
+### Device not detected (Windows)
+
+Install the [universal adb driver](http://adb.clockworkmod.com/) and try again.
+
+### Device not detected (Fairphone 2 with Linux)
+
+Run `echo 0x2ae5 >> ~/.android/adb_usb.ini` in the terminal and restart the installer.
+
+### Device not detected (Linux except snap)
 
 If the device not detected, you might be missing **udev-rules**.
 
@@ -105,10 +138,12 @@ cd ubports-installer
 ./setup-dev.sh
 ```
 
-### How to start GUI
+### Run with npm
 
 ```
-npm start
+npm start            # for the normal mode with GUI
+npm start -- -D      # for debug tools and verbose logging
+npm start -- --cli   # for CLI mode without GUI
 ```
 
 ### Build packages
@@ -117,23 +152,4 @@ npm start
 npm run-script dist:linux
 npm run-script dist:mac
 npm run-script dist:win
-```
-
-### How to start CLI
-
-*Please note that the command line interface was created for testing purposes only and does not necessarily try to be user-friendly.*
-
-```
-$ ./cli.js
-
-Usage: cli [options]
-
-Options:
-
-  -h, --help               output usage information
-  -V, --version            output the version number
-  -d, --device <device>    Specify device
-  -c, --channel <channel>  Specify channel (default: ubuntu-touch/stable)
-  -v, --verbose            Verbose output
-  -b, --bootstrap          Flash boot and recovery from bootloader
 ```

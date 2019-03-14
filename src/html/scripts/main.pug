@@ -13,13 +13,14 @@ script.
     $("error-modal").modal("show");
     $("password-modal").modal("show");
   }
+
   window.onerror = (err, url, line) => {
     onErr(err+" (MainRenderer:"+line+")");
   }
 
   // START
-  utils.log.info("Welcome to the UBports Installer version " + properties.installer.version + "!");
-  header.version_info.set(properties.installer.version);
+  utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
+  header.version_info.set(global.packageInfo.version);
   views.show("working", "particles");
   footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
   footer.underText.set("Starting adb service...");
@@ -32,34 +33,35 @@ script.
     }
   });
 
-    // START ADB
-    adb.start(false, false, (err) => {
-      setTimeout(() => {
-        footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
-        footer.underText.set("Please connect your device with a USB cable");
-        views.show("wait-for-device");
-      }, 500);
-      var waitEvent = devices.waitForDevice(mainEvent);
-      // Button to open device selector
-      $("#btn-modal-select-device").click(() => {
-        waitEvent.emit("stop");
-        modals.show('select-device');
-      });
-      // Button to confirm device selection
-      $("#btn-select-device").click(() => {
-        var device = $("#device-select").find(":selected").attr("name");
-        waitEvent.emit("device:select", device);
-        console.log("device selected: " + device)
-      });
-      waitEvent.on("user:error", onErr);
-      waitEvent.on("device:select", (device) => {
-        console.log("device selected recieved" + device)
-        modals.hide('select-device');
-      });
+  adb.start(false, false, (err) => {
+    var waitEvent = devices.waitForDevice(mainEvent);
+    if (!global.installProperties.device) {
+      footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
+      footer.underText.set("Please connect your device with a USB cable");
+      views.show("wait-for-device");
+    } else {
+      waitEvent.emit('device:select', (global.installProperties.device))
+    }
+    // Button to open device selector
+    $("#btn-modal-select-device").click(() => {
+      waitEvent.emit("stop");
+      modals.show('select-device');
     });
+    // Button to confirm device selection
+    $("#btn-select-device").click(() => {
+      var device = $("#device-select").find(":selected").attr("name");
+      waitEvent.emit("device:select", device);
+    });
+    waitEvent.on("user:error", onErr);
+    waitEvent.on("device:select", (device) => {
+      modals.hide('select-device');
+    });
+  });
 
-    modals.bind("options");
-    options.init();
+  // Assign buttons
+  modals.bind("options");
+  // Initialize options modal
+  options.init();
 
   const mainEvent = (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
     views.show("install");
@@ -68,6 +70,7 @@ script.
       $("#device-under-text").text("The device " + device + " is not supported");
       $("[id=your-device]").text(device)
       views.show("not-supported");
+      utils.log.warn("This device is not supported!")
       $("#btn-inst").hide();
     } else {
       views.show("install");
@@ -77,17 +80,17 @@ script.
       $("#btn-inst").show();
       $("#device-name").text(output.name);
       if (isLegacyAndroid && !ubuntuCom)
-      $("#legacy-android-note").show();
+        $("#legacy-android-note").show();
       if (autoDetected)
-      footer.underText.set("Are you ready for Ubuntu Touch on your " + output.name + "?");
+        footer.underText.set("Are you ready for Ubuntu Touch on your " + output.name + "?");
       else
-      footer.underText.set("Please connect your " + output.name + " with a USB cable.");
+        footer.underText.set("Please connect your " + output.name + " with a USB cable.");
       $("#your-ubp-device").text(output.name+" ("+output.device+")")
       $("#your-ubp-device").click(() => {
         shell.openExternal("https://devices.ubuntu-touch.io/device/"+output.device);
       });
 
-      views.show(ubuntuCom ? "switch" : "install")
+      views.show(ubuntuCom ? "switch" : "install");
 
       $("#btn-inst").click(() => {
         modals.show('install');
@@ -96,6 +99,7 @@ script.
           utils.setCustomPlatformTool("fastboot", options.get("custom-tools-fastboot"));
         }
       });
+
       $("#btn-installModal").click(() => {
         views.show("working", "particles");
         $("#progress").show();
@@ -215,8 +219,6 @@ script.
         installEvent.on("user:write:status", (status) => {
           $("#device-name").text(status).append("<span id='wait-dot'>.</span>");
         });
-
-        // utils.debugTrigger(installEvent, 2);
       })
     }
   };

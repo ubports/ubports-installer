@@ -358,10 +358,14 @@ var getChannelSelects = (device, callback) => {
           var _channel = channel.replace("ubports-touch/", "");
           // Ignore blacklisted channels
           if (ret["systemServer"]["blacklist"].indexOf(channel) == -1) {
-            if (channel === ret["systemServer"]["selected"])
-              channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
-            else
-              channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
+            if (!global.installProperties.channel) {
+              if (channel === ret["systemServer"]["selected"])
+                channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
+              else
+                channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
+            } else {
+              channelsAppend.push("<option value=" + global.installProperties.channel + ">" + global.installProperties.channel + "</option>");
+            }
           }
         });
         callback(channelsAppend.join(''));
@@ -377,6 +381,7 @@ var getChannelSelects = (device, callback) => {
 module.exports = {
   getDevice: devicesApi.getDevice,
   waitForDevice: (callback) => {
+    var lock;
     var waitEvent = adb.waitForDevice((deviceDetected) => {
       if (deviceDetected) {
         adb.getDeviceName((name) => {
@@ -388,8 +393,10 @@ module.exports = {
               adb.isBaseUbuntuCom(ubuntuCom => {
                 utils.log.debug(ubuntuCom ? "ubuntuCom": "no ubuntuCom");
                 getChannelSelects(name, (channels) => {
-                  callback(ret, name, channels, ubuntuCom, true, isLegacyAndroid(ret.device.device));
-                  return;
+                  if (!lock) {
+                    callback(ret, name, channels, ubuntuCom, true, isLegacyAndroid(ret.device.device));
+                    return;
+                  }
                 });
               });
             }
@@ -398,6 +405,7 @@ module.exports = {
       }
     });
     waitEvent.on("device:select", (device) => {
+      lock = true;
       waitEvent.emit("stop");
       utils.log.info(device + " selected");
       devicesApi.getDevice(device).then((ret) => {
