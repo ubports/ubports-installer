@@ -21,6 +21,10 @@ const sudo = require('electron-sudo');
 const winston = require('winston');
 const getos = require('getos');
 const commandExistsSync = require('command-exists').sync;
+const remote = require('electron').remote;
+var ipcRenderer = require('electron').ipcRenderer;
+global.installProperties = remote.getGlobal('installProperties');
+global.packageInfo =  remote.getGlobal('packageInfo');
 
 var customTools = {
   adb: undefined,
@@ -39,6 +43,8 @@ var platformFallbackToolsLogged;
 var getVersion = () => {
   return version_info;
 }
+
+winston.level = global.installProperties.verbose ? 'debug' : 'info';
 
 var log = {
   error: (l) => {winston.log("error", l)},
@@ -171,7 +177,6 @@ if (!fs.existsSync(getUbuntuTouchDir())) {
     mkdirp.sync(getUbuntuTouchDir());
 }
 winston.add(winston.transports.File, { filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log') });
-winston.level = 'info';
 
 var die = (e) => {
     log.error(e);
@@ -523,6 +528,5 @@ module.exports = {
     asarExec: asarExec,
     getRandomInt: getRandomInt,
     getVersion: getVersion,
-    hidePassword: hidePassword,
-    setVerbose: () => { winston.level = "debug"; }
+    hidePassword: hidePassword
 }
