@@ -16,3 +16,5 @@ sudo apt install $packages
 
 echo "Setting up node modules..."
 npm install
+
+echo "Done!"
