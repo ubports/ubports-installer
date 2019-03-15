@@ -255,7 +255,6 @@ var setEvents = (downloadEvent) => {
     utils.log.info("Rebooting to recovery to flash");
     downloadEvent.emit("system-image:done");
     downloadEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
-    downloadEvent.emit("user:write:done");
     downloadEvent.emit("user:write:progress", 0);
   });
   downloadEvent.on("adbpush:error", (e) => {
@@ -263,7 +262,7 @@ var setEvents = (downloadEvent) => {
     utils.log.error("Devices: Adb push error: "+ e)
   });
   downloadEvent.on("adbpush:progress", (percent) => {
-    if (percent != NaN) {
+    if (percent != NaN && percent != 100) {
       utils.log.debug(`Pushing file ${downloadEvent.nextCurrent} of ${downloadEvent.nextTotal}, ${Math.ceil(percent)}% complete`);
       downloadEvent.emit("user:write:progress", Math.ceil(percent/downloadEvent.nextTotal+downloadEvent.nextBaseProgress));
     }
@@ -310,7 +309,7 @@ var install = (options) => {
     });
     installEvent.on("system-image:done", () => {
       instructReboot("recovery", instructs.buttons, installEvent, () => {
-        installEvent.emit("install:done");
+        installEvent.emit("user:write:done");
       });
     });
     installEvent.on("bootstrap:done", (fastbootboot) => {
@@ -381,41 +380,39 @@ var getChannelSelects = (device, callback) => {
 module.exports = {
   getDevice: devicesApi.getDevice,
   waitForDevice: (callback) => {
-    var lock;
     var waitEvent = adb.waitForDevice((deviceDetected) => {
-      if (deviceDetected) {
-        adb.getDeviceName((name) => {
-          devicesApi.getDevice(name).then((ret) => {
-            if (!ret) {
-              callback(false, name);
+      if (!global.installProperties.device) {
+        if (deviceDetected) {
+          adb.getDeviceName((device) => {
+            adb.isBaseUbuntuCom((ubuntuCom) => {
+              waitEvent.emit("device:select:event", device, ubuntuCom, true, isLegacyAndroid(device));
               return;
-            } else {
-              adb.isBaseUbuntuCom(ubuntuCom => {
-                utils.log.debug(ubuntuCom ? "ubuntuCom": "no ubuntuCom");
-                getChannelSelects(name, (channels) => {
-                  if (!lock) {
-                    callback(ret, name, channels, ubuntuCom, true, isLegacyAndroid(ret.device.device));
-                    return;
-                  }
-                });
-              });
-            }
+            });
           });
-        });
+        } else {
+          waitEvent.emit("device:select:event", false);
+          return;
+        }
+      } else {
+        waitEvent.emit("device:select", global.installProperties.device);
       }
     });
-    waitEvent.on("device:select", (device) => {
-      lock = true;
+    waitEvent.once("device:select", (device) => {
       waitEvent.emit("stop");
       utils.log.info(device + " selected");
-      devicesApi.getDevice(device).then((ret) => {
-        if (ret) {
+      waitEvent.emit("device:select:event", device, false, false, isLegacyAndroid(device));
+    });
+    waitEvent.once("device:select:event", (device, ubuntuCom, autoDetected, isLegacyAndroid) => {
+      devicesApi.getDevice(device).then((apiData) => {
+        if (apiData) {
           getChannelSelects(device, (channels) => {
-            callback(ret, device, channels, false, false, isLegacyAndroid(device));
+            callback(apiData, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
+            ipcRenderer.send("setInstallProperties", { device: device });
             return;
           });
         } else {
-          callback(false, name);
+          callback(false, device); // If there is no response, the device is not supported
+          ipcRenderer.send("setInstallProperties", { device: device });
           return;
         }
       });
