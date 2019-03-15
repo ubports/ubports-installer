@@ -6,7 +6,6 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
-const version_info = require('../package.json').version;
 const http = require("request");
 const progress = require("request-progress");
 const os = require("os");
@@ -23,8 +22,8 @@ const getos = require('getos');
 const commandExistsSync = require('command-exists').sync;
 const remote = require('electron').remote;
 var ipcRenderer = require('electron').ipcRenderer;
-global.installProperties = remote.getGlobal('installProperties');
-global.packageInfo =  remote.getGlobal('packageInfo');
+global.installProperties = remote ? remote.getGlobal('installProperties') : undefined;
+global.packageInfo = remote ? remote.getGlobal('packageInfo') : require('../package.json');
 
 var customTools = {
   adb: undefined,
@@ -41,10 +40,11 @@ var platformNativeToolsLogged;
 var platformFallbackToolsLogged;
 
 var getVersion = () => {
-  return version_info;
+  return global.packageInfo.version;
 }
 
-winston.level = global.installProperties.verbose ? 'debug' : 'info';
+if (global.installProperties)
+  winston.level = global.installProperties.verbose ? 'debug' : 'info';
 
 var log = {
   error: (l) => {winston.log("error", l)},
@@ -83,7 +83,7 @@ var createBugReport = (title, callback) => {
       if (!err && res.statusCode === 302)
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
-        "UBports Installer Version: " + version_info + " %0D%0A" +
+        "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
         "Device: " + (global.installProperties.device ? global.installProperties.device : "Not detected") + "%0D%0A" +
         "Channel: " + (global.installProperties.channel ? global.installProperties.channel : "Not yet set") + "%0D%0A" +
         "Package: " + getPackage() + "%0D%0A" +
@@ -151,7 +151,7 @@ function getLatestInstallerVersion() {
 
 function getUpdateAvailable() {
   return getLatestInstallerVersion().then((latestVersion) => {
-    return latestVersion != version_info;
+    return latestVersion != global.packageInfo.version;
   });
 }
 
