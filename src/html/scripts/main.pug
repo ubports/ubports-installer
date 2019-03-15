@@ -1,6 +1,7 @@
 script.
   // CATCH ANY ERRORS!
   var onErr = (err) => {
+    if (global.installProperties.cli) utils.die(err)
     if(utils.getUpdateAvailable()) {
       $("#not-latest-stable").show();
       if (utils.isSnap()) {
