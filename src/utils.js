@@ -80,7 +80,6 @@ var createBugReport = (title, callback) => {
         content: "Title: " + title + "\n\n" + errorLog
       }
     }, (err, res, bod) => {
-      log.warn(getPackage())
       if (!err && res.statusCode === 302)
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
@@ -181,7 +180,7 @@ winston.add(winston.transports.File, { filename: path.join(getUbuntuTouchDir(), 
 
 var die = (e) => {
     log.error(e);
-    process.exit(1);
+    ipcRenderer.send("die", 1);
 }
 
 var sudoCommand = (password) => {
@@ -409,12 +408,12 @@ var checkFiles = (urls, callback) => {
             } else {
                 checksumFile(urls[0], (check) => {
                     if (check) {
-                        log.info(path.join(urls[0].path, path.basename(urls[0].url)) + " exists with the expected checksum, so the download will be skipped.")
-                        next()
+                        log.debug(path.join(urls[0].path, path.basename(urls[0].url)) + " exists with the expected checksum, so the download will be skipped.");
+                        next();
                     } else {
-                        log.info("Checksum mismatch on " + path.join(urls[0].path, path.basename(urls[0].url)) + ". This file will be downloaded again.")
+                        log.debug("Checksum mismatch on " + path.join(urls[0].path, path.basename(urls[0].url)) + ". This file will be downloaded again.");
                         urls_.push(urls[0]);
-                        next()
+                        next();
                     }
                 })
             }
@@ -531,5 +530,6 @@ module.exports = {
     asarExec: asarExec,
     getRandomInt: getRandomInt,
     getVersion: getVersion,
-    hidePassword: hidePassword
+    hidePassword: hidePassword,
+    die: die
 }

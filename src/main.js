@@ -48,7 +48,11 @@ global.installProperties = {
 };
 
 ipcMain.on( "setInstallProperties", ( event, installProperties ) => {
-  global.myGlobalVariable = Object.assign(global.installProperties, installProperties);
+  global.installProperties = Object.assign(global.installProperties, installProperties);
+});
+
+ipcMain.on( "die", (exitCode) => {
+  process.exit(exitCode);
 });
 
 function createWindow () {
