@@ -142,18 +142,16 @@ script.
       if (optionVal.id === option) {
         switch (optionVal.type) {
           case "select":
-          ret = raw ? $("#options-" + optionVal.id).find(":selected").val() :
-          $("#options-" + optionVal.id).find(":selected").text();
-          break;
+            ret = raw ? $("#options-" + optionVal.id).find(":selected").val() :
+                        $("#options-" + optionVal.id).find(":selected").text();
+            break;
           case "checkbox":
-          ret = $("#options-" + optionVal.id).is(':checked')
-          if (!raw)
-          ret = ret ? "Yes" : "No";
-          break;
+            ret = $("#options-" + optionVal.id).is(':checked')
+            if (!raw) ret = ret ? "Yes" : "No";
+            break;
           default:
-          console.log("default", optionVal);
-          ret = $("#options-" + optionVal.id).val()
-          break;
+            ret = $("#options-" + optionVal.id).val()
+            break;
         }
       }
     });
