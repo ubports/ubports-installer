@@ -38,28 +38,9 @@ This tool is still under development, [bugreports](https://github.com/ubports/ub
 2. Download the latest [exe](https://devices.ubuntu-touch.io/installer/windows) file from https://github.com/ubports/ubports-installer/releases/latest
 3. Launch the program and follow the on-screen instructions
 
-
 ## Usage
 
-Using the graphical user interface of the UBports Installer is recommended for most cases. Powerusers can also make use of the command-line interface:
-
-```
-$ ubports-installer -h
-
-Usage: ubports-installer [options]
-
-Options:
-  -V, --version            output the version number
-  -d, --device <device>    Override detected device-id (codename)
-  -c, --channel <channel>  Override the recommended release-channel for the device
-  -C, --cli                Run without GUI
-  -F, --force-fallback     Use the android-tools packaged with the UBports Installer
-  -n, --no-root            Do not ask for the password and run fastboot without elevated privilleges
-  -v, --verbose            Enable verbose logging
-  -D, --debug              Enable debugging tools and verbose logging
-  -s, --simulate           Run through every step except actually installing
-  -h, --help               output usage information
-```
+Using the graphical user interface of the UBports Installer is recommended for most cases. Powerusers can also make use of the experimental command-line interface. See `ubports-installer -h` for information.
 
 ## Troubleshooting
 
