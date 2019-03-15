@@ -176,7 +176,10 @@ var getUbuntuTouchDir = () => {
 if (!fs.existsSync(getUbuntuTouchDir())) {
     mkdirp.sync(getUbuntuTouchDir());
 }
-winston.add(winston.transports.File, { filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log') });
+winston.add(winston.transports.File, {
+  filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log'),
+  options: { flags: 'w' } // Clear log before writing to it
+});
 
 var die = (e) => {
     log.error(e);

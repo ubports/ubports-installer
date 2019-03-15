@@ -7,7 +7,6 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const path = require("path");
-const utils = require("./utils.js")
 
 const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
 
