@@ -83,7 +83,7 @@ script.
       views.show("working", "particles");
     });
     installEvent.on("user:password", () => {
-      modals.show("password")
+      modals.show("password");
       $("#password-input").val("");
       $("#password-input").keypress((event) => {
         if (event.which == '13') {
@@ -111,7 +111,7 @@ script.
           if (err) {
             modals.hide('oem-lock');
           } else {
-            callback(callback)
+            callback(callback);
             modals.hide('oem-lock');
           }
         });
@@ -214,6 +214,7 @@ script.
         $("#btn-installModal").click(() => {
           views.show("working", "particles");
           $("#progress").show();
+          ipcRenderer.send("setInstallProperties", {device: output.device, channel: options.get("channel", true)});
           installEvent = devices.install({
             device: output.device,
             channel: options.get("channel", true),
