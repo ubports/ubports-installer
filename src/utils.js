@@ -178,6 +178,7 @@ if (!fs.existsSync(getUbuntuTouchDir())) {
 }
 winston.add(winston.transports.File, {
   filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log'),
+  level: 'debug', // Print debug logs to the file
   options: { flags: 'w' } // Clear log before writing to it
 });
 
