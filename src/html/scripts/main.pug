@@ -19,50 +19,6 @@ script.
     onErr(err+" (MainRenderer:"+line+")");
   }
 
-  // START
-  utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
-  header.version_info.set(global.packageInfo.version);
-  views.show("working", "particles");
-  footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
-  footer.underText.set("Starting adb service...");
-
-  devices.getDeviceSelects((out) => {
-    if (out) {
-      $("#device-select").append(out);
-    } else {
-      modals.show('no-network');
-    }
-  });
-
-  adb.start(false, false, (err) => {
-    var waitEvent = devices.waitForDevice(mainEvent);
-    if (!global.installProperties.device) {
-      footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
-      footer.underText.set("Please connect your device with a USB cable");
-      views.show("wait-for-device");
-    } else {
-      waitEvent.emit('device:select', (global.installProperties.device))
-    }
-    // Button to open device selector
-    $("#btn-modal-select-device").click(() => {
-      waitEvent.emit("stop");
-      modals.show('select-device');
-    });
-    // Button to confirm device selection
-    $("#btn-select-device").click(() => {
-      var device = $("#device-select").find(":selected").attr("name");
-      waitEvent.emit("device:select", device);
-    });
-    waitEvent.on("user:error", onErr);
-    waitEvent.on("device:select", (device) => {
-      modals.hide('select-device');
-    });
-  });
-
-  // Assign buttons
-  modals.bind("options");
-  // Initialize options modal
-  options.init();
 
   const setInstallEvents = (installEvent) => {
     installEvent.on("user:error", onErr);
@@ -164,6 +120,7 @@ script.
   }
 
   const mainEvent = (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+    utils.log.debug("mainEvent called")
     var installEvent;
     if(!output) {
       $("#device-name").text("Device not supported");
@@ -225,3 +182,48 @@ script.
       }
     }
   };
+
+  // START
+  utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
+  header.version_info.set(global.packageInfo.version);
+  views.show("working", "particles");
+  footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
+  footer.underText.set("Starting adb service...");
+
+  devices.getDeviceSelects((out) => {
+    if (out) {
+      $("#device-select").append(out);
+    } else {
+      modals.show('no-network');
+    }
+  });
+
+  adb.start(false, false, (err) => {
+    var waitEvent = devices.waitForDevice(mainEvent);
+    if (!global.installProperties.device) {
+      footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
+      footer.underText.set("Please connect your device with a USB cable");
+      views.show("wait-for-device");
+      // Button to open device selector
+      $("#btn-modal-select-device").click(() => {
+        waitEvent.emit("stop");
+        modals.show('select-device');
+      });
+      // Button to confirm device selection
+      $("#btn-select-device").click(() => {
+        var device = $("#device-select").find(":selected").attr("name");
+        waitEvent.emit("device:select", device);
+      });
+    } else {
+      setTimeout(waitEvent.emit('device:select', (global.installProperties.device)), 50);
+    }
+    waitEvent.on("user:error", onErr);
+    waitEvent.on("device:select", (device) => {
+      modals.hide('select-device');
+    });
+  });
+
+  // Assign buttons
+  modals.bind("options");
+  // Initialize options modal
+  options.init();

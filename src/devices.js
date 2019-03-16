@@ -351,41 +351,58 @@ var getChannelSelects = (device, callback) => {
   }
   var channelsAppend = [];
   systemImage.getDeviceChannels(device).then((channels) => {
-    devicesApi.getInstallInstructs(device).then((ret) => {
-      if (ret) {
-        channels.forEach((channel) => {
-          var _channel = channel.replace("ubports-touch/", "");
-          // Ignore blacklisted channels
-          if (ret["systemServer"]["blacklist"].indexOf(channel) == -1) {
-            if (!global.installProperties.channel) {
+    if (!global.installProperties.channel) {
+      devicesApi.getInstallInstructs(device).then((ret) => {
+        if (ret) {
+          channels.forEach((channel) => {
+            var _channel = channel.replace("ubports-touch/", "");
+            // Ignore blacklisted channels
+            if (ret["systemServer"]["blacklist"].indexOf(channel) == -1) {
               if (channel === ret["systemServer"]["selected"])
                 channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
               else
                 channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
-            } else {
-              channelsAppend.push("<option value=" + global.installProperties.channel + ">" + global.installProperties.channel + "</option>");
             }
-          }
-        });
-        callback(channelsAppend.join(''));
+          });
+          callback(channelsAppend.join(''));
+          return;
+        } else {
+          callback(false);
+          return;
+        }
+      });
+    } else {
+      if (channels.indexOf(global.installProperties.channel) != -1) {
+        setTimeout(callback([
+          "<option value=" +
+          global.installProperties.channel + " selected>" + global.installProperties.channel.replace("ubports-touch/", "") +
+          "</option>"
+        ]), 50);
         return;
       } else {
         callback(false);
         return;
       }
-    });
+    }
   });
+  // If the respose takes longer than half a second, get help
+  setTimeout(() => {
+    utils.log.debug("getChannelSelects timed out");
+    callback(false);
+    return;
+  }, 500);
 }
 
 module.exports = {
   getDevice: devicesApi.getDevice,
   waitForDevice: (callback) => {
-    var waitEvent = adb.waitForDevice((deviceDetected) => {
-      if (!global.installProperties.device) {
+    var waitEvent;
+    if (!global.installProperties.device) {
+      waitEvent = adb.waitForDevice((deviceDetected) => {
         if (deviceDetected) {
           adb.getDeviceName((device) => {
             adb.isBaseUbuntuCom((ubuntuCom) => {
-              waitEvent.emit("device:select:event", device, ubuntuCom, true, isLegacyAndroid(device));
+              waitEvent.emit("device:select:event", device, ubuntuCom, true);
               return;
             });
           });
@@ -393,23 +410,24 @@ module.exports = {
           waitEvent.emit("device:select:event", false);
           return;
         }
-      } else {
-        waitEvent.emit("device:select", global.installProperties.device);
-      }
-    });
-    waitEvent.once("device:select", (device) => {
+      });
+    } else {
+      waitEvent = new event();
+    }
+    waitEvent.on("device:select", (device) => {
       waitEvent.emit("stop");
       utils.log.info(device + " selected");
-      waitEvent.emit("device:select:event", device, false, false, isLegacyAndroid(device));
+      waitEvent.emit("device:select:event", device, false, false);
     });
-    waitEvent.once("device:select:event", (device, ubuntuCom, autoDetected, isLegacyAndroid) => {
+    waitEvent.once("device:select:event", (device, ubuntuCom, autoDetected) => {
       devicesApi.getDevice(device).then((apiData) => {
         if (apiData) {
-          getChannelSelects(device, (channels) => {
-            callback(apiData, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
+          setTimeout(getChannelSelects(device, (channels) => {
+            if (channels)
+              callback(apiData, device, channels, ubuntuCom, autoDetected, isLegacyAndroid(device));
             ipcRenderer.send("setInstallProperties", { device: device });
             return;
-          });
+          }), 50);
         } else {
           callback(false, device); // If there is no response, the device is not supported
           ipcRenderer.send("setInstallProperties", { device: device });
