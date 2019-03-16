@@ -25,16 +25,12 @@
   "scripts": {
     "test-unit": "NODE_ENV=test mocha 'tests/unit-tests/*.js'",
     "start": "electron .",
-    "dist:unix": "node ./build.js -lmPR",
-    "dist:linux": "node ./build.js -lPR",
-    "dist:linux:deb": "node ./build.js -lPRAF",
-    "dist:linux:snap": "snapcraft cleanbuild",
-    "dist:linux:appimage": "node ./build.js -lDPRF",
-    "dist:linux:pacman": "node ./build.js -lDARF",
-    "dist:linux:rpm": "node ./build.js -lDPFA",
-    "dist:freebsd": "node ./build.js -lDPRA",
-    "dist:mac": "node ./build.js -m",
-    "dist:win": "node ./build.js -w"
+    "dist:mac": "node ./build.js -o 'macos' -p 'dmg'",
+    "dist:win": "node ./build.js -o 'windows' -p 'exe'",
+    "dist:linux": "node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft cleanbuild",
+    "dist:linux:appimage": "node ./build.js -o 'linux' -p 'AppImage'",
+    "dist:linux:deb": "node ./build.js -o 'linux' -p 'deb'",
+    "dist:linux:snap": "snapcraft cleanbuild"
   },
   "devDependencies": {
     "ajv": "^6.5.0",

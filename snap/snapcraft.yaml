@@ -37,7 +37,7 @@ parts:
     after:
       - desktop-glib-only
     override-build: |
-      ./build.js -lb
+      ./build.js -o 'linux' -p 'dir' -e '{"package": "snap"}'
       mkdir $SNAPCRAFT_PART_INSTALL/app
       mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
       mv bin/* $SNAPCRAFT_PART_INSTALL/bin

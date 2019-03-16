@@ -86,7 +86,7 @@ var createBugReport = (title, callback) => {
         "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
         "Device: " + (global.installProperties.device ? global.installProperties.device : "Not detected") + "%0D%0A" +
         "Channel: " + (global.installProperties.channel ? global.installProperties.channel : "Not yet set") + "%0D%0A" +
-        "Package: " + getPackage() + "%0D%0A" +
+        "Package: " + (isSnap() ? "snap" : (global.packageInfo.package || "source")) + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
         "Error log: " + res.headers.location + " %0D%0A");
@@ -94,23 +94,6 @@ var createBugReport = (title, callback) => {
       else callback(false);
     })
   });
-}
-
-var getPackage = () => {
-  try {
-    if (isSnap())
-      return "snap";
-    else if (fs.existsSync(".git"))
-      return "source";
-    else if (process.platform == "win32")
-      return "exe";
-    else if (process.platform == "darwin")
-      return "dmg";
-    else
-      return "unknown"
-  } catch (e) {
-    return "unknown";
-  }
 }
 
 var getCleanOs = () => {

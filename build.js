@@ -26,70 +26,6 @@ const platformToolsUrls = {
   "win": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
 }
 
-const setEvents = (downloadEvent) => {
-  downloadEvent.on("download:error", (r) => {
-    console.log("Download error " + r);
-  });
-  downloadEvent.on("error", (r) => {
-    console.log("Error: " + r);
-  });
-  downloadEvent.on("download:start", (r) => {
-    console.log("Starting download of " + r + " files");
-  });
-  downloadEvent.on("download:next", (i) => {
-    console.log(`Downloading next file, ${i} left`);
-  });
-  downloadEvent.on("download:progress", (i) => {
-    process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% complete\r`);
-  });
-}
-
-function getLinuxTargets() {
-  if (cli.buildToDir) {
-    return ["dir"];
-  }
-
-  var linuxTargets = [];
-  if (!cli.ignoreDeb)
-    linuxTargets.push("deb");
-  if (!cli.ignoreAppimage)
-    linuxTargets.push("AppImage");
-  if (!cli.ignoreFreebsd)
-    linuxTargets.push("freebsd");
-  if (!cli.ignorePacman)
-    linuxTargets.push("pacman");
-  if (!cli.ignoreRpm)
-    linuxTargets.push("rpm");
-
-  if (linuxTargets.length !== 0) {
-    return linuxTargets;
-  } else {
-    console.log("linux targets cannot be null")
-    process.exit(1)
-  }
-}
-
-function build() {
-  builder.build({
-      targets: builder.createTargets(targets),
-      config: buildConfig
-    }
-  )
-  .then(() => {
-      console.log("Done");
-    }
-  )
-  .catch((e) => {
-    if(e.message.indexOf("GitHub Personal Access Token is not set") !== -1) {
-      console.log("Done");
-      process.exit(0);
-    } else {
-      console.log(e);
-      process.exit(1);
-    }
-  })
-}
-
 function getAndroidPlatformTools() {
   var targets = [];
   if (cli.linux) targets.push("linux");
@@ -105,19 +41,7 @@ function getAndroidPlatformTools() {
     })
   });
   return downloadArray;
-};
-
-function downloadPlatformTools() {
-  const downloadEvent = new event();
-  setEvents(downloadEvent);
-  utils.downloadFiles(getAndroidPlatformTools(), downloadEvent);
-  downloadEvent.on("download:done", () => {
-    extractPlatformTools(getAndroidPlatformTools(), () => {
-      console.log("Platform tools downloaded successfully!");
-      if(!cli.downloadOnly) build();
-    });
-  });
-};
+}
 
 function extractPlatformTools(platformToolsArray, callback) {
   var i = platformToolsArray[0];
@@ -143,79 +67,143 @@ function extractPlatformTools(platformToolsArray, callback) {
 }
 
 cli
-  .version(1)
-  .option('-l, --linux', 'Build for Linux')
-  .option('-w, --windows', 'Build for Windows')
-  .option('-m, --mac', 'Build for Mac')
-  .option('-d, --download-only', 'Only download platformTools')
-  .option('-D, --ignore-deb', "Do not build deb")
-  .option('-A, --ignore-appimage', "Do not build appimage")
-  .option('-F, --ignore-freebsd', "Do not build freebsd")
-  .option('-P, --ignore-pacman', "Do not build pacman")
-  .option('-R, --ignore-rpm', "Do not build rpm")
-  .option('-b, --build-to-dir', "Build only to dir")
-  .option('-n, --no-platform-tools', "Build without platform tools")
-  .parse(process.argv);
+  .version(require('./package.json').version)
+  .usage('./build.js -o <os> -p <package> [options]')
+  .option('-o, --os <os>', 'Target operating system')
+  .option('-p, --package [package]', 'Target package')
+  .option('-e, --extra-metadata [JSON]', 'Inject JSON into package.json', JSON.parse, "")
+  .option('-d, --download-only', 'Only download platform tools', undefined, false)
+  .option('-n, --no-platform-tools', 'Build without platform tools', undefined, false)
+  .parse(process.argv)
 
-var targets = [];
+var targetOs;
 var buildConfig = require("./buildconfig-generic.json");
 
-if (cli.linux) {
-  targets.push(Platform.LINUX);
-  buildConfig = Object.assign(buildConfig, {
-      "linux": {
-        "target": getLinuxTargets(),
-        "icon": "build/icons",
-        "synopsis": "Install Ubuntu Touch on UBports devices",
-        "category": "Utility"
-      },
-      "deb": {
-        "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
-      },
-      "freebsd": {
-        "depends": ["android-tools-adb", "android-tools-fastboot"],
-        "packageCategory": "Utility",
-        "vendor": "UBports Foundation",
-        "maintainer": "UBports Foundation"
-      },
-      "pacman": {
-        "depends": ["android-sdk-platform-tools"],
-        "packageCategory": "Utility",
-        "vendor": "UBports Foundation",
-        "maintainer": "UBports Foundation"
-      },
-      "rpm": {
-        "depends": ["android-tools"],
-        "packageCategory": "Utility",
-        "vendor": "UBports Foundation",
-        "maintainer": "UBports Foundation"
+// --- --- --- --- --- --- BEGIN --- --- --- --- --- ---
+
+cli.parse(process.argv);
+
+// Validate and configure operating system
+switch (cli.os) {
+  case "linux":
+    targetOs = Platform.LINUX;
+    buildConfig = Object.assign(buildConfig, {
+        "linux": {
+          "target": cli.package,
+          "icon": "build/icons",
+          "synopsis": "Install Ubuntu Touch on UBports devices",
+          "category": "Utility"
+        },
+        "deb": {
+          "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3", "android-tools-adb", "android-tools-fastboot"]
+        }
       }
-    }
-  );
-}
-if (cli.windows) {
-  targets.push(Platform.WINDOWS);
-  buildConfig = Object.assign(buildConfig, {
-      "win": {
-        "target": ["portable"],
-        "icon": "build/icons/icon.ico"
+    );
+    break;
+  case "windows":
+    targetOs = Platform.WINDOWS;
+    buildConfig = Object.assign(buildConfig, {
+        "win": {
+          "target": ["portable"],
+          "icon": "build/icons/icon.ico"
+        }
       }
-    }
-  );
-}
-if (cli.mac) {
-  targets.push(Platform.MAC);
-  buildConfig = Object.assign(buildConfig, {
-      "mac": {
-        "target": "dmg",
-        "icon": "build/icons/icon.icns",
-        "category": "public.app-category.utilities"
+    );
+    break;
+  case "macos":
+    targetOs = Platform.MAC;
+    buildConfig = Object.assign(buildConfig, {
+        "mac": {
+          "target": "dmg",
+          "icon": "build/icons/icon.icns",
+          "category": "public.app-category.utilities"
+        }
       }
-    }
-  );
+    );
+    break;
+  default:
+    console.log("Please specify a target operating system!");
+    process.exit(1);
 }
 
-if (targets.length === 0) targets = [Platform.MAC, Platform.WINDOWS, Platform.LINUX];
+// Configure package
+switch (cli.package) {
+  case "AppImage":
+  case "deb":
+  case "dir":
+    if (cli.os != "linux") {
+      console.log(cli.package + " can only be built on Linux!");
+      process.exit(1);
+    }
+    break;
+  case "dmg":
+    if (cli.os != "macos") {
+      console.log(cli.package + " can only be built on macOS!");
+      process.exit(1);
+    }
+    break;
+  case "exe":
+    if (cli.os != "windows") {
+      console.log(cli.package + " can only be built on Windows!");
+      process.exit(1);
+    }
+    break;
+  case "":
+    break;
+  default:
+    console.log("Building " + cli.package + " is not configured!");
+    process.exit(1);
+}
 
-if (cli.platformTools) downloadPlatformTools();
-else build();
+// Download platform tools
+if (cli.platformTools) {
+  const downloadEvent = new event();
+  utils.downloadFiles(getAndroidPlatformTools(), downloadEvent);
+  downloadEvent.on("download:done", () => {
+    extractPlatformTools(getAndroidPlatformTools(), () => {
+      console.log("Platform tools downloaded successfully!");
+    });
+  });
+  downloadEvent.on("download:error", (r) => {
+    console.log("Download error " + r);
+    process.exit(1);
+  });
+  downloadEvent.on("error", (r) => {
+    console.log("Error: " + r);
+    process.exit(1);
+  });
+  downloadEvent.on("download:start", (r) => {
+    console.log("Starting download of " + r + " files");
+  });
+  downloadEvent.on("download:next", (i) => {
+    console.log(`Downloading next file, ${i} left`);
+  });
+  downloadEvent.on("download:progress", (i) => {
+    process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% complete\r`);
+  });
+}
+
+// Build
+if (!cli.downloadOnly) {
+  builder.build({
+      targets: builder.createTargets([targetOs]),
+      config: Object.assign(buildConfig,
+        { "extraMetadata":
+          (cli.package ?
+            Object.assign(cli.extraMetadata, { "package": cli.package }) :
+            cli.extraMetadata
+          )
+        }
+      )
+  }).then(() => {
+      console.log("Done");
+  }).catch((e) => {
+    if(e.message.indexOf("GitHub Personal Access Token is not set") !== -1) {
+      console.log("Done");
+      process.exit(0);
+    } else {
+      console.log(e);
+      process.exit(1);
+    }
+  });
+}
