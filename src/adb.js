@@ -166,10 +166,21 @@ var push = (file, dest, pushEvent) => {
     if (err) {
       var stdoutShort = stdout && stdout.length > 256 ? "[...]" + stdout.substr(-256, stdout.length) : stdout;
       var stderrShort = stderr && stderr.length > 256 ? "[...]" + stderr.substr(-256, stderr.length) : stderr;
-      pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
-      console.log(stdoutShort + " stderr: " + stderrShort);
+      if (!err.killed && (err.code == 1)) {
+        hasAdbAccess ((hasAccess) => {
+          if (hasAccess) {
+            pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+          } else {
+            utils.log.warn("connection to device lost");
+            // TODO: Only restart the event rather than the entire installation
+            pushEvent.emit("user:connection-lost", () => { location.reload(); });
+          }
+        });
+      } else {
+        pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+      }
     }
-    else pushEvent.emit("adbpush:end")
+    else pushEvent.emit("adbpush:end");
   });
   var progress = () => {
     setTimeout(function () {
@@ -205,7 +216,7 @@ var pushMany = (files, pushManyEvent) => {
           pushManyEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
           push(files[0].src, files[0].dest, pushManyEvent);
         }
-  })
+  });
   return pushManyEvent
 }
 

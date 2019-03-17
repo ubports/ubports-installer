@@ -54,6 +54,10 @@ script.
         $('#password-wrong').hide();
       });
     });
+    installEvent.on("user:connection-lost", (callback) => {
+      modals.show("connection-lost");
+      $("#btn-reconnect").click(callback);
+    });
     installEvent.on("user:oem-lock", (callback) => {
       modals.show('oem-lock');
       $("#btn-unlock").click(() => {

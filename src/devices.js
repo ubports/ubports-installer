@@ -154,6 +154,9 @@ var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
     bootstrapEvent.emit("bootstrap:done", false); // This will instruct a manual reboot
   } else if (err.password) {
     bootstrapEvent.emit("user:password:wrong", backToFunction);
+  } else if (err.connectionLost) {
+    utils.log.warn("connection to device lost");
+    bootstrapEvent.emit("user:connection-lost", backToFunction);
   } else if (err.locked) {
     bootstrapEvent.emit("user:oem-lock", backToFunction);
   } else {

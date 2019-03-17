@@ -29,11 +29,16 @@ var handleError = (c, r, e, password, callback) => {
       callback({ locked: true });
     } else if (e.includes("booting...") && e.includes("FAILED (remote failure)")) {
       callback({ bootFailed: true });
+    } else if (
+        e.includes("FAILED (status read failed (No such device))") ||
+        e.includes("FAILED (data transfer failure (Protocol error))")
+      ) {
+      callback({ connectionLost: true });
     } else {
       callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
     }
   } else {
-    callback(c, r, e)
+    callback(c, r, e);
   }
 }
 
