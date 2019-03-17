@@ -6,7 +6,6 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
-const version_info = require('../package.json').version;
 const http = require("request");
 const progress = require("request-progress");
 const os = require("os");
@@ -21,10 +20,10 @@ const sudo = require('electron-sudo');
 const winston = require('winston');
 const getos = require('getos');
 const commandExistsSync = require('command-exists').sync;
-//const decompress = require('decompress');
-//const decompressTarxz = require('decompress-tarxz');
-
-var installDevice;
+const remote = require('electron').remote;
+var ipcRenderer = require('electron').ipcRenderer;
+global.installProperties = remote ? remote.getGlobal('installProperties') : undefined;
+global.packageInfo = remote ? remote.getGlobal('packageInfo') : require('../package.json');
 
 var customTools = {
   adb: undefined,
@@ -40,32 +39,18 @@ const platforms = {
 var platformNativeToolsLogged;
 var platformFallbackToolsLogged;
 
-var debugScreen = () => {
-  return process.env.DEBUG ? process.env.SCREEN : null
-}
 var getVersion = () => {
-  return version_info;
+  return global.packageInfo.version;
 }
-var debugTrigger = (event, stage) => {
-  if (!process.env.DEBUG || !process.env.TRIGGER)
-    return
-  var args = process.env.TRIGGER.split(",");
-  if (stage ==! args[1])
-    return
-  setTimeout(function () {
-    event.emit(args[1], args[2]);
-  }, 10);
-}
+
+if (global.installProperties)
+  winston.level = global.installProperties.verbose ? 'debug' : 'info';
 
 var log = {
   error: (l) => {winston.log("error", l)},
   warn:  (l) => {winston.log("warn", l)},
   info:  (l) => {winston.log("info", l)},
   debug: (l) => {winston.log("debug", l)}
-}
-
-const setInstallDevice = (device) => {
-  installDevice = device;
 }
 
 var createBugReport = (title, callback) => {
@@ -95,12 +80,12 @@ var createBugReport = (title, callback) => {
         content: "Title: " + title + "\n\n" + errorLog
       }
     }, (err, res, bod) => {
-      log.warn(getPackage())
       if (!err && res.statusCode === 302)
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
-        "UBports Installer Version: " + version_info + " %0D%0A" +
-        "Device: " + (installDevice ? installDevice : "Not detected") + "%0D%0A" +
+        "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
+        "Device: " + (global.installProperties.device ? global.installProperties.device : "Not detected") + "%0D%0A" +
+        "Channel: " + (global.installProperties.channel ? global.installProperties.channel : "Not yet set") + "%0D%0A" +
         "Package: " + getPackage() + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
@@ -166,7 +151,7 @@ function getLatestInstallerVersion() {
 
 function getUpdateAvailable() {
   return getLatestInstallerVersion().then((latestVersion) => {
-    return latestVersion != version_info;
+    return latestVersion != global.packageInfo.version;
   });
 }
 
@@ -191,12 +176,15 @@ var getUbuntuTouchDir = () => {
 if (!fs.existsSync(getUbuntuTouchDir())) {
     mkdirp.sync(getUbuntuTouchDir());
 }
-winston.add(winston.transports.File, { filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log') });
-winston.level = 'debug';
+winston.add(winston.transports.File, {
+  filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log'),
+  level: 'debug', // Print debug logs to the file
+  options: { flags: 'w' } // Clear log before writing to it
+});
 
 var die = (e) => {
     log.error(e);
-    process.exit(1);
+    ipcRenderer.send("die", 1);
 }
 
 var sudoCommand = (password) => {
@@ -246,9 +234,10 @@ var asarExec = (file, callback) => {
             if(err) die(err);
             callback({
                 exec: (cmd, cb) => {
-                    cmd=cmd.replace(new RegExp(file, 'g'), path.join(tmpDir, path.basename(file)));
-                    // log.debug("Running platform tool fallback exec asar cmd "+cmd);
+                    let name = file.split('/').pop();
+                    cmd = cmd.replace(new RegExp(name, 'g'), path.join(tmpDir, path.basename(file)));
                     exec(cmd, (err, e,r) => {
+                        // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
                         cb(err,e,r);
                     })
                 },
@@ -256,8 +245,8 @@ var asarExec = (file, callback) => {
                     fs.removeSync(tmpDir);
                 }
             });
-        })
-    })
+        });
+    });
 }
 
 const logPlatformNativeToolsOnce = () => {
@@ -276,7 +265,7 @@ const logPlatformFallbackToolsOnce = () => {
 
 const callbackHook = (callback) => {
   return (a,b,c) => {
-    log.debug(a,b,c);
+    // log.debug(a,b,c);
     callback(a,b,c)
   }
 }
@@ -285,10 +274,10 @@ const platformToolsExec = (tool, arg, callback) => {
   var tools = getPlatformTools();
 
   // First check for native tools
-  if (tools[tool]) {
+  if (tools[tool] && !global.installProperties.forceFallback) {
     logPlatformNativeToolsOnce();
     var cmd = tools[tool] + " " + arg.join(" ");
-    log.debug("Running platform tool exec cmd "+cmd);
+    // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
     cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
@@ -296,7 +285,7 @@ const platformToolsExec = (tool, arg, callback) => {
   // Try using fallback tools
   if (tools.fallback[tool]) {
     logPlatformFallbackToolsOnce();
-    // log.debug("Running platform tool fallback exec cmd "+tools.fallback[tool] + " " + arg.join(" "));
+    // log.debug(tools.fallback[tool] + " " + arg.join(" ")) // CAREFUL! THIS MIGHT LOG PASSWORDS!
     cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024}, callbackHook(callback));
     return true;
   }
@@ -309,12 +298,13 @@ const platformToolsExecAsar = (tool, callback) => {
   var tools = getPlatformTools();
 
   // First check for native
-  if (tools[tool]) {
+  if (tools[tool] && !global.installProperties.forceFallback) {
     logPlatformNativeToolsOnce();
     callback({
         exec: (cmd, cb) => {
-            // log.debug("Running platform tool exec asar cmd "+cmd);
-            exec(cmd, (err, e,r) => {
+            var _cmd = cmd.replace(tool, tools[tool]);
+            exec(_cmd, (err, e,r) => {
+                // log.debug(_cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
                 cb(err,e,r);
             })
         },
@@ -368,7 +358,6 @@ const getNativePlatformTools = () => {
     ret["fastboot"] = customTools["fastboot"];
   else if (commandExistsSync("fastboot"))
     ret["fastboot"] = "fastboot";
-
   return ret;
 }
 
@@ -387,8 +376,14 @@ var isSnap = () => {
 }
 
 var needRoot = () => {
-    if ((os.platform() === "win32") || isSnap()) return false;
-    return !process.env.SUDO_UID
+    if (
+      (os.platform() === "win32") ||
+      isSnap() ||
+      !commandExistsSync("sudo") ||
+      global.installProperties.noRoot ||
+      global.installProperties.simulate
+    ) return false;
+    else return !process.env.SUDO_UID
 }
 
 var ensureRoot = (m) => {
@@ -411,18 +406,18 @@ var checkFiles = (urls, callback) => {
     var check = () => {
         fs.access(path.join(urls[0].path, path.basename(urls[0].url)), (err) => {
             if (err) {
-                log.error("Not existing " + path.join(urls[0].path, path.basename(urls[0].url)));
+                log.debug("Not existing " + path.join(urls[0].path, path.basename(urls[0].url)));
                 urls_.push(urls[0]);
                 next();
             } else {
                 checksumFile(urls[0], (check) => {
                     if (check) {
-                        log.info(path.join(urls[0].path, path.basename(urls[0].url)) + " already exists with the expected checksum, so download will be skipped")
-                        next()
+                        log.debug(path.join(urls[0].path, path.basename(urls[0].url)) + " exists with the expected checksum, so the download will be skipped.");
+                        next();
                     } else {
-                        log.info("Checksum no match " + path.join(urls[0].path, path.basename(urls[0].url)))
+                        log.debug("Checksum mismatch on " + path.join(urls[0].path, path.basename(urls[0].url)) + ". This file will be downloaded again.");
                         urls_.push(urls[0]);
-                        next()
+                        next();
                     }
                 })
             }
@@ -440,72 +435,68 @@ var checksumFile = (file, callback) => {
     checksum.file(path.join(file.path, path.basename(file.url)), {
         algorithm: "sha256"
     }, function(err, sum) {
-        log.info("checked: " +path.basename(file.url), sum === file.checksum)
-        callback(sum === file.checksum, sum)
-    })
+        log.debug("checked: " +path.basename(file.url), sum === file.checksum);
+        callback(sum === file.checksum, sum);
+    });
 }
 
 /*
 urls format:
 [
   {
-    url: "http://test.com",
-    path: ".bla/bal/",
-    checksum: "d342j43lj34hgth324hj32ke4"
+    url: "http://test.com", (source url)
+    path: ".bla/bal/", (download target)
+    checksum: "d342j43lj34hgth324hj32ke4" (sha256sum)
   }
 ]
 */
-var downloadFiles = (urls_, downloadEvent, callbackOn) => {
-    var urls;
-    var totalFiles;
-    downloadEvent.emit("download:startCheck");
-    var dl = () => {
-        if (!fs.existsSync(urls[0].path)) {
-            mkdirp.sync(urls[0].path);
-        }
-        progress(http(urls[0].url))
-            .on('progress', (state) => {
-                downloadEvent.emit("download:progress", state);
-            })
-            .on('error', (err) => {
-                downloadEvent.emit("download:error", err)
-            })
-            .on('end', () => {
-                fs.rename(path.join(urls[0].path, path.basename(urls[0].url + ".tmp")),
-                    path.join(urls[0].path, path.basename(urls[0].url)), () => {
-                        downloadEvent.emit("download:checking");
-                        checksumFile(urls[0], (check) => {
-                            if (Array.isArray(callbackOn)){
-                              if (callbackOn.indexOf(urls[0].url) > -1)
-                                downloadEvent.emit("download:callbackOn", urls[0].url);
-                            }
-                            if (check) {
-                                if (urls.length <= 1) {
-                                    downloadEvent.emit("download:done");
-                                } else {
-                                    urls.shift();
-                                    downloadEvent.emit("download:next", urls.length, totalFiles);
-                                    dl()
-                                }
-                            } else {
-                                downloadEvent.emit("download:error", "Checksum did not match on file " + path.basename(urls[0].url));
-                            }
-                        })
-                    })
-            })
-            .pipe(fs.createWriteStream(path.join(urls[0].path, path.basename(urls[0].url + ".tmp"))));
+var downloadFiles = (urls_, downloadEvent) => {
+  var urls;
+  var totalFiles;
+  downloadEvent.emit("download:startCheck");
+  var dl = () => {
+    if (!fs.existsSync(urls[0].path)) {
+      mkdirp.sync(urls[0].path);
     }
-    checkFiles(urls_, (ret) => {
-        if (ret.length <= 0) {
-            downloadEvent.emit("download:done");
-        } else {
-            urls = ret;
-            totalFiles = urls.length;
-            downloadEvent.emit("download:start", urls.length, totalFiles);
-            dl();
-        }
+    progress(http(urls[0].url))
+    .on('progress', (state) => {
+      downloadEvent.emit("download:progress", state.percent*100);
     })
-    return downloadEvent;
+    .on('error', (err) => {
+      if (err) downloadEvent.emit("download:error", err);
+    })
+    .on('end', () => {
+      fs.rename(path.join(urls[0].path, path.basename(urls[0].url + ".tmp")),
+      path.join(urls[0].path, path.basename(urls[0].url)), () => {
+        downloadEvent.emit("download:checking");
+        checksumFile(urls[0], (check) => {
+          if (check) {
+            if (urls.length <= 1) {
+              downloadEvent.emit("download:done");
+            } else {
+              urls.shift();
+              downloadEvent.emit("download:next", totalFiles-urls.length+1, totalFiles);
+              dl()
+            }
+          } else {
+            downloadEvent.emit("download:error", "Checksum mismatch on file " + path.basename(urls[0].url));
+          }
+        });
+      });
+    })
+    .pipe(fs.createWriteStream(path.join(urls[0].path, path.basename(urls[0].url + ".tmp"))));
+  }
+  checkFiles(urls_, (ret) => {
+    if (ret.length <= 0) {
+      downloadEvent.emit("download:done");
+    } else {
+      urls = ret;
+      totalFiles = urls.length;
+      downloadEvent.emit("download:start", totalFiles);
+      dl();
+    }
+  })
+  return downloadEvent;
 }
 
 const getRandomInt = (min, max) => {
@@ -516,14 +507,13 @@ const getRandomInt = (min, max) => {
 
 const hidePassword = (output, pw) => {
   if (needRoot()) {
-    return output.replace(pw, "***");
+    return output.replace(pw.replace(/\'/g, "'\\''"), "***");
   } else {
     return output;
   }
 }
 
 module.exports = {
-    setInstallDevice: setInstallDevice,
     setCustomPlatformTool: setCustomPlatformTool,
     downloadFiles: downloadFiles,
     checksumFile: checksumFile,
@@ -538,14 +528,12 @@ module.exports = {
     needRoot: needRoot,
     sudoCommand: sudoCommand,
     checkPassword: checkPassword,
-    debugScreen: debugScreen,
-    debugTrigger: debugTrigger,
     createBugReport: createBugReport,
     getUpdateAvailable: getUpdateAvailable,
     getPlatform: getPlatform,
     asarExec: asarExec,
     getRandomInt: getRandomInt,
     getVersion: getVersion,
-    hidePassword: hidePassword
-//    decompressTarxzFileOnlyImages: decompressTarxzFileOnlyImages
+    hidePassword: hidePassword,
+    die: die
 }

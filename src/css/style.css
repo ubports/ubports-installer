@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css?family=Ubuntu');
 html {
   position: relative;
   min-height: 100%;
@@ -155,9 +154,87 @@ body .vertical-centered-box .content {
   transform: scale3d(0.5, 0.5, 1);
   z-index: -1;
 }
-#particles-background {
+
+.push-animation,
+.download-animation {
+  margin-top: 60px;
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
   z-index: -1;
 }
+
+.push-animation img,
+.download-animation img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.push-animation i:after,
+.download-animation i:after,
+.push-animation i,
+.download-animation i {
+  background-repeat: repeat;
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+
+.push-animation i,
+.download-animation i {
+  background-size: cover;
+}
+
+.push-animation i:after,
+.download-animation i:after {
+  content: "";
+  opacity: 0.5;
+}
+
+.download-animation i:after {
+  background-image: url("../img/arrow-bigger.svg");
+  animation: download-animation 8s linear infinite;
+}
+
+.download-animation i {
+  background-image: url("../img/arrow-bigger.svg");
+  animation: download-animation 10s linear infinite;
+}
+
+.push-animation i:after {
+  background-image: url("../img/arrow-right.svg");
+  animation: push-animation 8s linear infinite;
+}
+
+.push-animation i {
+  background-size: contain;
+  background-image: url("../img/arrow-right.svg");
+  animation: push-animation 10s linear infinite;
+}
+
+@keyframes download-animation {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 1200px;
+  }
+}
+
+@keyframes push-animation {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 900px 0px;
+  }
+}
+
 lesshat-selector {
   -lh-property: 0; }
 @-webkit-keyframes rotate{ 0% { -webkit-transform: rotate(0deg);} 100% { -webkit-transform: rotate(360deg);}}
@@ -248,5 +325,12 @@ lesshat-selector {
 }
 
 .modal .close {
-    display: none;
+  display: none;
+}
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Ubuntu'), local('Ubuntu Regular'), local('Ubuntu-Regular'), url('../fonts/Ubuntu.ttf') format('truetype');
 }

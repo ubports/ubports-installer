@@ -11,5 +11,10 @@ else
     packages="npm nodejs-legacy"
 fi
 
+echo "Installing nodejs..."
 sudo apt install $packages
+
+echo "Setting up node modules..."
 npm install
+
+echo "Done!"

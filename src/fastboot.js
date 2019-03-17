@@ -7,12 +7,6 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const path = require("path");
-const utils = require("./utils.js")
-if (typeof String.prototype.hidePw !== 'function') {
-    String.prototype.hidePw = function(pw) {
-        return utils.hidePassword(this, pw);
-    }
-}
 
 const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
 
@@ -29,17 +23,22 @@ var isLocked = (message) => {
 
 var handleError = (c, r, e, password, callback) => {
   if (c) {
-      if (c.message.includes("incorrect password"))
-          callback({
-              password: true
-          });
-      else if (isLocked(c.message))
-          callback({
-            locked: true
-          })
-        else callback(true, "Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+    if (c.message.includes("incorrect password")) {
+      callback({ password: true });
+    } else if (isLocked(c.message)) {
+      callback({ locked: true });
+    } else if (e.includes("booting...") && e.includes("FAILED (remote failure)")) {
+      callback({ bootFailed: true });
+    } else if (
+        e.includes("FAILED (status read failed (No such device))") ||
+        e.includes("FAILED (data transfer failure (Protocol error))")
+      ) {
+      callback({ connectionLost: true });
+    } else {
+      callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+    }
   } else {
-      callback(c, r, e)
+    callback(c, r, e);
   }
 }
 
@@ -50,12 +49,16 @@ args; string, function
 */
 var waitForDevice = (password, callback) => {
     utils.log.info("fastboot: wait for device");
+    if (global.installProperties.simulate) {
+      callback(false);
+      return;
+    }
     var cmd = "";
     if (utils.needRoot())
         cmd += utils.sudoCommand(password);
     cmd += "fastboot" + " devices";
     var stop;
-    utils.log.debug("Executing: " + cmd.hidePw(password));
+    utils.log.debug("Executing: " + utils.hidePassword(cmd, password));
     utils.platformToolsExecAsar("fastboot", (asarExec) => {
         var repeat = () => {
             asarExec.exec(cmd, (err, r, e) => {
@@ -69,13 +72,13 @@ var waitForDevice = (password, callback) => {
                         asarExec.done();
                     } else {
                         // Unknown error;
-                        utils.log.error("Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
-                        callback(true, "Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+                        utils.log.error("Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+                        callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
                     }
                     return;
                 } else {
                     if (e) {
-                        utils.log.error("Fastboot: Unknown error: " + r.hidePw(password) + " " + e.hidePw(password));
+                        utils.log.error("Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
                     }
                     setTimeout(() => {
                         if (!stop) repeat();
@@ -110,6 +113,10 @@ image object format
 
 */
 var flash = (images, callback, password) => {
+    if (global.installProperties.simulate) {
+        callback(false);
+        return;
+    }
     utils.log.debug("fastboot: flash; " + JSON.stringify(images));
     var cmd = "";
     images.forEach((image, l) => {
@@ -141,6 +148,10 @@ image object format
 
 */
 var boot = (image, password, callback) => {
+  if (global.installProperties.simulate) {
+    callback(false);
+    return;
+  }
   var cmd="";
   if (utils.needRoot())
       cmd += utils.sudoCommand(password);
@@ -158,6 +169,10 @@ args; array, string, function
 
 */
 var format = (partitions, password, callback) => {
+  if (global.installProperties.simulate) {
+    callback(false);
+    return;
+  }
   var cmd="";
   partitions.forEach((partition, l) => {
       if (utils.needRoot())
@@ -180,6 +195,10 @@ args; array, string, function
 
 */
 var oem = (command, password, callback) => {
+  if (global.installProperties.simulate) {
+    callback(false);
+    return;
+  }
   var cmd="";
   if (utils.needRoot())
       cmd += utils.sudoCommand(password);

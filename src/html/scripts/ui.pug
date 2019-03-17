@@ -3,32 +3,10 @@ script.
   const optionsVal = [
     {id: "channel", type: "select"},
     {id: "wipe", type: "checkbox", note: true},
-    {id: "eye-candy", type: "checkbox"},
     {id: "custom-tools", type: "checkbox"},
     {id: "custom-tools-adb", type: "input"},
     {id: "custom-tools-fastboot", type: "input"}
   ];
-  const particleViews = ["start", "installing"]
-  const viewsExeptions = {
-    switch: () => {
-      userText.set("install-header", "Ready to switch to ubports");
-      $("#btn-inst").text("Switch to UBports");
-      $("#switch-note").show();
-      show("views", "install");
-      userText.set("modal-install-title", "Read before switching!");
-      switchHide("modal-install-body", "modal-install-body-switch");
-      switchHide("installing-text", "installing-text-switch");
-    }
-  }
-
-  const id = {
-      show: (id) => {
-          $("#"+id).show();
-      },
-      hide: (id) => {
-          $("#"+id).hide();
-      }
-  }
 
   const switchHide = (from, to) => {
     $("."+from).hide();
@@ -36,15 +14,16 @@ script.
   }
 
   const hideAll = (id) => {
-      $("."+id).hide();
+    $("."+id).hide();
   }
+
   const showAll = (id) => {
-      $("."+id).show();
+    $("."+id).show();
   }
 
   const show = (cat, id) => {
-      hideAll(cat);
-      $("#"+cat+"-"+id).show();
+    hideAll(cat);
+    $("#"+cat+"-"+id).show();
   }
 
   const setText = (cat, id, text) => {
@@ -55,33 +34,71 @@ script.
     return $("#"+cat+"-"+id).val();
   }
 
+  const animations = {
+    hideAll: () => {
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+      $("#push-animation").hide();
+      $("#download-animation").hide();
+    },
+    particles: () => {
+      $("#particles-foreground").show();
+      $("#particles-background").show();
+      $("#push-animation").hide();
+      $("#download-animation").hide();
+    },
+    download: () => {
+      $("#download-animation").show();
+      $("#push-animation").hide();
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+    },
+    push: () => {
+      $("#push-animation").show();
+      $("#download-animation").hide();
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+    }
+  }
+
   const views = {
-      hideAll: () => hideAll("views"),
-      show: id => {
-        if ($.inArray(id, particleViews) != -1){
-          particles.show();
-          $(".ubp-robot").removeClass("ubp-robot-foot")
-          $(".ubp-robot").removeClass("ubp-robot-side")
-        } else if (id === "done") {
-          particles.hide();
-          $(".ubp-robot").addClass("ubp-robot-side")
-          $(".ubp-robot").removeClass("ubp-robot-foot")
+    hideAll: () => hideAll("views"),
+    show: (id, animation) => {
+      if (id != "working"){
+        if (id == "done") {
+          $(".ubp-robot").addClass("ubp-robot-side");
+          $(".ubp-robot").removeClass("ubp-robot-foot");
         } else {
-          particles.hide();
-          $(".ubp-robot").addClass("ubp-robot-foot")
-          $(".ubp-robot").removeClass("ubp-robot-side")
+          $(".ubp-robot").removeClass("ubp-robot-side");
+          $(".ubp-robot").addClass("ubp-robot-foot");
         }
-        if (viewsExeptions[id]){
-          viewsExeptions[id]()
-          return;
+        animations.hideAll();
+        show("views", id);
+        return;
+      } else {
+        $(".ubp-robot").removeClass("ubp-robot-side");
+        $(".ubp-robot").removeClass("ubp-robot-foot");
+        show("views", "working");
+        switch (animation) {
+          case "particles":
+            animations.particles()
+            break;
+          case "download":
+            animations.download()
+            break;
+          case "push":
+            animations.push()
+            break;
+          default:
+            animations.hideAll();
         }
-        show("views", id)
       }
+    }
   }
 
   const userText = {
-      set: (id, text) => setText("user", id, text),
-      remove: id => setText("user", id, "")
+    set: (id, text) => setText("user", id, text),
+    remove: id => setText("user", id, "")
   }
 
   const header = {
@@ -93,30 +110,30 @@ script.
   }
 
   const footer = {
-      topText: {
-          set: (text) => {
-              return $("#device-name").text(text)
-          }
-      },
-      underText: {
-          set: (text) => {
-              return $("#device-under-text").text(text)
-          }
+    topText: {
+      set: (text) => {
+        return $("#device-name").text(text)
       }
+    },
+    underText: {
+      set: (text) => {
+        return $("#device-under-text").text(text)
+      }
+    }
   }
 
   const modals = {
-      bind: modal => {
-        $("#btn-modal-"+modal).click(() => {
-          $('#'+modal+'-modal').modal('show');
-        })
-      },
-      show: modal => {
+    bind: modal => {
+      $("#btn-modal-"+modal).click(() => {
         $('#'+modal+'-modal').modal('show');
-      },
-      hide: modal => {
-        $('#'+modal+'-modal').modal('hide');
-      }
+      })
+    },
+    show: modal => {
+      $('#'+modal+'-modal').modal('show');
+    },
+    hide: modal => {
+      $('#'+modal+'-modal').modal('hide');
+    }
   }
 
   const getOptionVal = (option, raw) => {
@@ -130,11 +147,9 @@ script.
             break;
           case "checkbox":
             ret = $("#options-" + optionVal.id).is(':checked')
-            if (!raw)
-              ret = ret ? "Yes" : "No";
+            if (!raw) ret = ret ? "Yes" : "No";
             break;
           default:
-            console.log("default", optionVal);
             ret = $("#options-" + optionVal.id).val()
             break;
         }
@@ -150,40 +165,77 @@ script.
   }
 
   const options = {
-      get: getOptionVal,
-      init: () => {
-        $("#btn-options-close").click(() => {
-          optionsValToUser();
-        })
-        $("#options-wipe").change(() => {
-          if (getOptionVal("wipe", true)) {
-            $("#options-wipe-note").show();
-            switchHide("modal-install-body-no-wipe", "modal-install-body-wipe");
-          } else {
-            $("#options-wipe-note").hide();
-            switchHide("modal-install-body-wipe", "modal-install-body-no-wipe");
-          }
-        });
-        $("#options-custom-tools").change(() => {
-          if (getOptionVal("custom-tools", true)) {
-            $("#options-custom-tools-area").show();
-          } else {
-            $("#options-custom-tools-area").hide();
-          }
-        });
-      },
-      optionsValToUser: optionsValToUser
+    get: getOptionVal,
+    init: () => {
+      $("#btn-options-close").click(() => {
+        optionsValToUser();
+      });
+      $("#options-wipe").change(() => {
+        if (getOptionVal("wipe", true)) {
+          $("#options-wipe-note").show();
+          switchHide("modal-install-body-no-wipe", "modal-install-body-wipe");
+        } else {
+          $("#options-wipe-note").hide();
+          switchHide("modal-install-body-wipe", "modal-install-body-no-wipe");
+        }
+      });
+      $("#options-custom-tools").change(() => {
+        if (getOptionVal("custom-tools", true)) {
+          $("#options-custom-tools-area").show();
+        } else {
+          $("#options-custom-tools-area").hide();
+        }
+      });
+    },
+    optionsValToUser: optionsValToUser
   }
 
-  const particles = {
-      show: () => {
-          if (getOptionVal("eye-candy", true)) {
-              id.show("particles-foreground");
-              id.show("particles-background");
-          }
-      },
-      hide: () => {
-          id.hide("particles-foreground");
-          id.hide("particles-background");
-      }
+  $("#btn-bugreport").click(() => {
+    var title = $("#error-body").text();
+    utils.createBugReport(title, (body) => {
+      shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
+    });
+  });
+
+  $("#btn-exit").click(() => {
+    var window = remote.getCurrentWindow();
+    window.close();
+  });
+
+  $("#help").click(() => {
+    utils.createBugReport("user-requested error report", (body) => {
+      shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title=please describe the problem you are experiencing&body="+body);
+    });
+  });
+
+  $("#btn-modal-select-device-unsupported").click(() => {
+    modals.show('select-device');
+  });
+
+  $("#btn-modal-dev-mode").click(() => {
+    modals.show('developer-mode-info');
+  });
+
+  if(utils.isSnap()) {
+    $("#options-custom-tools").prop("disabled", true);
+    $("#options-custom-tools-snap-note").show();
   }
+
+  if (process.platform === "win32") {
+    modals.show('windows-drivers');
+  }
+
+  utils.getUpdateAvailable().then((updateAvailable) => {
+    if(updateAvailable) {
+      utils.log.warn("This is not the latest stable release!")
+      if (utils.isSnap()) {
+        $("#snap-update-instructions").show();
+        $("#btn-update-installer").hide();
+      } else {
+        $("#generic-update-instructions").show();
+      }
+      modals.show('new-update');
+    } else {
+      utils.log.debug("Running latest stable version.");
+    }
+  });
