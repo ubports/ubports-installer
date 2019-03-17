@@ -149,23 +149,28 @@ var instructOemUnlock = (unlockEvent, callback) => {
 }
 
 var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
-  if(err.password)
-      bootstrapEvent.emit("user:password:wrong", backToFunction);
-  else if (err.locked)
-      bootstrapEvent.emit("user:oem-lock", backToFunction);
-   else
-      bootstrapEvent.emit("error", errM)
+  if (err.bootFailed) {
+    utils.log.warn("fastboot boot failed, does the " + global.installProperties.device + " really support it?");
+    bootstrapEvent.emit("bootstrap:done", false); // This will instruct a manual reboot
+  } else if (err.password) {
+    bootstrapEvent.emit("user:password:wrong", backToFunction);
+  } else if (err.locked) {
+    bootstrapEvent.emit("user:oem-lock", backToFunction);
+  } else {
+    bootstrapEvent.emit("error", errM);
+  }
 }
 
 var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
     //TODO check bootloader name/version/device
     var flash = (p) => {
+        utils.log.info("Flashing images...")
         fastboot.flash(images, (err, errM) => {
-            if(err)
+            if (err) {
               handleBootstrapError(err, errM, bootstrapEvent, () => {
                 instructBootstrap(fastbootboot, images, bootstrapEvent);
               });
-            else {
+            } else {
               if (fastboot) {
                   utils.log.info("Booting into recovery image...");
                   // find recovery image
@@ -183,12 +188,14 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
                         handleBootstrapError(err, errM, bootstrapEvent, () => {
                           instructBootstrap(fastbootboot, images, bootstrapEvent);
                         });
-                      }else
+                      } else {
                         bootstrapEvent.emit("bootstrap:done", fastbootboot);
-                    })
+                      }
+                    });
                   }
-              } else
-                  bootstrapEvent.emit("bootstrap:done", fastbootboot)
+              } else {
+                bootstrapEvent.emit("bootstrap:done", fastbootboot);
+              }
             }
         }, p)
     }
@@ -316,7 +323,7 @@ var install = (options) => {
       utils.log.info("bootstrap done");
       if (!fastbootboot){
         instructReboot("recovery", instructs.buttons, installEvent, () => {
-          installEvent.emit("system-image:start")
+          installEvent.emit("system-image:start");
         });
       } else {
         installEvent.emit("user:write:status", "Waiting for device to enter recovery mode");

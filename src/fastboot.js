@@ -23,17 +23,17 @@ var isLocked = (message) => {
 
 var handleError = (c, r, e, password, callback) => {
   if (c) {
-      if (c.message.includes("incorrect password"))
-          callback({
-              password: true
-          });
-      else if (isLocked(c.message))
-          callback({
-            locked: true
-          })
-        else callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+    if (c.message.includes("incorrect password")) {
+      callback({ password: true });
+    } else if (isLocked(c.message)) {
+      callback({ locked: true });
+    } else if (e.includes("booting...") && e.includes("FAILED (remote failure)")) {
+      callback({ bootFailed: true });
+    } else {
+      callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+    }
   } else {
-      callback(c, r, e)
+    callback(c, r, e)
   }
 }
 
