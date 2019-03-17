@@ -61,30 +61,28 @@ var formatNotWorking = (nw) => {
 }
 
 var instructReboot = (state, button, rebootEvent, callback) => {
+  var rebooted = false;
+  var manualReboot = () => {
+    utils.log.info("Instructing manual reboot");
+    utils.log.info(button[state]["button"]);
+    rebootEvent.emit("user:reboot", {
+      button: button[state]["button"],
+      instruction: button[state]["instruction"],
+      state: state
+    });
+  }
   adb.hasAdbAccess((hasAccess) => {
     if (hasAccess) {
       adb.reboot(state, (err, out, eout) => {
         if (err) {
           utils.log.warn("Adb failed to reboot!, " + out + " : " + eout);
-          utils.log.info("Instructing manual reboot");
-          utils.log.info(button[state]["button"]);
-          rebootEvent.emit("user:reboot", {
-            button: button[state]["button"],
-            instruction: button[state]["instruction"],
-            state: state
-          });
+          manualReboot();
         } else {
           rebootEvent.emit("adb:rebooted");
         }
       });
     } else {
-      utils.log.info("Instructing manual reboot");
-      utils.log.info(button[state]["button"]);
-      rebootEvent.emit("user:reboot", {
-        button: button[state]["button"],
-        instruction: button[state]["instruction"],
-        state: state
-      });
+      manualReboot();
     }
     if (state === "bootloader") {
       requestPassword(rebootEvent, (pass) => {
@@ -92,21 +90,27 @@ var instructReboot = (state, button, rebootEvent, callback) => {
           if (err) {
             rebootEvent.emit("Error", errM);
             return;
+          } else {
+            rebooted = true;
+            rebootEvent.emit("reboot:done");
+            rebootEvent.emit("state:bootloader");
+            callback();
+            return;
           }
-          rebootEvent.emit("reboot:done");
-          rebootEvent.emit("state:bootloader");
-          callback();
         });
       });
     } else {
       adb.waitForDevice(() => {
+        rebooted = true;
         // We expect the device state to mach installState now
         rebootEvent.emit("reboot:done");
         rebootEvent.emit("state:" + state);
-        callback()
+        callback();
+        return;
       });
     }
   });
+  setTimeout(() => { if (!rebooted) manualReboot() }, 15000);
 }
 
 var requestPassword = (bootstrapEvent, callback) => {
