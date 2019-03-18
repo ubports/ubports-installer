@@ -24,7 +24,7 @@ install:
 - npm install
 - npm prune
 script:
-- npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "mac")
+- npm run dist:$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux:deb && npm run dist:linux:appimage" || echo "mac")
 deploy:
   provider: releases
   api_key:

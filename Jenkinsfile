@@ -12,10 +12,17 @@ pipeline {
     }
     stage('Build dist') {
       parallel {
-        stage("Deb, AppImage, Freebsd") {
-          steps { sh 'npm run dist:linux' }
+        stage("deb") {
+          steps {
+            sh 'npm run dist:linux:deb'
+          }
         }
-        stage("Snap") {
+        stage("AppImage") {
+          steps {
+            sh 'npm run dist:linux:appimage'
+          }
+        }
+        stage("snap") {
           steps {
             sh 'npm run dist:linux:snap'
             sh 'mv ./*.snap ./dist/.'

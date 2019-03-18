@@ -1,4 +1,5 @@
 name: ubports-installer
+version: readfromscript
 version-script: node ./build.js --version
 summary: The easy way to install Ubuntu Touch on UBports devices.
 description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.

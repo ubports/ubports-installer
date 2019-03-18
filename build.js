@@ -22,25 +22,16 @@ const Platform = builder.Platform
 const platformToolsPath = "./platform-tools"
 const platformToolsUrls = {
   "linux": "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
-  "mac": "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
-  "win": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
+  "macos": "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
+  "windows": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
 }
 
 function getAndroidPlatformTools() {
-  var targets = [];
-  if (cli.linux) targets.push("linux");
-  if (cli.windows) targets.push("win");
-  if (cli.mac) targets.push("mac");
-  if (targets.length === 0) targets = ["linux", "win", "mac"];
-  var downloadArray = [];
-  targets.forEach((target) => {
-    downloadArray.push({
-      url: platformToolsUrls[target],
-      path: platformToolsPath,
-      target: target
-    })
-  });
-  return downloadArray;
+  return [{
+    url: platformToolsUrls[cli.os],
+    path: platformToolsPath,
+    target: cli.os
+  }];
 }
 
 function extractPlatformTools(platformToolsArray, callback) {
@@ -52,7 +43,7 @@ function extractPlatformTools(platformToolsArray, callback) {
       overwrite: true
     }, (e) => {
       fs.removeSync(path.join(i.path, i.target + "_tmp"))
-      if (i.target !== "win") {
+      if (i.target !== "windows") {
         fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
         fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
       }
