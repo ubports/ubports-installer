@@ -10,24 +10,12 @@ pipeline {
         sh 'npm prune'
       }
     }
-    stage('Build dist') {
-      parallel {
-        stage("deb") {
-          steps {
-            sh 'npm run dist:linux:deb'
-          }
-        }
-        stage("AppImage") {
-          steps {
-            sh 'npm run dist:linux:appimage'
-          }
-        }
-        stage("snap") {
-          steps {
-            sh 'npm run dist:linux:snap'
-            sh 'mv ./*.snap ./dist/.'
-          }
-        }
+    stage('Build') {
+      steps {
+        sh 'npm run dist:linux:deb'
+        sh 'npm run dist:linux:appimage'
+        sh 'npm run dist:linux:snap'
+        sh 'mv ./*.snap ./dist/.'
       }
     }
   }
