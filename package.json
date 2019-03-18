@@ -26,7 +26,7 @@
     "test-unit": "NODE_ENV=test mocha 'tests/unit-tests/*.js'",
     "start": "electron .",
     "dist:mac": "node ./build.js -o 'macos' -p 'dmg'",
-    "dist:win": "node ./build.js -o 'windows' -p 'exe'",
+    "dist:win": "node ./build.js -o \"windows\" -p \"exe\"",
     "dist:linux": "node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft cleanbuild",
     "dist:linux:appimage": "node ./build.js -o 'linux' -p 'AppImage'",
     "dist:linux:deb": "node ./build.js -o 'linux' -p 'deb'",
