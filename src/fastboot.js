@@ -7,10 +7,8 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const path = require("path");
-const utils = require("./utils.js")
 
 const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
-
 
 var isLocked = (message) => {
   var locked = false;
@@ -25,17 +23,22 @@ var isLocked = (message) => {
 
 var handleError = (c, r, e, password, callback) => {
   if (c) {
-      if (c.message.includes("incorrect password"))
-          callback({
-              password: true
-          });
-      else if (isLocked(c.message))
-          callback({
-            locked: true
-          })
-        else callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+    if (c.message.includes("incorrect password")) {
+      callback({ password: true });
+    } else if (isLocked(c.message)) {
+      callback({ locked: true });
+    } else if (e.includes("booting...") && e.includes("FAILED (remote failure)")) {
+      callback({ bootFailed: true });
+    } else if (
+        e.includes("FAILED (status read failed (No such device))") ||
+        e.includes("FAILED (data transfer failure (Protocol error))")
+      ) {
+      callback({ connectionLost: true });
+    } else {
+      callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+    }
   } else {
-      callback(c, r, e)
+    callback(c, r, e);
   }
 }
 
@@ -45,13 +48,18 @@ args; string, function
 
 */
 var waitForDevice = (password, callback) => {
-    utils.log.debug("fastboot: wait for device");
+    utils.log.info("fastboot: wait for device");
+    if (global.installProperties.simulate) {
+      callback(false);
+      return;
+    }
     var cmd = "";
     if (utils.needRoot())
         cmd += utils.sudoCommand(password);
     cmd += "fastboot" + " devices";
     var stop;
-    utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+    utils.log.debug("Executing: " + utils.hidePassword(cmd, password));
+    utils.platformToolsExecAsar("fastboot", (asarExec) => {
         var repeat = () => {
             asarExec.exec(cmd, (err, r, e) => {
                 if (r) {
@@ -62,13 +70,16 @@ var waitForDevice = (password, callback) => {
                     else if (r.includes("fastboot")) {
                         callback(false);
                         asarExec.done();
-                    }else {
+                    } else {
                         // Unknown error;
-                        utils.log.error("Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
-                        callback(true, "Fastboot: Unknown error: " + r.replace(password, "***") + " " + e.replace(password, "***"));
+                        utils.log.error("Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+                        callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
                     }
                     return;
                 } else {
+                    if (e) {
+                        utils.log.error("Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+                    }
                     setTimeout(() => {
                         if (!stop) repeat();
                         else asarExec.done();
@@ -102,7 +113,11 @@ image object format
 
 */
 var flash = (images, callback, password) => {
-    utils.log.debug("fastboot: flash; " + images);
+    if (global.installProperties.simulate) {
+        callback(false);
+        return;
+    }
+    utils.log.debug("fastboot: flash; " + JSON.stringify(images));
     var cmd = "";
     images.forEach((image, l) => {
         if (utils.needRoot())
@@ -111,7 +126,7 @@ var flash = (images, callback, password) => {
         if (l !== images.length - 1)
             cmd += " && "
     });
-    utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+    utils.platformToolsExecAsar("fastboot", (asarExec) => {
         asarExec.exec(cmd, (c, r, e) => {
             handleError(c, r, e, password, callback);
             asarExec.done();
@@ -133,11 +148,15 @@ image object format
 
 */
 var boot = (image, password, callback) => {
+  if (global.installProperties.simulate) {
+    callback(false);
+    return;
+  }
   var cmd="";
   if (utils.needRoot())
       cmd += utils.sudoCommand(password);
   cmd += "fastboot" + " boot \"" + path.join(image.path, path.basename(image.url)) + "\"";
-  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+  utils.platformToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           handleError(c, r, e, password, callback);
           asarExec.done();
@@ -150,6 +169,10 @@ args; array, string, function
 
 */
 var format = (partitions, password, callback) => {
+  if (global.installProperties.simulate) {
+    callback(false);
+    return;
+  }
   var cmd="";
   partitions.forEach((partition, l) => {
       if (utils.needRoot())
@@ -158,7 +181,7 @@ var format = (partitions, password, callback) => {
       if (l !== partitions.length - 1)
           cmd += " && "
   });
-  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+  utils.platformToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           handleError(c, r, e, password, callback);
           asarExec.done();
@@ -172,11 +195,15 @@ args; array, string, function
 
 */
 var oem = (command, password, callback) => {
+  if (global.installProperties.simulate) {
+    callback(false);
+    return;
+  }
   var cmd="";
   if (utils.needRoot())
       cmd += utils.sudoCommand(password);
   cmd += "fastboot" + " oem " + command;
-  utils.platfromToolsExecAsar("fastboot", (asarExec) => {
+  utils.platformToolsExecAsar("fastboot", (asarExec) => {
       asarExec.exec(cmd, (c, r, e) => {
           setTimeout(() => {
             handleError(c, r, e, password, callback);

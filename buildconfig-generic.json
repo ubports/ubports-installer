@@ -1,0 +1,12 @@
+{
+  "appId": "com.ubports.installer",
+  "productName": "ubports-installer",
+  "copyright": "Copyright © year UBports Foundation",
+  "publish": [],
+  "files": [
+    "src/**/*",
+    "node_modules/**/*",
+    "platform-tools/${os}/**/*",
+    "build/icons/icon.*"
+  ]
+}

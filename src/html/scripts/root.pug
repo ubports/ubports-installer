@@ -1,0 +1,13 @@
+script.
+  require('jquery');
+  window.$ = window.jQuery = require('../../node_modules/jquery/dist/jquery.js');
+  const { shell } = require('electron');
+  const devices = require('../devices.js');
+  const systemImage = require("../system-image.js");
+  const adb = require("../adb.js");
+  const utils = require("../utils.js");
+  const remote = require('electron').remote;
+  var ipcRenderer = require('electron').ipcRenderer;
+  require('bootstrap');
+  global.installProperties = remote.getGlobal('installProperties');
+  global.packageInfo =  remote.getGlobal('packageInfo');

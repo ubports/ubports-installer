@@ -1,0 +1,23 @@
+#views-install.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
+    .col-xs-6(style='height: 100%')
+      h4.user-install-header(style='font-weight: bold;') Ready to install!
+      p
+        | Your device: #[a#your-ubp-device]
+      #switch-note(hidden='hidden')
+        p This device is running old Canonical images!
+      #legacy-android-note(hidden='hidden')
+        p If your device is running Android, you might have to #[a(onclick="shell.openExternal('https://docs.ubports.com/en/latest/userguide/install.html#install-on-legacy-android-devices')") install the old Ubuntu Touch version from Canonical] first to unlock the bootloader.
+      h3
+        small Install options
+      table.table
+        tr
+          td Channel
+          td.user-channel
+        tr
+          td Wipe
+          td.user-wipe
+      button#btn-modal-options.btn.btn-default(type='button', style='width: 100%;', hidden='') Change options
+      button#btn-inst.btn.btn-primary(type='button', style='width: 100%; margin-top: 10px;', hidden='') Install

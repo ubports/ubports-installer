@@ -1,5 +1,4 @@
 osx_image: xcode7.3
-sudo: false
 dist: trusty
 language: c
 matrix:
@@ -21,7 +20,7 @@ addons:
     - graphicsmagick
     - xz-utils
 install:
-- nvm install 6
+- nvm install 8
 - npm install
 - npm prune
 script:

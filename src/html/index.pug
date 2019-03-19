@@ -1,0 +1,55 @@
+doctype html
+html
+  head
+    link(rel='stylesheet', href='../../node_modules/bootstrap/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href='../css/style.css')
+  body
+    include scripts/root
+    .header.is-over
+      h3#header-text.text-muted.installer UBports Installer
+    button#help.help-button.btn.btn-primary.is-over Report a bug
+    #particles-background.vertical-centered-box
+    #particles-foreground.vertical-centered-box
+    #download-animation.vertical-centered-box.download-animation.is-under
+      i.is-under
+    #push-animation.vertical-centered-box.push-animation.is-under
+      i.is-under
+    // Views
+    include views/done
+    include views/reboot
+    include views/install
+    include views/not-supported
+    include views/wait-for-device
+    include views/working
+    #progress.progress(hidden='hidden')
+    footer.footer.is-over
+      #waitForDevice.container(hidden='hidden')
+        h3.text-muted.footer-top
+          | Waiting for a device
+          span#wait-dot
+        p.text-muted Connect the device to the computer with a USB cable.
+      #device.container
+        h3#device-name.text-muted.footer-top
+          | UBports Installer is starting up
+        p#device-under-text.text-muted Starting adb service...
+    // --- Modals ---
+    include modals/install
+    include modals/connection-lost
+    include modals/error
+    include modals/password
+    include modals/oem-lock
+    include modals/select-device
+    include modals/developer-mode
+    include modals/options
+    include modals/windows-drivers
+    include modals/new-update
+    include modals/no-network
+  // --- Scripts ---
+  // Animated loading screen
+  include scripts/particleground
+  include scripts/start
+  // UI-related event management
+  include scripts/ui
+  // Functionality-related event management
+  include scripts/main
+  include scripts/dots

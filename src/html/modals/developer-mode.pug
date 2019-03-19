@@ -1,0 +1,54 @@
+#developer-mode-info-modal.modal.fade(tabindex='-1', role='dialog', style='overflow-y: scroll')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title How to enable developer mode
+      .modal-body
+        p Please select the operating system that is currently installed on your device to learn how to enable developer mode.
+        #accordion.panel-group(role='tablist')
+          .panel.panel-default(role='button', data-toggle='collapse', data-parent='#accordion', href='#collapseUbuntu')
+            .panel-heading(role='tab')
+              h4.panel-title Ubuntu Touch
+            #collapseUbuntu.panel-collapse.collapse(role='tabpanel')
+              .panel-body
+                .row
+                  .col-xs-6
+                    p
+                      | This is done from System Settings. 
+                      br
+                    ol(type='1')
+                      li
+                        | Open System Settings, go to About this Phone, and then Developer Mode.
+                      li
+                        | The adb service will be enabled if 'developer mode' is selected. Note that you must have some sort of lock screen security enabled (pin or password), and 'Developer mode' will be greyed out if that's not the case.
+                      li
+                        | The 'Lock Security' menu there can be used to set a pin or password.
+                  .col-xs-6
+                    img(src='../screens/ubuntu-dev-mode.gif', style='width: 100%')
+          .panel.panel-default(role='button', data-toggle='collapse', data-parent='#accordion', href='#collapseAndroid')
+            .panel-heading(role='tab')
+              h4.panel-title Android
+            #collapseAndroid.panel-collapse.collapse(role='tabpanel')
+              .panel-body
+                .row
+                  .col-xs-6
+                    p
+                      | This is done from System Settings. 
+                      br
+                    ol(type='1')
+                      li
+                        | Go to the settings menu, scroll down and select "About phone".
+                      li
+                        | Scroll down to the bottom again, where you see "Build number."
+                      li
+                        | Tap it seven (7) times. After the third tap, you'll see a dialog that says you're four taps away from being a developer. Keep on tapping until you see a dialog saying "You're now a developer"
+                      li
+                        | Now go back to the Settings menu and find "developer settings" (sometimes called "developer options"), Tap that.
+                      li
+                        | Enable the "OEM unlock" and "USB debugging" options.
+                  .col-xs-6
+                    img(src='../screens/android-dev-mode.gif', style='width: 100%')
+        .modal-footer
+          button.btn.btn-default(type='button', data-dismiss='modal') Close

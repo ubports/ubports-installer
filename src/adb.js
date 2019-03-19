@@ -29,34 +29,33 @@ const start = (password, sudo, callback) => {
     var cmd="";
     if (utils.needRoot() && sudo)
         cmd += utils.sudoCommand(password);
-    cmd += adb + " -P " + PORT + " start-server";
-    // Authorize Fairphone 2 vendor ID if necessary
+    cmd += "adb -P " + PORT + " start-server";
+    // HACK: Authorize Fairphone 2 vendor ID if necessary
     if (utils.isSnap())
         exec("echo 0x2ae5 > ~/.android/adb_usb.ini");
-    utils.platfromToolsExecAsar("adb", (platfromToolsExecAsar) => {
-        platfromToolsExecAsar.exec(cmd, (c, r, e) => {
-            console.log(c, r, e);
+    utils.platformToolsExecAsar("adb", (platformToolsExecAsar) => {
+        platformToolsExecAsar.exec(cmd, (c, r, e) => {
             if (r.includes("incorrect password"))
               callback({
                   password: true
-                });
+              });
             else
-              callback()
-            platfromToolsExecAsar.done();
-        })
+              callback();
+            platformToolsExecAsar.done();
+        });
     });
-  })
+  });
 }
 
 const stop = (callback) => {
-  utils.platfromToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
-      utils.platfromToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
-        console.log(stdout)
+  utils.log.debug("Killing all running adb servers...")
+  utils.platformToolsExec("adb", ["kill-server"], (err, stdout, stderr) => {
+      utils.platformToolsExec("adb", ["-P", PORT, "kill-server"], (err, stdout, stderr) => {
+        // console.log(stdout)
         if (err !== null) callback(false);
         else callback();
-      })
-  })
-
+      });
+  });
 }
 
 // TODO: remove lazy override alias, this should be handled by the server
@@ -67,7 +66,13 @@ const lazyOverrideAlias = (func, arg, callback) => {
     "a0001": "bacon",
     "find7op": "bacon",
     "nexus5": "hammerhead",
-    "fairphone2": "FP2"
+    "fairphone2": "FP2",
+    "PRO5": "turbo",
+    "mx4": "arale",
+    "Aquaris_E45": "krillin",
+    "Aquaris_E5": "vegetahd",
+    "Aquaris_M10HD": "cooler",
+    "Aquaris_M10FHD": "frieza"
   }
   func(device => {
     if (device in alias)
@@ -85,22 +90,21 @@ var getDeviceNameFromPropFile = (callback) => {
       if (prop.includes("ro.product.device") && prop !== undefined && !ret){
         ret = prop.split("=")[1];
       }
-    })
+    });
     callback(ret.replace(/\W/g, ""));
-  })
+  });
 }
 
 var _getDeviceName = (callback, method) => {
   if (!method) method = "device";
   shell("getprop ro.product."+method, (stdout) => {
-    if (stdout.includes("getprop: not found")){
+    if (!stdout) {
+      utils.log.debug("getprop: error");
+      callback(false);
+      return;
+    } else if (stdout.includes("getprop: not found")){
       utils.log.debug("getprop: not found")
       getDeviceNameFromPropFile(callback);
-      return;
-    }
-    if (stdout === null) {
-      util.log.debug("getprop: error");
-      callback(false);
       return;
     }
     utils.log.debug("getprop: "+stdout.replace(/\W/g, ""))
@@ -108,12 +112,14 @@ var _getDeviceName = (callback, method) => {
   });
 }
 
-var getDeviceName = (callback, method) => lazyOverrideAlias(_getDeviceName, method, callback)
+var getDeviceName = (callback, method) => {
+  lazyOverrideAlias(_getDeviceName, method, callback)
+}
 
 var isUbuntuDevice = (callback) => {
   shell("cat /etc/system-image/channel.ini", (output) => {
     callback(output ? true : false);
-  })
+  });
 }
 
 var readUbuntuChannelINI = (callback) => {
@@ -134,8 +140,10 @@ var readUbuntuChannelINI = (callback) => {
 }
 
 var isBaseUbuntuCom = callback => {
-  if (process.env.FORCE_SWITCH)
-    return callback(true);
+  if (global.installProperties.simulate) {
+    callback(global.installProperties.currentOs == "ubuntu");
+    return;
+  }
   readUbuntuChannelINI(ini => {
     if (!ini)
       return callback(false);
@@ -144,31 +152,55 @@ var isBaseUbuntuCom = callback => {
 }
 
 var push = (file, dest, pushEvent) => {
+  if (global.installProperties.simulate) {
+    return setTimeout(() => {
+      pushEvent.emit("adbpush:progress", 50);
+      pushEvent.emit("adbpush:end");
+    }, 50);
+  }
   var done;
+  var hundredEmitted;
   var fileSize = fs.statSync(file)["size"];
-  utils.platfromToolsExec("adb", ["-P", PORT, "push", "'" + file.replace("'","\'") + "'", dest], (err, stdout, stderr) => {
+  utils.platformToolsExec("adb", ["-P", PORT, "push", file.replace(' ','\ '), dest], (err, stdout, stderr) => {
     done=true;
-    if (err !== null) {
-      pushEvent.emit("adbpush:error", err+" stdout: " + stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
-      console.log(stdout.length > 50*1024 ? "overflow" : stdout + " stderr: " + stderr.length > 50*1024 ? "overflow" : stderr)
+    if (err) {
+      var stdoutShort = stdout && stdout.length > 256 ? "[...]" + stdout.substr(-256, stdout.length) : stdout;
+      var stderrShort = stderr && stderr.length > 256 ? "[...]" + stderr.substr(-256, stderr.length) : stderr;
+      if (!err.killed && (err.code == 1)) {
+        hasAdbAccess ((hasAccess) => {
+          if (hasAccess) {
+            pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+          } else {
+            utils.log.warn("connection to device lost");
+            // TODO: Only restart the event rather than the entire installation
+            pushEvent.emit("user:connection-lost", () => { location.reload(); });
+          }
+        });
+      } else {
+        pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+      }
     }
-    else pushEvent.emit("adbpush:end")
+    else pushEvent.emit("adbpush:end");
   });
   var progress = () => {
     setTimeout(function () {
-     shell("stat -t "+dest+"/"+path.basename(file)+" |awk '{print $2}'", (currentSize) => {
-       pushEvent.emit("adbpush:progress", Math.ceil((currentSize/fileSize)*100))
-       if(!done)
-        progress();
-     })
-   }, 1000);
+      shell("stat -t "+dest+"/"+path.basename(file), (stat) => {
+        try {
+          var currentSize = stat.split(" ")[1];
+          var percentage = Math.ceil((currentSize/fileSize)*100);
+          if(!isNaN(percentage) && !hundredEmitted) pushEvent.emit("adbpush:progress", percentage);
+          if(percentage == 100) hundredEmitted = true;
+          if(!done && (percentage < fileSize)) progress();
+        } catch (e) { }
+      });
+    }, 1000);
   }
   progress();
   return pushEvent;
 }
 
 var pushMany = (files, pushManyEvent) => {
-  var totalLenght = files.length;
+  var totalLength = files.length;
   if (files.length <= 0){
     pushManyEvent.emit("adbpush:error", "No files provided");
     return false;
@@ -180,38 +212,41 @@ var pushMany = (files, pushManyEvent) => {
         if (files.length <= 0){
           pushManyEvent.emit("adbpush:done");
           return;
+        } else {
+          pushManyEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
+          push(files[0].src, files[0].dest, pushManyEvent);
         }
-        pushManyEvent.emit("adbpush:next", files.length, totalLenght)
-        push(files[0].src, files[0].dest, pushManyEvent);
-  })
+  });
   return pushManyEvent
 }
 
 var shell = (cmd, callback) => {
   if (!cmd.startsWith("stat")) utils.log.debug("adb shell: "+cmd);
-  utils.platfromToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
-    if (err !== null) callback(false);
+  utils.platformToolsExec("adb", ["-P", PORT, "shell", cmd], (err, stdout, stderr) => {
+    if (err) callback(false);
     else callback(stdout);
-  })
+  });
 }
 
 var waitForDevice = (callback) => {
-  var stop;
+  if (global.installProperties.simulate) {
+    setTimeout(() => {
+      callback(true);
+      return new event();
+    }, 1000);
+  }
   var waitEvent = new event();
-  var repeat = () => {
+  let timer = setInterval(() => {
     shell("echo 1", (r) => {
       if(r){
-        callback(true)
-      }else {
-        setTimeout(() => {
-          if(!stop) repeat();
-        }, 1000)
+        clearInterval(timer);
+        callback(true);
+        return;
       }
-    })
-  }
-  repeat();
+    });
+  }, 2000);
   waitEvent.on("stop", () => {
-    stop=true;
+    clearInterval(timer);
   });
   return waitEvent;
 }
@@ -223,18 +258,25 @@ var hasAdbAccess = (callback) => {
 }
 
 var reboot = (state, callback) => {
+  if (global.installProperties.simulate) {
+    callback(true);
+    return;
+  }
   utils.log.debug("reboot to "+state);
-  utils.platfromToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
-    utils.log.debug("reboot to "+state+ " [DONE] err:" + err+stdout+stderr);
-    console.log(stderr)
-    if (stdout.includes("failed")) callback(true, stdout, stderr)
-    else if (stderr.includes("failed")) callback(true, stdout, stderr)
+  utils.platformToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
+    utils.log.debug("reboot to " + state + " done");
+    if (stdout.includes("failed")) callback(true, stdout, stderr);
+    else if (stderr.includes("failed")) callback(true, stdout, stderr);
     else if (err !== null) callback(true, stdout, stderr);
     else callback(false);
-  })
+  });
 }
 
 var format = (partition, callback) => {
+  if (global.installProperties.simulate) {
+    callback(true);
+    return;
+  }
   shell("cat /etc/recovery.fstab", (fstab_) => {
     if (!fstab_) {
       callback(false, "cannot find recovery.fstab");
@@ -266,8 +308,11 @@ var format = (partition, callback) => {
   })
 }
 
-
 var wipeCache = (callback) => {
+  if (global.installProperties.simulate) {
+    callback(true);
+    return;
+  }
   // Try with format;
   format("cache", (err) => {
     if (!err){

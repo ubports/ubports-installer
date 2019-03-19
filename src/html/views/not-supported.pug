@@ -1,0 +1,21 @@
+#views-not-supported.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen5.jpg')
+    .col-xs-6
+      h4(style='font-weight: bold;') Device not supported
+      p
+        | Your device: 
+        span#your-device
+      p
+        b Sorry
+        | , there is no port for this device yet!
+      p
+        | See 
+        a(onclick="shell.openExternal('http://devices.ubuntu-touch.io')") devices.ubuntu-touch.io
+        |  for more info
+      hr
+      h4(style='font-weight: bold;') You want to try to install anyway?
+      p
+        | You can try selecting your device manualy, but please only do so if you're sure that your exact model is actually supported! You might also want to #[a(onclick="shell.openExternal('http://devices.ubuntu-touch.io')") file a bug].
+      button#btn-modal-select-device-unsupported.btn.btn-default(type='button', style='width: 100%;') Select device manually

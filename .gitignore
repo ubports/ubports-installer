@@ -44,5 +44,9 @@ snap/.snapcraft
 *.snap
 *.tar.bz2
 
+# Electron build
 platform-tools
 dist
+
+# Environment
+.env

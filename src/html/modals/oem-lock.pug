@@ -1,0 +1,18 @@
+#oem-lock-modal.modal.fade(tabindex='-1', data-backdrop='static', data-keyboard='false', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4#myModalLabel.modal-title Device locked
+      .modal-body
+        p
+          | Your device is oem locked, that means installation of third party operating systems like Ubuntu Touch is disabled.
+        b
+          | Removing the OEM-lock might void your devices warranty. If you want to be sure, please ask your manufacturer or vendor if they allow this. UBports is not responsible and won't replace devices in case of warranty loss. You are responsible for your own actions.
+        p
+          | Do you want to unlock your device now?
+      .modal-footer
+        button#btn-exit.btn.btn-default(type='button', data-dismiss='modal') Abort
+        button#btn-unlock.btn.btn-primary(type='button') Unlock
+        i#unlock-prog.fa.fa-cog.fa-spin.fa-2x.fa-fw.hidden(hidden='hidden')

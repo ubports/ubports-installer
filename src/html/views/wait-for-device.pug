@@ -1,0 +1,11 @@
+#views-wait-for-device.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6.is-under
+      img.is-over(style='height: 350px; margin: auto; display: block;', src='../screens/Screen1.jpg')
+    .col-xs-6
+      h4(style='font-weight: bold;') Please connect your device
+      p Welcome to the UBports Installer! This tool will walk you through the Ubuntu Touch installation process. Don't worry, it's easy!
+      p Connect your device to the computer and enable developer mode. After that, your device should be detected automatically.
+      button#btn-modal-dev-mode.btn.btn-primary(type='button', style='width: 100%; margin-bottom: 10px;') How do I enable developer mode?
+      p If your device is not detected automatically, you can select it manually to proceed. Please note that the UBports Installer will only work on #[a(onclick="shell.openExternal('http://devices.ubuntu-touch.io')") supported devices].
+      button#btn-modal-select-device.btn.btn-default(type='button', style='width: 100%;') Select device manually

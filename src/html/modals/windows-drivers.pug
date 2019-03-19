@@ -1,0 +1,19 @@
+#windows-drivers-modal.modal.fade(tabindex='-1', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title Warning!
+      .modal-body
+        p
+          | You need to install the #[a(onclick="shell.openExternal('https://adb.clockworkmod.com/')") Universal ADB driver] and re-start the program to continue with the installation.
+          | If you have already installed adb drivers, you can dismiss this message and simply continue with the installation.
+          br
+          | If installer still does not detect you device, you might want to try installing   #[a(onclick="shell.openExternal('https://developer.android.com/studio/releases/')") Android Studio] from Google. After that, you can specify custom adb and fastboot tools in the options in the next step.
+          br
+          | Please note that the UBports Installer is still somewhat unstable on Windows. If the installation does not work on this machine and you have access to a Linux computer, you might want to try your luck there.
+          br
+          | As a last resort, we also have #[a(onclick="shell.openExternal('https://devices.ubuntu-touch.io')") manual installation instructions for every device], that you can follow if you want to install without using the UBports Installer.
+      .modal-footer
+        button.btn.btn-default(type='button', data-dismiss='modal') Continue

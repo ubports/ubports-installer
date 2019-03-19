@@ -1,8 +1,9 @@
 name: ubports-installer
-version: 0.1.11-beta
+version: 0.2.0-beta
 summary: The easy way to install Ubuntu Touch on UBports devices.
-description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest. The snap can run in strict confinement, but you will have to run `sudo snap connect ubports-installer:raw-usb` before using it.
+description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
 icon: build/icons/icon.png
+architectures: [amd64]
 
 grade: stable
 confinement: strict
@@ -17,7 +18,7 @@ apps:
       - gsettings
       - pulseaudio
       - opengl
-      - raw-usb
+      - adb-support
       - desktop
       - desktop-legacy
       - wayland
@@ -25,6 +26,7 @@ apps:
 parts:
   ubports-installer:
     plugin: nodejs
+    node-engine: 8.10.0
     stage-packages:
       - libnotify4
       - libappindicator1
@@ -37,8 +39,8 @@ parts:
       - pulseaudio
     after:
       - desktop-glib-only
-    build: ./build.js -lb
-    install: |
+    override-build: |
+      ./build.js -lb
       mkdir $SNAPCRAFT_PART_INSTALL/app
       mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
       mv bin/* $SNAPCRAFT_PART_INSTALL/bin
