@@ -167,17 +167,17 @@ var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
   }
 }
 
-var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
+var instructBootstrap = (bootstrap, images, bootstrapEvent) => {
   //TODO check bootloader name/version/device
   var flash = (p) => {
     utils.log.info("Flashing images...")
     fastboot.flash(images, (err, errM) => {
       if (err) {
         handleBootstrapError(err, errM, bootstrapEvent, () => {
-          instructBootstrap(fastbootboot, images, bootstrapEvent);
+          instructBootstrap(bootstrap, images, bootstrapEvent);
         });
       } else {
-        if (fastboot) {
+        if (bootstrap) { // The device supports the "fastboot boot" command
           utils.log.info("Booting into recovery image...");
           // find recovery image
           var recoveryImg;
@@ -192,15 +192,15 @@ var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
             fastboot.boot(recoveryImg, p, (err, errM) => {
               if (err) {
                 handleBootstrapError(err, errM, bootstrapEvent, () => {
-                  instructBootstrap(fastbootboot, images, bootstrapEvent);
+                  instructBootstrap(bootstrap, images, bootstrapEvent);
                 });
               } else {
-                bootstrapEvent.emit("bootstrap:done", fastbootboot);
+                bootstrapEvent.emit("bootstrap:done", bootstrap);
               }
             });
           }
-        } else {
-          bootstrapEvent.emit("bootstrap:done", fastbootboot);
+        } else { // The device needs to be rebooted manually
+          bootstrapEvent.emit("bootstrap:done", false);
         }
       }
     }, p);
@@ -325,9 +325,9 @@ var install = (options) => {
         installEvent.emit("user:write:done");
       });
     });
-    installEvent.on("bootstrap:done", (fastbootboot) => {
-      utils.log.info("bootstrap done");
-      if (!fastbootboot){
+    installEvent.on("bootstrap:done", (bootstrap) => {
+      utils.log.info("bootstrap done: " + (bootstrap ? "rebooting automatically" : "rebooting manually"));
+      if (!bootstrap){
         instructReboot("recovery", instructs.buttons, installEvent, () => {
           installEvent.emit("system-image:start");
         });
@@ -338,16 +338,15 @@ var install = (options) => {
         });
       }
     });
-    if (devicesApi.getInstallSetting(options.device, "bootstrap")) {
+    if (instructs.images.length > 0) { // If images are specified, flash them (bootstrapping)
       // We need to be in bootloader
       instructReboot("bootloader", instructs.buttons, installEvent, () => {
         installEvent.once("download:done", () => {
-          utils.log.debug("done downloading (once listener)");
-          instructBootstrap(devicesApi.getInstallSetting(options.device, "fastbootboot"), addPathToImages(instructs.images, options.device), installEvent);
+          instructBootstrap(instructs.installSettings.bootstrap, addPathToImages(instructs.images, options.device), installEvent);
         });
         installEvent.emit("images:startDownload");
       });
-    } else {
+    } else { // If no images are specified, go straight to system-image
       // We need to be in recovery
       instructReboot("recovery", instructs.buttons, installEvent, () => {
         installEvent.emit("system-image:start");
