@@ -64,7 +64,7 @@ var instructReboot = (state, button, rebootEvent, callback) => {
   var rebooted = false;
   var manualReboot = () => {
     utils.log.info("Instructing manual reboot");
-    utils.log.info(button[state]["button"]);
+    utils.log.info(button[state]["instruction"]);
     rebootEvent.emit("user:reboot", {
       button: button[state]["button"],
       instruction: button[state]["instruction"],
