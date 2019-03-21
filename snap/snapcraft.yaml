@@ -19,6 +19,9 @@ apps:
       - pulseaudio
       - opengl
       - adb-support
+      - desktop
+      - desktop-legacy
+      - wayland
 
 parts:
   ubports-installer:
