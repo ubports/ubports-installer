@@ -82,8 +82,9 @@ script.
       $('#password-wrong').show();
     });
     installEvent.on("user:reboot", (i) => {
-      views.show("reboot-"+i.button);
+      views.show("reboot-" + i.button);
       $("[id=reboot-to-state]").text(i.state);
+      $("#complex-reboot-instruction").text(i.instruction);
       $("#device-name").text("Please reboot to "+i.state);
       $("#device-under-text").text(i.instruction.split(".")[0]);
     });

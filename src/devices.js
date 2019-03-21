@@ -45,105 +45,108 @@ var isLegacyAndroid = (device) => {
 }
 
 var getNotWorking = (ww) => {
-    if (!ww) return false;
-    var notWorking = [];
-    var whatsWorking = JSON.parse(ww);
-    for (var i in whatsWorking) {
-        if (whatsWorking[i] === 1)
-            notWorking.push(i);
-    }
-    if (whatsWorking.length === 0)
-        return false;
-    return notWorking;
+  if (!ww) return false;
+  var notWorking = [];
+  var whatsWorking = JSON.parse(ww);
+  for (var i in whatsWorking) {
+    if (whatsWorking[i] == 1) notWorking.push(i);
+  }
+  if (whatsWorking.length == 0) return false;
+  else return notWorking;
 }
 
 var formatNotWorking = (nw) => {
-    if (!nw) return false;
-    return nw.join(", ").replace("/\,(?=[^,]*$)", " and");
+  if (!nw) return false;
+  return nw.join(", ").replace("/\,(?=[^,]*$)", " and");
 }
 
 var instructReboot = (state, button, rebootEvent, callback) => {
-    adb.hasAdbAccess((hasAccess) => {
-        if (hasAccess) {
-            adb.reboot(state, (err, out, eout) => {
-                if (err) {
-                  utils.log.warn("Adb failed to reboot!, " + out + " : " + eout);
-                  utils.log.info("Instructing manual reboot");
-                  utils.log.info(button[state]["button"]);
-                  rebootEvent.emit("user:reboot", {
-                      button: button[state]["button"],
-                      instruction: button[state]["instruction"],
-                      state: state
-                  });
-                } else {
-                  rebootEvent.emit("adb:rebooted");
-                }
-            });
+  var rebooted = false;
+  var manualReboot = () => {
+    utils.log.info("Instructing manual reboot");
+    utils.log.info(button[state]["instruction"]);
+    rebootEvent.emit("user:reboot", {
+      button: button[state]["button"],
+      instruction: button[state]["instruction"],
+      state: state
+    });
+  }
+  adb.hasAdbAccess((hasAccess) => {
+    if (hasAccess) {
+      adb.reboot(state, (err, out, eout) => {
+        if (err) {
+          utils.log.warn("Adb failed to reboot!, " + out + " : " + eout);
+          manualReboot();
         } else {
-            utils.log.info("Instructing manual reboot");
-            utils.log.info(button[state]["button"]);
-            rebootEvent.emit("user:reboot", {
-                button: button[state]["button"],
-                instruction: button[state]["instruction"],
-                state: state
-            });
+          rebootEvent.emit("adb:rebooted");
         }
-        if (state === "bootloader") {
-            requestPassword(rebootEvent, (pass) => {
-                fastboot.waitForDevice(pass, (err, errM) => {
-                    if (err){
-                        rebootEvent.emit("Error", errM);
-                        return;
-                    }
-                    rebootEvent.emit("reboot:done");
-                    rebootEvent.emit("state:bootloader");
-                    callback();
-                })
-            });
-        } else {
-            adb.waitForDevice(() => {
-                // We expect the device state to mach installState now
-                    rebootEvent.emit("reboot:done");
-                    rebootEvent.emit("state:" + state);
-                    callback()
-            });
-        }
-    })
+      });
+    } else {
+      manualReboot();
+    }
+    if (state === "bootloader") {
+      requestPassword(rebootEvent, (pass) => {
+        fastboot.waitForDevice(pass, (err, errM) => {
+          if (err) {
+            rebootEvent.emit("Error", errM);
+            return;
+          } else {
+            rebooted = true;
+            rebootEvent.emit("reboot:done");
+            rebootEvent.emit("state:bootloader");
+            callback();
+            return;
+          }
+        });
+      });
+    } else {
+      adb.waitForDevice(() => {
+        rebooted = true;
+        // We expect the device state to mach installState now
+        rebootEvent.emit("reboot:done");
+        rebootEvent.emit("state:" + state);
+        callback();
+        return;
+      });
+    }
+  });
+  setTimeout(() => { if (!rebooted) manualReboot() }, 15000);
 }
 
 var requestPassword = (bootstrapEvent, callback) => {
-    if(!utils.needRoot()){
-      callback("");
-      return;
-    }
-    if(password){
-        callback(password);
-        return;
-    }
-    bootstrapEvent.emit("user:password");
-    bootstrapEvent.once("password", (p) => {
-        utils.checkPassword(p, (correct, err) => {
-            if(correct){
-                password=p;
-                callback(p);
-            }else if (err.password) {
-              bootstrapEvent.emit("user:password:wrong");
-              requestPassword(bootstrapEvent, callback);
-            }else {
-              bootstrapEvent.emit("error", err.message)
-            }
-        })
+  if (!utils.needRoot()) {
+    callback("");
+    return;
+  }
+  if (password) {
+    callback(password);
+    return;
+  }
+  bootstrapEvent.emit("user:password");
+  bootstrapEvent.once("password", (p) => {
+    utils.checkPassword(p, (correct, err) => {
+      if (correct) {
+        password=p;
+        callback(p);
+      } else if (err.password) {
+        bootstrapEvent.emit("user:password:wrong");
+        requestPassword(bootstrapEvent, callback);
+      } else {
+        bootstrapEvent.emit("error", err.message)
+      }
     });
+  });
 }
 
 var instructOemUnlock = (unlockEvent, callback) => {
   requestPassword(unlockEvent, (p) => {
     fastboot.oemUnlock(password, (err, errM) => {
-      if (err){
-        unlockEvent.emit("error", errM)
-        callback(true)
-      }else
-        callback(false)
+      if (err) {
+        unlockEvent.emit("error", errM);
+        callback(true);
+      } else {
+        callback(false);
+      }
     });
   })
 }
@@ -164,60 +167,60 @@ var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
   }
 }
 
-var instructBootstrap = (fastbootboot, images, bootstrapEvent) => {
-    //TODO check bootloader name/version/device
-    var flash = (p) => {
-        utils.log.info("Flashing images...")
-        fastboot.flash(images, (err, errM) => {
-            if (err) {
-              handleBootstrapError(err, errM, bootstrapEvent, () => {
-                instructBootstrap(fastbootboot, images, bootstrapEvent);
-              });
-            } else {
-              if (fastboot) {
-                  utils.log.info("Booting into recovery image...");
-                  // find recovery image
-                  var recoveryImg;
-                  images.forEach((image) => {
-                    if (image.type === "recovery")
-                      recoveryImg = image;
-                  });
-                  // If we can't find it, report error!
-                  if (!recoveryImg){
-                    bootstrapEvent.emit("error", "Cant find recoveryImg to boot: "+images);
-                  }else {
-                    fastboot.boot(recoveryImg, p, (err, errM) => {
-                      if (err) {
-                        handleBootstrapError(err, errM, bootstrapEvent, () => {
-                          instructBootstrap(fastbootboot, images, bootstrapEvent);
-                        });
-                      } else {
-                        bootstrapEvent.emit("bootstrap:done", fastbootboot);
-                      }
-                    });
-                  }
-              } else {
-                bootstrapEvent.emit("bootstrap:done", fastbootboot);
-              }
-            }
-        }, p)
-    }
-    bootstrapEvent.emit("bootstrap:flashing")
-    bootstrapEvent.emit("user:write:status", "Flashing images")
-    if (!utils.needRoot()) {
-        flash(false);
-    }else {
-        requestPassword(bootstrapEvent, (p) => {
-            flash(p);
+var instructBootstrap = (bootstrap, images, bootstrapEvent) => {
+  //TODO check bootloader name/version/device
+  var flash = (p) => {
+    utils.log.info("Flashing images...")
+    fastboot.flash(images, (err, errM) => {
+      if (err) {
+        handleBootstrapError(err, errM, bootstrapEvent, () => {
+          instructBootstrap(bootstrap, images, bootstrapEvent);
         });
-    }
+      } else {
+        if (bootstrap) { // The device supports the "fastboot boot" command
+          utils.log.info("Booting into recovery image...");
+          // find recovery image
+          var recoveryImg;
+          images.forEach((image) => {
+            if (image.type === "recovery")
+              recoveryImg = image;
+          });
+          // If we can't find it, report error!
+          if (!recoveryImg) {
+            bootstrapEvent.emit("error", "Cant find recoveryImg to boot: "+images);
+          } else {
+            fastboot.boot(recoveryImg, p, (err, errM) => {
+              if (err) {
+                handleBootstrapError(err, errM, bootstrapEvent, () => {
+                  instructBootstrap(bootstrap, images, bootstrapEvent);
+                });
+              } else {
+                bootstrapEvent.emit("bootstrap:done", bootstrap);
+              }
+            });
+          }
+        } else { // The device needs to be rebooted manually
+          bootstrapEvent.emit("bootstrap:done", false);
+        }
+      }
+    }, p);
+  }
+  bootstrapEvent.emit("bootstrap:flashing")
+  bootstrapEvent.emit("user:write:status", "Flashing images")
+  if (!utils.needRoot()) {
+    flash(false);
+  } else {
+    requestPassword(bootstrapEvent, (p) => {
+      flash(p);
+    });
+  }
 }
 
 var addPathToImages = (images, device) => {
   var ret = [];
   images.forEach((image) => {
-      image["path"] = path.join(downloadPath, "images", device);
-      ret.push(image);
+    image["path"] = path.join(downloadPath, "images", device);
+    ret.push(image);
   });
   return ret;
 }
@@ -322,9 +325,9 @@ var install = (options) => {
         installEvent.emit("user:write:done");
       });
     });
-    installEvent.on("bootstrap:done", (fastbootboot) => {
-      utils.log.info("bootstrap done");
-      if (!fastbootboot){
+    installEvent.on("bootstrap:done", (bootstrap) => {
+      utils.log.info("bootstrap done: " + (bootstrap ? "rebooting automatically" : "rebooting manually"));
+      if (!bootstrap){
         instructReboot("recovery", instructs.buttons, installEvent, () => {
           installEvent.emit("system-image:start");
         });
@@ -335,16 +338,15 @@ var install = (options) => {
         });
       }
     });
-    if (devicesApi.getInstallSetting(options.device, "bootstrap")) {
+    if (instructs.images.length > 0) { // If images are specified, flash them (bootstrapping)
       // We need to be in bootloader
       instructReboot("bootloader", instructs.buttons, installEvent, () => {
         installEvent.once("download:done", () => {
-          utils.log.debug("done downloading (once listener)");
-          instructBootstrap(devicesApi.getInstallSetting(options.device, "fastbootboot"), addPathToImages(instructs.images, options.device), installEvent);
+          instructBootstrap(instructs.installSettings.bootstrap, addPathToImages(instructs.images, options.device), installEvent);
         });
         installEvent.emit("images:startDownload");
       });
-    } else {
+    } else { // If no images are specified, go straight to system-image
       // We need to be in recovery
       instructReboot("recovery", instructs.buttons, installEvent, () => {
         installEvent.emit("system-image:start");
