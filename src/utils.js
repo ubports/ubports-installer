@@ -32,8 +32,8 @@ var customTools = {
 
 const platforms = {
   "linux": "linux",
-  "darwin": "mac",
-  "win32": "win"
+  "darwin": "macos",
+  "win32": "windows"
 }
 
 var platformNativeToolsLogged;
