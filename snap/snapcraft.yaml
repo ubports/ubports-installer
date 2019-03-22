@@ -1,6 +1,6 @@
 name: ubports-installer
 version: readfromscript
-version-script: node ./build.js --version
+version-script: "cat package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g"
 summary: The easy way to install Ubuntu Touch on UBports devices.
 description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
 icon: build/icons/icon.png
@@ -41,7 +41,7 @@ parts:
     after:
       - desktop-glib-only
     override-build: |
-      ./build.js -o 'linux' -p 'dir' -e '{"package": "snap"}'
+      ./build.js -o 'linux' -p 'dir' --no-platform-tools
       mkdir $SNAPCRAFT_PART_INSTALL/app
       mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
       mv bin/* $SNAPCRAFT_PART_INSTALL/bin
