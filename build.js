@@ -146,6 +146,33 @@ switch (cli.package) {
     process.exit(1);
 }
 
+var build = () => {
+  // Build
+  if (!cli.downloadOnly) {
+    builder.build({
+        targets: builder.createTargets([targetOs]),
+        config: Object.assign(buildConfig,
+          { "extraMetadata":
+            (cli.package ?
+              Object.assign(cli.extraMetadata, { "package": cli.package }) :
+              cli.extraMetadata
+            )
+          }
+        )
+    }).then(() => {
+        console.log("Done");
+    }).catch((e) => {
+      if(e.message.indexOf("GitHub Personal Access Token is not set") !== -1) {
+        console.log("Done");
+        process.exit(0);
+      } else {
+        console.log(e);
+        process.exit(1);
+      }
+    });
+  }
+}
+
 // Download platform tools
 if (cli.platformTools) {
   const downloadEvent = new event();
@@ -153,6 +180,7 @@ if (cli.platformTools) {
   downloadEvent.on("download:done", () => {
     extractPlatformTools(getAndroidPlatformTools(), () => {
       console.log("Platform tools downloaded successfully!");
+      if (!cli.downloadOnly) build();
     });
   });
   downloadEvent.on("download:error", (r) => {
@@ -172,29 +200,6 @@ if (cli.platformTools) {
   downloadEvent.on("download:progress", (i) => {
     process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% complete\r`);
   });
-}
-
-// Build
-if (!cli.downloadOnly) {
-  builder.build({
-      targets: builder.createTargets([targetOs]),
-      config: Object.assign(buildConfig,
-        { "extraMetadata":
-          (cli.package ?
-            Object.assign(cli.extraMetadata, { "package": cli.package }) :
-            cli.extraMetadata
-          )
-        }
-      )
-  }).then(() => {
-      console.log("Done");
-  }).catch((e) => {
-    if(e.message.indexOf("GitHub Personal Access Token is not set") !== -1) {
-      console.log("Done");
-      process.exit(0);
-    } else {
-      console.log(e);
-      process.exit(1);
-    }
-  });
+} else {
+  build();
 }
