@@ -22,8 +22,8 @@ const Platform = builder.Platform
 const platformToolsPath = "./platform-tools"
 const platformToolsUrls = {
   "linux": "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
-  "macos": "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
-  "windows": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
+  "mac": "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
+  "win": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
 }
 
 function getAndroidPlatformTools() {
@@ -42,8 +42,8 @@ function extractPlatformTools(platformToolsArray, callback) {
     fs.move(path.join(i.path, i.target + "_tmp", "platform-tools"), path.join(i.path, i.target), {
       overwrite: true
     }, (e) => {
-      fs.removeSync(path.join(i.path, i.target + "_tmp"))
-      if (i.target !== "windows") {
+      fs.removeSync(path.join(i.path, i.target + "_tmp"));
+      if (i.target != "win") {
         fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
         fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
       }
@@ -91,7 +91,7 @@ switch (cli.os) {
       }
     );
     break;
-  case "windows":
+  case "win":
     targetOs = Platform.WINDOWS;
     buildConfig = Object.assign(buildConfig, {
         "win": {
@@ -101,7 +101,7 @@ switch (cli.os) {
       }
     );
     break;
-  case "macos":
+  case "mac":
     targetOs = Platform.MAC;
     buildConfig = Object.assign(buildConfig, {
         "mac": {
@@ -128,13 +128,13 @@ switch (cli.package) {
     }
     break;
   case "dmg":
-    if (cli.os != "macos") {
+    if (cli.os != "mac") {
       console.log(cli.package + " can only be built on macOS!");
       process.exit(1);
     }
     break;
   case "exe":
-    if (cli.os != "windows") {
+    if (cli.os != "win") {
       console.log(cli.package + " can only be built on Windows!");
       process.exit(1);
     }
