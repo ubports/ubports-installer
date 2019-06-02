@@ -140,7 +140,8 @@ script.
         installEvent = devices.install({
           device: global.installProperties.device,
           channel: global.installProperties.channel,
-          wipe: false  // TODO --wipe option
+          wipe: false,  // TODO --wipe option
+          data: false, // TODO --data option
         });
         setInstallEvents(installEvent);
         views.show("working", "particles");
@@ -180,7 +181,8 @@ script.
           installEvent = devices.install({
             device: output.device,
             channel: options.get("channel", true),
-            wipe: options.get("wipe", true)
+            wipe: options.get("wipe", true),
+            data: options.get("data", true),
           });
           setInstallEvents(installEvent);
         });

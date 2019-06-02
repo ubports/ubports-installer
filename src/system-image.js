@@ -20,7 +20,6 @@ const systemImage = new systemImageClient({path: utils.getUbuntuTouchDir()});
 class event extends events {}
 
 const ubuntuCommandFile = "ubuntu_command";
-const ubuntuPushDir = "/cache/recovery/"
 
 const getDeviceChannels = (device) => {
   return systemImage.getDeviceChannels(device);
@@ -37,6 +36,9 @@ var downloadLatestVersion = (options) => {
     var urls = systemImage.getFilesUrlsArray(latest)
     urls.push.apply(urls, systemImage.getGgpUrlsArray());
     var files = systemImage.getFilePushArray(urls);
+    files.forEach(file => {
+      file.dest = options.ubuntuPushDir
+    })
     utils.downloadFiles(urls, thisEvent);
     utils.log.debug(urls);
     thisEvent.once("download:done", () => {
@@ -50,7 +52,7 @@ var downloadLatestVersion = (options) => {
           ),
           options.device
         ),
-        dest: ubuntuPushDir + ubuntuCommandFile
+        dest: options.ubuntuPushDir + ubuntuCommandFile
       });
       thisEvent.emit("download:pushReady", files);
     });
@@ -60,10 +62,10 @@ var downloadLatestVersion = (options) => {
   return thisEvent;
 }
 
-var pushLatestVersion = (files, thisEvent, dontWipeCache) => {
+var pushLatestVersion = (files, thisEvent, options, dontWipeCache /* unused */) => {
   var doPush = () => {
     adb.shell("mount -a", () => {
-      adb.shell("mkdir -p /cache/recovery", () => {
+      adb.shell("mkdir -p " + options.ubuntuPushDir, () => {
         adb.pushMany(files, thisEvent);
       });
     });
@@ -78,7 +80,7 @@ var pushLatestVersion = (files, thisEvent, dontWipeCache) => {
 var installLatestVersion = (options) => {
   var downloadEvent = downloadLatestVersion(options);
   downloadEvent.once("download:pushReady", (files) => {
-    pushLatestVersion(files, downloadEvent)
+    pushLatestVersion(files, downloadEvent, options)
   });
   return downloadEvent;
 }

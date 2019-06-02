@@ -317,7 +317,8 @@ var install = (options) => {
         device: options.device,
         channel: options.channel,
         event: installEvent,
-        wipe: options.wipe
+        wipe: options.wipe,
+        ubuntuPushDir: options.data ? "/data/recovery/" : "/cache/recovery/"
       });
     });
     installEvent.on("system-image:done", () => {
