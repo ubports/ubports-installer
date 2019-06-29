@@ -208,6 +208,10 @@ script.
     });
   });
 
+  $("#donate").click(() => {
+    shell.openExternal("https://ubports.com/donate");
+  });
+
   $("#btn-modal-select-device-unsupported").click(() => {
     modals.show('select-device');
   });
