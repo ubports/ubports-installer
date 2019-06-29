@@ -55,6 +55,11 @@ ipcMain.on( "die", (exitCode) => {
   process.exit(exitCode);
 });
 
+ipcMain.on("resetDeviceAndChannel", () => {
+  global.installProperties.device = undefined;
+  global.installProperties.channel = undefined;
+});
+
 function createWindow () {
   mainWindow = new BrowserWindow({
     width: cli.cli ? 0 : (cli.debug ? 1600 : 800),
