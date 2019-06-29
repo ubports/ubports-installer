@@ -45,6 +45,15 @@ body .vertical-centered-box .content {
   margin-right: 0px !important;
 }
 
+.donate-button {
+  top: 15px !important;
+  position: absolute;
+  right: 135px !important;
+  height: 30px !important;
+  margin-bottom: 0px !important;
+  margin-right: 0px !important;
+}
+
 .ubp-robot-foot {
   bottom: 10px !important;
   position: absolute;
