@@ -5,6 +5,8 @@ version=$(lsb_release -sr)
 
 if [ "$distro" = "openSUSE" ]; then
     packages="npm nodejs"
+elif [ "$distro" = "Ubuntu" -a ${version:0:2} -ge 19 ]; then
+    packages="npm nodejs libgconf-2-4"
 elif [ "$distro" = "Ubuntu" -a ${version:0:2} -ge 18 ]; then
     packages="npm nodejs libgconf2-4"
 else

@@ -369,13 +369,15 @@ var getChannelSelects = (device, callback) => {
           channels.forEach((channel) => {
             var _channel = channel.replace("ubports-touch/", "");
             // Ignore blacklisted channels
-            if (ret["systemServer"]["blacklist"].indexOf(channel) == -1) {
+            if (ret["systemServer"]["blacklist"].indexOf(channel) == -1 &&
+                channel.indexOf("15.04") == -1) {
               if (channel === ret["systemServer"]["selected"])
                 channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
               else
                 channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
             }
           });
+          channelsAppend.push("<option value=ubports-touch/16.04/edge>16.04/edge</option>")
           callback(channelsAppend.join(''));
           return;
         } else {
