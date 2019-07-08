@@ -50,8 +50,8 @@ This tool is still under development, [bugreports](https://github.com/ubports/ub
 
 ## :fire: &nbsp; Usage &nbsp; :fire:
 
-Using the graphical user interface of the UBports Installer is recommended for most cases. Powerusers can also make use of the experimental command-line interface. See `ubports-installer -h` for information.
-
+Using the graphical user interface of the UBports Installer is recommended for most cases. <br>
+Powerusers can also make use of the experimental command-line interface. See `ubports-installer -h` for information.
 
 ------------------------------------------------------------------------
 
