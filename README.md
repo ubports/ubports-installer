@@ -4,6 +4,8 @@
 
 [![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![Snap Status](https://build.snapcraft.io/badge/ubports/ubports-installer.svg)](https://build.snapcraft.io/user/ubports/ubports-installer)
 
+![logo](http://usefoss.com/wp-content/uploads/2016/08/UBports-Site_Logo.png)
+
 This tool is still under development, [bugreports](https://github.com/ubports/ubports-installer/issues/new) and [contributions](https://github.com/ubports/ubports-installer/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are appreciated!
 
 ------------------------------------------------------------------------
