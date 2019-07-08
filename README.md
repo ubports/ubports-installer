@@ -11,7 +11,7 @@ This tool is still under development, [bugreports](https://github.com/ubports/ub
 
 ------------------------------------------------------------------------
 
-## How to install
+## <a href="https://imgbb.com/"><img src="https://i.ibb.co/fXV1fGD/download.png" alt="download" border="0"></a> How to install ![image](https://i.ibb.co/fXV1fGD/download.png")
 
 ### Linux:
 
