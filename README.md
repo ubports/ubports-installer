@@ -1,8 +1,12 @@
-# UBports Installer
+------------------------------------------------------------------------
+
+# <a href="https://imgbb.com/"><img src="https://i.ibb.co/5WgVdC1/uports.png" alt="uports" border="0"></a> &nbsp; UBports Installer &nbsp; <a href="https://imgbb.com/"><img src="https://i.ibb.co/5WgVdC1/uports.png" alt="uports" border="0"></a>
 
 [![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![Snap Status](https://build.snapcraft.io/badge/ubports/ubports-installer.svg)](https://build.snapcraft.io/user/ubports/ubports-installer)
 
 This tool is still under development, [bugreports](https://github.com/ubports/ubports-installer/issues/new) and [contributions](https://github.com/ubports/ubports-installer/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are appreciated!
+
+------------------------------------------------------------------------
 
 ## How to install
 
