@@ -13,7 +13,7 @@ This tool is still under development, [bugreports](https://github.com/ubports/ub
 
 ## ![download logo](https://i.ibb.co/fXV1fGD/download.png") &nbsp; How to install &nbsp; ![download logo](https://i.ibb.co/fXV1fGD/download.png")
 
-### Linux:
+### ![linux logo](https://i.ibb.co/YXzpDvy/linux.png) Linux:
 
 **Snap:**
 
