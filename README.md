@@ -13,7 +13,7 @@ This tool is still under development, [bugreports](https://github.com/ubports/ub
 
 ## ![download logo](https://i.ibb.co/fXV1fGD/download.png") &nbsp; How to install &nbsp; ![download logo](https://i.ibb.co/fXV1fGD/download.png")
 
-### ![linux logo](https://i.ibb.co/YXzpDvy/linux.png) Linux:
+### ![linux logo](https://i.ibb.co/YXzpDvy/linux.png) &nbsp; Linux &nbsp; ![linux logo](https://i.ibb.co/YXzpDvy/linux.png)
 
 **Snap:**
 
@@ -33,7 +33,7 @@ This tool is still under development, [bugreports](https://github.com/ubports/ub
 2. [Make the AppImage executable](https://discourse.appimage.org/t/how-to-make-an-appimage-executable/80)
 3. Run the file by double-clicking
 
-### Mac
+### ![mac logo](https://i.ibb.co/Rp73YW2/apple.png) &nbsp; Mac &nbsp; ![mac logo](https://i.ibb.co/Rp73YW2/apple.png)
 
 1. Download the latest [dmg](https://devices.ubuntu-touch.io/installer/mac) file from https://github.com/ubports/ubports-installer/releases/latest
 2. Open the file and follow the onscreen instructions
