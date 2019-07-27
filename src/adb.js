@@ -166,7 +166,11 @@ var push = (file, dest, pushEvent) => {
     if (err) {
       var stdoutShort = stdout && stdout.length > 256 ? "[...]" + stdout.substr(-256, stdout.length) : stdout;
       var stderrShort = stderr && stderr.length > 256 ? "[...]" + stderr.substr(-256, stderr.length) : stderr;
-      if (!err.killed && (err.code == 1)) {
+      if (stderrShort.indexOf("I/O error") != -1) {
+        utils.log.warn("connection to device lost");
+        // TODO: Only restart the event rather than the entire installation
+        pushEvent.emit("user:connection-lost", () => { location.reload(); });
+      } else if (!err.killed && (err.code == 1)) {
         hasAdbAccess ((hasAccess) => {
           if (hasAccess) {
             pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
