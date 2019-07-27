@@ -33,14 +33,14 @@
     "dist:linux:snap": "snapcraft cleanbuild"
   },
   "devDependencies": {
-    "ajv": "^6.5.0",
+    "ajv": "^6.10.2",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "electron": "^1.8.8",
     "electron-builder": "^20.36.2",
     "electron-packager": "^12.2.0",
     "istanbul": "^0.4.5",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.0",
     "sinon": "^1.17.7",
     "spectron": "^3.6.0",
     "unzipper": "^0.9.4"
