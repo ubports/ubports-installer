@@ -72,6 +72,8 @@ cd ubports-installer
 
 ### Run with npm
 
+You will have to either install `fastboot` and `adb` or run a build once (see below) to download the fallback tools.
+
 ```
 npm start            # for the normal mode with GUI
 npm start -- -D      # for debug tools and verbose logging
@@ -88,4 +90,3 @@ npm run-script dist:win
 
 
 ------------------------------------------------------------------------
-
