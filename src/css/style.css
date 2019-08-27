@@ -180,8 +180,6 @@ body .vertical-centered-box .content {
   display: block;
 }
 
-.push-animation i:after,
-.download-animation i:after,
 .push-animation i,
 .download-animation i {
   background-repeat: repeat;
@@ -193,36 +191,19 @@ body .vertical-centered-box .content {
   left: 0;
 }
 
-
 .push-animation i,
 .download-animation i {
-  background-size: cover;
-}
-
-.push-animation i:after,
-.download-animation i:after {
   content: "";
   opacity: 0.5;
 }
 
-.download-animation i:after {
-  background-image: url("../img/arrow-bigger.svg");
+.download-animation i {
+  background-image: url("../img/arrow-down.png");
   animation: download-animation 8s linear infinite;
 }
 
-.download-animation i {
-  background-image: url("../img/arrow-bigger.svg");
-  animation: download-animation 10s linear infinite;
-}
-
-.push-animation i:after {
-  background-image: url("../img/arrow-right.svg");
-  animation: push-animation 8s linear infinite;
-}
-
 .push-animation i {
-  background-size: contain;
-  background-image: url("../img/arrow-right.svg");
+  background-image: url("../img/arrow-right.png");
   animation: push-animation 10s linear infinite;
 }
 
@@ -278,6 +259,7 @@ lesshat-selector {
   height: 4px;
   background-color: #E95420;
   margin: 0;
+  z-index: 6
 }
 .footer {
   position: absolute;
