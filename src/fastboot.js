@@ -81,6 +81,7 @@ var waitForDevice = (password, callback) => {
                 } else {
                     if (e) {
                         utils.log.error("Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+                        callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
                     }
                     setTimeout(() => {
                         if (!stop) repeat();
