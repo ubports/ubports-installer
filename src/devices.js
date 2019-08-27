@@ -162,6 +162,8 @@ var handleBootstrapError = (err, errM, bootstrapEvent, backToFunction) => {
     bootstrapEvent.emit("user:connection-lost", backToFunction);
   } else if (err.locked) {
     bootstrapEvent.emit("user:oem-lock", backToFunction);
+  } else if (err.lowPower) {
+    bootstrapEvent.emit("user:low-power");
   } else {
     bootstrapEvent.emit("error", errM);
   }
