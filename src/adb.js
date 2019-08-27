@@ -161,7 +161,7 @@ var push = (file, dest, pushEvent) => {
   var done;
   var hundredEmitted;
   var fileSize = fs.statSync(file)["size"];
-  utils.platformToolsExec("adb", ["-P", PORT, "push", file.replace(' ','\ '), dest], (err, stdout, stderr) => {
+  utils.platformToolsExec("adb", ["-P", PORT, "push", '"' + file + '"', dest], (err, stdout, stderr) => {
     done=true;
     if (err) {
       var stdoutShort = stdout && stdout.length > 256 ? "[...]" + stdout.substr(-256, stdout.length) : stdout;
