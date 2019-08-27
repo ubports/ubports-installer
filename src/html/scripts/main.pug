@@ -154,6 +154,8 @@ script.
         $("#device-name").text(output.name);
         if (isLegacyAndroid && !ubuntuCom)
           $("#legacy-android-note").show();
+        if (isLegacyAndroid)
+          modals.show("legacy-android");
         if (autoDetected)
           footer.underText.set("Are you ready for Ubuntu Touch on your " + output.name + "?");
         else
