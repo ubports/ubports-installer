@@ -32,6 +32,7 @@ var handleError = (c, r, e, password, callback) => {
     } else if (
         e.includes("FAILED (status read failed (No such device))") ||
         e.includes("FAILED (command write failed (No such device))") ||
+        e.includes("FAILED (data transfer failure (Broken pipe))") ||
         e.includes("FAILED (data transfer failure (Protocol error))")
       ) {
       callback({ connectionLost: true });
