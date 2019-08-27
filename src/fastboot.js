@@ -36,6 +36,8 @@ var handleError = (c, r, e, password, callback) => {
         e.includes("FAILED (data transfer failure (Protocol error))")
       ) {
       callback({ connectionLost: true });
+    } else if (e.includes("FAILED (remote: low power, need battery charging.)")) {
+      callback({ lowPower: true });
     } else {
       callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
     }

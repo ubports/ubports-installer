@@ -1,0 +1,14 @@
+#low-power-modal.modal.fade(tabindex='-1', data-backdrop='static', data-keyboard='false', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4#myModalLabel.modal-title Low Power
+      .modal-body
+        p
+          | The battery of your device is critically low. This can cause severe Problems while flashing.
+        b
+          | Please let your device charge for a while and try again.
+      .modal-footer
+        button.btn.btn-default(type='button', data-dismiss='modal', onclick="location.reload()") Try again
