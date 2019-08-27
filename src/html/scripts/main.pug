@@ -58,6 +58,9 @@ script.
       modals.show("connection-lost");
       $("#btn-reconnect").click(callback);
     });
+    installEvent.on("user:low-power", (callback) => {
+      modals.show("low-power");
+    });
     installEvent.on("user:oem-lock", (callback) => {
       modals.show('oem-lock');
       $("#btn-unlock").click(() => {

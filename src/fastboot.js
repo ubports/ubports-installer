@@ -32,9 +32,12 @@ var handleError = (c, r, e, password, callback) => {
     } else if (
         e.includes("FAILED (status read failed (No such device))") ||
         e.includes("FAILED (command write failed (No such device))") ||
+        e.includes("FAILED (data transfer failure (Broken pipe))") ||
         e.includes("FAILED (data transfer failure (Protocol error))")
       ) {
       callback({ connectionLost: true });
+    } else if (e.includes("FAILED (remote: low power, need battery charging.)")) {
+      callback({ lowPower: true });
     } else {
       callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
     }
@@ -80,6 +83,7 @@ var waitForDevice = (password, callback) => {
                 } else {
                     if (e) {
                         utils.log.error("Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
+                        callback(true, "Fastboot: Unknown error: " + utils.hidePassword(r,password) + " " + utils.hidePassword(e,password));
                     }
                     setTimeout(() => {
                         if (!stop) repeat();

@@ -225,7 +225,7 @@ script.
     $("#options-custom-tools-snap-note").show();
   }
 
-  if (process.platform === "win32") {
+  if (process.platform === "win32" && !localStorage.getItem('neverAskForWindowsDrivers')) {
     modals.show('windows-drivers');
   }
 
