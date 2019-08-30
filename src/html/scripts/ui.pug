@@ -103,13 +103,15 @@ script.
 
   const footer = {
     topText: {
-      set: (text) => {
-        return $("#device-name").text(text)
+      set: (text, dots) => {
+        if (dots) $("#wait-dot").show()
+        else $("#wait-dot").hide()
+        return $("#footer-top").text(text)
       }
     },
     underText: {
       set: (text) => {
-        return $("#device-under-text").text(text)
+        return $("#footer-bottom").text(text)
       }
     }
   }

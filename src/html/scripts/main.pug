@@ -24,7 +24,7 @@ script.
     installEvent.on("user:error", onErr);
     installEvent.on("bootstrap:flashing", () => {
       views.show("working", "particles");
-      $("#device-under-text").text("Flashing recovery and boot images")
+      footer.underText.set("Flashing recovery and boot images")
     });
     installEvent.on("system-image:start", () => {
       views.show("working", "particles");
@@ -88,8 +88,8 @@ script.
       views.show("reboot-" + i.button);
       $("[id=reboot-to-state]").text(i.state);
       $("#complex-reboot-instruction").text(i.instruction);
-      $("#device-name").text("Please reboot to "+i.state);
-      $("#device-under-text").text(i.instruction.split(".")[0]);
+      footer.topText.set("Please reboot to "+i.state);
+      footer.underText.set(i.instruction.split(".")[0]);
     });
     installEvent.on("adb:rebooted", () => {
       $('#views-reboot-up').hide();
@@ -101,10 +101,10 @@ script.
       $('#views-reboot-down').hide();
     });
     installEvent.on("user:write:next", (text, current, total) => {
-      $("#device-under-text").text(text + " file " + current + " of " + total);
+      footer.underText.set(text + " file " + current + " of " + total);
     });
     installEvent.on("user:write:start", (text, length) => {
-      $("#device-under-text").text(text+" file 1 of "+length);
+      footer.underText.set(text+" file 1 of "+length);
     });
     installEvent.on("user:write:progress", (length) => {
       if(length >= 100) {
@@ -117,13 +117,13 @@ script.
         remote.getCurrentWindow().close();
       } else {
         views.show("done");
-        $("#device-name").text("Done");
-        $("#device-under-text").text("It is now safe to unplug the device.");
+        footer.topText.set("Done");
+        footer.underText.set("It is now safe to unplug the device.");
         $("#progress").width("0%");
       }
     });
     installEvent.on("user:write:status", (status) => {
-      $("#device-name").text(status).append("<span id='wait-dot'>.</span>");
+      footer.topText.set(status, true)
     });
   }
 
@@ -131,8 +131,8 @@ script.
     utils.log.debug("mainEvent called")
     var installEvent;
     if(!output) {
-      $("#device-name").text("Device not supported");
-      $("#device-under-text").text("The device " + device + " is not supported");
+      footer.topText.set("Device not supported");
+      footer.underText.set("The device " + device + " is not supported");
       $("[id=your-device]").text(device)
       views.show("not-supported");
       utils.log.warn("This device is not supported!")
@@ -154,7 +154,7 @@ script.
         options.optionsValToUser();
         modals.hide('select-device');
         $("#btn-inst").show();
-        $("#device-name").text(output.name);
+        footer.topText.set(output.name);
         if (isLegacyAndroid && !ubuntuCom)
           $("#legacy-android-note").show();
         if (isLegacyAndroid)
@@ -196,8 +196,6 @@ script.
   // START
   utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
   views.show("working", "particles");
-  footer.topText.set("UBports Installer is starting up").append("<span id='wait-dot'>.</span>");
-  footer.underText.set("Starting adb service...");
 
   devices.getDeviceSelects((out) => {
     if (out) {
@@ -210,7 +208,7 @@ script.
   adb.start(false, false, (err) => {
     var waitEvent = devices.waitForDevice(mainEvent);
     if (!global.installProperties.device) {
-      footer.topText.set("Waiting for device").append("<span id='wait-dot'>.</span>");
+      footer.topText.set("Waiting for device", true)
       footer.underText.set("Please connect your device with a USB cable");
       views.show("wait-for-device");
       // Button to open device selector

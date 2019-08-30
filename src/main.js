@@ -47,11 +47,11 @@ global.installProperties = {
   simulate: cli.simulate
 };
 
-ipcMain.on( "setInstallProperties", ( event, installProperties ) => {
+ipcMain.on("setInstallProperties", ( event, installProperties ) => {
   global.installProperties = Object.assign(global.installProperties, installProperties);
 });
 
-ipcMain.on( "die", (exitCode) => {
+ipcMain.on("die", (exitCode) => {
   process.exit(exitCode);
 });
 

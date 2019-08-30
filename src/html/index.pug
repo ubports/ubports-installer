@@ -24,15 +24,10 @@ html
     include views/working
     #progress.progress(hidden='hidden')
     footer.footer.is-over
-      #waitForDevice.container(hidden='hidden')
-        h3.text-muted.footer-top
-          | Waiting for a device
-          span#wait-dot
-        p.text-muted Connect the device to the computer with a USB cable.
-      #device.container
-        h3#device-name.text-muted.footer-top
-          | UBports Installer is starting up
-        p#device-under-text.text-muted Starting adb service...
+      .container
+        h3#footer-top.text-muted.footer-top UBports Installer is starting up
+          span#wait-dot(hidden='false') .
+        p#footer-bottom.text-muted Starting adb service
     // --- Modals ---
     include modals/install
     include modals/connection-lost
