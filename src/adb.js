@@ -161,7 +161,8 @@ var push = (file, dest, pushEvent) => {
   var done;
   var hundredEmitted;
   var fileSize = fs.statSync(file)["size"];
-  utils.platformToolsExec("adb", ["-P", PORT, "push", '"' + file + '"', dest], (err, stdout, stderr) => {
+  var guardedfile = process.platform == "darwin" ? file : '"' + file + '"'; // macos can't handle double quotes
+  utils.platformToolsExec("adb", ["-P", PORT, "push", guardedfile, dest], (err, stdout, stderr) => {
     done=true;
     if (err) {
       var stdoutShort = stdout && stdout.length > 256 ? "[...]" + stdout.substr(-256, stdout.length) : stdout;
