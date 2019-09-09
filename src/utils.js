@@ -89,7 +89,7 @@ var createBugReport = (title, callback) => {
         "Package: " + (isSnap() ? "snap" : (global.packageInfo.package || "source")) + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
-        "Error log: " + res.headers.location + " %0D%0A");
+        "Error log: https://paste.ubuntu.com/" + res.headers.location + " %0D%0A");
       });
       else callback(false);
     })
