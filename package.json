@@ -41,6 +41,7 @@
     "electron-packager": "^12.2.0",
     "istanbul": "^0.4.5",
     "mocha": "^6.2.0",
+    "download": "^7.1.0",
     "sinon": "^1.17.7",
     "spectron": "^3.6.0",
     "unzipper": "^0.9.4"

@@ -12,10 +12,10 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 const builder = require("electron-builder")
 const cli = require("commander");
-const utils = require("./src/utils");
 const unzip = require("unzipper");
 const path = require("path");
 const fs = require("fs-extra");
+const download = require('download');
 const events = require("events");
 class event extends events {}
 const Platform = builder.Platform
@@ -175,30 +175,15 @@ var build = () => {
 
 // Download platform tools
 if (cli.platformTools) {
-  const downloadEvent = new event();
-  utils.downloadFiles(getAndroidPlatformTools(), downloadEvent);
-  downloadEvent.on("download:done", () => {
+  download(getAndroidPlatformTools()[0].url,getAndroidPlatformTools()[0].path).then(() => {
+    console.log('files downloaded!');
     extractPlatformTools(getAndroidPlatformTools(), () => {
       console.log("Platform tools downloaded successfully!");
       if (!cli.downloadOnly) build();
     });
-  });
-  downloadEvent.on("download:error", (r) => {
-    console.log("Download error " + r);
+  }).catch(() => {
+    console.error("Failed to download files!")
     process.exit(1);
-  });
-  downloadEvent.on("error", (r) => {
-    console.log("Error: " + r);
-    process.exit(1);
-  });
-  downloadEvent.on("download:start", (r) => {
-    console.log("Starting download of " + r + " files");
-  });
-  downloadEvent.on("download:next", (i) => {
-    console.log(`Downloading next file, ${i} left`);
-  });
-  downloadEvent.on("download:progress", (i) => {
-    process.stdout.write(`Downloading file, ${Math.ceil(i.percent*100)}% complete\r`);
   });
 } else {
   build();
