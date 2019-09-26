@@ -173,22 +173,20 @@ script.
           switchHide("modal-install-body-wipe", "modal-install-body-no-wipe");
         }
       });
-      $("#options-custom-tools").change(() => {
-        if (getOptionVal("custom-tools", true)) {
-          $("#options-custom-tools-area").show();
-        } else {
-          $("#options-custom-tools-area").hide();
-        }
-      });
+      // $("#options-custom-tools").change(() => {
+      //   if (getOptionVal("custom-tools", true)) {
+      //     $("#options-custom-tools-area").show();
+      //   } else {
+      //     $("#options-custom-tools-area").hide();
+      //   }
+      // });
     },
     optionsValToUser: optionsValToUser
   }
 
   $("#btn-bugreport").click(() => {
     var title = $("#error-body").text();
-    utils.createBugReport(title, (body) => {
-      shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
-    });
+    ipcRenderer.send("createBugReport", title);
   });
 
   $("#btn-exit").click(() => {
@@ -197,9 +195,7 @@ script.
   });
 
   $("#help").click(() => {
-    utils.createBugReport("user-requested error report", (body) => {
-      shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title=please describe the problem you are experiencing&body="+body);
-    });
+    ipcRenderer.send("createBugReport", "user-requested bug-report");
   });
 
   $("#donate").click(() => {
@@ -214,26 +210,29 @@ script.
     modals.show('developer-mode-info');
   });
 
-  if(utils.isSnap()) {
-    $("#options-custom-tools").prop("disabled", true);
-    $("#options-custom-tools-snap-note").show();
-  }
+  $("#btn-inst").click(() => {
+    modals.show('install');
+    // if(options.get("custom-tools", true)) {
+    //   utils.setCustomPlatformTool("adb", options.get("custom-tools-adb"));
+    //   utils.setCustomPlatformTool("fastboot", options.get("custom-tools-fastboot"));
+    // }
+  });
+
+  // if(global.packageInfo.isSnap) {
+  //   $("#options-custom-tools").prop("disabled", true);
+  //   $("#options-custom-tools-snap-note").show();
+  // }
 
   if (process.platform === "win32" && !localStorage.getItem('neverAskForWindowsDrivers')) {
     modals.show('windows-drivers');
   }
 
-  utils.getUpdateAvailable().then((updateAvailable) => {
-    if(updateAvailable) {
-      utils.log.warn("This is not the latest stable release!")
-      if (utils.isSnap()) {
-        $("#snap-update-instructions").show();
-        $("#btn-update-installer").hide();
-      } else {
-        $("#generic-update-instructions").show();
-      }
-      modals.show('new-update');
+  if(global.packageInfo.updateAvailable) {
+    if (global.packageInfo.isSnap) {
+      $("#snap-update-instructions").show();
+      $("#btn-update-installer").hide();
     } else {
-      utils.log.debug("Running latest stable version.");
+      $("#generic-update-instructions").show();
     }
-  });
+    modals.show('new-update');
+  }

@@ -12,15 +12,11 @@ const sys = require('util')
 const cp = require('child_process');
 const path = require("path");
 const fs = require("fs");
-const events = require("events")
-const fEvent = require('forward-emitter');
 const utils = require("./utils");
 const exec = require('child_process').exec;
 
 // DEFAULT = 5037
 const PORT = 5038
-
-class event extends events {}
 
 // Since we need root anyway, why not start adb with root
 const start = (password, sudo, callback) => {
@@ -140,10 +136,6 @@ var readUbuntuChannelINI = (callback) => {
 }
 
 var isBaseUbuntuCom = callback => {
-  if (global.installProperties.simulate) {
-    callback(global.installProperties.currentOs == "ubuntu");
-    return;
-  }
   readUbuntuChannelINI(ini => {
     if (!ini)
       return callback(false);
@@ -151,13 +143,7 @@ var isBaseUbuntuCom = callback => {
   });
 }
 
-var push = (file, dest, pushEvent) => {
-  if (global.installProperties.simulate) {
-    return setTimeout(() => {
-      pushEvent.emit("adbpush:progress", 50);
-      pushEvent.emit("adbpush:end");
-    }, 50);
-  }
+var push = (file, dest) => {
   var done;
   var hundredEmitted;
   var fileSize = fs.statSync(file)["size"];
@@ -170,22 +156,22 @@ var push = (file, dest, pushEvent) => {
       if (stderrShort.indexOf("I/O error") != -1) {
         utils.log.warn("connection to device lost");
         // TODO: Only restart the event rather than the entire installation
-        pushEvent.emit("user:connection-lost", () => { location.reload(); });
+        mainEvent.emit("user:connection-lost", () => { mainWindow.reload(); });
       } else if (!err.killed && (err.code == 1)) {
         hasAdbAccess ((hasAccess) => {
           if (hasAccess) {
-            pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+            mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
           } else {
             utils.log.warn("connection to device lost");
             // TODO: Only restart the event rather than the entire installation
-            pushEvent.emit("user:connection-lost", () => { location.reload(); });
+            mainEvent.emit("user:connection-lost", () => { mainWindow.reload(); });
           }
         });
       } else {
-        pushEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+        mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
       }
     }
-    else pushEvent.emit("adbpush:end");
+    else mainEvent.emit("adbpush:end");
   });
   var progress = () => {
     setTimeout(function () {
@@ -193,7 +179,7 @@ var push = (file, dest, pushEvent) => {
         try {
           var currentSize = stat.split(" ")[1];
           var percentage = Math.ceil((currentSize/fileSize)*100);
-          if(!isNaN(percentage) && !hundredEmitted) pushEvent.emit("adbpush:progress", percentage);
+          if(!isNaN(percentage) && !hundredEmitted) mainEvent.emit("adbpush:progress", percentage);
           if(percentage == 100) hundredEmitted = true;
           if(!done && (percentage < fileSize)) progress();
         } catch (e) { }
@@ -201,28 +187,26 @@ var push = (file, dest, pushEvent) => {
     }, 1000);
   }
   progress();
-  return pushEvent;
 }
 
-var pushMany = (files, pushManyEvent) => {
+var pushMany = (files) => {
   var totalLength = files.length;
   if (files.length <= 0){
-    pushManyEvent.emit("adbpush:error", "No files provided");
+    mainEvent.emit("adbpush:error", "No files provided");
     return false;
   }
-  pushManyEvent.emit("adbpush:start", files.length);
-  push(files[0].src, files[0].dest, pushManyEvent);
-  pushManyEvent.on("adbpush:end", () => {
+  mainEvent.emit("adbpush:start", files.length);
+  push(files[0].src, files[0].dest);
+  mainEvent.on("adbpush:end", () => {
         files.shift();
         if (files.length <= 0){
-          pushManyEvent.emit("adbpush:done");
+          mainEvent.emit("adbpush:done");
           return;
         } else {
-          pushManyEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
-          push(files[0].src, files[0].dest, pushManyEvent);
+          mainEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
+          push(files[0].src, files[0].dest);
         }
   });
-  return pushManyEvent
 }
 
 var shell = (cmd, callback) => {
@@ -234,13 +218,6 @@ var shell = (cmd, callback) => {
 }
 
 var waitForDevice = (callback) => {
-  if (global.installProperties.simulate) {
-    setTimeout(() => {
-      callback(true);
-      return new event();
-    }, 1000);
-  }
-  var waitEvent = new event();
   let timer = setInterval(() => {
     shell("echo 1", (r) => {
       if(r){
@@ -250,10 +227,9 @@ var waitForDevice = (callback) => {
       }
     });
   }, 2000);
-  waitEvent.on("stop", () => {
+  mainEvent.on("stop", () => {
     clearInterval(timer);
   });
-  return waitEvent;
 }
 
 var hasAdbAccess = (callback) => {
@@ -263,10 +239,6 @@ var hasAdbAccess = (callback) => {
 }
 
 var reboot = (state, callback) => {
-  if (global.installProperties.simulate) {
-    callback(true);
-    return;
-  }
   utils.log.debug("reboot to "+state);
   utils.platformToolsExec("adb", ["-P", PORT, "reboot", state], (err, stdout, stderr) => {
     utils.log.debug("reboot to " + state + " done");
@@ -278,10 +250,6 @@ var reboot = (state, callback) => {
 }
 
 var format = (partition, callback) => {
-  if (global.installProperties.simulate) {
-    callback(true);
-    return;
-  }
   shell("cat /etc/recovery.fstab", (fstab_) => {
     if (!fstab_) {
       callback(false, "cannot find recovery.fstab");
@@ -314,10 +282,6 @@ var format = (partition, callback) => {
 }
 
 var wipeCache = (callback) => {
-  if (global.installProperties.simulate) {
-    callback(true);
-    return;
-  }
   // Try with format;
   format("cache", (err) => {
     if (!err){

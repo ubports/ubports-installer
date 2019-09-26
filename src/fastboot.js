@@ -7,6 +7,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const path = require("path");
+var utils = global.utils;
 
 const lockedErrors = ["unlocked", "locked", "oem-lock", "lock"]
 

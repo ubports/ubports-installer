@@ -12,12 +12,10 @@ const fs = require("fs");
 const utils = require("./utils");
 const adb = require("./adb");
 const path = require("path");
-const events = require("events")
 const mkdirp = require('mkdirp');
 const systemImageClient = require("system-image-node-module").Client;
 
 const systemImage = new systemImageClient({path: utils.getUbuntuTouchDir()});
-class event extends events {}
 
 const ubuntuCommandFile = "ubuntu_command";
 const ubuntuPushDir = "/cache/recovery/"
@@ -28,18 +26,13 @@ const getDeviceChannels = (device) => {
 
 var downloadLatestVersion = (options) => {
   utils.log.debug("downloadLatestVersion options: ", options);
-  var thisEvent;
-  if (!options.event)
-    thisEvent = new event();
-  else
-    thisEvent = options.event;
   systemImage.getLatestVersion(options.device, options.channel).then((latest) => {
     var urls = systemImage.getFilesUrlsArray(latest)
     urls.push.apply(urls, systemImage.getGgpUrlsArray());
     var files = systemImage.getFilePushArray(urls);
-    utils.downloadFiles(urls, thisEvent);
+    utils.downloadFiles(urls);
     utils.log.debug(urls);
-    thisEvent.once("download:done", () => {
+    mainEvent.once("download:done", () => {
       files.push({
         src: systemImage.createInstallCommandsFile(
           systemImage.createInstallCommands(
@@ -52,19 +45,18 @@ var downloadLatestVersion = (options) => {
         ),
         dest: ubuntuPushDir + ubuntuCommandFile
       });
-      thisEvent.emit("download:pushReady", files);
+      mainEvent.emit("download:pushReady", files);
     });
   }).catch(() => {
-    thisEvent.emit("error", "could not find latest version; " + "device: " + options.device + " channel: " + options.channel);
+    mainEvent.emit("error", "could not find latest version; " + "device: " + options.device + " channel: " + options.channel);
   });
-  return thisEvent;
 }
 
-var pushLatestVersion = (files, thisEvent, dontWipeCache) => {
+var pushLatestVersion = (files, dontWipeCache) => {
   var doPush = () => {
     adb.shell("mount -a", () => {
       adb.shell("mkdir -p /cache/recovery", () => {
-        adb.pushMany(files, thisEvent);
+        adb.pushMany(files);
       });
     });
   }
@@ -72,15 +64,13 @@ var pushLatestVersion = (files, thisEvent, dontWipeCache) => {
     doPush();
   else
     adb.wipeCache(doPush);
-  return thisEvent;
 }
 
 var installLatestVersion = (options) => {
-  var downloadEvent = downloadLatestVersion(options);
-  downloadEvent.once("download:pushReady", (files) => {
-    pushLatestVersion(files, downloadEvent)
+  downloadLatestVersion(options);
+  mainEvent.once("download:pushReady", (files) => {
+    pushLatestVersion(files);
   });
-  return downloadEvent;
 }
 
 module.exports = {

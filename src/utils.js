@@ -182,21 +182,20 @@ var checkPassword = (password, callback) => {
     }
     log.debug("checking password")
     exec(sudoCommand(password) + "echo correct", (err, output) => {
-        if(err){
+        if (err) {
             if (err.message.includes("incorrect password")) {
                 log.debug("incorrect password")
                 callback(false, {
                   password: true
                 });
-            } else{
-              // Replace password with "" to make sure it wont get logged
-              // with password
+            } else {
+              // Replace password with "***" to make sure it wont get logged
               log.debug("unknown sudo error")
               callback(false, {
                 message: err.message.replace(password, "***")
               });
             }
-        }else {
+        } else {
             log.debug("correct password")
             if (output.includes("correct"))
                 callback(true);
@@ -291,7 +290,7 @@ const platformToolsExecAsar = (tool, callback) => {
                 cb(err,e,r);
             })
         },
-        done: () => { console.log("done platform tools") }
+        done: () => {}
     });
     return true;
   }
@@ -433,36 +432,36 @@ urls format:
   }
 ]
 */
-var downloadFiles = (urls_, downloadEvent) => {
+var downloadFiles = (urls_) => {
   var urls;
   var totalFiles;
-  downloadEvent.emit("download:startCheck");
+  mainEvent.emit("download:startCheck");
   var dl = () => {
     if (!fs.existsSync(urls[0].path)) {
       mkdirp.sync(urls[0].path);
     }
     progress(http(urls[0].url))
     .on('progress', (state) => {
-      downloadEvent.emit("download:progress", state.percent*100);
+      mainEvent.emit("download:progress", state.percent*100);
     })
     .on('error', (err) => {
-      if (err) downloadEvent.emit("download:error", err);
+      if (err) mainEvent.emit("download:error", err);
     })
     .on('end', () => {
       fs.rename(path.join(urls[0].path, path.basename(urls[0].url + ".tmp")),
       path.join(urls[0].path, path.basename(urls[0].url)), () => {
-        downloadEvent.emit("download:checking");
+        mainEvent.emit("download:checking");
         checksumFile(urls[0], (check) => {
           if (check) {
             if (urls.length <= 1) {
-              downloadEvent.emit("download:done");
+              mainEvent.emit("download:done");
             } else {
               urls.shift();
-              downloadEvent.emit("download:next", totalFiles-urls.length+1, totalFiles);
+              mainEvent.emit("download:next", totalFiles-urls.length+1, totalFiles);
               dl()
             }
           } else {
-            downloadEvent.emit("download:error", "Checksum mismatch on file " + path.basename(urls[0].url));
+            mainEvent.emit("download:error", "Checksum mismatch on file " + path.basename(urls[0].url));
           }
         });
       });
@@ -471,15 +470,14 @@ var downloadFiles = (urls_, downloadEvent) => {
   }
   checkFiles(urls_, (ret) => {
     if (ret.length <= 0) {
-      downloadEvent.emit("download:done");
+      mainEvent.emit("download:done");
     } else {
       urls = ret;
       totalFiles = urls.length;
-      downloadEvent.emit("download:start", totalFiles);
+      mainEvent.emit("download:start", totalFiles);
       dl();
     }
-  })
-  return downloadEvent;
+  });
 }
 
 const getRandomInt = (min, max) => {
@@ -518,5 +516,7 @@ module.exports = {
     getRandomInt: getRandomInt,
     getVersion: getVersion,
     hidePassword: hidePassword,
-    die: die
+    die: die,
+    ipcRenderer: ipcRenderer,
+    setLogLevel: (level) => { winston.level = level; }
 }

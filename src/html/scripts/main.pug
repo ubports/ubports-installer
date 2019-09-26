@@ -1,10 +1,9 @@
 script.
   // CATCH ANY ERRORS!
   var onErr = (err) => {
-    if (global.installProperties.cli) utils.die(err)
-    if(utils.getUpdateAvailable()) {
+    if(global.packageInfo.updateAvailable) {
       $("#not-latest-stable").show();
-      if (utils.isSnap()) {
+      if (global.packageInfo.isSnap) {
         $("#snap-update-instructions-error").show();
       } else {
         $("#generic-update-instructions-error").show();
@@ -19,214 +18,193 @@ script.
     onErr(err+" (MainRenderer:"+line+")");
   }
 
-
-  const setInstallEvents = (installEvent) => {
-    installEvent.on("user:error", onErr);
-    installEvent.on("bootstrap:flashing", () => {
-      views.show("working", "particles");
-      footer.underText.set("Flashing recovery and boot images")
-    });
-    installEvent.on("system-image:start", () => {
-      views.show("working", "particles");
-    });
-    installEvent.on("download:start", () => {
-      views.show("working", "download");
-    });
-    installEvent.on("adbpush:start", () => {
-      views.show("working", "push");
-    });
-    installEvent.on("adbpush:done", () => {
-      views.show("working", "particles");
-    });
-    installEvent.on("user:password", () => {
-      modals.show("password");
-      $("#password-input").val("");
-      $("#password-input").keypress((event) => {
-        if (event.which == '13') {
-          event.preventDefault();
-          installEvent.emit("password", $("#password-input").val());
-          modals.hide("password")
-          $('#password-wrong').hide();
-        }
-      });
-      $("#btn-password").click(() => {
-        installEvent.emit("password", $("#password-input").val());
+  ipcRenderer.on("user:password", () => {
+    modals.show("password");
+    $("#password-input").val("");
+    $("#password-input").keypress((event) => {
+      if (event.which == '13') {
+        event.preventDefault();
+        ipcRenderer.send("password", $("#password-input").val());
+        modals.hide("password");
         $('#password-wrong').hide();
-      });
-    });
-    installEvent.on("user:connection-lost", (callback) => {
-      modals.show("connection-lost");
-      $("#btn-reconnect").click(callback);
-    });
-    installEvent.on("user:low-power", (callback) => {
-      modals.show("low-power");
-    });
-    installEvent.on("user:oem-lock", (callback) => {
-      modals.show('oem-lock');
-      $("#btn-unlock").click(() => {
-        $("#btn-unlock").attr("disabled", true);
-        $("#btn-exit").attr("disabled", true);
-        $("#unlock-prog").removeClass("hidden");
-        devices.instructOemUnlock(installEvent, (err) => {
-          $("#btn-unlock").attr("disabled", false);
-          $("#btn-exit").attr("disabled", false);
-          $("#unlock-prog").addClass("hidden");
-          if (err) {
-            modals.hide('oem-lock');
-          } else {
-            callback(callback);
-            modals.hide('oem-lock');
-          }
-        });
-      });
-    });
-    installEvent.on("user:password:wrong", () => {
-      installEvent.emit("user:password");
-      $('#password-wrong').show();
-    });
-    installEvent.on("user:reboot", (i) => {
-      views.show("reboot-" + i.button);
-      $("[id=reboot-to-state]").text(i.state);
-      $("#complex-reboot-instruction").text(i.instruction);
-      footer.topText.set("Please reboot to "+i.state);
-      footer.underText.set(i.instruction.split(".")[0]);
-    });
-    installEvent.on("adb:rebooted", () => {
-      $('#views-reboot-up').hide();
-      $('#views-reboot-down').hide();
-    });
-    installEvent.on("reboot:done", () => {
-      views.show("working", "particles");
-      $('#views-reboot-up').hide();
-      $('#views-reboot-down').hide();
-    });
-    installEvent.on("user:write:next", (text, current, total) => {
-      footer.underText.set(text + " file " + current + " of " + total);
-    });
-    installEvent.on("user:write:start", (text, length) => {
-      footer.underText.set(text+" file 1 of "+length);
-    });
-    installEvent.on("user:write:progress", (length) => {
-      if(length >= 100) {
-        length=100;
-      }
-      $("#progress").width(length.toString()+"%");
-    });
-    installEvent.on("user:write:done", () => {
-      if (global.installProperties.cli) {
-        remote.getCurrentWindow().close();
-      } else {
-        views.show("done");
-        footer.topText.set("Done");
-        footer.underText.set("It is now safe to unplug the device.");
-        $("#progress").width("0%");
       }
     });
-    installEvent.on("user:write:status", (status) => {
-      footer.topText.set(status, true)
+    $("#btn-password").click(() => {
+      ipcRenderer.send("password", $("#password-input").val());
+      $('#password-wrong').hide();
     });
+  });
+
+  ipcRenderer.on("user:password:wrong", () => {
+    ipcRenderer.send("user:password");
+    $('#password-wrong').show();
+  });
+
+  ipcRenderer.on("user:error", (event, err) => { onErr(err); });
+
+  ipcRenderer.on("bootstrap:flashing", () => {
+    views.show("working", "particles");
+    footer.underText.set("Flashing recovery and boot images")
+  });
+
+  ipcRenderer.on("system-image:start", () => {
+    views.show("working", "particles");
+  });
+
+  ipcRenderer.on("download:start", () => {
+    views.show("working", "download");
+  });
+
+  ipcRenderer.on("adbpush:start", () => {
+    views.show("working", "push");
+  });
+
+  ipcRenderer.on("adbpush:done", () => {
+    views.show("working", "particles");
+  });
+
+  ipcRenderer.on("user:connection-lost", (e, callback) => {
+    modals.show("connection-lost");
+    $("#btn-reconnect").click(callback);
+  });
+
+  ipcRenderer.on("user:low-power", (callback) => {
+    modals.show("low-power");
+  });
+
+  var ignoreError = () => {
+    ipcRenderer.send('error_ignored');
   }
 
-  const mainEvent = (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
-    utils.log.debug("mainEvent called")
-    var installEvent;
-    if(!output) {
-      footer.topText.set("Device not supported");
-      footer.underText.set("The device " + device + " is not supported");
-      $("[id=your-device]").text(device)
-      views.show("not-supported");
-      utils.log.warn("This device is not supported!")
-      $("#btn-inst").hide();
-    } else {
-      if (global.installProperties.cli) {
-        utils.log.debug(output);
-        installEvent = devices.install({
-          device: global.installProperties.device,
-          channel: global.installProperties.channel,
-          wipe: false  // TODO --wipe option
-        });
-        setInstallEvents(installEvent);
-        views.show("working", "particles");
-        $("#progress").show();
-      } else {
-        views.show("install");
-        $("#options-channel").append(channels);
-        options.optionsValToUser();
-        modals.hide('select-device');
-        $("#btn-inst").show();
-        footer.topText.set(output.name);
-        if (isLegacyAndroid && !ubuntuCom)
-          $("#legacy-android-note").show();
-        if (isLegacyAndroid)
-          modals.show("legacy-android");
-        if (autoDetected)
-          footer.underText.set("Are you ready for Ubuntu Touch on your " + output.name + "?");
-        else
-          footer.underText.set("Please connect your " + output.name + " with a USB cable.");
-        $("#your-ubp-device").text(output.name+" ("+output.device+")")
-        $("#your-ubp-device").click(() => {
-          shell.openExternal("https://devices.ubuntu-touch.io/device/"+output.device);
-        });
+  var restartInstaller = () => {
+    ipcRenderer.send('restart');
+  }
 
-        views.show(ubuntuCom ? "switch" : "install");
+  ipcRenderer.on("user:oem-lock", (event) => {
+    modals.show('oem-lock');
+    $("#btn-unlock").click(() => {
+      event.sender.send("user:oem-lock:ok");
+      modals.hide('oem-lock');
+      $("#btn-unlock").attr("disabled", true);
+      $("#btn-exit").attr("disabled", true);
+      $("#unlock-prog").removeClass("hidden");
+    });
+  });
 
-        $("#btn-inst").click(() => {
-          modals.show('install');
-          if(options.get("custom-tools", true)) {
-            utils.setCustomPlatformTool("adb", options.get("custom-tools-adb"));
-            utils.setCustomPlatformTool("fastboot", options.get("custom-tools-fastboot"));
-          }
-        });
+  ipcRenderer.on("user:reboot", (e, i) => {
+    views.show("reboot-" + i.button);
+    $("[id=reboot-to-state]").text(i.state);
+    $("#complex-reboot-instruction").text(i.instruction);
+    footer.topText.set("Please reboot to "+i.state);
+    footer.underText.set(i.instruction.split(".")[0]);
+  });
 
-        $("#btn-installModal").click(() => {
-          views.show("working", "particles");
-          $("#progress").show();
-          ipcRenderer.send("setInstallProperties", {device: output.device, channel: options.get("channel", true)});
-          installEvent = devices.install({
-            device: output.device,
-            channel: options.get("channel", true),
-            wipe: options.get("wipe", true)
-          });
-          setInstallEvents(installEvent);
-        });
-      }
+  ipcRenderer.on("adb:rebooted", () => {
+    $('#views-reboot-up').hide();
+    $('#views-reboot-down').hide();
+  });
+
+  ipcRenderer.on("reboot:done", () => {
+    views.show("working", "particles");
+    $('#views-reboot-up').hide();
+    $('#views-reboot-down').hide();
+  });
+
+  ipcRenderer.on("user:no-network", () => {
+    modals.show('no-network');
+  });
+
+  ipcRenderer.on("user:write:next", (e, text, current, total) => {
+    footer.underText.set(text + " file " + current + " of " + total);
+  });
+
+  ipcRenderer.on("user:write:start", (e, text, length) => {
+    footer.underText.set(text+" file 1 of "+length);
+  });
+
+  ipcRenderer.on("user:write:progress", (e, length) => {
+    if(length >= 100) {
+      length=100;
     }
-  };
+    $("#progress").width(length.toString()+"%");
+  });
 
-  // START
-  utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
-  views.show("working", "particles");
-
-  devices.getDeviceSelects((out) => {
-    if (out) {
-      $("#device-select").append(out);
+  ipcRenderer.on("user:write:done", () => {
+    if (global.installProperties.cli) {
+      remote.getCurrentWindow().close();
     } else {
-      modals.show('no-network');
+      views.show("done");
+      footer.topText.set("Done");
+      footer.underText.set("It is now safe to unplug the device.");
+      $("#progress").width("0%");
     }
   });
 
-  adb.start(false, false, (err) => {
-    var waitEvent = devices.waitForDevice(mainEvent);
-    if (!global.installProperties.device) {
-      footer.topText.set("Waiting for device", true)
-      footer.underText.set("Please connect your device with a USB cable");
-      views.show("wait-for-device");
-      // Button to open device selector
-      $("#btn-modal-select-device").click(() => {
-        waitEvent.emit("stop");
-        modals.show('select-device');
-      });
-      // Button to confirm device selection
-      $("#btn-select-device").click(() => {
-        var device = $("#device-select").find(":selected").attr("name");
-        waitEvent.emit("device:select", device);
-      });
-    } else {
-      setTimeout(waitEvent.emit('device:select', (global.installProperties.device)), 50);
+  ipcRenderer.on("user:write:status", (e, status) => {
+    footer.topText.set(status, true)
+  });
+
+  ipcRenderer.on("user:device-unsupported", (event, device) => {
+    footer.topText.set("Device not supported");
+    footer.underText.set("The device " + device + " is not supported");
+    $("[id=your-device]").text(device);
+    views.show("not-supported");
+    $("#btn-inst").hide();
+  });
+
+  ipcRenderer.on("device:select:data-ready", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+    views.show("install");
+    $("#options-channel").append(channels);
+    options.optionsValToUser();
+    modals.hide('select-device');
+    $("#btn-inst").show();
+    footer.topText.set(output.name);
+    if (isLegacyAndroid && !ubuntuCom) {
+      $("#legacy-android-note").show();
+      modals.show("legacy-android");
     }
-    waitEvent.on("user:error", onErr);
-    waitEvent.on("device:select", (device) => {
-      modals.hide('select-device');
+    if (autoDetected) {
+      footer.underText.set("Are you ready for Ubuntu Touch on your " + output.name + "?");
+    } else {
+      footer.underText.set("Please connect your " + output.name + " with a USB cable.");
+    }
+    $("#your-ubp-device").text(output.name+" ("+output.device+")");
+    $("#your-ubp-device").click(() => {
+      shell.openExternal("https://devices.ubuntu-touch.io/device/"+output.device);
+    });
+
+    views.show(ubuntuCom ? "switch" : "install");
+
+    $("#btn-installModal").click(() => {
+      views.show("working", "particles");
+      $("#progress").show();
+      ipcRenderer.send("user:device:select", {
+        device: output.device,
+        channel: options.get("channel", true),
+        wipe: options.get("wipe", true)
+      });
+    });
+  });
+
+  // START
+  views.show("working", "particles");
+
+  ipcRenderer.on("device:wait:data-ready", (event, deviceSelects) => {
+    $("#device-select").append(deviceSelects);
+  });
+
+  ipcRenderer.on("user:adb:ready", () => {
+    footer.topText.set("Waiting for device", true);
+    footer.underText.set("Please connect your device with a USB cable");
+    views.show("wait-for-device");
+    // Button to open device selector
+    $("#btn-modal-select-device").click(() => {
+      modals.show('select-device');
+    });
+    // Button to confirm device selection
+    $("#btn-select-device").click(() => {
+      var device = $("#device-select").find(":selected").attr("name");
+      ipcRenderer.send("device:select", device);
     });
   });
 
