@@ -90,13 +90,14 @@ ipcMain.on("error_ignored", () => {
   utils.log.debug("ERROR IGNORED");
 });
 
-ipcMain.on("createBugReport", (title) => {
-  utils.createBugReport(title, (body) => {
-    shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
+ipcMain.on("createBugReport", (event, title) => {
+  utils.createBugReport(title, global.installProperties, (body) => {
+    electron.shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
   });
 });
 
 ipcMain.on("device:select", (event, device) => {
+  global.installProperties.device = device;
   mainEvent.emit("device:select", device);
 });
 
@@ -200,6 +201,7 @@ mainEvent.on("user:device-unsupported", (device) => {
 });
 
 mainEvent.on("device:select:data-ready", (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+  global.installProperties.device = device;
   mainWindow.webContents.send("device:select:data-ready", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
 });
 
@@ -218,7 +220,7 @@ mainEvent.on("user:no-network", () => {
 function createWindow () {
   utils.setLogLevel(global.installProperties.verbose ? "debug" : "info");
   utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
-  utils.log.info("This is " + (global.packageInfo.updateAvailable ? "not" : "") + " the latest stable version!");
+  utils.log.info("This is " + (global.packageInfo.updateAvailable ? "not " : "") + "the latest stable version!");
   mainWindow = new BrowserWindow({
     width: cli.cli ? 0 : (cli.debug ? 1600 : 800),
     height: cli.cli ? 0 : 600,

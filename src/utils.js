@@ -53,7 +53,7 @@ var log = {
   debug: (l) => {winston.log("debug", l)}
 }
 
-var createBugReport = (title, callback) => {
+var createBugReport = (title, installProperties, callback) => {
   var options = {
     limit: 400,
     start: 0,
@@ -84,9 +84,9 @@ var createBugReport = (title, callback) => {
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
-        "Device: " + (global.installProperties.device ? global.installProperties.device : "Not detected") + "%0D%0A" +
-        "Channel: " + (global.installProperties.channel ? global.installProperties.channel : "Not yet set") + "%0D%0A" +
-        "Package: " + (isSnap() ? "snap" : (global.packageInfo.package || "source")) + "%0D%0A" +
+        "Device: " + (installProperties.device ? installProperties.device : "Not detected") + "%0D%0A" +
+        "Channel: " + (installProperties.channel ? installProperties.channel : "Not yet set") + "%0D%0A" +
+        "Package: " + (isSnap() ? "snap" : (packageInfo.package || "source")) + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
         "Error log: https://paste.ubuntu.com/" + res.headers.location + " %0D%0A");
