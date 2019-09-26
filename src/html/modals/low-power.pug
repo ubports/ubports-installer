@@ -11,4 +11,4 @@
         b
           | Please let your device charge for a while and try again.
       .modal-footer
-        button.btn.btn-default(type='button', data-dismiss='modal', onclick="location.reload()") Try again
+        button.btn.btn-default(type='button', data-dismiss='modal', onclick="ipcRenderer.send('restart');") Try again

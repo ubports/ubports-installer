@@ -156,7 +156,7 @@ var push = (file, dest) => {
       if (stderrShort.indexOf("I/O error") != -1) {
         utils.log.warn("connection to device lost");
         // TODO: Only restart the event rather than the entire installation
-        mainEvent.emit("user:connection-lost", () => { mainWindow.reload(); });
+        mainEvent.emit("user:connection-lost", () => { mainEvent.emit("restart"); });
       } else if (!err.killed && (err.code == 1)) {
         hasAdbAccess ((hasAccess) => {
           if (hasAccess) {
@@ -164,7 +164,7 @@ var push = (file, dest) => {
           } else {
             utils.log.warn("connection to device lost");
             // TODO: Only restart the event rather than the entire installation
-            mainEvent.emit("user:connection-lost", () => { mainWindow.reload(); });
+            mainEvent.emit("user:connection-lost", () => { mainEvent.emit("restart"); });
           }
         });
       } else {
@@ -198,13 +198,18 @@ var pushMany = (files) => {
   mainEvent.emit("adbpush:start", files.length);
   push(files[0].src, files[0].dest);
   mainEvent.on("adbpush:end", () => {
-        files.shift();
-        if (files.length <= 0){
-          mainEvent.emit("adbpush:done");
-          return;
+        if (files) {
+            files.shift();
+            if (files.length <= 0){
+              files = null;
+              mainEvent.emit("adbpush:done");
+              return;
+            } else {
+              if (files) mainEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
+              push(files[0].src, files[0].dest);
+            }
         } else {
-          mainEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
-          push(files[0].src, files[0].dest);
+          return;
         }
   });
 }

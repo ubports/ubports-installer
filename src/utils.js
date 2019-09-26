@@ -444,10 +444,10 @@ var downloadFiles = (urls_) => {
     .on('progress', (state) => {
       mainEvent.emit("download:progress", state.percent*100);
     })
-    .on('error', (err) => {
+    .once('error', (err) => {
       if (err) mainEvent.emit("download:error", err);
     })
-    .on('end', () => {
+    .once('end', () => {
       fs.rename(path.join(urls[0].path, path.basename(urls[0].url + ".tmp")),
       path.join(urls[0].path, path.basename(urls[0].url)), () => {
         mainEvent.emit("download:checking");

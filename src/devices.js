@@ -259,14 +259,8 @@ global.mainEvent.on("download:progress", (percent) => {
   utils.log.debug(`Downloading file ${global.mainEvent.nextCurrent} of ${global.mainEvent.nextTotal}, ${Math.ceil(percent)}% complete`);
   global.mainEvent.emit("user:write:progress", Math.ceil(percent/global.mainEvent.nextTotal+global.mainEvent.nextBaseProgress));
 });
-global.mainEvent.on("adbpush:done", () => {
-  utils.log.info("Done pushing files");
-  utils.log.info("Rebooting to recovery to flash");
-  global.mainEvent.emit("system-image:done");
-  global.mainEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
-  global.mainEvent.emit("user:write:progress", 0);
-});
 global.mainEvent.on("adbpush:error", (e) => {
+  global.mainEvent.removeListener("adbpush:end", () => {});
   global.mainEvent.emit("error", "Adb push error: " + e)
   utils.log.error("Devices: Adb push error: "+ e)
 });
@@ -301,23 +295,31 @@ var install = (options) => {
     return false;
   utils.log.debug("install event started with options: " + JSON.stringify(options))
   devicesApi.getInstallInstructs(options.device).then((instructs) => {
-    global.mainEvent.on("images:startDownload", () => {
+    global.mainEvent.once("images:startDownload", () => {
       global.mainEvent.emit("user:write:status", "Downloading images");
       utils.downloadFiles(addPathToImages(instructs.images, options.device));
     });
-    global.mainEvent.on("system-image:start", () => {
+    global.mainEvent.once("adbpush:done", () => {
+      global.mainEvent.removeListener("adbpush:end", () => {});
+      utils.log.info("Done pushing files");
+      utils.log.info("Rebooting to recovery to flash");
+      global.mainEvent.emit("system-image:done");
+      global.mainEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
+      global.mainEvent.emit("user:write:progress", 0);
+    });
+    global.mainEvent.once("system-image:start", () => {
       systemImage.installLatestVersion({
         device: options.device,
         channel: options.channel,
         wipe: options.wipe
       });
     });
-    global.mainEvent.on("system-image:done", () => {
+    global.mainEvent.once("system-image:done", () => {
       instructReboot("recovery", instructs.buttons, () => {
         global.mainEvent.emit("user:write:done");
       });
     });
-    global.mainEvent.on("bootstrap:done", (bootstrap) => {
+    global.mainEvent.once("bootstrap:done", (bootstrap) => {
       utils.log.info("bootstrap done: " + (bootstrap ? "rebooting automatically" : "rebooting manually"));
       if (!bootstrap){
         instructReboot("recovery", instructs.buttons, () => {

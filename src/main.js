@@ -80,10 +80,7 @@ ipcMain.on("die", (exitCode) => {
 });
 
 ipcMain.on("restart", () => {
-  global.installProperties.device = undefined;
-  global.installProperties.channel = undefined;
-  utils.log.debug("WINDOW RELOADED");
-  mainWindow.reload();
+  mainEvent.emit("restart");
 });
 
 ipcMain.on("error_ignored", () => {
@@ -143,6 +140,13 @@ mainEvent.on("user:connection-lost", (callback) => {
 
 mainEvent.on("user:low-power", () => {
   mainWindow.webContents.send("user:low-power");
+});
+
+mainEvent.on("restart", () => {
+  global.installProperties.device = undefined;
+  global.installProperties.channel = undefined;
+  utils.log.debug("WINDOW RELOADED");
+  mainWindow.reload();
 });
 
 mainEvent.on("user:oem-lock", (callback) => {
