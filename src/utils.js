@@ -442,7 +442,7 @@ var downloadFiles = (urls_) => {
     }
     progress(http(urls[0].url))
     .on('progress', (state) => {
-      mainEvent.emit("download:progress", state.percent*100);
+      mainEvent.emit("download:progress:hack", state.percent*100);
     })
     .once('error', (err) => {
       if (err) mainEvent.emit("download:error", err);
@@ -457,7 +457,7 @@ var downloadFiles = (urls_) => {
               mainEvent.emit("download:done");
             } else {
               urls.shift();
-              mainEvent.emit("download:next", totalFiles-urls.length+1, totalFiles);
+              mainEvent.emit("download:next:hack", totalFiles-urls.length+1, totalFiles);
               dl()
             }
           } else {

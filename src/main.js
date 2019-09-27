@@ -188,11 +188,20 @@ mainEvent.on("user:write:progress", (length) => {
 
 mainEvent.on("user:write:done", () => {
   mainWindow.webContents.send("user:write:done");
+  mainWindow.webContents.send("user:write:speed");
   utils.log.info("All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!");
 });
 
 mainEvent.on("user:write:status", (status) => {
   mainWindow.webContents.send("user:write:status", status);
+});
+
+mainEvent.on("user:write:speed", (speed) => {
+  mainWindow.webContents.send("user:write:speed", speed);
+});
+
+mainEvent.on("user:write:under", (status) => {
+  mainWindow.webContents.send("user:write:under", status);
 });
 
 mainEvent.on("user:adb:ready", () => {

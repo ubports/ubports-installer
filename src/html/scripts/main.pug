@@ -49,6 +49,7 @@ script.
 
   ipcRenderer.on("system-image:start", () => {
     views.show("working", "particles");
+    footer.underText.set("Preparing system image");
   });
 
   ipcRenderer.on("download:start", () => {
@@ -114,6 +115,10 @@ script.
     modals.show('no-network');
   });
 
+  ipcRenderer.on("user:write:speed", (e, speed) => {
+    footer.speedText.set(speed);
+  });
+
   ipcRenderer.on("user:write:next", (e, text, current, total) => {
     footer.underText.set(text + " file " + current + " of " + total);
   });
@@ -142,6 +147,10 @@ script.
 
   ipcRenderer.on("user:write:status", (e, status) => {
     footer.topText.set(status, true)
+  });
+
+  ipcRenderer.on("user:write:under", (e, status) => {
+    footer.underText.set(status, true)
   });
 
   ipcRenderer.on("user:device-unsupported", (event, device) => {

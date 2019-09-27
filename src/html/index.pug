@@ -25,9 +25,12 @@ html
     #progress.progress(hidden='hidden')
     footer.footer.is-over
       .container
-        h3#footer-top.text-muted.footer-top UBports Installer is starting up
-          span#wait-dot(hidden='false') .
-        p#footer-bottom.text-muted Starting adb service
+        h3(style="margin-top: 0").text-muted.footer-top
+          span#footer-top UBports Installer is starting up
+          span#wait-dot(hidden='false')
+        p
+          span#footer-bottom.text-muted Starting adb service
+          span#footer-speed.text-muted
     // --- Modals ---
     include modals/install
     include modals/connection-lost

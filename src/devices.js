@@ -244,20 +244,33 @@ global.mainEvent.on("download:start", (total) => {
   global.mainEvent.nextTotal = total;
   global.mainEvent.nextCurrent = 1;
   global.mainEvent.nextBaseProgress = 0;
-  utils.log.info("Starting download of "+total+" files");
   global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
-  global.mainEvent.emit("user:write:next", "Downloading", 1, total);
+  if (total) global.mainEvent.emit("user:write:next", "Downloading", 1, total);
+  else global.mainEvent.emit("user:write:under", "Downloading");
 });
-global.mainEvent.on("download:next", (current, total) => {
+global.mainEvent.on("download:next:hack", (current, total) => {
   global.mainEvent.nextCurrent = current;
   global.mainEvent.nextBaseProgress = Math.abs(Math.ceil((current-1)/total*100));
   utils.log.info(`Downloading file ${global.mainEvent.nextCurrent}/${global.mainEvent.nextTotal}`);
   global.mainEvent.emit("user:write:next", "Downloading", global.mainEvent.nextCurrent, global.mainEvent.nextTotal);
   global.mainEvent.emit("user:write:progress", global.mainEvent.nextBaseProgress);
 });
-global.mainEvent.on("download:progress", (percent) => {
+global.mainEvent.on("download:next", (current, total) => {
+  utils.log.info(`Downloading file ${current}/${total}`);
+  global.mainEvent.emit("user:write:next", "Downloading", current, total);
+});
+// TODO remove this one in favor of download:progress
+global.mainEvent.on("download:progress:hack", (percent) => {
   utils.log.debug(`Downloading file ${global.mainEvent.nextCurrent} of ${global.mainEvent.nextTotal}, ${Math.ceil(percent)}% complete`);
   global.mainEvent.emit("user:write:progress", Math.ceil(percent/global.mainEvent.nextTotal+global.mainEvent.nextBaseProgress));
+});
+global.mainEvent.on("download:progress", (percent) => {
+  // utils.log.debug(`Downloading files: ${percent*100}% complete`);
+  global.mainEvent.emit("user:write:progress", percent*100);
+});
+global.mainEvent.on("download:speed", (speed) => {
+  // utils.log.debug(`Downloading at ${speed}% MB/s`);
+  global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
 });
 global.mainEvent.on("adbpush:error", (e) => {
   global.mainEvent.removeListener("adbpush:end", () => {});
@@ -305,6 +318,7 @@ var install = (options) => {
       utils.log.info("Rebooting to recovery to flash");
       global.mainEvent.emit("system-image:done");
       global.mainEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
+      global.mainEvent.emit("user:write:status", "All files pushed successfully!");
       global.mainEvent.emit("user:write:progress", 0);
     });
     global.mainEvent.once("system-image:start", () => {
@@ -326,7 +340,8 @@ var install = (options) => {
           global.mainEvent.emit("system-image:start");
         });
       } else {
-        global.mainEvent.emit("user:write:status", "Waiting for device to enter recovery mode");
+        global.mainEvent.emit("user:write:status", "Waiting for device to enter recovery mode", true);
+        global.mainEvent.emit("user:write:under", "Rebooting...");
         adb.waitForDevice(() => {
           global.mainEvent.emit("system-image:start");
         });
@@ -334,6 +349,7 @@ var install = (options) => {
     });
     if (instructs.images.length > 0) { // If images are specified, flash them (bootstrapping)
       // We need to be in bootloader
+      global.mainEvent.emit("user:write:under", "Please connect your device with a USB cable");
       instructReboot("bootloader", instructs.buttons, () => {
         global.mainEvent.once("download:done", () => {
           instructBootstrap(instructs.installSettings.bootstrap, addPathToImages(instructs.images, options.device));

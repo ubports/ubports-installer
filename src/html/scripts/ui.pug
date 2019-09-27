@@ -113,6 +113,12 @@ script.
       set: (text) => {
         return $("#footer-bottom").text(text)
       }
+    },
+    speedText: {
+      set: (text) => {
+        if (text) return $("#footer-speed").text(" at " + text + " MB/s");
+        else return $("#footer-speed").text("");
+      }
     }
   }
 

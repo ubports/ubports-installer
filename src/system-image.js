@@ -24,34 +24,6 @@ const getDeviceChannels = (device) => {
   return systemImage.getDeviceChannels(device);
 }
 
-var downloadLatestVersion = (options) => {
-  utils.log.debug("downloadLatestVersion options: ", options);
-  systemImage.getLatestVersion(options.device, options.channel).then((latest) => {
-    var urls = systemImage.getFilesUrlsArray(latest)
-    urls.push.apply(urls, systemImage.getGgpUrlsArray());
-    var files = systemImage.getFilePushArray(urls);
-    utils.downloadFiles(urls);
-    utils.log.debug(urls);
-    mainEvent.once("download:done", () => {
-      files.push({
-        src: systemImage.createInstallCommandsFile(
-          systemImage.createInstallCommands(
-            latest.files,
-            options.installerCheck,
-            options.wipe,
-            options.enable
-          ),
-          options.device
-        ),
-        dest: ubuntuPushDir + ubuntuCommandFile
-      });
-      mainEvent.emit("download:pushReady", files);
-    });
-  }).catch(() => {
-    mainEvent.emit("error", "could not find latest version; " + "device: " + options.device + " channel: " + options.channel);
-  });
-}
-
 var pushLatestVersion = (files, dontWipeCache) => {
   var doPush = () => {
     adb.shell("mount -a", () => {
@@ -67,8 +39,17 @@ var pushLatestVersion = (files, dontWipeCache) => {
 }
 
 var installLatestVersion = (options) => {
-  downloadLatestVersion(options);
-  mainEvent.once("download:pushReady", (files) => {
+  mainEvent.once("download:progress", () => {
+    mainEvent.emit("download:start");
+  })
+  systemImage.downloadLatestVersion(options, (progress, speed) => {
+    mainEvent.emit("download:progress", progress);
+    mainEvent.emit("download:speed", speed);
+  }, (current, total) => {
+    if (current != total) mainEvent.emit("download:next", current+1, total);
+  }).then((files) => {
+    utils.log.debug(files)
+    mainEvent.emit("download:done");
     pushLatestVersion(files);
   });
 }
