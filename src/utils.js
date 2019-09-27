@@ -133,8 +133,11 @@ function getLatestInstallerVersion() {
 }
 
 function getUpdateAvailable() {
-  return getLatestInstallerVersion().then((latestVersion) => {
-    return latestVersion != global.packageInfo.version;
+  return new Promise((resolve, reject) => {
+    getLatestInstallerVersion().then((latestVersion) => {
+      if(latestVersion != global.packageInfo.version) resolve();
+      else reject();
+    });
   });
 }
 

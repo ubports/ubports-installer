@@ -233,7 +233,7 @@ script.
     modals.show('windows-drivers');
   }
 
-  if(global.packageInfo.updateAvailable) {
+  ipcRenderer.on("user:update-available", () => {
     if (global.packageInfo.isSnap) {
       $("#snap-update-instructions").show();
       $("#btn-update-installer").hide();
@@ -241,4 +241,4 @@ script.
       $("#generic-update-instructions").show();
     }
     modals.show('new-update');
-  }
+  });

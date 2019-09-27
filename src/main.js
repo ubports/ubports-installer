@@ -60,7 +60,6 @@ global.installProperties = {
 };
 
 global.packageInfo.isSnap = utils.isSnap();
-utils.getUpdateAvailable((updateAvailable) => { global.packageInfo.updateAvailable = updateAvailable; });
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING
@@ -249,6 +248,12 @@ function createWindow () {
     });
     devices.getDeviceSelects((out) => {
       mainEvent.emit("device:wait:data-ready", out)
+    });
+    utils.getUpdateAvailable().then(() => {
+      utils.log.info("This is not the latest version! Please update: https://devices.ubuntu-touch.io/installer/" + global.packageInfo.package);
+      mainWindow.webContents.send("user:update-available");
+    }).catch(() => {
+      utils.log.debug("This is the latest version.")
     });
   });
 
