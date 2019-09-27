@@ -16,7 +16,7 @@ const utils = require("./utils");
 const exec = require('child_process').exec;
 
 // DEFAULT = 5037
-const PORT = 5038
+const PORT = 5037
 
 // Since we need root anyway, why not start adb with root
 const start = (password, sudo, callback) => {
