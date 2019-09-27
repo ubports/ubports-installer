@@ -41,13 +41,13 @@
     "electron-packager": "^12.2.0",
     "istanbul": "^0.4.5",
     "mocha": "^6.2.0",
-    "download": "^7.1.0",
     "sinon": "^1.17.7",
     "spectron": "^3.6.0",
     "unzipper": "^0.9.4"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
+    "download": "^7.1.0",
     "popper.js": "^1.14.3",
     "checksum": "^0.1.1",
     "command-exists": "^1.2.2",
@@ -64,7 +64,6 @@
     "jquery-i18next": "^1.2.0",
     "mkdirp": "^0.5.1",
     "request": "^2.79.0",
-    "request-progress": "^3.0.0",
     "system-image-node-module": "^1.0.9",
     "ubports-api-node-module": "^1.0.2",
     "tmp": "0.0.31",

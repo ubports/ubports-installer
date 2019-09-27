@@ -7,7 +7,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 */
 
 const http = require("request");
-const progress = require("request-progress");
+const download = require("download");
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
@@ -378,51 +378,28 @@ var ensureRoot = (m) => {
   process.exit(1);
 }
 
-var checkFiles = (urls, callback) => {
-    var urls_ = [];
-    var next = () => {
-        if (urls.length <= 1) {
-            callback(urls_)
+function checksumFile(file) {
+  return new Promise(function(resolve, reject) {
+    fs.access(path.join(file.path, path.basename(file.url)), (err) => {
+      if (err) {
+        reject();
+      } else {
+        if (!file.checksum) {
+          // No checksum so return true;
+          resolve();
+          return;
         } else {
-            urls.shift();
-            check()
+          checksum.file(path.join(file.path, path.basename(file.url)), {
+            algorithm: "sha256"
+          }, function(err, sum) {
+            utils.log.debug("checked: " +path.basename(file.url), sum === file.checksum);
+            if (sum === file.checksum) resolve();
+            else reject();
+          });
         }
-    }
-    var check = () => {
-        fs.access(path.join(urls[0].path, path.basename(urls[0].url)), (err) => {
-            if (err) {
-                log.debug("Not existing " + path.join(urls[0].path, path.basename(urls[0].url)));
-                urls_.push(urls[0]);
-                next();
-            } else {
-                checksumFile(urls[0], (check) => {
-                    if (check) {
-                        log.debug(path.join(urls[0].path, path.basename(urls[0].url)) + " exists with the expected checksum, so the download will be skipped.");
-                        next();
-                    } else {
-                        log.debug("Checksum mismatch on " + path.join(urls[0].path, path.basename(urls[0].url)) + ". This file will be downloaded again.");
-                        urls_.push(urls[0]);
-                        next();
-                    }
-                })
-            }
-        })
-    }
-    check();
-}
-
-var checksumFile = (file, callback) => {
-    if (!file.checksum) {
-        // No checksum so return true;
-        callback(true);
-        return;
-    }
-    checksum.file(path.join(file.path, path.basename(file.url)), {
-        algorithm: "sha256"
-    }, function(err, sum) {
-        log.debug("checked: " +path.basename(file.url), sum === file.checksum);
-        callback(sum === file.checksum, sum);
+      }
     });
+  });
 }
 
 /*
@@ -435,51 +412,58 @@ urls format:
   }
 ]
 */
-var downloadFiles = (urls_) => {
-  var urls;
-  var totalFiles;
-  mainEvent.emit("download:startCheck");
-  var dl = () => {
-    if (!fs.existsSync(urls[0].path)) {
-      mkdirp.sync(urls[0].path);
-    }
-    progress(http(urls[0].url))
-    .on('progress', (state) => {
-      mainEvent.emit("download:progress:hack", state.percent*100);
-    })
-    .once('error', (err) => {
-      if (err) mainEvent.emit("download:error", err);
-    })
-    .once('end', () => {
-      fs.rename(path.join(urls[0].path, path.basename(urls[0].url + ".tmp")),
-      path.join(urls[0].path, path.basename(urls[0].url)), () => {
-        mainEvent.emit("download:checking");
-        checksumFile(urls[0], (check) => {
-          if (check) {
-            if (urls.length <= 1) {
-              mainEvent.emit("download:done");
-            } else {
-              urls.shift();
-              mainEvent.emit("download:next:hack", totalFiles-urls.length+1, totalFiles);
-              dl()
-            }
-          } else {
-            mainEvent.emit("download:error", "Checksum mismatch on file " + path.basename(urls[0].url));
-          }
+function downloadFiles(urls, progress, next) {
+  return new Promise(function(resolve, reject) {
+    var filesDownloaded = 0;
+    var overallSize = 0;
+    var overallDownloaded = 0;
+    var previousOverallDownloaded = 0;
+    var downloadProgress = 0;
+    var progressInterval = setInterval(() => {
+      downloadProgress = overallDownloaded/overallSize;
+      if (overallSize != 0) {
+        if (downloadProgress < 0.999) {
+          progress(downloadProgress, (overallDownloaded-previousOverallDownloaded)/1000000);
+          previousOverallDownloaded = overallDownloaded;
+        } else {
+          clearInterval(progressInterval);
+          progress(1, 0);
+        }
+      }
+    }, 1000);
+    Promise.all(urls.map((file) => {
+      return new Promise(function(resolve, reject) {
+        checksumFile(file).then(() => {
+          next(++filesDownloaded, urls.length);
+          resolve();
+          return;
+        }).catch(() => {
+          download(file.url, file.path).on("response", (res) => {
+            var totalSize = eval(res.headers['content-length']);
+            overallSize += totalSize;
+            var downloaded = 0;
+            res.on('data', data => {
+              overallDownloaded += data.length;
+            });
+          }).then(() => {
+            checksumFile(file).then(() => {
+              next(++filesDownloaded, urls.length);
+              resolve();
+              return;
+            }).catch((err) => {
+              reject(err);
+              return;
+            });
+          });
         });
       });
-    })
-    .pipe(fs.createWriteStream(path.join(urls[0].path, path.basename(urls[0].url + ".tmp"))));
-  }
-  checkFiles(urls_, (ret) => {
-    if (ret.length <= 0) {
-      mainEvent.emit("download:done");
-    } else {
-      urls = ret;
-      totalFiles = urls.length;
-      mainEvent.emit("download:start", totalFiles);
-      dl();
-    }
+    })).then(() => {
+      resolve();
+      return;
+    }).catch((err) => {
+      reject(err);
+      return;
+    });
   });
 }
 
@@ -494,8 +478,6 @@ const hidePassword = (output, pw) => {
 module.exports = {
     setCustomPlatformTool: setCustomPlatformTool,
     downloadFiles: downloadFiles,
-    checksumFile: checksumFile,
-    checkFiles: checkFiles,
     log: log,
     platformToolsExec: platformToolsExec,
     platformToolsExecAsar: platformToolsExecAsar,

@@ -213,6 +213,23 @@ var instructBootstrap = (bootstrap, images) => {
   }
 }
 
+var downloadImages = (images, device) => {
+  utils.log.debug(addPathToImages(images, device))
+  global.mainEvent.once("download:progress", () => {
+    global.mainEvent.emit("download:start");
+  })
+  utils.downloadFiles(images, (progress, speed) => {
+    global.mainEvent.emit("download:progress", progress);
+    global.mainEvent.emit("download:speed", speed);
+  }, (current, total) => {
+    if (current != total) global.mainEvent.emit("download:next", current+1, total);
+  }).then((files) => {
+    utils.log.debug(files)
+    global.mainEvent.emit("download:done");
+    pushLatestVersion(files);
+  });
+}
+
 var addPathToImages = (images, device) => {
   var ret = [];
   images.forEach((image) => {
@@ -308,10 +325,6 @@ var install = (options) => {
     return false;
   utils.log.debug("install event started with options: " + JSON.stringify(options))
   devicesApi.getInstallInstructs(options.device).then((instructs) => {
-    global.mainEvent.once("images:startDownload", () => {
-      global.mainEvent.emit("user:write:status", "Downloading images");
-      utils.downloadFiles(addPathToImages(instructs.images, options.device));
-    });
     global.mainEvent.once("adbpush:done", () => {
       global.mainEvent.removeListener("adbpush:end", () => {});
       utils.log.info("Done pushing files");
@@ -354,7 +367,8 @@ var install = (options) => {
         global.mainEvent.once("download:done", () => {
           instructBootstrap(instructs.installSettings.bootstrap, addPathToImages(instructs.images, options.device));
         });
-        global.mainEvent.emit("images:startDownload");
+        global.mainEvent.emit("user:write:status", "Downloading images");
+        downloadImages(instructs.images, options.device);
       });
     } else { // If no images are specified, go straight to system-image
       // We need to be in recovery
