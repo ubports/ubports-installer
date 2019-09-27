@@ -226,7 +226,6 @@ var downloadImages = (images, device) => {
   }).then((files) => {
     utils.log.debug(files)
     global.mainEvent.emit("download:done");
-    pushLatestVersion(files);
   });
 }
 
@@ -290,15 +289,12 @@ global.mainEvent.on("download:speed", (speed) => {
   global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
 });
 global.mainEvent.on("adbpush:error", (e) => {
-  global.mainEvent.removeListener("adbpush:end", () => {});
   global.mainEvent.emit("error", "Adb push error: " + e)
   utils.log.error("Devices: Adb push error: "+ e)
 });
 global.mainEvent.on("adbpush:progress", (percent) => {
-  if (percent != NaN && percent != 100) {
-    utils.log.debug(`Pushing file ${global.mainEvent.nextCurrent} of ${global.mainEvent.nextTotal}, ${Math.ceil(percent)}% complete`);
-    global.mainEvent.emit("user:write:progress", Math.ceil(percent/global.mainEvent.nextTotal+global.mainEvent.nextBaseProgress));
-  }
+  utils.log.debug(`Pushing ${Math.ceil(percent*100)}% complete`);
+  global.mainEvent.emit("user:write:progress", percent*100);
 });
 global.mainEvent.on("adbpush:next", (current, total) => {
   global.mainEvent.nextCurrent = current;
@@ -326,7 +322,6 @@ var install = (options) => {
   utils.log.debug("install event started with options: " + JSON.stringify(options))
   devicesApi.getInstallInstructs(options.device).then((instructs) => {
     global.mainEvent.once("adbpush:done", () => {
-      global.mainEvent.removeListener("adbpush:end", () => {});
       utils.log.info("Done pushing files");
       utils.log.info("Rebooting to recovery to flash");
       global.mainEvent.emit("system-image:done");

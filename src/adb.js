@@ -144,74 +144,78 @@ var isBaseUbuntuCom = callback => {
 }
 
 var push = (file, dest) => {
-  var done;
-  var hundredEmitted;
-  var fileSize = fs.statSync(file)["size"];
-  var guardedfile = process.platform == "darwin" ? file : '"' + file + '"'; // macos can't handle double quotes
-  utils.platformToolsExec("adb", ["-P", PORT, "push", guardedfile, dest], (err, stdout, stderr) => {
-    done=true;
-    if (err) {
-      var stdoutShort = stdout && stdout.length > 256 ? "[...]" + stdout.substr(-256, stdout.length) : stdout;
-      var stderrShort = stderr && stderr.length > 256 ? "[...]" + stderr.substr(-256, stderr.length) : stderr;
-      if (stderrShort.indexOf("I/O error") != -1) {
-        utils.log.warn("connection to device lost");
-        // TODO: Only restart the event rather than the entire installation
-        mainEvent.emit("user:connection-lost", () => { mainEvent.emit("restart"); });
-      } else if (!err.killed && (err.code == 1)) {
-        hasAdbAccess ((hasAccess) => {
-          if (hasAccess) {
-            mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
-          } else {
-            utils.log.warn("connection to device lost");
-            // TODO: Only restart the event rather than the entire installation
-            mainEvent.emit("user:connection-lost", () => { mainEvent.emit("restart"); });
-          }
-        });
-      } else {
-        mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
-      }
-    }
-    else mainEvent.emit("adbpush:end");
-  });
-  var progress = () => {
-    setTimeout(function () {
-      shell("stat -t "+dest+"/"+path.basename(file), (stat) => {
-        try {
-          var currentSize = stat.split(" ")[1];
-          var percentage = Math.ceil((currentSize/fileSize)*100);
-          if(!isNaN(percentage) && !hundredEmitted) mainEvent.emit("adbpush:progress", percentage);
-          if(percentage == 100) hundredEmitted = true;
-          if(!done && (percentage < fileSize)) progress();
-        } catch (e) { }
+  return new Promise(function(resolve, reject) {
+    var done;
+    var hundredEmitted;
+    var fileSize = fs.statSync(file)["size"];
+    var lastSize = 0;
+    var progressInterval = setInterval(() => {
+      shell("stat -t " + dest + "/" + path.basename(file), (stat) => {
+        mainEvent.emit("adbpush:progress:size", eval(stat.split(" ")[1])-lastSize);
+        lastSize = eval(stat.split(" ")[1]);
       });
     }, 1000);
-  }
-  progress();
+    var guardedfile = process.platform == "darwin" ? file : '"' + file + '"'; // macos can't handle double quotes
+    utils.platformToolsExec("adb", ["-P", PORT, "push", guardedfile, dest], (err, stdout, stderr) => {
+      done=true;
+      if (err) {
+        var stdoutShort = stdout && stdout.length > 256 ? "[...]" + stdout.substr(-256, stdout.length) : stdout;
+        var stderrShort = stderr && stderr.length > 256 ? "[...]" + stderr.substr(-256, stderr.length) : stderr;
+        if (stderrShort.indexOf("I/O error") != -1) {
+          utils.log.warn("connection to device lost");
+          // TODO: Only restart the event rather than the entire installation
+          mainEvent.emit("user:connection-lost", () => { mainEvent.emit("restart"); });
+        } else if (!err.killed && (err.code == 1)) {
+          hasAdbAccess ((hasAccess) => {
+            if (hasAccess) {
+              mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+            } else {
+              utils.log.warn("connection to device lost");
+              // TODO: Only restart the event rather than the entire installation
+              mainEvent.emit("user:connection-lost", () => { mainEvent.emit("restart"); });
+            }
+          });
+        } else {
+          mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+        }
+      }
+      clearInterval(progressInterval);
+      resolve();
+    });
+  });
 }
 
 var pushMany = (files) => {
-  var totalLength = files.length;
   if (files.length <= 0){
     mainEvent.emit("adbpush:error", "No files provided");
     return false;
   }
-  mainEvent.emit("adbpush:start", files.length);
-  push(files[0].src, files[0].dest);
-  mainEvent.on("adbpush:end", () => {
-        if (files) {
-            files.shift();
-            if (files.length <= 0){
-              files = null;
-              mainEvent.emit("adbpush:done");
-              return;
-            } else {
-              if (files) mainEvent.emit("adbpush:next", totalLength-files.length+1, totalLength)
-              push(files[0].src, files[0].dest);
-            }
-        } else {
-          return;
-        }
+  var totalSize = 0;
+  var downloadedSize = 0;
+  // Get total size for progress bar
+  files.forEach((file) => {
+    totalSize += fs.statSync(file.src)["size"];
   });
+  mainEvent.emit("adbpush:start", files.length);
+  mainEvent.once("adbpush:done", () => {
+    mainEvent.emit("adbpush:progress", 1);
+  })
+  mainEvent.on("adbpush:progress:size", (s) => {
+    downloadedSize += s;
+    mainEvent.emit("adbpush:progress", downloadedSize/totalSize);
+  });
+  // Push it to the limit
+  function pushNext(i) {
+    mainEvent.emit("adbpush:next", i+1, files.length)
+    push(files[i].src, files[i].dest).then(() => {
+      if (i+1 < files.length) {
+        pushNext(i+1);
+      } else {
+        mainEvent.emit("adbpush:done");
+      }
+    });
+  }
+  pushNext(0); // Begin pushing
 }
 
 var shell = (cmd, callback) => {
