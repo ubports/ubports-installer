@@ -483,12 +483,6 @@ var downloadFiles = (urls_) => {
   });
 }
 
-const getRandomInt = (min, max) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
 const hidePassword = (output, pw) => {
   if (needRoot()) {
     return output.replace(pw.replace(/\'/g, "'\\''"), "***");
@@ -516,7 +510,6 @@ module.exports = {
     getUpdateAvailable: getUpdateAvailable,
     getPlatform: getPlatform,
     asarExec: asarExec,
-    getRandomInt: getRandomInt,
     getVersion: getVersion,
     hidePassword: hidePassword,
     die: die,
