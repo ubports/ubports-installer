@@ -206,7 +206,7 @@ var pushMany = (files) => {
   });
   // Push it to the limit
   function pushNext(i) {
-    mainEvent.emit("adbpush:next", i+1, files.length)
+    utils.log.debug("Pushing file " + (i+1) + " of " + files.length);
     push(files[i].src, files[i].dest).then(() => {
       if (i+1 < files.length) {
         pushNext(i+1);

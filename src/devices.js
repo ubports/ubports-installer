@@ -257,9 +257,6 @@ global.mainEvent.on("download:startCheck", () => {
   utils.log.debug("Download startCheck");
 });
 global.mainEvent.on("download:start", (total) => {
-  global.mainEvent.nextTotal = total;
-  global.mainEvent.nextCurrent = 1;
-  global.mainEvent.nextBaseProgress = 0;
   global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
   if (total) global.mainEvent.emit("user:write:next", "Downloading", 1, total);
   else global.mainEvent.emit("user:write:under", "Downloading");
@@ -283,13 +280,6 @@ global.mainEvent.on("adbpush:error", (e) => {
 global.mainEvent.on("adbpush:progress", (percent) => {
   utils.log.debug(`Pushing ${Math.ceil(percent*100)}% complete`);
   global.mainEvent.emit("user:write:progress", percent*100);
-});
-global.mainEvent.on("adbpush:next", (current, total) => {
-  global.mainEvent.nextCurrent = current;
-  global.mainEvent.nextBaseProgress = Math.abs(Math.ceil((current-1)/total*100));
-  utils.log.info(`Pushing file ${global.mainEvent.nextCurrent}/${global.mainEvent.nextTotal}`);
-  global.mainEvent.emit("user:write:next", "Pushing", global.mainEvent.nextCurrent, global.mainEvent.nextTotal);
-  global.mainEvent.emit("user:write:progress", global.mainEvent.nextBaseProgress);
 });
 global.mainEvent.on("adbpush:start", (total) => {
   global.mainEvent.nextTotal = total;
