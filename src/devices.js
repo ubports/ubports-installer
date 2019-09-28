@@ -261,11 +261,9 @@ global.mainEvent.on("download:start", (total) => {
   global.mainEvent.emit("user:write:under", "Downloading");
 });
 global.mainEvent.on("download:progress", (percent) => {
-  // utils.log.debug(`Downloading files: ${percent*100}% complete`);
   global.mainEvent.emit("user:write:progress", percent*100);
 });
 global.mainEvent.on("download:speed", (speed) => {
-  // utils.log.debug(`Downloading at ${speed}% MB/s`);
   global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
 });
 global.mainEvent.on("adbpush:error", (e) => {
@@ -277,19 +275,12 @@ global.mainEvent.on("adbpush:progress", (percent) => {
   global.mainEvent.emit("user:write:progress", percent*100);
 });
 global.mainEvent.on("adbpush:start", (total) => {
-  global.mainEvent.nextTotal = total;
-  global.mainEvent.nextCurrent = 1;
-  global.mainEvent.nextBaseProgress = 0;
   utils.log.info("Start pushing " + total + " files");
   global.mainEvent.emit("user:write:status", "Pushing files to device");
   global.mainEvent.emit("user:write:start", "Pushing", total);
 });
 
 var install = (options) => {
-  // helper vars for progress events
-  var nextCurrent;
-  var nextTotal;
-  var nextBaseProgress;
   if (!options)
     return false;
   utils.log.debug("install event started with options: " + JSON.stringify(options))
