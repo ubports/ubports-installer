@@ -46,7 +46,7 @@ var installLatestVersion = (options) => {
     mainEvent.emit("download:progress", progress);
     mainEvent.emit("download:speed", speed);
   }, (current, total) => {
-    if (current != total) mainEvent.emit("download:next", current+1, total);
+    if (current != total) utils.log.debug("Downloading system-image file " + (current+1) + " of " + total);
   }).then((files) => {
     utils.log.debug(files)
     mainEvent.emit("download:done");

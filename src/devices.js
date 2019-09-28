@@ -222,7 +222,7 @@ var downloadImages = (images, device) => {
     global.mainEvent.emit("download:progress", progress);
     global.mainEvent.emit("download:speed", speed);
   }, (current, total) => {
-    if (current != total) global.mainEvent.emit("download:next", current+1, total);
+    if (current != total) utils.log.debug("Downloading bootstrap image " + (current+1) + " of " + total);
   }).then((files) => {
     utils.log.debug(files)
     global.mainEvent.emit("download:done");
@@ -260,10 +260,6 @@ global.mainEvent.on("download:start", (total) => {
   global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
   if (total) global.mainEvent.emit("user:write:next", "Downloading", 1, total);
   else global.mainEvent.emit("user:write:under", "Downloading");
-});
-global.mainEvent.on("download:next", (current, total) => {
-  utils.log.info(`Downloading file ${current}/${total}`);
-  global.mainEvent.emit("user:write:next", "Downloading", current, total);
 });
 global.mainEvent.on("download:progress", (percent) => {
   // utils.log.debug(`Downloading files: ${percent*100}% complete`);
