@@ -271,13 +271,6 @@ var install = (options) => {
       global.mainEvent.emit("user:write:status", "All files pushed successfully!");
       global.mainEvent.emit("user:write:progress", 0);
     });
-    global.mainEvent.once("system-image:start", () => {
-      systemImage.installLatestVersion({
-        device: options.device,
-        channel: options.channel,
-        wipe: options.wipe
-      });
-    });
     global.mainEvent.once("system-image:done", () => {
       instructReboot("recovery", instructs.buttons, () => {
         global.mainEvent.emit("user:write:done");
@@ -287,13 +280,21 @@ var install = (options) => {
       utils.log.info("bootstrap done: " + (bootstrap ? "rebooting automatically" : "rebooting manually"));
       if (!bootstrap){
         instructReboot("recovery", instructs.buttons, () => {
-          global.mainEvent.emit("system-image:start");
+          systemImage.installLatestVersion({
+            device: options.device,
+            channel: options.channel,
+            wipe: options.wipe
+          });
         });
       } else {
         global.mainEvent.emit("user:write:status", "Waiting for device to enter recovery mode", true);
         global.mainEvent.emit("user:write:under", "Rebooting...");
         adb.waitForDevice(() => {
-          global.mainEvent.emit("system-image:start");
+          systemImage.installLatestVersion({
+            device: options.device,
+            channel: options.channel,
+            wipe: options.wipe
+          });
         });
       }
     });
@@ -310,7 +311,11 @@ var install = (options) => {
     } else { // If no images are specified, go straight to system-image
       // We need to be in recovery
       instructReboot("recovery", instructs.buttons, () => {
-        global.mainEvent.emit("system-image:start");
+        systemImage.installLatestVersion({
+          device: options.device,
+          channel: options.channel,
+          wipe: options.wipe
+        });
       });
     }
   }).catch((e) => { utils.errorToUser(e, "Install"); });

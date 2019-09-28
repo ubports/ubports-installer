@@ -117,10 +117,6 @@ mainEvent.on("bootstrap:flashing", () => {
   mainWindow.webContents.send("bootstrap:flashing");
 });
 
-mainEvent.on("system-image:start", () => {
-  mainWindow.webContents.send("system-image:start");
-});
-
 mainEvent.on("adbpush:done", () => {
   mainWindow.webContents.send("adbpush:done");
 });

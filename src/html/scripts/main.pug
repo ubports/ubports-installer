@@ -47,11 +47,6 @@ script.
     footer.underText.set("Flashing recovery and boot images")
   });
 
-  ipcRenderer.on("system-image:start", () => {
-    views.show("working", "particles");
-    footer.underText.set("Preparing system image");
-  });
-
   ipcRenderer.on("user:write:working", (e, animation) => {
     views.show("working", animation);
   });
