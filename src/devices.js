@@ -264,21 +264,9 @@ global.mainEvent.on("download:start", (total) => {
   if (total) global.mainEvent.emit("user:write:next", "Downloading", 1, total);
   else global.mainEvent.emit("user:write:under", "Downloading");
 });
-global.mainEvent.on("download:next:hack", (current, total) => {
-  global.mainEvent.nextCurrent = current;
-  global.mainEvent.nextBaseProgress = Math.abs(Math.ceil((current-1)/total*100));
-  utils.log.info(`Downloading file ${global.mainEvent.nextCurrent}/${global.mainEvent.nextTotal}`);
-  global.mainEvent.emit("user:write:next", "Downloading", global.mainEvent.nextCurrent, global.mainEvent.nextTotal);
-  global.mainEvent.emit("user:write:progress", global.mainEvent.nextBaseProgress);
-});
 global.mainEvent.on("download:next", (current, total) => {
   utils.log.info(`Downloading file ${current}/${total}`);
   global.mainEvent.emit("user:write:next", "Downloading", current, total);
-});
-// TODO remove this one in favor of download:progress
-global.mainEvent.on("download:progress:hack", (percent) => {
-  utils.log.debug(`Downloading file ${global.mainEvent.nextCurrent} of ${global.mainEvent.nextTotal}, ${Math.ceil(percent)}% complete`);
-  global.mainEvent.emit("user:write:progress", Math.ceil(percent/global.mainEvent.nextTotal+global.mainEvent.nextBaseProgress));
 });
 global.mainEvent.on("download:progress", (percent) => {
   // utils.log.debug(`Downloading files: ${percent*100}% complete`);
