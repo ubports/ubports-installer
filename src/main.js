@@ -213,10 +213,6 @@ mainEvent.on("device:select:data-ready", (output, device, channels, ubuntuCom, a
   mainWindow.webContents.send("device:select:data-ready", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
 });
 
-mainEvent.once("device:wait:data-ready", (deviceSelects) => {
-  mainWindow.webContents.send("device:wait:data-ready", deviceSelects);
-});
-
 mainEvent.on("user:no-network", () => {
   mainWindow.webContents.send("user:no-network");
 });
@@ -237,16 +233,21 @@ function createWindow () {
     title: "UBports Installer ("+global.packageInfo.version+")"
   });
 
+  // Tasks we need for every start
   mainWindow.webContents.on("did-finish-load", () => {
     adb.start(false, false, (err) => {
       mainEvent.emit("user:adb:ready");
       devices.waitForDevice();
     });
     devices.getDeviceSelects((out) => {
-      mainEvent.emit("device:wait:data-ready", out)
+      mainWindow.webContents.send("device:wait:device-selects-ready", out)
     });
+  });
+
+  // Task we need only on the first start
+  mainWindow.webContents.once("did-finish-load", () => {
     utils.getUpdateAvailable().then(() => {
-      utils.log.info("This is not the latest version! Please update: https://devices.ubuntu-touch.io/installer/" + global.packageInfo.package);
+      utils.log.info("This is not the latest version of the UBports Installer! Please update: https://devices.ubuntu-touch.io/installer/" + global.packageInfo.package);
       mainWindow.webContents.send("user:update-available");
     }).catch(() => {
       utils.log.debug("This is the latest version.")

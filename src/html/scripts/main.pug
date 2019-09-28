@@ -194,7 +194,7 @@ script.
   // START
   views.show("working", "particles");
 
-  ipcRenderer.on("device:wait:data-ready", (event, deviceSelects) => {
+  ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
     $("#device-select").append(deviceSelects);
   });
 
