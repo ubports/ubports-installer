@@ -173,10 +173,6 @@ mainEvent.on("reboot:done", () => {
   mainWindow.webContents.send("reboot:done");
 });
 
-mainEvent.on("user:write:next", (text, current, total) => {
-  mainWindow.webContents.send("user:write:next", text, current, total);
-});
-
 mainEvent.on("user:write:start", (text, length) => {
   mainWindow.webContents.send("user:write:start", text, length);
 });

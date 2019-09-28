@@ -119,10 +119,6 @@ script.
     footer.speedText.set(speed);
   });
 
-  ipcRenderer.on("user:write:next", (e, text, current, total) => {
-    footer.underText.set(text + " file " + current + " of " + total);
-  });
-
   ipcRenderer.on("user:write:start", (e, text, length) => {
     footer.underText.set(text+" file 1 of "+length);
   });

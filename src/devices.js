@@ -258,8 +258,7 @@ global.mainEvent.on("download:startCheck", () => {
 });
 global.mainEvent.on("download:start", (total) => {
   global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
-  if (total) global.mainEvent.emit("user:write:next", "Downloading", 1, total);
-  else global.mainEvent.emit("user:write:under", "Downloading");
+  global.mainEvent.emit("user:write:under", "Downloading");
 });
 global.mainEvent.on("download:progress", (percent) => {
   // utils.log.debug(`Downloading files: ${percent*100}% complete`);
