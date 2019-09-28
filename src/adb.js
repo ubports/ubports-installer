@@ -201,7 +201,7 @@ var pushMany = (files) => {
         throw "Can't read system-image files: " + e
       }
     });
-    mainEvent.emit("adbpush:start", files.length);
+    mainEvent.emit("user:write:working", "push");
     mainEvent.once("adbpush:done", () => {
       mainEvent.emit("adbpush:progress", 1);
     })

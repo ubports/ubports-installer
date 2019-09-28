@@ -121,16 +121,8 @@ mainEvent.on("system-image:start", () => {
   mainWindow.webContents.send("system-image:start");
 });
 
-mainEvent.on("download:start", () => {
-  mainWindow.webContents.send("download:start");
-});
-
 mainEvent.on("adbpush:done", () => {
   mainWindow.webContents.send("adbpush:done");
-});
-
-mainEvent.on("adbpush:start", () => {
-  mainWindow.webContents.send("adbpush:start");
 });
 
 mainEvent.on("user:connection-lost", (callback) => {
@@ -173,10 +165,6 @@ mainEvent.on("reboot:done", () => {
   mainWindow.webContents.send("reboot:done");
 });
 
-mainEvent.on("user:write:start", (text, length) => {
-  mainWindow.webContents.send("user:write:start", text, length);
-});
-
 mainEvent.on("user:write:progress", (length) => {
   mainWindow.webContents.send("user:write:progress", length);
 });
@@ -185,6 +173,10 @@ mainEvent.on("user:write:done", () => {
   mainWindow.webContents.send("user:write:done");
   mainWindow.webContents.send("user:write:speed");
   utils.log.info("All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!");
+});
+
+mainEvent.on("user:write:working", (animation) => {
+  mainWindow.webContents.send("user:write:working", animation);
 });
 
 mainEvent.on("user:write:status", (status) => {

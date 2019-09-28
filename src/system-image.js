@@ -40,7 +40,9 @@ var pushLatestVersion = (files, dontWipeCache) => {
 
 var installLatestVersion = (options) => {
   mainEvent.once("download:progress", () => {
-    mainEvent.emit("download:start");
+    mainEvent.emit("user:write:working", "download");
+    mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
+    mainEvent.emit("user:write:under", "Downloading");
   })
   systemImage.downloadLatestVersion(options, (progress, speed) => {
     mainEvent.emit("download:progress", progress);

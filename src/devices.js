@@ -214,9 +214,11 @@ var instructBootstrap = (bootstrap, images) => {
 }
 
 var downloadImages = (images, device) => {
-  utils.log.debug(addPathToImages(images, device))
+  utils.log.debug(addPathToImages(images, device));
   global.mainEvent.once("download:progress", () => {
-    global.mainEvent.emit("download:start");
+    global.mainEvent.emit("user:write:working", "download");
+    global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
+    global.mainEvent.emit("user:write:under", "Downloading");
   })
   utils.downloadFiles(images, (progress, speed) => {
     global.mainEvent.emit("download:progress", progress);
@@ -249,10 +251,6 @@ global.mainEvent.on("download:startCheck", () => {
   global.mainEvent.emit("user:write:status", "Checking Ubuntu Touch files");
   utils.log.debug("Download startCheck");
 });
-global.mainEvent.on("download:start", (total) => {
-  global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
-  global.mainEvent.emit("user:write:under", "Downloading");
-});
 global.mainEvent.on("download:progress", (percent) => {
   global.mainEvent.emit("user:write:progress", percent*100);
 });
@@ -262,11 +260,6 @@ global.mainEvent.on("download:speed", (speed) => {
 global.mainEvent.on("adbpush:progress", (percent) => {
   utils.log.debug(`Pushing ${Math.ceil(percent*100)}% complete`);
   global.mainEvent.emit("user:write:progress", percent*100);
-});
-global.mainEvent.on("adbpush:start", (total) => {
-  utils.log.info("Start pushing " + total + " files");
-  global.mainEvent.emit("user:write:status", "Pushing files to device");
-  global.mainEvent.emit("user:write:start", "Pushing", total);
 });
 
 var install = (options) => {

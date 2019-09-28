@@ -52,12 +52,8 @@ script.
     footer.underText.set("Preparing system image");
   });
 
-  ipcRenderer.on("download:start", () => {
-    views.show("working", "download");
-  });
-
-  ipcRenderer.on("adbpush:start", () => {
-    views.show("working", "push");
+  ipcRenderer.on("user:write:working", (e, animation) => {
+    views.show("working", animation);
   });
 
   ipcRenderer.on("adbpush:done", () => {
@@ -117,10 +113,6 @@ script.
 
   ipcRenderer.on("user:write:speed", (e, speed) => {
     footer.speedText.set(speed);
-  });
-
-  ipcRenderer.on("user:write:start", (e, text, length) => {
-    footer.underText.set(text+" file 1 of "+length);
   });
 
   ipcRenderer.on("user:write:progress", (e, length) => {
