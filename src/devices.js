@@ -76,7 +76,7 @@ var instructReboot = (state, button, callback) => {
           utils.log.warn("Adb failed to reboot!, " + out + " : " + eout);
           manualReboot();
         } else {
-          global.mainEvent.emit("adb:rebooted");
+          global.mainEvent.emit("reboot:done");
         }
       });
     } else {

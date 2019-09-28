@@ -80,13 +80,7 @@ script.
     $("#complex-reboot-instruction").text(i.instruction);
   });
 
-  ipcRenderer.on("adb:rebooted", () => {
-    $('#views-reboot-up').hide();
-    $('#views-reboot-down').hide();
-  });
-
   ipcRenderer.on("reboot:done", () => {
-    views.show("working", "particles");
     $('#views-reboot-up').hide();
     $('#views-reboot-down').hide();
   });
@@ -167,7 +161,6 @@ script.
     });
   });
 
-  // START
   views.show("working", "particles");
 
   ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
