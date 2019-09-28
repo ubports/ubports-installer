@@ -247,10 +247,6 @@ global.mainEvent.on("download:done", () => {
 global.mainEvent.on("download:checking", () => {
   utils.log.info("Download checking file");
 });
-global.mainEvent.on("download:startCheck", () => {
-  global.mainEvent.emit("user:write:status", "Checking Ubuntu Touch files");
-  utils.log.debug("Download startCheck");
-});
 global.mainEvent.on("download:progress", (percent) => {
   global.mainEvent.emit("user:write:progress", percent*100);
 });
