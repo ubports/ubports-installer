@@ -475,7 +475,14 @@ const hidePassword = (output, pw) => {
   }
 }
 
+function errorToUser(error, errorLocation) {
+  var errorString = "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
+  utils.log.error(errorString);
+  global.mainEvent.emit("user:error", errorString);
+}
+
 module.exports = {
+    errorToUser: errorToUser,
     setCustomPlatformTool: setCustomPlatformTool,
     downloadFiles: downloadFiles,
     log: log,

@@ -83,7 +83,7 @@ var instructReboot = (state, button, callback) => {
       requestPassword((pass) => {
         fastboot.waitForDevice(pass, (err, errM) => {
           if (err) {
-            global.mainEvent.emit("Error", errM);
+            utils.errorToUser(errM, "fastboot.waitForDevice");
             return;
           } else {
             rebooted = true;
@@ -127,7 +127,7 @@ var requestPassword = (callback) => {
         global.mainEvent.emit("user:password:wrong");
         requestPassword(callback);
       } else {
-        global.mainEvent.emit("error", err.message)
+        utils.errorToUser(err.message, "Password");
       }
     });
   });
@@ -137,7 +137,7 @@ var instructOemUnlock = (callback) => {
   requestPassword((p) => {
     fastboot.oemUnlock(password, (err, errM) => {
       if (err) {
-        global.mainEvent.emit("error", errM);
+        utils.errorToUser(errM, "OEM unlock");
         callback(true);
       } else {
         callback(false);
@@ -160,7 +160,7 @@ var handleBootstrapError = (err, errM, backToFunction) => {
   } else if (err.lowPower) {
     global.mainEvent.emit("user:low-power");
   } else {
-    global.mainEvent.emit("error", errM);
+    utils.errorToUser(errM, "Bootstrap");
   }
 }
 
@@ -184,7 +184,7 @@ var instructBootstrap = (bootstrap, images) => {
           });
           // If we can't find it, report error!
           if (!recoveryImg) {
-            global.mainEvent.emit("error", "Cant find recoveryImg to boot: "+images);
+            utils.errorToUser("Cant find recoveryImg to boot: "+images, "fastboot.boot");
           } else {
             fastboot.boot(recoveryImg, p, (err, errM) => {
               if (err) {
@@ -242,13 +242,6 @@ global.mainEvent.on("download:done", () => {
   utils.log.info("Download complete");
   global.mainEvent.emit("user:write:progress", 0);
 });
-global.mainEvent.on("download:error", (r) => {
-  utils.log.error("Devices: Download error "+r);
-});
-global.mainEvent.on("error", (r) => {
-  global.mainEvent.emit("user:error", r);
-  utils.log.error("Devices: Error: "+r);
-});
 global.mainEvent.on("download:checking", () => {
   utils.log.info("Download checking file");
 });
@@ -265,10 +258,6 @@ global.mainEvent.on("download:progress", (percent) => {
 });
 global.mainEvent.on("download:speed", (speed) => {
   global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
-});
-global.mainEvent.on("adbpush:error", (e) => {
-  global.mainEvent.emit("error", "Adb push error: " + e)
-  utils.log.error("Devices: Adb push error: "+ e)
 });
 global.mainEvent.on("adbpush:progress", (percent) => {
   utils.log.debug(`Pushing ${Math.ceil(percent*100)}% complete`);
@@ -335,7 +324,7 @@ var install = (options) => {
         global.mainEvent.emit("system-image:start");
       });
     }
-  }).catch(utils.log.error);
+  }).catch((e) => { utils.errorToUser(e, "Install"); });
 }
 
 var getChannelSelects = (device, callback) => {
@@ -365,8 +354,8 @@ var getChannelSelects = (device, callback) => {
         callback(false);
         return;
       }
-    }).catch(utils.log.error);
-  }).catch(utils.log.error);
+    }).catch(((e) => { utils.errorToUser(e, "Devices API"); }));
+  }).catch((e) => { utils.errorToUser(e, "SystemImage API"); });
 }
 
 module.exports = {
@@ -408,7 +397,7 @@ module.exports = {
             // ipcRenderer.send("setInstallProperties", { device: device });
             return;
           }
-        }).catch(utils.log.error);
+        }).catch(((e) => { utils.errorToUser(e, "Device Select"); }));
     });
   },
   getNotWorking: getNotWorking,
@@ -433,7 +422,7 @@ module.exports = {
       } else {
         callback(false);
       }
-    }).catch(utils.log.error);
+    }).catch(((e) => { utils.errorToUser(e, "getDeviceSelects"); }));
   },
   instructOemUnlock: instructOemUnlock
 }

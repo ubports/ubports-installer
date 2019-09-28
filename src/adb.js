@@ -168,7 +168,7 @@ var push = (file, dest) => {
         } else if (!err.killed && (err.code == 1)) {
           hasAdbAccess ((hasAccess) => {
             if (hasAccess) {
-              mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+              utils.errorToUser(err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort, "ADB push");
             } else {
               utils.log.warn("connection to device lost");
               // TODO: Only restart the event rather than the entire installation
@@ -176,7 +176,7 @@ var push = (file, dest) => {
             }
           });
         } else {
-          mainEvent.emit("adbpush:error", err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort);
+          utils.errorToUser(err + ", stdout: " + stdoutShort + ", stderr: " + stderrShort, "ADB push");
         }
       }
       clearInterval(progressInterval);
@@ -186,36 +186,44 @@ var push = (file, dest) => {
 }
 
 var pushMany = (files) => {
-  if (files.length <= 0){
-    mainEvent.emit("adbpush:error", "No files provided");
-    return false;
-  }
-  var totalSize = 0;
-  var downloadedSize = 0;
-  // Get total size for progress bar
-  files.forEach((file) => {
-    totalSize += fs.statSync(file.src)["size"];
-  });
-  mainEvent.emit("adbpush:start", files.length);
-  mainEvent.once("adbpush:done", () => {
-    mainEvent.emit("adbpush:progress", 1);
-  })
-  mainEvent.on("adbpush:progress:size", (s) => {
-    downloadedSize += s;
-    mainEvent.emit("adbpush:progress", downloadedSize/totalSize);
-  });
-  // Push it to the limit
-  function pushNext(i) {
-    utils.log.debug("Pushing file " + (i+1) + " of " + files.length);
-    push(files[i].src, files[i].dest).then(() => {
-      if (i+1 < files.length) {
-        pushNext(i+1);
-      } else {
-        mainEvent.emit("adbpush:done");
+  try {
+    if (files.length <= 0){
+      utils.errorToUser("No files provided", "ADB push");
+      return false;
+    }
+    var totalSize = 0;
+    var downloadedSize = 0;
+    // Get total size for progress bar
+    files.forEach((file) => {
+      try {
+        totalSize += fs.statSync(file.src)["size"];
+      } catch (e) {
+        throw "Can't read system-image files: " + e
       }
     });
+    mainEvent.emit("adbpush:start", files.length);
+    mainEvent.once("adbpush:done", () => {
+      mainEvent.emit("adbpush:progress", 1);
+    })
+    mainEvent.on("adbpush:progress:size", (s) => {
+      downloadedSize += s;
+      mainEvent.emit("adbpush:progress", downloadedSize/totalSize);
+    });
+    // Push it to the limit
+    function pushNext(i) {
+      utils.log.debug("Pushing file " + (i+1) + " of " + files.length);
+      push(files[i].src, files[i].dest).then(() => {
+        if (i+1 < files.length) {
+          pushNext(i+1);
+        } else {
+          mainEvent.emit("adbpush:done");
+        }
+      });
+    }
+    pushNext(0); // Begin pushing
+  } catch (e) {
+    utils.errorToUser(e, "ADB PushMany")
   }
-  pushNext(0); // Begin pushing
 }
 
 var shell = (cmd, callback) => {
