@@ -94,7 +94,7 @@ ipcMain.on("createBugReport", (event, title) => {
 
 ipcMain.on("device:select", (event, device) => {
   global.installProperties.device = device;
-  mainEvent.emit("device:select", device);
+  if (mainWindow) mainEvent.emit("device:select", device);
 });
 
 //==============================================================================
@@ -102,31 +102,28 @@ ipcMain.on("device:select", (event, device) => {
 //==============================================================================
 
 mainEvent.on("user:password", () => {
-  mainWindow.webContents.send("user:password");
+  if (mainWindow) mainWindow.webContents.send("user:password");
 });
 
 mainEvent.on("user:password:wrong", () => {
-  mainWindow.webContents.send("user:password:wrong");
+  if (mainWindow) mainWindow.webContents.send("user:password:wrong");
 });
 
 mainEvent.on("user:error", (err) => {
-  mainWindow.webContents.send("user:error", err);
-});
-
-mainEvent.on("bootstrap:flashing", () => {
-  mainWindow.webContents.send("bootstrap:flashing");
-});
-
-mainEvent.on("adbpush:done", () => {
-  mainWindow.webContents.send("adbpush:done");
+  try {
+    mainWindow.webContents.send("user:error", err);
+  } catch (e) {
+    utils.log.error(e);
+    process.exit(1);
+  }
 });
 
 mainEvent.on("user:connection-lost", (callback) => {
-  mainWindow.webContents.send("user:connection-lost", callback);
+  if (mainWindow) mainWindow.webContents.send("user:connection-lost", callback);
 });
 
 mainEvent.on("user:low-power", () => {
-  mainWindow.webContents.send("user:low-power");
+  if (mainWindow) mainWindow.webContents.send("user:low-power");
 });
 
 mainEvent.on("restart", () => {
@@ -150,59 +147,59 @@ mainEvent.on("user:oem-lock", (callback) => {
 });
 
 mainEvent.on("user:reboot", (i) => {
-  mainWindow.webContents.send("user:reboot", i);
+  if (mainWindow) mainWindow.webContents.send("user:reboot", i);
 });
 
 mainEvent.on("adb:rebooted", () => {
-  mainWindow.webContents.send("adb:rebooted");
+  if (mainWindow) mainWindow.webContents.send("adb:rebooted");
 });
 
 mainEvent.on("reboot:done", () => {
-  mainWindow.webContents.send("reboot:done");
+  if (mainWindow) mainWindow.webContents.send("reboot:done");
 });
 
 mainEvent.on("user:write:progress", (length) => {
-  mainWindow.webContents.send("user:write:progress", length);
+  if (mainWindow) mainWindow.webContents.send("user:write:progress", length);
 });
 
 mainEvent.on("user:write:done", () => {
-  mainWindow.webContents.send("user:write:done");
-  mainWindow.webContents.send("user:write:speed");
+  if (mainWindow) mainWindow.webContents.send("user:write:done");
+  if (mainWindow) mainWindow.webContents.send("user:write:speed");
   utils.log.info("All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!");
 });
 
 mainEvent.on("user:write:working", (animation) => {
-  mainWindow.webContents.send("user:write:working", animation);
+  if (mainWindow) mainWindow.webContents.send("user:write:working", animation);
 });
 
 mainEvent.on("user:write:status", (status) => {
-  mainWindow.webContents.send("user:write:status", status);
+  if (mainWindow) mainWindow.webContents.send("user:write:status", status);
 });
 
 mainEvent.on("user:write:speed", (speed) => {
-  mainWindow.webContents.send("user:write:speed", speed);
+  if (mainWindow) mainWindow.webContents.send("user:write:speed", speed);
 });
 
 mainEvent.on("user:write:under", (status) => {
-  mainWindow.webContents.send("user:write:under", status);
+  if (mainWindow) mainWindow.webContents.send("user:write:under", status);
 });
 
 mainEvent.on("user:adb:ready", () => {
-  mainWindow.webContents.send("user:adb:ready");
+  if (mainWindow) mainWindow.webContents.send("user:adb:ready");
 });
 
 mainEvent.on("user:device-unsupported", (device) => {
   utils.log.warn("The device " + device + " is not supported!");
-  mainWindow.webContents.send("user:device-unsupported", device);
+  if (mainWindow) mainWindow.webContents.send("user:device-unsupported", device);
 });
 
 mainEvent.on("device:select:data-ready", (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
   global.installProperties.device = device;
-  mainWindow.webContents.send("device:select:data-ready", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
+  if (mainWindow) mainWindow.webContents.send("device:select:data-ready", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
 });
 
 mainEvent.on("user:no-network", () => {
-  mainWindow.webContents.send("user:no-network");
+  if (mainWindow) mainWindow.webContents.send("user:no-network");
 });
 
 //==============================================================================

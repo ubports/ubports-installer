@@ -39,11 +39,9 @@ var pushLatestVersion = (files, dontWipeCache) => {
 }
 
 var installLatestVersion = (options) => {
-  mainEvent.once("download:progress", () => {
-    mainEvent.emit("user:write:working", "download");
-    mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
-    mainEvent.emit("user:write:under", "Downloading");
-  })
+  mainEvent.emit("user:write:working", "download");
+  mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
+  mainEvent.emit("user:write:under", "Downloading");
   systemImage.downloadLatestVersion(options, (progress, speed) => {
     mainEvent.emit("download:progress", progress);
     mainEvent.emit("download:speed", speed);
@@ -51,8 +49,14 @@ var installLatestVersion = (options) => {
     if (current != total) utils.log.debug("Downloading system-image file " + (current+1) + " of " + total);
   }).then((files) => {
     utils.log.debug(files)
-    mainEvent.emit("download:done");
-    pushLatestVersion(files);
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:status", "Download Complete");
+    mainEvent.emit("user:write:under", "Checking downloaded files");
+    // Wait for one second until the progress event stops firing
+    setTimeout(() => {
+      mainEvent.emit("download:done");
+      pushLatestVersion(files);
+    }, 1000);
   });
 }
 

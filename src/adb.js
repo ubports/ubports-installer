@@ -186,6 +186,9 @@ var push = (file, dest) => {
 }
 
 var pushMany = (files) => {
+  mainEvent.emit("user:write:working", "push");
+  mainEvent.emit("user:write:status", "Pushing files");
+  mainEvent.emit("user:write:under", "Almost finished! Are you excited yet?");
   try {
     if (files.length <= 0){
       utils.errorToUser("No files provided", "ADB push");
@@ -201,10 +204,6 @@ var pushMany = (files) => {
         throw "Can't read system-image files: " + e
       }
     });
-    mainEvent.emit("user:write:working", "push");
-    mainEvent.once("adbpush:done", () => {
-      mainEvent.emit("adbpush:progress", 1);
-    })
     mainEvent.on("adbpush:progress:size", (s) => {
       downloadedSize += s;
       mainEvent.emit("adbpush:progress", downloadedSize/totalSize);

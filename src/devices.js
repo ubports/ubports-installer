@@ -56,6 +56,9 @@ var formatNotWorking = (nw) => {
 }
 
 var instructReboot = (state, button, callback) => {
+  global.mainEvent.emit("user:write:working", "particles");
+  global.mainEvent.emit("user:write:status", "Rebooting to " + state);
+  global.mainEvent.emit("user:write:under", "Waiting for device to enter " + state + " mode");
   var rebooted = false;
   var manualReboot = () => {
     utils.log.info("Instructing manual reboot");
@@ -99,7 +102,6 @@ var instructReboot = (state, button, callback) => {
         rebooted = true;
         // We expect the device state to mach installState now
         global.mainEvent.emit("reboot:done");
-        global.mainEvent.emit("state:" + state);
         callback();
         return;
       });
@@ -202,8 +204,10 @@ var instructBootstrap = (bootstrap, images) => {
       }
     }, p);
   }
-  global.mainEvent.emit("bootstrap:flashing")
-  global.mainEvent.emit("user:write:status", "Flashing images")
+  global.mainEvent.emit("user:write:working", "particles");
+  global.mainEvent.emit("user:write:status", "Flashing images");
+  global.mainEvent.emit("user:write:under", "Flashing recovery and boot images");
+  global.mainEvent.emit("user:write:progress", 0);
   if (!utils.needRoot()) {
     flash(false);
   } else {
@@ -215,11 +219,9 @@ var instructBootstrap = (bootstrap, images) => {
 
 var downloadImages = (images, device) => {
   utils.log.debug(addPathToImages(images, device));
-  global.mainEvent.once("download:progress", () => {
-    global.mainEvent.emit("user:write:working", "download");
-    global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
-    global.mainEvent.emit("user:write:under", "Downloading");
-  })
+  global.mainEvent.emit("user:write:working", "download");
+  global.mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
+  global.mainEvent.emit("user:write:under", "Downloading");
   utils.downloadFiles(images, (progress, speed) => {
     global.mainEvent.emit("download:progress", progress);
     global.mainEvent.emit("download:speed", speed);
@@ -227,7 +229,10 @@ var downloadImages = (images, device) => {
     if (current != total) utils.log.debug("Downloading bootstrap image " + (current+1) + " of " + total);
   }).then((files) => {
     utils.log.debug(files)
-    global.mainEvent.emit("download:done");
+    // Wait for one second until the progress event stops firing
+    setTimeout(() => {
+      global.mainEvent.emit("download:done");
+    }, 1000);
   });
 }
 
@@ -240,13 +245,6 @@ var addPathToImages = (images, device) => {
   return ret;
 }
 
-global.mainEvent.on("download:done", () => {
-  utils.log.info("Download complete");
-  global.mainEvent.emit("user:write:progress", 0);
-});
-global.mainEvent.on("download:checking", () => {
-  utils.log.info("Download checking file");
-});
 global.mainEvent.on("download:progress", (percent) => {
   global.mainEvent.emit("user:write:progress", percent*100);
 });
@@ -254,7 +252,6 @@ global.mainEvent.on("download:speed", (speed) => {
   global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
 });
 global.mainEvent.on("adbpush:progress", (percent) => {
-  utils.log.debug(`Pushing ${Math.ceil(percent*100)}% complete`);
   global.mainEvent.emit("user:write:progress", percent*100);
 });
 
@@ -266,12 +263,8 @@ var install = (options) => {
     global.mainEvent.once("adbpush:done", () => {
       utils.log.info("Done pushing files");
       utils.log.info("Rebooting to recovery to flash");
-      global.mainEvent.emit("system-image:done");
-      global.mainEvent.emit("user:write:status", "Rebooting to recovery to start the flashing process");
-      global.mainEvent.emit("user:write:status", "All files pushed successfully!");
       global.mainEvent.emit("user:write:progress", 0);
-    });
-    global.mainEvent.once("system-image:done", () => {
+      global.mainEvent.emit("user:write:working", "particles");
       instructReboot("recovery", instructs.buttons, () => {
         global.mainEvent.emit("user:write:done");
       });
@@ -287,8 +280,8 @@ var install = (options) => {
           });
         });
       } else {
-        global.mainEvent.emit("user:write:status", "Waiting for device to enter recovery mode", true);
-        global.mainEvent.emit("user:write:under", "Rebooting...");
+        global.mainEvent.emit("user:write:status", "Rebooting to recovery");
+        global.mainEvent.emit("user:write:under", "Waiting for device to enter recovery mode");
         adb.waitForDevice(() => {
           systemImage.installLatestVersion({
             device: options.device,
@@ -300,12 +293,12 @@ var install = (options) => {
     });
     if (instructs.images.length > 0) { // If images are specified, flash them (bootstrapping)
       // We need to be in bootloader
-      global.mainEvent.emit("user:write:under", "Please connect your device with a USB cable");
+      global.mainEvent.emit("user:write:status", "Waiting for device to enter bootloader mode");
+      global.mainEvent.emit("user:write:under", "Fastboot is scanning for devices");
       instructReboot("bootloader", instructs.buttons, () => {
         global.mainEvent.once("download:done", () => {
           instructBootstrap(instructs.installSettings.bootstrap, addPathToImages(instructs.images, options.device));
         });
-        global.mainEvent.emit("user:write:status", "Downloading images");
         downloadImages(instructs.images, options.device);
       });
     } else { // If no images are specified, go straight to system-image

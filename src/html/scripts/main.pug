@@ -42,17 +42,8 @@ script.
 
   ipcRenderer.on("user:error", (event, err) => { onErr(err); });
 
-  ipcRenderer.on("bootstrap:flashing", () => {
-    views.show("working", "particles");
-    footer.underText.set("Flashing recovery and boot images")
-  });
-
   ipcRenderer.on("user:write:working", (e, animation) => {
     views.show("working", animation);
-  });
-
-  ipcRenderer.on("adbpush:done", () => {
-    views.show("working", "particles");
   });
 
   ipcRenderer.on("user:connection-lost", (e, callback) => {
@@ -87,8 +78,6 @@ script.
     views.show("reboot-" + i.button);
     $("[id=reboot-to-state]").text(i.state);
     $("#complex-reboot-instruction").text(i.instruction);
-    footer.topText.set("Please reboot to "+i.state);
-    footer.underText.set(i.instruction.split(".")[0]);
   });
 
   ipcRenderer.on("adb:rebooted", () => {
@@ -122,7 +111,7 @@ script.
       remote.getCurrentWindow().close();
     } else {
       views.show("done");
-      footer.topText.set("Done");
+      footer.topText.set("Installation complete!");
       footer.underText.set("It is now safe to unplug the device.");
       $("#progress").width("0%");
     }
