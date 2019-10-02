@@ -16,6 +16,9 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require('../package.json');
 
+const Adb = require('../../android-tools/src/module.js').Adb;
+const Fastboot = require('../../android-tools/src/module.js').Fastboot;
+
 const path = require('path');
 const url = require('url');
 const events = require("events");
@@ -25,14 +28,16 @@ const pug = new electronPug();
 const ipcMain = electron.ipcMain;
 let mainWindow;
 
-var mainEvent = new event();
+const mainEvent = new event();
 global.mainEvent = mainEvent;
 
-var utils = require('./utils.js');
+const utils = require('./utils.js');
 global.utils = utils;
-var fastboot = require('./fastboot.js');
-var devices = require('./devices.js');
-var adb = require('./adb.js');
+const devices = require('./devices.js');
+const adb = new Adb();
+global.adb = adb;
+const fastboot = new Fastboot();
+global.fastboot = fastboot;
 
 cli
   .name(global.packageInfo.name)
@@ -121,7 +126,8 @@ mainEvent.on("user:password:wrong", () => {
 // Open the bugreporting tool
 mainEvent.on("user:error", (err) => {
   try {
-    mainWindow.webContents.send("user:error", err);
+    if (mainWindow) mainWindow.webContents.send("user:error", err);
+    else utils.die(err);
   } catch (e) {
     utils.log.error(e);
     process.exit(1);
@@ -150,12 +156,10 @@ mainEvent.on("restart", () => {
 mainEvent.on("user:oem-lock", (callback) => {
   mainWindow.webContents.send("user:oem-lock");
   ipcMain.once("user:oem-lock:ok", () => {
-    devices.instructOemUnlock((err) => {
-      if (err) {
-        mainEvent.emit("user:error", err);
-      } else {
-        callback(true);
-      }
+    fastboot.oemUnlock().then(() => {
+      callback(true);
+    }).catch((err) => {
+      mainEvent.emit("user:error", err);
     });
   });
 });
@@ -237,7 +241,7 @@ function createWindow () {
 
   // Tasks we need for every start
   mainWindow.webContents.on("did-finish-load", () => {
-    adb.start(false, false, (err) => {
+    adb.startServer().then(() => {
       mainWindow.webContents.send("user:adb:ready");
       devices.waitForDevice();
     });
@@ -279,7 +283,7 @@ app.on('ready', createWindow);
 
 app.on('window-all-closed', function () {
   utils.log.info("Good bye!");
-  adb.stop(() => {
+  adb.killServer().then(() => {
     if (process.platform !== 'darwin') {
       app.quit();
     }
@@ -290,4 +294,10 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow();
   }
+});
+
+process.on('unhandledRejection', (r) => {
+  utils.log.error(r);
+  if (mainWindow) utils.errorToUser(r);
+  else utils.die(r);
 });

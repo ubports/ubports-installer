@@ -128,6 +128,7 @@ script.
   });
 
   ipcRenderer.on("device:select:data-ready", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+    console.log("yep")
     views.show("install");
     $("#options-channel").append(channels);
     options.optionsValToUser();
@@ -147,8 +148,6 @@ script.
     $("#your-ubp-device").click(() => {
       shell.openExternal("https://devices.ubuntu-touch.io/device/"+output.device);
     });
-
-    views.show(ubuntuCom ? "switch" : "install");
 
     $("#btn-installModal").click(() => {
       views.show("working", "particles");
