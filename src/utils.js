@@ -25,22 +25,10 @@ var ipcRenderer = require('electron').ipcRenderer;
 global.installProperties = remote ? remote.getGlobal('installProperties') : undefined;
 global.packageInfo = remote ? remote.getGlobal('packageInfo') : require('../package.json');
 
-var customTools = {
-  adb: undefined,
-  fastboot: undefined
-}
-
 const platforms = {
   "linux": "linux",
   "darwin": "mac",
   "win32": "win"
-}
-
-var platformNativeToolsLogged;
-var platformFallbackToolsLogged;
-
-var getVersion = () => {
-  return global.packageInfo.version;
 }
 
 if (global.installProperties)
@@ -162,6 +150,7 @@ var getUbuntuTouchDir = () => {
 if (!fs.existsSync(getUbuntuTouchDir())) {
     mkdirp.sync(getUbuntuTouchDir());
 }
+
 winston.add(winston.transports.File, {
   filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log'),
   level: 'debug', // Print debug logs to the file
@@ -178,153 +167,48 @@ var sudoCommand = (password) => {
 }
 
 var checkPassword = (password, callback) => {
-    if (!needRoot()) {
-        log.debug("no root needed")
-        callback(true);
-        return;
-    }
-    log.debug("checking password")
-    exec(sudoCommand(password) + "echo correct", (err, output) => {
-        if (err) {
-            if (err.message.includes("incorrect password")) {
-                log.debug("incorrect password")
-                callback(false, {
-                  password: true
-                });
-            } else {
-              // Replace password with "***" to make sure it wont get logged
-              log.debug("unknown sudo error")
-              callback(false, {
-                message: err.message.replace(password, "***")
-              });
-            }
-        } else {
-            log.debug("correct password")
-            if (output.includes("correct"))
-                callback(true);
-            else
-                callback(false);
-        }
-    });
-}
-
-function exportExecutablesFromPackage() {
-  fs.copy(
-    (path.join(path.dirname(__dirname), 'platform-tools', 'linux', 'adb')),
-    (path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb')),
-    () => {fs.chmodSync((path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb')), 0o755);}
-  );
-  fs.copy(
-    (path.join(path.dirname(__dirname), 'platform-tools', 'linux', 'fastboot')),
-    (path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'fastboot')),
-    () => {fs.chmodSync((path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'fastboot')), 0o755);}
-  );
-}
-
-// WORKAROUND: since we are using asar packages to compress into one package we cannot use
-// child_process.exec since it spans a shell and shell wont be able to access the files
-// inside the asar package.
-var asarExec = (file, callback) => {
-    tmp.dir((err, tmpDir, cleanup) => {
-        if (err) callback(true);
-        fs.copy(file, path.join(tmpDir, path.basename(file)), (err) => {
-            fs.chmodSync(path.join(tmpDir, path.basename(file)), 0o755);
-            if(err) die(err);
-            callback({
-                exec: (cmd, cb) => {
-                    let name = file.split('/').pop();
-                    cmd = cmd.replace(new RegExp(name, 'g'), path.join(tmpDir, path.basename(file)));
-                    exec(cmd, (err, e,r) => {
-                        // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-                        cb(err,e,r);
-                    })
-                },
-                done: () => {
-                    fs.removeSync(tmpDir);
-                }
-            });
+  if (!needRoot()) {
+    log.debug("no root needed");
+    callback(true);
+    return;
+  }
+  log.debug("checking password");
+  exec(sudoCommand(password) + "echo correct", (err, output) => {
+    if (err) {
+      if (err.message.includes("incorrect password")) {
+        log.debug("incorrect password");
+        callback(false, {
+          password: true
         });
+      } else {
+        // Replace password with "***" to make sure it wont get logged
+        log.debug("unknown sudo error");
+        callback(false, {
+          message: err.message.replace(password, "***")
+        });
+      }
+    } else {
+      log.debug("correct password")
+      if (output.includes("correct"))
+        callback(true);
+      else
+        callback(false);
+    }
+  });
+}
+
+// WORKAROUND: the chile spawned by child_process.exec can not access files inside the asar package
+function exportExecutablesFromPackage() {
+  getFallbackPlatformTools().forEach((tool) => {
+    fs.copy(tool.package, tool.cache, () => {
+      fs.chmodSync(tool.cache, 0o755);
     });
-}
-
-const logPlatformNativeToolsOnce = () => {
-  if (!platformNativeToolsLogged) {
-    log.debug("Using native platform tools!");
-    platformNativeToolsLogged=true;
-  }
-}
-
-const logPlatformFallbackToolsOnce = () => {
-  if (!platformFallbackToolsLogged) {
-    log.debug("Using fallback platform tools!");
-    platformFallbackToolsLogged=true;
-  }
-}
-
-const callbackHook = (callback) => {
-  return (a,b,c) => {
-    // log.debug(a,b,c);
-    callback(a,b,c)
-  }
-}
-
-const platformToolsExec = (tool, arg, callback) => {
-  var tools = getPlatformTools();
-
-  // First check for native tools
-  if (tools[tool] && !global.installProperties.forceFallback) {
-    logPlatformNativeToolsOnce();
-    var cmd = tools[tool] + " " + arg.join(" ");
-    // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-    cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
-    return true;
-  }
-
-  // Try using fallback tools
-  if (tools.fallback[tool]) {
-    logPlatformFallbackToolsOnce();
-    // log.debug(tools.fallback[tool] + " " + arg.join(" ")) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-    cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024}, callbackHook(callback));
-    return true;
-  }
-  log.error("NO PLATFORM TOOL USED!");
-  callback(true, false);
-  return false;
-}
-
-const platformToolsExecAsar = (tool, callback) => {
-  var tools = getPlatformTools();
-
-  // First check for native
-  if (tools[tool] && !global.installProperties.forceFallback) {
-    logPlatformNativeToolsOnce();
-    callback({
-        exec: (cmd, cb) => {
-            var _cmd = cmd.replace(tool, tools[tool]);
-            exec(_cmd, (err, e,r) => {
-                // log.debug(_cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-                cb(err,e,r);
-            })
-        },
-        done: () => {}
-    });
-    return true;
-  }
-
-  // Use fallback tools if there are no native tools installed
-  if (tools.fallback[tool]) {
-    logPlatformFallbackToolsOnce();
-    asarExec(tools.fallback[tool], callback);
-    return true;
-  }
-  log.error("NO PLATFORM TOOL USED!");
-  callback(true, false);
-  return false;
+  });
 }
 
 var maybeEXE = (platform, tool) => {
-    if(platform === "win32") tool+=".exe";
-    return tool;
+  if(platform === "win32") tool+=".exe";
+  return tool;
 }
 
 var getPlatform = () => {
@@ -333,40 +217,21 @@ var getPlatform = () => {
   return platforms[thisPlatform];
 }
 
-// Check if we have native platform tools
-const setCustomPlatformTool = (tool, executable) => {
-  log.info(tool + " has been set to " + executable)
-  customTools[tool] = executable;
-}
-
-// Check if we have native platform tools
-const getPlatformTools = () => {
-  var p = getNativePlatformTools();
-  p["fallback"] = getFallbackPlatformTools();
-  return p;
-}
-
-const getNativePlatformTools = () => {
-  var ret = {};
-  if (customTools["adb"])
-    ret["adb"] = customTools["adb"];
-  else if (commandExistsSync("adb"))
-    ret["adb"] = "adb";
-  if (customTools["fastboot"])
-    ret["fastboot"] = customTools["fastboot"];
-  else if (commandExistsSync("fastboot"))
-    ret["fastboot"] = "fastboot";
-  return ret;
-}
-
-const getFallbackPlatformTools = () => {
-    var thisPlatform = os.platform();
-    if(!platforms[thisPlatform]) die("Unsupported platform");
-    var platformToolsPath = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
-    return {
-        fastboot: path.join(platformToolsPath, maybeEXE(thisPlatform, "fastboot")),
-        adb: path.join(platformToolsPath, maybeEXE(thisPlatform, "adb"))
+function getFallbackPlatformTools() {
+  var thisPlatform = os.platform();
+  if(!platforms[thisPlatform]) die("Unsupported platform");
+  var toolInPackage = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
+  var toolInCache = path.join(utils.getUbuntuTouchDir(), 'platform-tools');
+  return [
+    {
+      package: path.join(toolInPackage, maybeEXE(thisPlatform, "fastboot")),
+      cache: path.join(toolInCache, maybeEXE(thisPlatform, "fastboot"))
+    },
+    {
+      package: path.join(toolInPackage, maybeEXE(thisPlatform, "adb")),
+      cache: path.join(toolInCache, maybeEXE(thisPlatform, "adb"))
     }
+  ]
 }
 
 var isSnap = () => {
@@ -374,14 +239,13 @@ var isSnap = () => {
 }
 
 var needRoot = () => {
-    if (
-      (os.platform() === "win32") ||
-      isSnap() ||
-      !commandExistsSync("sudo") ||
-      global.installProperties.noRoot ||
-      global.installProperties.simulate
-    ) return false;
-    else return !process.env.SUDO_UID
+  if (
+    (os.platform() === "win32") ||
+    isSnap() ||
+    !commandExistsSync("sudo") ||
+    global.installProperties.noRoot
+  ) return false;
+  else return !process.env.SUDO_UID
 }
 
 var ensureRoot = (m) => {
@@ -495,27 +359,20 @@ function errorToUser(error, errorLocation) {
 }
 
 module.exports = {
-    errorToUser: errorToUser,
-    exportExecutablesFromPackage: exportExecutablesFromPackage,
-    setCustomPlatformTool: setCustomPlatformTool,
-    downloadFiles: downloadFiles,
-    log: log,
-    platformToolsExec: platformToolsExec,
-    platformToolsExecAsar: platformToolsExecAsar,
-    ensureRoot: ensureRoot,
-    isSnap: isSnap,
-    getPlatformTools: getPlatformTools,
-    getUbuntuTouchDir: getUbuntuTouchDir,
-    needRoot: needRoot,
-    sudoCommand: sudoCommand,
-    checkPassword: checkPassword,
-    createBugReport: createBugReport,
-    getUpdateAvailable: getUpdateAvailable,
-    getPlatform: getPlatform,
-    asarExec: asarExec,
-    getVersion: getVersion,
-    hidePassword: hidePassword,
-    die: die,
-    ipcRenderer: ipcRenderer,
-    setLogLevel: (level) => { winston.level = level; }
+  errorToUser: errorToUser,
+  exportExecutablesFromPackage: exportExecutablesFromPackage,
+  downloadFiles: downloadFiles,
+  log: log,
+  ensureRoot: ensureRoot,
+  isSnap: isSnap,
+  getUbuntuTouchDir: getUbuntuTouchDir,
+  needRoot: needRoot,
+  sudoCommand: sudoCommand,
+  checkPassword: checkPassword,
+  createBugReport: createBugReport,
+  getUpdateAvailable: getUpdateAvailable,
+  hidePassword: hidePassword,
+  die: die,
+  ipcRenderer: ipcRenderer,
+  setLogLevel: (level) => { winston.level = level; }
 }
