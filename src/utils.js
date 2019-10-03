@@ -41,7 +41,7 @@ var log = {
   debug: (l) => {winston.log("debug", l)}
 }
 
-var createBugReport = (title, installProperties, callback) => {
+function createBugReport(title, installProperties, callback) {
   var options = {
     limit: 400,
     start: 0,
@@ -84,7 +84,7 @@ var createBugReport = (title, installProperties, callback) => {
   });
 }
 
-var getCleanOs = () => {
+function getCleanOs() {
   try {
     return getos((e,gOs) => {
       if(gOs.os == "linux")
@@ -129,26 +129,26 @@ function getUpdateAvailable() {
   });
 }
 
-var getUbuntuTouchDir = () => {
-    var osCacheDir;
-    switch (process.platform) {
-        case "linux":
-            osCacheDir = path.join(process.env.HOME, '.cache');
-            break;
-        case "darwin":
-            osCacheDir = path.join(process.env.HOME, 'Library/Caches');
-            break;
-        case "win32":
-            osCacheDir = process.env.APPDATA;
-            break;
-        default:
-            throw Error("Unknown platform " + process.platform);
-    }
-    return path.join(osCacheDir, "ubports");
+function getUbuntuTouchDir() {
+  var osCacheDir;
+  switch (process.platform) {
+      case "linux":
+      osCacheDir = path.join(process.env.HOME, '.cache');
+    break;
+      case "darwin":
+      osCacheDir = path.join(process.env.HOME, 'Library/Caches');
+    break;
+      case "win32":
+      osCacheDir = process.env.APPDATA;
+    break;
+      default:
+      throw Error("Unknown platform " + process.platform);
+  }
+  return path.join(osCacheDir, "ubports");
 }
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
-    mkdirp.sync(getUbuntuTouchDir());
+  mkdirp.sync(getUbuntuTouchDir());
 }
 
 winston.add(winston.transports.File, {
@@ -157,16 +157,41 @@ winston.add(winston.transports.File, {
   options: { flags: 'w' } // Clear log before writing to it
 });
 
-var die = (e) => {
-    log.error(e);
-    process.exit(-1)
+function die(e) {
+  log.error(e);
+  process.exit(-1);
 }
 
-var sudoCommand = (password) => {
-    return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
+function requestPassword(callback) {
+  if (!needRoot()) {
+    callback("");
+    return;
+  }
+  if (password) {
+    callback(password);
+    return;
+  }
+  global.mainEvent.emit("user:password");
+  global.mainEvent.once("password", (p) => {
+    checkPassword(p, (correct, err) => {
+      if (correct) {
+        password=p;
+        callback(p);
+      } else if (err.password) {
+        global.mainEvent.emit("user:password:wrong");
+        requestPassword(callback);
+      } else {
+        errorToUser(err.message, "Password");
+      }
+    });
+  });
 }
 
-var checkPassword = (password, callback) => {
+function sudoCommand(password) {
+  return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
+}
+
+function checkPassword(password, callback) {
   if (!needRoot()) {
     log.debug("no root needed");
     callback(true);
@@ -206,12 +231,12 @@ function exportExecutablesFromPackage() {
   });
 }
 
-var maybeEXE = (platform, tool) => {
+function maybeEXE(platform, tool) {
   if(platform === "win32") tool+=".exe";
   return tool;
 }
 
-var getPlatform = () => {
+function getPlatform() {
   var thisPlatform = os.platform();
   if(!platforms[thisPlatform]) die("Unsuported platform");
   return platforms[thisPlatform];
@@ -234,11 +259,11 @@ function getFallbackPlatformTools() {
   ]
 }
 
-var isSnap = () => {
+function isSnap() {
   return process.env.SNAP_NAME
 }
 
-var needRoot = () => {
+function needRoot() {
   if (
     (os.platform() === "win32") ||
     isSnap() ||
@@ -248,7 +273,7 @@ var needRoot = () => {
   else return !process.env.SUDO_UID
 }
 
-var ensureRoot = (m) => {
+function ensureRoot(m) {
   if(process.env.SUDO_UID)
     return;
   log.error(m)
@@ -344,7 +369,7 @@ function downloadFiles(urls, progress, next) {
   });
 }
 
-const hidePassword = (output, pw) => {
+function hidePassword(output, pw) {
   if (needRoot()) {
     return output.replace(pw.replace(/\'/g, "'\\''"), "***");
   } else {
@@ -372,6 +397,7 @@ module.exports = {
   createBugReport: createBugReport,
   getUpdateAvailable: getUpdateAvailable,
   hidePassword: hidePassword,
+  requestPassword: requestPassword,
   die: die,
   ipcRenderer: ipcRenderer,
   setLogLevel: (level) => { winston.level = level; }

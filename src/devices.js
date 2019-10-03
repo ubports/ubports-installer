@@ -90,31 +90,6 @@ var instructReboot = (state, button, callback) => {
   });
 }
 
-var requestPassword = (callback) => {
-  if (!utils.needRoot()) {
-    callback("");
-    return;
-  }
-  if (password) {
-    callback(password);
-    return;
-  }
-  global.mainEvent.emit("user:password");
-  global.mainEvent.once("password", (p) => {
-    utils.checkPassword(p, (correct, err) => {
-      if (correct) {
-        password=p;
-        callback(p);
-      } else if (err.password) {
-        global.mainEvent.emit("user:password:wrong");
-        requestPassword(callback);
-      } else {
-        utils.errorToUser(err.message, "Password");
-      }
-    });
-  });
-}
-
 var downloadImages = (images, device) => {
   utils.log.debug(addPathToImages(images, device));
   global.mainEvent.emit("user:write:working", "download");
