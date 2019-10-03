@@ -156,7 +156,7 @@ var getUbuntuTouchDir = () => {
         default:
             throw Error("Unknown platform " + process.platform);
     }
-    return path.join(osCacheDir, "ubports")
+    return path.join(osCacheDir, "ubports");
 }
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
@@ -206,6 +206,19 @@ var checkPassword = (password, callback) => {
                 callback(false);
         }
     });
+}
+
+function exportExecutablesFromPackage() {
+  fs.copy(
+    (path.join(path.dirname(__dirname), 'platform-tools', 'linux', 'adb')),
+    (path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb')),
+    () => {fs.chmodSync((path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb')), 0o755);}
+  );
+  fs.copy(
+    (path.join(path.dirname(__dirname), 'platform-tools', 'linux', 'fastboot')),
+    (path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'fastboot')),
+    () => {fs.chmodSync((path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'fastboot')), 0o755);}
+  );
 }
 
 // WORKAROUND: since we are using asar packages to compress into one package we cannot use
@@ -483,6 +496,7 @@ function errorToUser(error, errorLocation) {
 
 module.exports = {
     errorToUser: errorToUser,
+    exportExecutablesFromPackage: exportExecutablesFromPackage,
     setCustomPlatformTool: setCustomPlatformTool,
     downloadFiles: downloadFiles,
     log: log,

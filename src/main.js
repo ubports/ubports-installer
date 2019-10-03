@@ -16,9 +16,10 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require('../package.json');
 
-const Adb = require('../../android-tools/src/module.js').Adb;
-const Fastboot = require('../../android-tools/src/module.js').Fastboot;
+const Adb = require('promise-android-tools').Adb;
+const Fastboot = require('promise-android-tools').Fastboot;
 
+const exec = require('child_process').exec;
 const path = require('path');
 const url = require('url');
 const events = require("events");
@@ -34,9 +35,21 @@ global.mainEvent = mainEvent;
 const utils = require('./utils.js');
 global.utils = utils;
 const devices = require('./devices.js');
-const adb = new Adb();
+var adb = new Adb({
+  exec: (args, callback) => { exec(
+    [(path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb'))].concat(args).join(" "),
+    {options: {maxBuffer: 1024*1024*2}},
+    callback
+  ); }
+});
 global.adb = adb;
-const fastboot = new Fastboot();
+var fastboot = new Fastboot({
+  exec: (args, callback) => { exec(
+    [(path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'fastboot'))].concat(args).join(" "),
+    {options: {maxBuffer: 1024*1024*2}},
+    callback
+  ); }
+});
 global.fastboot = fastboot;
 
 cli
@@ -65,6 +78,8 @@ global.installProperties = {
 };
 
 global.packageInfo.isSnap = utils.isSnap();
+
+utils.exportExecutablesFromPackage();
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING
