@@ -59,20 +59,16 @@ cli
   .option('-d, --device <device>', '[experimental] Override detected device-id (codename)')
   .option('-c, --channel <channel>', '[experimental] Override the recommended release-channel for the device')
   .option('-C, --cli', "[experimental] Run without GUI", undefined, 'false')
-  .option('-F, --force-fallback', "Use the android-tools packaged with the UBports Installer", undefined, 'false')
   .option('-v, --verbose', "Enable verbose logging", undefined, 'false')
   .option('-D, --debug', "Enable debugging tools and verbose logging", undefined, 'false')
-  .option('-s, --simulate', "[experimental] Run through every step except actually installing", undefined, 'false')
   .parse(process.argv);
 
 global.installProperties = {
   device: cli.device,
   channel: cli.channel,
   cli: cli.cli,
-  forceFallback: cli.forceFallback,
   verbose: (cli.verbose || cli.debug),
-  debug: cli.debug,
-  simulate: cli.simulate
+  debug: cli.debug
 };
 
 global.packageInfo.isSnap = utils.isSnap();
