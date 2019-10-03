@@ -246,7 +246,6 @@ module.exports = {
             }).catch((e) => { utils.log.error(e); global.mainEvent.emit("user:no-network"); });
           } else {
             mainEvent.emit("user:device-unsupported", device); // If there is no response, the device is not supported
-            // ipcRenderer.send("setInstallProperties", { device: device });
             return;
           }
         }).catch(((e) => { utils.errorToUser(e, "Device Select"); }));

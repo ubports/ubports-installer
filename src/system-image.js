@@ -8,16 +8,10 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 */
 
-const fs = require("fs");
 const utils = require("./utils");
-const path = require("path");
-const mkdirp = require('mkdirp');
 const systemImageClient = require("system-image-node-module").Client;
 
 const systemImage = new systemImageClient({path: utils.getUbuntuTouchDir()});
-
-const ubuntuCommandFile = "ubuntu_command";
-const ubuntuPushDir = "/cache/recovery/"
 
 const getDeviceChannels = (device) => {
   return systemImage.getDeviceChannels(device);

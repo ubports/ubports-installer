@@ -13,16 +13,10 @@ const fs = require("fs-extra");
 const path = require("path");
 const checksum = require('checksum');
 const mkdirp = require('mkdirp');
-const tmp = require('tmp');
-const exec = require('child_process').exec;
 const cp = require('child_process');
 const winston = require('winston');
 const getos = require('getos');
-const commandExistsSync = require('command-exists').sync;
-const remote = require('electron').remote;
-var ipcRenderer = require('electron').ipcRenderer;
-global.installProperties = remote ? remote.getGlobal('installProperties') : undefined;
-global.packageInfo = remote ? remote.getGlobal('packageInfo') : require('../package.json');
+global.packageInfo = require('../package.json');
 
 const platforms = {
   "linux": "linux",
@@ -307,6 +301,5 @@ module.exports = {
   createBugReport: createBugReport,
   getUpdateAvailable: getUpdateAvailable,
   die: die,
-  ipcRenderer: ipcRenderer,
   setLogLevel: (level) => { winston.level = level; }
 }
