@@ -142,8 +142,12 @@ switch (cli.package) {
   case "":
     break;
   default:
-    console.log("Building " + cli.package + " is not configured!");
-    process.exit(1);
+    if (!cli.downloadOnly) {
+      console.log("Building " + cli.package + " is not configured!");
+      process.exit(1);
+    } else {
+      break;
+    }
 }
 
 var build = () => {
