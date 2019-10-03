@@ -105,7 +105,6 @@ script.
   });
 
   ipcRenderer.on("device:select:data-ready", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
-    console.log("yep")
     views.show("install");
     $("#options-channel").append(channels);
     options.optionsValToUser();
