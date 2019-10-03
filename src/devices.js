@@ -18,8 +18,6 @@ const path = require("path");
 const devicesApi = new ubportsApi.Devices();
 const downloadPath = utils.getUbuntuTouchDir();
 
-var password;
-
 // HACK: This should be handled by the server, not locally
 var isLegacyAndroid = (device) => {
   switch (device) {

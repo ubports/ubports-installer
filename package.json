@@ -54,7 +54,6 @@
     "commander": "^2.9.0",
     "electron-open-link-in-browser": "^1.0.2",
     "electron-pug": "^1.5.1",
-    "electron-sudo": "^3.0.13",
     "executable": "^4.1.0",
     "forward-emitter": "^0.1.1",
     "fs-extra": "^2.0.0",

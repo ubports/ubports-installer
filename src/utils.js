@@ -16,7 +16,6 @@ const mkdirp = require('mkdirp');
 const tmp = require('tmp');
 const exec = require('child_process').exec;
 const cp = require('child_process');
-const sudo = require('electron-sudo');
 const winston = require('winston');
 const getos = require('getos');
 const commandExistsSync = require('command-exists').sync;
@@ -162,66 +161,6 @@ function die(e) {
   process.exit(-1);
 }
 
-function requestPassword(callback) {
-  if (!needRoot()) {
-    callback("");
-    return;
-  }
-  if (password) {
-    callback(password);
-    return;
-  }
-  global.mainEvent.emit("user:password");
-  global.mainEvent.once("password", (p) => {
-    checkPassword(p, (correct, err) => {
-      if (correct) {
-        password=p;
-        callback(p);
-      } else if (err.password) {
-        global.mainEvent.emit("user:password:wrong");
-        requestPassword(callback);
-      } else {
-        errorToUser(err.message, "Password");
-      }
-    });
-  });
-}
-
-function sudoCommand(password) {
-  return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
-}
-
-function checkPassword(password, callback) {
-  if (!needRoot()) {
-    log.debug("no root needed");
-    callback(true);
-    return;
-  }
-  log.debug("checking password");
-  exec(sudoCommand(password) + "echo correct", (err, output) => {
-    if (err) {
-      if (err.message.includes("incorrect password")) {
-        log.debug("incorrect password");
-        callback(false, {
-          password: true
-        });
-      } else {
-        // Replace password with "***" to make sure it wont get logged
-        log.debug("unknown sudo error");
-        callback(false, {
-          message: err.message.replace(password, "***")
-        });
-      }
-    } else {
-      log.debug("correct password")
-      if (output.includes("correct"))
-        callback(true);
-      else
-        callback(false);
-    }
-  });
-}
-
 // WORKAROUND: the chile spawned by child_process.exec can not access files inside the asar package
 function exportExecutablesFromPackage() {
   getFallbackPlatformTools().forEach((tool) => {
@@ -261,23 +200,6 @@ function getFallbackPlatformTools() {
 
 function isSnap() {
   return process.env.SNAP_NAME
-}
-
-function needRoot() {
-  if (
-    (os.platform() === "win32") ||
-    isSnap() ||
-    !commandExistsSync("sudo") ||
-    global.installProperties.noRoot
-  ) return false;
-  else return !process.env.SUDO_UID
-}
-
-function ensureRoot(m) {
-  if(process.env.SUDO_UID)
-    return;
-  log.error(m)
-  process.exit(1);
 }
 
 function checksumFile(file) {
@@ -369,14 +291,6 @@ function downloadFiles(urls, progress, next) {
   });
 }
 
-function hidePassword(output, pw) {
-  if (needRoot()) {
-    return output.replace(pw.replace(/\'/g, "'\\''"), "***");
-  } else {
-    return output;
-  }
-}
-
 function errorToUser(error, errorLocation) {
   var errorString = "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
   utils.log.error(errorString);
@@ -388,16 +302,10 @@ module.exports = {
   exportExecutablesFromPackage: exportExecutablesFromPackage,
   downloadFiles: downloadFiles,
   log: log,
-  ensureRoot: ensureRoot,
   isSnap: isSnap,
   getUbuntuTouchDir: getUbuntuTouchDir,
-  needRoot: needRoot,
-  sudoCommand: sudoCommand,
-  checkPassword: checkPassword,
   createBugReport: createBugReport,
   getUpdateAvailable: getUpdateAvailable,
-  hidePassword: hidePassword,
-  requestPassword: requestPassword,
   die: die,
   ipcRenderer: ipcRenderer,
   setLogLevel: (level) => { winston.level = level; }

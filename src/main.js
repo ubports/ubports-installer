@@ -60,7 +60,6 @@ cli
   .option('-c, --channel <channel>', '[experimental] Override the recommended release-channel for the device')
   .option('-C, --cli', "[experimental] Run without GUI", undefined, 'false')
   .option('-F, --force-fallback', "Use the android-tools packaged with the UBports Installer", undefined, 'false')
-  .option('-n, --no-root', "Do not ask for the password and run fastboot without elevated privilleges", undefined, 'false')
   .option('-v, --verbose', "Enable verbose logging", undefined, 'false')
   .option('-D, --debug', "Enable debugging tools and verbose logging", undefined, 'false')
   .option('-s, --simulate', "[experimental] Run through every step except actually installing", undefined, 'false')
@@ -71,7 +70,6 @@ global.installProperties = {
   channel: cli.channel,
   cli: cli.cli,
   forceFallback: cli.forceFallback,
-  noRoot: !cli.root,
   verbose: (cli.verbose || cli.debug),
   debug: cli.debug,
   simulate: cli.simulate
@@ -89,11 +87,6 @@ utils.exportExecutablesFromPackage();
 ipcMain.on("user:device:select", (event, installProperties) => {
   global.installProperties = Object.assign(global.installProperties, installProperties);
   devices.install(installProperties);
-});
-
-// Password submitted by user
-ipcMain.on("password", (e, password) => {
-  mainEvent.emit("password", password);
 });
 
 // Exit process with optional non-zero exit code
@@ -127,16 +120,6 @@ ipcMain.on("device:select", (event, device) => {
 //==============================================================================
 // RENDERER COMMUNICATION
 //==============================================================================
-
-// Prompt the user for the password
-mainEvent.on("user:password", () => {
-  if (mainWindow) mainWindow.webContents.send("user:password");
-});
-
-// The user entered a wrong password, prompt again
-mainEvent.on("user:password:wrong", () => {
-  if (mainWindow) mainWindow.webContents.send("user:password:wrong");
-});
 
 // Open the bugreporting tool
 mainEvent.on("user:error", (err) => {

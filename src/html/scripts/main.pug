@@ -11,34 +11,11 @@ script.
     }
     $("#error-body").text(err);
     $("#error-modal").modal("show");
-    $("#password-modal").modal("hide");
   }
 
   window.onerror = (err, url, line) => {
     onErr(err+" (MainRenderer:"+line+")");
   }
-
-  ipcRenderer.on("user:password", () => {
-    modals.show("password");
-    $("#password-input").val("");
-    $("#password-input").keypress((event) => {
-      if (event.which == '13') {
-        event.preventDefault();
-        ipcRenderer.send("password", $("#password-input").val());
-        modals.hide("password");
-        $('#password-wrong').hide();
-      }
-    });
-    $("#btn-password").click(() => {
-      ipcRenderer.send("password", $("#password-input").val());
-      $('#password-wrong').hide();
-    });
-  });
-
-  ipcRenderer.on("user:password:wrong", () => {
-    ipcRenderer.send("user:password");
-    $('#password-wrong').show();
-  });
 
   ipcRenderer.on("user:error", (event, err) => { onErr(err); });
 
