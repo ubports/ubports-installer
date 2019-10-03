@@ -170,7 +170,7 @@ winston.add(winston.transports.File, {
 
 var die = (e) => {
     log.error(e);
-    ipcRenderer.send("die", 1);
+    process.exit(-1)
 }
 
 var sudoCommand = (password) => {
