@@ -19,4 +19,7 @@ sudo apt install $packages
 echo "Setting up node modules..."
 npm install
 
+echo "Downloading platform tools"
+node build.js --download-only --os=linux
+
 echo "Done!"

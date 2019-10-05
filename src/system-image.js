@@ -1,86 +1,58 @@
 "use strict";
 
 /*
+ * Copyright (C) 2017-2019 UBports Foundation <info@ubports.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-This file is a part of ubports-installer
-
-Author: Marius Gripsgard <mariogrip@ubports.com>
-
-*/
-
-const fs = require("fs");
 const utils = require("./utils");
-const adb = require("./adb");
-const path = require("path");
-const events = require("events")
-const mkdirp = require('mkdirp');
 const systemImageClient = require("system-image-node-module").Client;
 
 const systemImage = new systemImageClient({path: utils.getUbuntuTouchDir()});
-class event extends events {}
-
-const ubuntuCommandFile = "ubuntu_command";
-const ubuntuPushDir = "/cache/recovery/"
 
 const getDeviceChannels = (device) => {
   return systemImage.getDeviceChannels(device);
 }
 
-var downloadLatestVersion = (options) => {
-  utils.log.debug("downloadLatestVersion options: ", options);
-  var thisEvent;
-  if (!options.event)
-    thisEvent = new event();
-  else
-    thisEvent = options.event;
-  systemImage.getLatestVersion(options.device, options.channel).then((latest) => {
-    var urls = systemImage.getFilesUrlsArray(latest)
-    urls.push.apply(urls, systemImage.getGgpUrlsArray());
-    var files = systemImage.getFilePushArray(urls);
-    utils.downloadFiles(urls, thisEvent);
-    utils.log.debug(urls);
-    thisEvent.once("download:done", () => {
-      files.push({
-        src: systemImage.createInstallCommandsFile(
-          systemImage.createInstallCommands(
-            latest.files,
-            options.installerCheck,
-            options.wipe,
-            options.enable
-          ),
-          options.device
-        ),
-        dest: ubuntuPushDir + ubuntuCommandFile
-      });
-      thisEvent.emit("download:pushReady", files);
-    });
-  }).catch(() => {
-    thisEvent.emit("error", "could not find latest version; " + "device: " + options.device + " channel: " + options.channel);
-  });
-  return thisEvent;
-}
-
-var pushLatestVersion = (files, thisEvent, dontWipeCache) => {
-  var doPush = () => {
-    adb.shell("mount -a", () => {
-      adb.shell("mkdir -p /cache/recovery", () => {
-        adb.pushMany(files, thisEvent);
-      });
-    });
-  }
-  if (dontWipeCache)
-    doPush();
-  else
-    adb.wipeCache(doPush);
-  return thisEvent;
-}
-
 var installLatestVersion = (options) => {
-  var downloadEvent = downloadLatestVersion(options);
-  downloadEvent.once("download:pushReady", (files) => {
-    pushLatestVersion(files, downloadEvent)
+  mainEvent.emit("user:write:working", "download");
+  mainEvent.emit("user:write:status", "Downloading Ubuntu Touch");
+  mainEvent.emit("user:write:under", "Downloading");
+  systemImage.downloadLatestVersion(options, (progress, speed) => {
+    mainEvent.emit("download:progress", progress);
+    mainEvent.emit("download:speed", speed);
+  }, (current, total) => {
+    if (current != total) utils.log.debug("Downloading system-image file " + (current+1) + " of " + total);
+  }).then((files) => {
+    mainEvent.emit("download:done");
+    mainEvent.emit("user:write:progress", 0);
+    mainEvent.emit("user:write:working", "push");
+    mainEvent.emit("user:write:status", "Sending");
+    mainEvent.emit("user:write:under", "Sending files to the device");
+    adb.wipeCache().then(() => {
+      adb.shell("mount -a").then(() => {
+        adb.shell("mkdir -p /cache/recovery").then(() => {
+          adb.pushArray(files, (progress) => {
+            global.mainEvent.emit("user:write:progress", progress*100);
+          }).then(() => {
+            global.mainEvent.emit("adbpush:done");
+          }).catch(e => utils.errorToUser("Push failed: Failed push: " + e));
+        }).catch(e => utils.errorToUser("Push failed: Failed to create target dir: " + e));
+      }).catch(e => utils.errorToUser("Push failed: Failed to mount: " + e));
+    }).catch(e => utils.errorToUser("Push failed: Failed wipe cache: " + e));
   });
-  return downloadEvent;
 }
 
 module.exports = {

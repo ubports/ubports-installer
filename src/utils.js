@@ -1,46 +1,36 @@
 /*
-
-This file is a part of ubports-installer
-
-Author: Marius Gripsgard <mariogrip@ubports.com>
-
-*/
+ * Copyright (C) 2017-2019 UBports Foundation <info@ubports.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 const http = require("request");
-const progress = require("request-progress");
+const download = require("download");
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
 const checksum = require('checksum');
 const mkdirp = require('mkdirp');
-const tmp = require('tmp');
-const exec = require('child_process').exec;
 const cp = require('child_process');
-const sudo = require('electron-sudo');
 const winston = require('winston');
 const getos = require('getos');
-const commandExistsSync = require('command-exists').sync;
-const remote = require('electron').remote;
-var ipcRenderer = require('electron').ipcRenderer;
-global.installProperties = remote ? remote.getGlobal('installProperties') : undefined;
-global.packageInfo = remote ? remote.getGlobal('packageInfo') : require('../package.json');
-
-var customTools = {
-  adb: undefined,
-  fastboot: undefined
-}
+global.packageInfo = require('../package.json');
 
 const platforms = {
   "linux": "linux",
   "darwin": "mac",
   "win32": "win"
-}
-
-var platformNativeToolsLogged;
-var platformFallbackToolsLogged;
-
-var getVersion = () => {
-  return global.packageInfo.version;
 }
 
 if (global.installProperties)
@@ -53,7 +43,7 @@ var log = {
   debug: (l) => {winston.log("debug", l)}
 }
 
-var createBugReport = (title, callback) => {
+function createBugReport(title, installProperties, callback) {
   var options = {
     limit: 400,
     start: 0,
@@ -84,9 +74,9 @@ var createBugReport = (title, callback) => {
       getos((e,gOs) => {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
-        "Device: " + (global.installProperties.device ? global.installProperties.device : "Not detected") + "%0D%0A" +
-        "Channel: " + (global.installProperties.channel ? global.installProperties.channel : "Not yet set") + "%0D%0A" +
-        "Package: " + (isSnap() ? "snap" : (global.packageInfo.package || "source")) + "%0D%0A" +
+        "Device: " + (installProperties.device ? installProperties.device : "Not detected") + "%0D%0A" +
+        "Channel: " + (installProperties.channel ? installProperties.channel : "Not yet set") + "%0D%0A" +
+        "Package: " + (isSnap() ? "snap" : (packageInfo.package || "source")) + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
         "Error log: https://paste.ubuntu.com/" + res.headers.location + " %0D%0A");
@@ -96,7 +86,7 @@ var createBugReport = (title, callback) => {
   });
 }
 
-var getCleanOs = () => {
+function getCleanOs() {
   try {
     return getos((e,gOs) => {
       if(gOs.os == "linux")
@@ -133,294 +123,110 @@ function getLatestInstallerVersion() {
 }
 
 function getUpdateAvailable() {
-  return getLatestInstallerVersion().then((latestVersion) => {
-    return latestVersion != global.packageInfo.version;
+  return new Promise((resolve, reject) => {
+    getLatestInstallerVersion().then((latestVersion) => {
+      if(latestVersion != global.packageInfo.version) resolve();
+      else reject();
+    });
   });
 }
 
-var getUbuntuTouchDir = () => {
-    var osCacheDir;
-    switch (process.platform) {
-        case "linux":
-            osCacheDir = path.join(process.env.HOME, '.cache');
-            break;
-        case "darwin":
-            osCacheDir = path.join(process.env.HOME, 'Library/Caches');
-            break;
-        case "win32":
-            osCacheDir = process.env.APPDATA;
-            break;
-        default:
-            throw Error("Unknown platform " + process.platform);
-    }
-    return path.join(osCacheDir, "ubports")
+function getUbuntuTouchDir() {
+  var osCacheDir;
+  switch (process.platform) {
+      case "linux":
+      osCacheDir = path.join(process.env.HOME, '.cache');
+    break;
+      case "darwin":
+      osCacheDir = path.join(process.env.HOME, 'Library/Caches');
+    break;
+      case "win32":
+      osCacheDir = process.env.APPDATA;
+    break;
+      default:
+      throw Error("Unknown platform " + process.platform);
+  }
+  return path.join(osCacheDir, "ubports");
 }
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
-    mkdirp.sync(getUbuntuTouchDir());
+  mkdirp.sync(getUbuntuTouchDir());
 }
+
 winston.add(winston.transports.File, {
   filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log'),
   level: 'debug', // Print debug logs to the file
   options: { flags: 'w' } // Clear log before writing to it
 });
 
-var die = (e) => {
-    log.error(e);
-    ipcRenderer.send("die", 1);
+function die(e) {
+  log.error(e);
+  process.exit(-1);
 }
 
-var sudoCommand = (password) => {
-    return isSnap() ? "" : "echo '" + password.replace(/\'/g, "'\\''") + "' | sudo -S ";
-}
-
-var checkPassword = (password, callback) => {
-    if (!needRoot()) {
-        log.debug("no root needed")
-        callback(true);
-        return;
-    }
-    log.debug("checking password")
-    exec(sudoCommand(password) + "echo correct", (err, output) => {
-        if(err){
-            if (err.message.includes("incorrect password")) {
-                log.debug("incorrect password")
-                callback(false, {
-                  password: true
-                });
-            } else{
-              // Replace password with "" to make sure it wont get logged
-              // with password
-              log.debug("unknown sudo error")
-              callback(false, {
-                message: err.message.replace(password, "***")
-              });
-            }
-        }else {
-            log.debug("correct password")
-            if (output.includes("correct"))
-                callback(true);
-            else
-                callback(false);
-        }
+// WORKAROUND: the chile spawned by child_process.exec can not access files inside the asar package
+function exportExecutablesFromPackage() {
+  getFallbackPlatformTools().forEach((tool) => {
+    fs.copy(tool.package, tool.cache, () => {
+      fs.chmodSync(tool.cache, 0o755);
     });
+  });
 }
 
-// WORKAROUND: since we are using asar packages to compress into one package we cannot use
-// child_process.exec since it spans a shell and shell wont be able to access the files
-// inside the asar package.
-var asarExec = (file, callback) => {
-    tmp.dir((err, tmpDir, cleanup) => {
-        if (err) callback(true);
-        fs.copy(file, path.join(tmpDir, path.basename(file)), (err) => {
-            fs.chmodSync(path.join(tmpDir, path.basename(file)), 0o755);
-            if(err) die(err);
-            callback({
-                exec: (cmd, cb) => {
-                    let name = file.split('/').pop();
-                    cmd = cmd.replace(new RegExp(name, 'g'), path.join(tmpDir, path.basename(file)));
-                    exec(cmd, (err, e,r) => {
-                        // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-                        cb(err,e,r);
-                    })
-                },
-                done: () => {
-                    fs.removeSync(tmpDir);
-                }
-            });
-        });
-    });
+function maybeEXE(platform, tool) {
+  if(platform === "win32") tool+=".exe";
+  return tool;
 }
 
-const logPlatformNativeToolsOnce = () => {
-  if (!platformNativeToolsLogged) {
-    log.debug("Using native platform tools!");
-    platformNativeToolsLogged=true;
-  }
-}
-
-const logPlatformFallbackToolsOnce = () => {
-  if (!platformFallbackToolsLogged) {
-    log.debug("Using fallback platform tools!");
-    platformFallbackToolsLogged=true;
-  }
-}
-
-const callbackHook = (callback) => {
-  return (a,b,c) => {
-    // log.debug(a,b,c);
-    callback(a,b,c)
-  }
-}
-
-const platformToolsExec = (tool, arg, callback) => {
-  var tools = getPlatformTools();
-
-  // First check for native tools
-  if (tools[tool] && !global.installProperties.forceFallback) {
-    logPlatformNativeToolsOnce();
-    var cmd = tools[tool] + " " + arg.join(" ");
-    // log.debug(cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-    cp.exec(cmd, {maxBuffer: 2000*1024}, callbackHook(callback));
-    return true;
-  }
-
-  // Try using fallback tools
-  if (tools.fallback[tool]) {
-    logPlatformFallbackToolsOnce();
-    // log.debug(tools.fallback[tool] + " " + arg.join(" ")) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-    cp.execFile(tools.fallback[tool], arg, {maxBuffer: 2000*1024}, callbackHook(callback));
-    return true;
-  }
-  log.error("NO PLATFORM TOOL USED!");
-  callback(true, false);
-  return false;
-}
-
-const platformToolsExecAsar = (tool, callback) => {
-  var tools = getPlatformTools();
-
-  // First check for native
-  if (tools[tool] && !global.installProperties.forceFallback) {
-    logPlatformNativeToolsOnce();
-    callback({
-        exec: (cmd, cb) => {
-            var _cmd = cmd.replace(tool, tools[tool]);
-            exec(_cmd, (err, e,r) => {
-                // log.debug(_cmd) // CAREFUL! THIS MIGHT LOG PASSWORDS!
-                cb(err,e,r);
-            })
-        },
-        done: () => { console.log("done platform tools") }
-    });
-    return true;
-  }
-
-  // Use fallback tools if there are no native tools installed
-  if (tools.fallback[tool]) {
-    logPlatformFallbackToolsOnce();
-    asarExec(tools.fallback[tool], callback);
-    return true;
-  }
-  log.error("NO PLATFORM TOOL USED!");
-  callback(true, false);
-  return false;
-}
-
-var maybeEXE = (platform, tool) => {
-    if(platform === "win32") tool+=".exe";
-    return tool;
-}
-
-var getPlatform = () => {
+function getPlatform() {
   var thisPlatform = os.platform();
   if(!platforms[thisPlatform]) die("Unsuported platform");
   return platforms[thisPlatform];
 }
 
-// Check if we have native platform tools
-const setCustomPlatformTool = (tool, executable) => {
-  log.info(tool + " has been set to " + executable)
-  customTools[tool] = executable;
-}
-
-// Check if we have native platform tools
-const getPlatformTools = () => {
-  var p = getNativePlatformTools();
-  p["fallback"] = getFallbackPlatformTools();
-  return p;
-}
-
-const getNativePlatformTools = () => {
-  var ret = {};
-  if (customTools["adb"])
-    ret["adb"] = customTools["adb"];
-  else if (commandExistsSync("adb"))
-    ret["adb"] = "adb";
-  if (customTools["fastboot"])
-    ret["fastboot"] = customTools["fastboot"];
-  else if (commandExistsSync("fastboot"))
-    ret["fastboot"] = "fastboot";
-  return ret;
-}
-
-const getFallbackPlatformTools = () => {
-    var thisPlatform = os.platform();
-    if(!platforms[thisPlatform]) die("Unsupported platform");
-    var platformToolsPath = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
-    return {
-        fastboot: path.join(platformToolsPath, maybeEXE(thisPlatform, "fastboot")),
-        adb: path.join(platformToolsPath, maybeEXE(thisPlatform, "adb"))
+function getFallbackPlatformTools() {
+  var thisPlatform = os.platform();
+  if(!platforms[thisPlatform]) die("Unsupported platform");
+  var toolInPackage = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
+  var toolInCache = path.join(utils.getUbuntuTouchDir(), 'platform-tools');
+  return [
+    {
+      package: path.join(toolInPackage, maybeEXE(thisPlatform, "fastboot")),
+      cache: path.join(toolInCache, maybeEXE(thisPlatform, "fastboot"))
+    },
+    {
+      package: path.join(toolInPackage, maybeEXE(thisPlatform, "adb")),
+      cache: path.join(toolInCache, maybeEXE(thisPlatform, "adb"))
     }
+  ]
 }
 
-var isSnap = () => {
+function isSnap() {
   return process.env.SNAP_NAME
 }
 
-var needRoot = () => {
-    if (
-      (os.platform() === "win32") ||
-      isSnap() ||
-      !commandExistsSync("sudo") ||
-      global.installProperties.noRoot ||
-      global.installProperties.simulate
-    ) return false;
-    else return !process.env.SUDO_UID
-}
-
-var ensureRoot = (m) => {
-  if(process.env.SUDO_UID)
-    return;
-  log.error(m)
-  process.exit(1);
-}
-
-var checkFiles = (urls, callback) => {
-    var urls_ = [];
-    var next = () => {
-        if (urls.length <= 1) {
-            callback(urls_)
+function checksumFile(file) {
+  return new Promise(function(resolve, reject) {
+    fs.access(path.join(file.path, path.basename(file.url)), (err) => {
+      if (err) {
+        reject();
+      } else {
+        if (!file.checksum) {
+          // No checksum so return true;
+          resolve();
+          return;
         } else {
-            urls.shift();
-            check()
+          checksum.file(path.join(file.path, path.basename(file.url)), {
+            algorithm: "sha256"
+          }, function(err, sum) {
+            utils.log.debug("checked: " +path.basename(file.url), sum === file.checksum);
+            if (sum === file.checksum) resolve();
+            else reject();
+          });
         }
-    }
-    var check = () => {
-        fs.access(path.join(urls[0].path, path.basename(urls[0].url)), (err) => {
-            if (err) {
-                log.debug("Not existing " + path.join(urls[0].path, path.basename(urls[0].url)));
-                urls_.push(urls[0]);
-                next();
-            } else {
-                checksumFile(urls[0], (check) => {
-                    if (check) {
-                        log.debug(path.join(urls[0].path, path.basename(urls[0].url)) + " exists with the expected checksum, so the download will be skipped.");
-                        next();
-                    } else {
-                        log.debug("Checksum mismatch on " + path.join(urls[0].path, path.basename(urls[0].url)) + ". This file will be downloaded again.");
-                        urls_.push(urls[0]);
-                        next();
-                    }
-                })
-            }
-        })
-    }
-    check();
-}
-
-var checksumFile = (file, callback) => {
-    if (!file.checksum) {
-        // No checksum so return true;
-        callback(true);
-        return;
-    }
-    checksum.file(path.join(file.path, path.basename(file.url)), {
-        algorithm: "sha256"
-    }, function(err, sum) {
-        log.debug("checked: " +path.basename(file.url), sum === file.checksum);
-        callback(sum === file.checksum, sum);
+      }
     });
+  });
 }
 
 /*
@@ -433,90 +239,76 @@ urls format:
   }
 ]
 */
-var downloadFiles = (urls_, downloadEvent) => {
-  var urls;
-  var totalFiles;
-  downloadEvent.emit("download:startCheck");
-  var dl = () => {
-    if (!fs.existsSync(urls[0].path)) {
-      mkdirp.sync(urls[0].path);
-    }
-    progress(http(urls[0].url))
-    .on('progress', (state) => {
-      downloadEvent.emit("download:progress", state.percent*100);
-    })
-    .on('error', (err) => {
-      if (err) downloadEvent.emit("download:error", err);
-    })
-    .on('end', () => {
-      fs.rename(path.join(urls[0].path, path.basename(urls[0].url + ".tmp")),
-      path.join(urls[0].path, path.basename(urls[0].url)), () => {
-        downloadEvent.emit("download:checking");
-        checksumFile(urls[0], (check) => {
-          if (check) {
-            if (urls.length <= 1) {
-              downloadEvent.emit("download:done");
-            } else {
-              urls.shift();
-              downloadEvent.emit("download:next", totalFiles-urls.length+1, totalFiles);
-              dl()
-            }
-          } else {
-            downloadEvent.emit("download:error", "Checksum mismatch on file " + path.basename(urls[0].url));
-          }
+function downloadFiles(urls, progress, next) {
+  return new Promise(function(resolve, reject) {
+    var filesDownloaded = 0;
+    var overallSize = 0;
+    var overallDownloaded = 0;
+    var previousOverallDownloaded = 0;
+    var downloadProgress = 0;
+    var progressInterval = setInterval(() => {
+      downloadProgress = overallDownloaded/overallSize;
+      if (overallSize != 0) {
+        if (downloadProgress < 0.999) {
+          progress(downloadProgress, (overallDownloaded-previousOverallDownloaded)/1000000);
+          previousOverallDownloaded = overallDownloaded;
+        } else {
+          clearInterval(progressInterval);
+          progress(1, 0);
+        }
+      }
+    }, 1000);
+    Promise.all(urls.map((file) => {
+      return new Promise(function(resolve, reject) {
+        checksumFile(file).then(() => {
+          next(++filesDownloaded, urls.length);
+          resolve();
+          return;
+        }).catch(() => {
+          download(file.url, file.path).on("response", (res) => {
+            var totalSize = eval(res.headers['content-length']);
+            overallSize += totalSize;
+            var downloaded = 0;
+            res.on('data', data => {
+              overallDownloaded += data.length;
+            });
+          }).then(() => {
+            checksumFile(file).then(() => {
+              next(++filesDownloaded, urls.length);
+              resolve();
+              return;
+            }).catch((err) => {
+              reject(err);
+              return;
+            });
+          });
         });
       });
-    })
-    .pipe(fs.createWriteStream(path.join(urls[0].path, path.basename(urls[0].url + ".tmp"))));
-  }
-  checkFiles(urls_, (ret) => {
-    if (ret.length <= 0) {
-      downloadEvent.emit("download:done");
-    } else {
-      urls = ret;
-      totalFiles = urls.length;
-      downloadEvent.emit("download:start", totalFiles);
-      dl();
-    }
-  })
-  return downloadEvent;
+    })).then(() => {
+      resolve();
+      return;
+    }).catch((err) => {
+      reject(err);
+      return;
+    });
+  });
 }
 
-const getRandomInt = (min, max) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-const hidePassword = (output, pw) => {
-  if (needRoot()) {
-    return output.replace(pw.replace(/\'/g, "'\\''"), "***");
-  } else {
-    return output;
-  }
+function errorToUser(error, errorLocation) {
+  var errorString = "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
+  utils.log.error(errorString);
+  global.mainEvent.emit("user:error", errorString);
 }
 
 module.exports = {
-    setCustomPlatformTool: setCustomPlatformTool,
-    downloadFiles: downloadFiles,
-    checksumFile: checksumFile,
-    checkFiles: checkFiles,
-    log: log,
-    platformToolsExec: platformToolsExec,
-    platformToolsExecAsar: platformToolsExecAsar,
-    ensureRoot: ensureRoot,
-    isSnap: isSnap,
-    getPlatformTools: getPlatformTools,
-    getUbuntuTouchDir: getUbuntuTouchDir,
-    needRoot: needRoot,
-    sudoCommand: sudoCommand,
-    checkPassword: checkPassword,
-    createBugReport: createBugReport,
-    getUpdateAvailable: getUpdateAvailable,
-    getPlatform: getPlatform,
-    asarExec: asarExec,
-    getRandomInt: getRandomInt,
-    getVersion: getVersion,
-    hidePassword: hidePassword,
-    die: die
+  errorToUser: errorToUser,
+  exportExecutablesFromPackage: exportExecutablesFromPackage,
+  downloadFiles: downloadFiles,
+  log: log,
+  isSnap: isSnap,
+  getUbuntuTouchDir: getUbuntuTouchDir,
+  createBugReport: createBugReport,
+  getUpdateAvailable: getUpdateAvailable,
+  die: die,
+  setLogLevel: (level) => { winston.level = level; }
 }

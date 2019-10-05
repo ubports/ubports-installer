@@ -7,11 +7,11 @@
       p
         | The installation process from the computer is done. The device will now perform the remaining steps which should take less than five minutes. After the installation, the device will reboot and you can begin to explore Ubuntu Touch. 
       p
-        | Found something you don't like?  #[a(onclick="shell.openExternal('https://github.com/ubports/ubports-touch')") tell us], or help us change it!
+        | Found something you don't like?  #[a(onclick="shell.openExternal('https://github.com/ubports/ubports-touch')") Tell us], or help us change it!
       p
         | Development of Ubuntu Touch is driven by the  #[a(onclick="shell.openExternal('https://ubports.com')") UBports Community]. Donate now to allow us to continue our mission!
       button.btn.btn-default(type='button', style='width: 49%; margin-bottom: 10px; margin-right: 5px', onclick="shell.openExternal('https://ubports.com/get-involved')") Get involved 
       button.btn.btn-primary(type='button', style='width: 49%; margin-bottom: 10px;', onclick="shell.openExternal('https://ubports.com/donate')") Donate
       p
         | Got more devices you want to flash?
-      button.btn.btn-info(type='button', style='width: 100%;', onclick="location.reload(); ipcRenderer.send('resetDeviceAndChannel')") Flash another device!
+      button.btn.btn-info(type='button', style='width: 100%;', onclick="ipcRenderer.send('restart');") Flash another device!
