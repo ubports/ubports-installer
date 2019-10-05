@@ -112,7 +112,7 @@ function addPathToImages(images, device) {
   images.forEach((image) => {
     image["partition"] = image.type;
     image["path"] = path.join(downloadPath, "images", device);
-    image["file"] = path.join(downloadPath, "images", device, image.type + "-" + device + ".img");
+    image["file"] = path.join(downloadPath, "images", device, path.basename(image.url));
     ret.push(image);
   });
   return ret;
