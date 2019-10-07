@@ -61,20 +61,29 @@ var fastboot = new Fastboot({
 });
 global.fastboot = fastboot;
 
+//==============================================================================
+// PARSE COMMAND-LINE ARGUMENTS
+//==============================================================================
+
 cli
   .name(global.packageInfo.name)
   .version(global.packageInfo.version)
   .description(global.packageInfo.description)
   .option('-d, --device <device>', '[experimental] Override detected device-id (codename)')
-  .option('-c, --channel <channel>', '[experimental] Override the recommended release-channel for the device')
-  .option('-C, --cli', "[experimental] Run without GUI", undefined, 'false')
+  .option('-o, --operating-system <os>', '[experimental] what os to install')
+  .option('-s, --settings "<setting>: <value>[, ...]"', '[experimental] Override install settings')
+  .option('-f, --file <file>', '[experimental] Override the config by loading a file')
+  .option('-c, --cli', "[experimental] Run without GUI", undefined, 'false')
   .option('-v, --verbose', "Enable verbose logging", undefined, 'false')
   .option('-D, --debug', "Enable debugging tools and verbose logging", undefined, 'false')
   .parse(process.argv);
 
+if (cli.file) {
+  global.installConfig = require(cli.file);
+}
+
 global.installProperties = {
-  device: cli.device,
-  channel: cli.channel,
+  device: global.installConfig ? global.installConfig.codename : cli.device,
   cli: cli.cli,
   verbose: (cli.verbose || cli.debug),
   debug: cli.debug
@@ -89,9 +98,9 @@ utils.exportExecutablesFromPackage();
 //==============================================================================
 
 // Device selected
-ipcMain.on("user:device:select", (event, installProperties) => {
+ipcMain.on("install", (event, installProperties) => {
   global.installProperties = Object.assign(global.installProperties, installProperties);
-  devices.install(installProperties);
+  mainEvent.emit("select:os");
 });
 
 // Exit process with optional non-zero exit code
@@ -117,9 +126,15 @@ ipcMain.on("createBugReport", (event, title) => {
 });
 
 // The user selected a device
-ipcMain.on("device:select", (event, device) => {
+ipcMain.on("device:selected", (event, device) => {
   global.installProperties.device = device;
-  mainEvent.emit("device:select", device);
+  mainWindow.webContents.send("user:os", global.installConfig, devices.getOsSelects(global.installConfig.operating_systems));
+});
+
+// The user selected an os
+ipcMain.on("user:os:select", (event, osIndex) => {
+  utils.log.debug(global.installConfig.operating_systems[osIndex]);
+  mainEvent.emit("device:select", global.installConfig.operating_systems[osIndex]);
 });
 
 //==============================================================================

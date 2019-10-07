@@ -104,6 +104,13 @@ script.
     $("#btn-inst").hide();
   });
 
+  ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
+    global.installConfig = installConfig;
+    global.installConfig.os_to_install = undefined;
+    $("#options-os").append(osSelects);
+    views.show("select-os");
+  });
+
   ipcRenderer.on("device:select:data-ready", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
     views.show("install");
     $("#options-channel").append(channels);
@@ -128,7 +135,7 @@ script.
     $("#btn-installModal").click(() => {
       views.show("working", "particles");
       $("#progress").show();
-      ipcRenderer.send("user:device:select", {
+      ipcRenderer.send("install", {
         device: output.device,
         channel: options.get("channel", true),
         wipe: options.get("wipe", true)
@@ -153,7 +160,7 @@ script.
     // Button to confirm device selection
     $("#btn-select-device").click(() => {
       var device = $("#device-select").find(":selected").attr("name");
-      ipcRenderer.send("device:select", device);
+      ipcRenderer.send("device:selected", device);
     });
   });
 
