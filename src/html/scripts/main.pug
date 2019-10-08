@@ -82,18 +82,16 @@ script.
       remote.getCurrentWindow().close();
     } else {
       views.show("done");
-      footer.topText.set("Installation complete!");
-      footer.underText.set("It is now safe to unplug the device.");
       $("#progress").width("0%");
     }
   });
 
-  ipcRenderer.on("user:write:status", (e, status) => {
-    footer.topText.set(status, true)
+  ipcRenderer.on("user:write:status", (e, status, waitDots) => {
+    footer.topText.set(status, waitDots);
   });
 
   ipcRenderer.on("user:write:under", (e, status) => {
-    footer.underText.set(status, true)
+    footer.underText.set(status, true);
   });
 
   ipcRenderer.on("user:device-unsupported", (event, device) => {

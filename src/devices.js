@@ -114,12 +114,12 @@ var downloadImages = (images, device) => {
   });
 }
 
-function addPathToImages(images, device) {
+function addPathToImages(images, device, group) {
   var ret = [];
   images.forEach((image) => {
     image["partition"] = image.type;
-    image["path"] = path.join(downloadPath, "images", device);
-    image["file"] = path.join(downloadPath, "images", device, path.basename(image.url));
+    image["path"] = path.join(downloadPath, "images", device, group);
+    image["file"] = path.join(downloadPath, "images", device, group, path.basename(image.url));
     ret.push(image);
   });
   return ret;
@@ -164,51 +164,120 @@ function install(steps) {
     switch (step.type) {
       case "download":
         installPromises.push(() => {
-          utils.log.debug(step.type);
-          return utils.downloadFiles(addPathToImages(step.files, step.group), ()=>{}, ()=>{});
+          // return utils.downloadFiles(addPathToImages(step.files, global.installProperties.device, step.group), ()=>{}, ()=>{});
+          return new Promise(function(resolve, reject) {
+            utils.log.debug("step: " + JSON.stringify(step));
+            global.mainEvent.emit("user:write:working", "download");+
+            global.mainEvent.emit("user:write:status", "Downloading " + step.group);
+            global.mainEvent.emit("user:write:under", "Downloading");
+            setTimeout(() => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            }, 2000);
+          });
         });
         break;
       case "adb:reboot":
         installPromises.push(() => {
-          utils.log.debug(step.type);
-          return adb.reboot(step.to_state);
+          // return adb.reboot(step.to_state);
+          return new Promise(function(resolve, reject) {
+            global.mainEvent.emit("user:write:working", "particles");+
+            global.mainEvent.emit("user:write:status", "Rebooting");
+            global.mainEvent.emit("user:write:under", "Rebooting to " + step.to_state);
+            utils.log.debug("step: " + JSON.stringify(step));
+            setTimeout(() => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            }, 2000);
+          });
         });
         break;
       case "fastboot:flash":
         installPromises.push(() => {
-          utils.log.debug(step.type);
-          return fastboot.flashArray(addPathToImages(step.flash));
+          // return fastboot.flashArray(addPathToImages(step.flash, global.installProperties.device, step.group));
+          return new Promise(function(resolve, reject) {
+            global.mainEvent.emit("user:write:working", "particles");+
+            global.mainEvent.emit("user:write:status", "Flashing firmware");
+            global.mainEvent.emit("user:write:under", "Flashing firmware partitions using fastboot");
+            utils.log.debug("step: " + JSON.stringify(step));
+            setTimeout(() => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            }, 2000);
+          });
         });
         break;
       case "fastboot:erase":
         installPromises.push(() => {
-          utils.log.debug(step.type);
-          return fastboot.erase(step.partition);
+          global.mainEvent.emit("user:write:working", "particles");+
+          global.mainEvent.emit("user:write:status", "Ceaning up");
+          global.mainEvent.emit("user:write:under", "Erasing " + step.partition + " partition");
+          // return fastboot.erase(step.partition);
+          return new Promise(function(resolve, reject) {
+            utils.log.debug("step: " + JSON.stringify(step));
+            setTimeout(() => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            }, 2000);
+          });
         });
         break;
       case "fastboot:boot":
         installPromises.push(() => {
-          utils.log.debug(step.type);
-          return fastboot.boot(path.join("./", "test", step.group, step.file), step.partition);
+          // return fastboot.boot(path.join("./", "test", step.group, step.file), step.partition);
+          return new Promise(function(resolve, reject) {
+            global.mainEvent.emit("user:write:working", "particles");
+            global.mainEvent.emit("user:write:status", "Rebooting");
+            global.mainEvent.emit("user:write:under", "Your device is being rebooted...");
+            utils.log.debug("step: " + JSON.stringify(step));
+            setTimeout(() => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            }, 2000);
+          });
         });
         break;
       case "systemimage":
         installPromises.push(() => {
-          utils.log.debug(step.type);
-          return sysimageinstall();
+          // return sysimageinstall();
+          return new Promise(function(resolve, reject) {
+            global.mainEvent.emit("user:write:working", "particles");
+            global.mainEvent.emit("user:write:status", "System-Image");
+            global.mainEvent.emit("user:write:under", "Going through system-image process");
+            utils.log.debug("step: " + JSON.stringify(step));
+            setTimeout(() => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            }, 2000);
+          });
         });
         break;
       case "fastboot:update":
         installPromises.push(() => {
-          utils.log.debug(step.type);
-          return fastboot.update(path.join("./", "test", step.group, step.file));
+          // return fastboot.update(path.join("./", "test", step.group, step.file));
+          return new Promise(function(resolve, reject) {
+            global.mainEvent.emit("user:write:working", "particles");
+            global.mainEvent.emit("user:write:status", "Updating system");
+            global.mainEvent.emit("user:write:under", "Applying fastboot update zip");
+            utils.log.debug("step: " + JSON.stringify(step));
+            setTimeout(() => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            }, 2000);
+          });
         });
         break;
       default:
         throw "error: unrecognized step type: " + step.type
     }
   });
+  installPromises.push(() => {
+    global.mainEvent.emit("user:write:done");
+    global.mainEvent.emit("user:write:status", global.installConfig.operating_systems[global.installProperties.osIndex].name + " successfully installed!", false);
+    global.mainEvent.emit("user:write:under", global.installConfig.operating_systems[global.installProperties.osIndex].success_message || "All done! Enjoy exploring your new OS!");
+  });
 
+  // Actually run the steps
   installPromises.reduce(
     (promiseChain, currentFunction) => promiseChain.then(currentFunction),
     Promise.resolve()

@@ -133,6 +133,7 @@ ipcMain.on("device:selected", (event, device) => {
 
 // The user selected an os
 ipcMain.on("user:os:select", (event, osIndex) => {
+  global.installProperties.osIndex = osIndex;
   utils.log.debug(global.installConfig.operating_systems[osIndex]);
   mainEvent.emit("device:select", global.installConfig.operating_systems[osIndex]);
 });
@@ -210,8 +211,8 @@ mainEvent.on("user:write:working", (animation) => {
 });
 
 // Set the top text in the footer
-mainEvent.on("user:write:status", (status) => {
-  if (mainWindow) mainWindow.webContents.send("user:write:status", status);
+mainEvent.on("user:write:status", (status, waitDots) => {
+  if (mainWindow) mainWindow.webContents.send("user:write:status", status, waitDots);
 });
 
 // Set the speed part of the footer
