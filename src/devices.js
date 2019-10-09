@@ -285,7 +285,6 @@ function install(steps) {
 }
 
 module.exports = {
-  getDevice: undefined,
   waitForDevice: () => {
     adb.waitForDevice().then(() => {
       adb.getDeviceName().then((device) => {
@@ -297,7 +296,7 @@ module.exports = {
       }).catch((error) => { utils.errorToUser(error, "get device name"); });
     }).catch(e => utils.log.debug("no device detected: " + e));
   },
-  getOsSelects: (osArray) => {
+  getOsSelects: (osArray) => { // TODO move to api module
     var osSelects = [];
     for (var i = 0; i < osArray.length; i++) {
       osSelects.push("<option name=\"" + i + "\">" + osArray[i].name + "</option>");

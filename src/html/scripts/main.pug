@@ -109,7 +109,7 @@ script.
     views.show("select-os");
   });
 
-  ipcRenderer.on("device:select:data-ready", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+  ipcRenderer.on("user:configure", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
     views.show("install");
     $("#options-channel").append(channels);
     options.optionsValToUser();

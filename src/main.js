@@ -130,7 +130,7 @@ ipcMain.on("device:selected", (event, device) => {
 });
 
 // The user selected an os
-ipcMain.on("user:os:select", (event, osIndex) => {
+ipcMain.on("os:selected", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
   utils.log.debug(global.installConfig.operating_systems[osIndex]);
   devices.install(global.installConfig.operating_systems[osIndex].steps);
@@ -230,9 +230,9 @@ mainEvent.on("user:device-unsupported", (device) => {
 });
 
 // Set the install configuration data
-mainEvent.on("device:select:data-ready", (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+mainEvent.on("user:configure", (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
   global.installProperties.device = device;
-  if (mainWindow) mainWindow.webContents.send("device:select:data-ready", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
+  if (mainWindow) mainWindow.webContents.send("user:configure", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
 });
 
 // The user selected a device
