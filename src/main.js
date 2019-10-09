@@ -27,6 +27,7 @@ global.packageInfo = require('../package.json');
 
 const Adb = require('promise-android-tools').Adb;
 const Fastboot = require('promise-android-tools').Fastboot;
+const Api = require("../../ubports-api-node-module/src/module.js").Installer;
 
 const exec = require('child_process').exec;
 const path = require('path');
@@ -44,6 +45,8 @@ global.mainEvent = mainEvent;
 const utils = require('./utils.js');
 global.utils = utils;
 const devices = require('./devices.js');
+const api = new Api();
+global.api = api;
 var adb = new Adb({
   exec: (args, callback) => { exec(
     [(path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb'))].concat(args).join(" "),
@@ -97,12 +100,6 @@ utils.exportExecutablesFromPackage();
 // RENDERER SIGNAL HANDLING
 //==============================================================================
 
-// Device selected
-ipcMain.on("install", (event, installProperties) => {
-  global.installProperties = Object.assign(global.installProperties, installProperties);
-  mainEvent.emit("select:os");
-});
-
 // Exit process with optional non-zero exit code
 ipcMain.on("die", (exitCode) => {
   process.exit(exitCode);
@@ -127,6 +124,7 @@ ipcMain.on("createBugReport", (event, title) => {
 
 // The user selected a device
 ipcMain.on("device:selected", (event, device) => {
+  adb.stopWaiting();
   global.installProperties.device = device;
   mainWindow.webContents.send("user:os", global.installConfig, devices.getOsSelects(global.installConfig.operating_systems));
 });
@@ -135,7 +133,7 @@ ipcMain.on("device:selected", (event, device) => {
 ipcMain.on("user:os:select", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
   utils.log.debug(global.installConfig.operating_systems[osIndex]);
-  mainEvent.emit("device:select", global.installConfig.operating_systems[osIndex]);
+  devices.install(global.installConfig.operating_systems[osIndex].steps);
 });
 
 //==============================================================================
@@ -237,9 +235,11 @@ mainEvent.on("device:select:data-ready", (output, device, channels, ubuntuCom, a
   if (mainWindow) mainWindow.webContents.send("device:select:data-ready", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
 });
 
-// No internet connection
-mainEvent.on("user:no-network", () => {
-  if (mainWindow) mainWindow.webContents.send("user:no-network");
+// The user selected a device
+mainEvent.on("device:detected", (device) => {
+  utils.log.info("device detected: " + device)
+  global.installProperties.device = device;
+  mainWindow.webContents.send("user:os", global.installConfig, devices.getOsSelects(global.installConfig.operating_systems));
 });
 
 //==============================================================================
@@ -261,11 +261,13 @@ function createWindow () {
   // Tasks we need for every start
   mainWindow.webContents.on("did-finish-load", () => {
     adb.startServer().then(() => {
-      mainWindow.webContents.send("user:adb:ready");
       devices.waitForDevice();
-    });
-    devices.getDeviceSelects((out) => {
-      mainWindow.webContents.send("device:wait:device-selects-ready", out)
+    }).catch(e => utils.errorToUser("Failed to start adb server: " + e));
+    api.getDeviceSelects().then((out) => {
+      mainWindow.webContents.send("device:wait:device-selects-ready", out);
+    }).catch(e => {
+      utils.log.error("getDeviceSelects error: " + e)
+      mainWindow.webContents.send("user:no-network");
     });
   });
 

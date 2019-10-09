@@ -290,45 +290,12 @@ module.exports = {
     adb.waitForDevice().then(() => {
       adb.getDeviceName().then((device) => {
         adb.getOs().then((operatingSystem) => {
-          global.mainEvent.emit("device:detected", device, (operatingSystem=="ubuntutouch"), true);
-          return;
-        }).catch((error) => {
-          utils.errorToUser(error, "Wait for device")
-        });
-      }).catch((error) => {
-        utils.errorToUser(error, "get device name");
-      });
+          global.api.resolveAlias(device).then((resolvedDevice) => {
+            global.mainEvent.emit("device:detected", resolvedDevice, (operatingSystem=="ubuntutouch"), true);
+          }).catch((error) => { utils.errorToUser(error, "Resolve device alias"); });
+        }).catch((error) => { utils.errorToUser(error, "Wait for device"); });
+      }).catch((error) => { utils.errorToUser(error, "get device name"); });
     }).catch(e => utils.log.debug("no device detected: " + e));
-    global.mainEvent.once("device:select", (device) => {
-      adb.stopWaiting();
-      utils.log.info(device.name + "(" + device.codename + ")" + " selected");
-      global.mainEvent.emit("device:select:event", device, false, false);
-    });
-    global.mainEvent.once("device:select:event", (device, ubuntuCom, autoDetected) => {
-      // FIXME: Implement settings, don't just install
-      install(device.steps);
-    });
-  },
-  getDeviceSelects: (callback) => {
-    var devices = [
-      {
-        device: "hammerhead",
-        name: "Nexus 5"
-      }
-    ]
-    var devicesAppend = [];
-    devices.sort(function(a, b){
-      var y = a.name.toLowerCase();
-      var x = b.name.toLowerCase();
-      if (x < y) {return 1;}
-      if (x > y) {return -1;}
-      return 0;
-    });
-    devices.forEach((device) => {
-      devicesAppend.push("<option name=\"" + device.device + "\">" + device.name + "</option>");
-    });
-    utils.log.debug("Successfully downloaded devices list");
-    callback(devicesAppend.join(''));
   },
   getOsSelects: (osArray) => {
     var osSelects = [];
@@ -336,5 +303,6 @@ module.exports = {
       osSelects.push("<option name=\"" + i + "\">" + osArray[i].name + "</option>");
     }
     return osSelects;
-  }
+  },
+  install: install
 }

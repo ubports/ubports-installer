@@ -145,9 +145,6 @@ script.
 
   ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
     $("#device-select").append(deviceSelects);
-  });
-
-  ipcRenderer.on("user:adb:ready", () => {
     footer.topText.set("Waiting for device", true);
     footer.underText.set("Please connect your device with a USB cable");
     views.show("wait-for-device");
