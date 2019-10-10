@@ -95,33 +95,22 @@ var instructReboot = (state, button, callback) => {
   });
 }
 
-var downloadImages = (images, device) => {
-  utils.log.debug(addPathToImages(images, device));
-  global.mainEvent.emit("user:write:working", "download");
-  global.mainEvent.emit("user:write:status", "Downloading Firmware");
-  global.mainEvent.emit("user:write:under", "Downloading");
-  utils.downloadFiles(images, (progress, speed) => {
-    global.mainEvent.emit("download:progress", progress);
-    global.mainEvent.emit("download:speed", speed);
-  }, (current, total) => {
-    if (current != total) utils.log.debug("Downloading bootstrap image " + (current+1) + " of " + total);
-  }).then((files) => {
-    utils.log.debug(files)
-    // Wait for one second until the progress event stops firing
-    setTimeout(() => {
-      global.mainEvent.emit("download:done");
-    }, 1000);
-  });
-}
-
 function addPathToImages(images, device, group) {
   var ret = [];
   images.forEach((image) => {
     image["partition"] = image.type;
-    image["path"] = path.join(downloadPath, "images", device, group);
-    image["file"] = path.join(downloadPath, "images", device, group, path.basename(image.url));
+    image["path"] = path.join(downloadPath, device, group);
+    image["file"] = path.join(path.basename(image.url));
     ret.push(image);
   });
+  return ret;
+}
+
+function addPathToFiles(files, device) {
+  var ret = [];
+  for (var i = 0; i < files.length; i++) {
+    ret.push({file: path.join(downloadPath, device, files[i].group, files[i].file), partition: files[i].partition });
+  }
   return ret;
 }
 
@@ -158,52 +147,65 @@ global.mainEvent.on("download:speed", (speed) => {
 });
 
 function install(steps) {
-  var installPromises = []
-
+  var installPromises = [];
   steps.forEach((step) => {
     switch (step.type) {
       case "download":
         installPromises.push(() => {
-          // return utils.downloadFiles(addPathToImages(step.files, global.installProperties.device, step.group), ()=>{}, ()=>{});
           return new Promise(function(resolve, reject) {
             utils.log.debug("step: " + JSON.stringify(step));
-            global.mainEvent.emit("user:write:working", "download");+
+            global.mainEvent.emit("user:write:working", "download");
             global.mainEvent.emit("user:write:status", "Downloading " + step.group);
             global.mainEvent.emit("user:write:under", "Downloading");
-            setTimeout(() => {
+            utils.downloadFiles(addPathToImages(step.files, global.installProperties.device, step.group), (progress, speed) => {
+              global.mainEvent.emit("user:write:progress", progress*100);
+              global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
+            }, (current, total) => {
+              utils.log.info("Downloaded file " + current + " of " + total);
+            }).then(() => {
               utils.log.debug(step.type + " done");
-              resolve();
-            }, 2000);
+              setTimeout(() => {
+                global.mainEvent.emit("user:write:working", "particles");
+                global.mainEvent.emit("user:write:under", "Verifying download");
+                global.mainEvent.emit("user:write:progress", 0);
+                global.mainEvent.emit("user:write:speed", 0);
+                resolve();
+              }, 1000);
+            });
           });
         });
         break;
       case "adb:reboot":
         installPromises.push(() => {
-          // return adb.reboot(step.to_state);
           return new Promise(function(resolve, reject) {
+            utils.log.debug("step: " + JSON.stringify(step));
             global.mainEvent.emit("user:write:working", "particles");+
             global.mainEvent.emit("user:write:status", "Rebooting");
             global.mainEvent.emit("user:write:under", "Rebooting to " + step.to_state);
-            utils.log.debug("step: " + JSON.stringify(step));
-            setTimeout(() => {
+            adb.reboot(step.to_state).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }, 2000);
+            }).catch((error) => {
+              utils.log.error("reboot failed: " + error);
+              // TODO instructReboot(step.to_state, undefined, resolve);
+              utils.log.info("REBOOT MANUALLY");
+              resolve();
+            });
           });
         });
         break;
       case "fastboot:flash":
         installPromises.push(() => {
-          // return fastboot.flashArray(addPathToImages(step.flash, global.installProperties.device, step.group));
           return new Promise(function(resolve, reject) {
-            global.mainEvent.emit("user:write:working", "particles");+
+            utils.log.debug("step: " + JSON.stringify(step));
+            global.mainEvent.emit("user:write:working", "particles");
             global.mainEvent.emit("user:write:status", "Flashing firmware");
             global.mainEvent.emit("user:write:under", "Flashing firmware partitions using fastboot");
-            utils.log.debug("step: " + JSON.stringify(step));
-            setTimeout(() => {
+            utils.log.debug(JSON.stringify(addPathToFiles(step.flash, global.installProperties.device)))
+            fastboot.flashArray(addPathToFiles(step.flash, global.installProperties.device)).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }, 2000);
+            }).catch(reject);
           });
         });
         break;

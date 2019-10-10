@@ -192,8 +192,8 @@ mainEvent.on("reboot:done", () => {
 });
 
 // Control the progress bar
-mainEvent.on("user:write:progress", (length) => {
-  if (mainWindow) mainWindow.webContents.send("user:write:progress", length);
+mainEvent.on("user:write:progress", (progress) => {
+  if (mainWindow) mainWindow.webContents.send("user:write:progress", progress);
 });
 
 // Installation successfull

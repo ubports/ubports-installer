@@ -71,9 +71,11 @@ script.
   });
 
   ipcRenderer.on("user:write:progress", (e, length) => {
+    console.log(length)
     if(length >= 100) {
       length=100;
     }
+    $("#progress").show();
     $("#progress").width(length.toString()+"%");
   });
 
