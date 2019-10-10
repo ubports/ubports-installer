@@ -82,12 +82,13 @@ cli
   .parse(process.argv);
 
 if (cli.file) {
-  global.installConfig = require(cli.file);
+  global.installConfig = require(path.join(process.cwd(), cli.file));
 }
 
 global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
   cli: cli.cli,
+  settings: cli.settings ? JSON.parse(cli.settings) : undefined,
   verbose: (cli.verbose || cli.debug),
   debug: cli.debug
 };

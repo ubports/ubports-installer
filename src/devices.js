@@ -212,7 +212,7 @@ function install(steps) {
             global.mainEvent.emit("user:write:working", "particles");
             global.mainEvent.emit("user:write:status", "System-Image");
             global.mainEvent.emit("user:write:under", "Going through system-image process");
-            systemImage.installLatestVersion({device: "hammerhead", channel: "ubports-touch/16.04/edge", wipe: "false"}).then(() => {
+            systemImage.installLatestVersion(Object.assign({device: "hammerhead"}), global.installProperties.settings).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
             }).catch(e => errorToUser(e, "systemimage"));
