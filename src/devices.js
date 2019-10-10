@@ -114,38 +114,6 @@ function addPathToFiles(files, device) {
   return ret;
 }
 
-function sysimageinstall(instructs) {
-  return new Promise(function(resolve, reject) {
-    adb.waitForDevice(5000).then(() => {
-      console.log("adb device detected")
-      sic.downloadLatestVersion({device: "hammerhead", channel: "ubports-touch/16.04/edge", wipe: "false"}, downloadSpeed, downloadNext).then((files) => {
-        console.log("Download done");
-        adb.wipeCache().then(() => {
-          adb.shell("mount -a").then(() => {
-            adb.shell("mkdir -p /cache/recovery").then(() => {
-              adb.pushArray(files, (progress) => {
-                console.log("push progress: " + progress*100);
-              }).then(() => {
-                adb.reboot("recovery").then(() => {
-                  console.log("reboot successfull");
-                  resolve();
-                }).catch(e => die("Reboot failed: " + e));
-              }).catch(e => die("Push failed: Failed push: " + e));
-            }).catch(e => die("Push failed: Failed to create target dir: " + e));
-          }).catch(e => die("Push failed: Failed to mount: " + e));
-        }).catch(e => die("Push failed: Failed to wipe cache: " + e));
-      }).catch(e => die("System-Image Download failed: " + e));
-    }).catch(e => die("Wait-for-device error: " + e));
-  });
-}
-
-global.mainEvent.on("download:progress", (percent) => {
-  global.mainEvent.emit("user:write:progress", percent*100);
-});
-global.mainEvent.on("download:speed", (speed) => {
-  global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
-});
-
 function install(steps) {
   var installPromises = [];
   steps.forEach((step) => {
@@ -205,67 +173,63 @@ function install(steps) {
             fastboot.flashArray(addPathToFiles(step.flash, global.installProperties.device)).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }).catch(reject);
+            }).catch(e => errorToUser(e, "fastboot flash"));
           });
         });
         break;
       case "fastboot:erase":
         installPromises.push(() => {
-          global.mainEvent.emit("user:write:working", "particles");+
-          global.mainEvent.emit("user:write:status", "Ceaning up");
-          global.mainEvent.emit("user:write:under", "Erasing " + step.partition + " partition");
-          // return fastboot.erase(step.partition);
           return new Promise(function(resolve, reject) {
             utils.log.debug("step: " + JSON.stringify(step));
-            setTimeout(() => {
+            global.mainEvent.emit("user:write:working", "particles");+
+            global.mainEvent.emit("user:write:status", "Ceaning up");
+            global.mainEvent.emit("user:write:under", "Erasing " + step.partition + " partition");
+            fastboot.erase(step.partition).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }, 2000);
+            }).catch(e => errorToUser(e, "fastboot erase"));
           });
         });
         break;
       case "fastboot:boot":
         installPromises.push(() => {
-          // return fastboot.boot(path.join("./", "test", step.group, step.file), step.partition);
           return new Promise(function(resolve, reject) {
+            utils.log.debug("step: " + JSON.stringify(step));
             global.mainEvent.emit("user:write:working", "particles");
             global.mainEvent.emit("user:write:status", "Rebooting");
             global.mainEvent.emit("user:write:under", "Your device is being rebooted...");
-            utils.log.debug("step: " + JSON.stringify(step));
-            setTimeout(() => {
+            fastboot.boot(path.join(downloadPath, global.installProperties.device, step.group, step.file), step.partition).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }, 2000);
+            }).catch(e => errorToUser(e, "fastboot boot"));
           });
         });
         break;
       case "systemimage":
         installPromises.push(() => {
-          // return sysimageinstall();
           return new Promise(function(resolve, reject) {
+            utils.log.debug("step: " + JSON.stringify(step));
             global.mainEvent.emit("user:write:working", "particles");
             global.mainEvent.emit("user:write:status", "System-Image");
             global.mainEvent.emit("user:write:under", "Going through system-image process");
-            utils.log.debug("step: " + JSON.stringify(step));
-            setTimeout(() => {
+            systemImage.installLatestVersion({device: "hammerhead", channel: "ubports-touch/16.04/edge", wipe: "false"}).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }, 2000);
+            }).catch(e => errorToUser(e, "systemimage"));
           });
         });
         break;
       case "fastboot:update":
         installPromises.push(() => {
-          // return fastboot.update(path.join("./", "test", step.group, step.file));
           return new Promise(function(resolve, reject) {
+            utils.log.debug("step: " + JSON.stringify(step));
             global.mainEvent.emit("user:write:working", "particles");
             global.mainEvent.emit("user:write:status", "Updating system");
             global.mainEvent.emit("user:write:under", "Applying fastboot update zip");
-            utils.log.debug("step: " + JSON.stringify(step));
-            setTimeout(() => {
+            fastboot.update(path.join(downloadPath, global.installProperties.device, step.group, step.file)).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }, 2000);
+            }).catch(e => errorToUser(e, "fastboot update"));
           });
         });
         break;
