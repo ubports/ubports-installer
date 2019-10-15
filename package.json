@@ -41,6 +41,7 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "download": "^7.1.0",
+    "electron-prompt": "^1.4.0",
     "popper.js": "^1.14.3",
     "checksum": "^0.1.1",
     "commander": "^2.9.0",
