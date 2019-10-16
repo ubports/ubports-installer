@@ -135,7 +135,7 @@ ipcMain.on("device:selected", (event, device) => {
     );
   } else {
     // immediately jump to configure if there's only one os
-    devices.install(global.installConfig.operating_systems[0].steps);
+    mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
   }
 });
 
@@ -143,7 +143,7 @@ ipcMain.on("device:selected", (event, device) => {
 ipcMain.on("os:selected", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
   utils.log.debug(global.installConfig.operating_systems[osIndex]);
-  devices.install(global.installConfig.operating_systems[osIndex].steps);
+  mainEvent.emit("user:configure", global.installConfig.operating_systems[osIndex]);
 });
 
 //==============================================================================
