@@ -136,6 +136,30 @@ script.
     }
   }
 
+  function addOption(option) {
+    let _div = document.createElement("div");
+    _div.className = "form-group";
+    let _label = document.createElement("label");
+    _label.className = "col-xs-3 control-label";
+    _label.appendChild(document.createTextNode(option.label));
+    _div.appendChild(_label);
+
+    let _subdiv = document.createElement("div");
+    _subdiv.className = "col-xs-9";
+
+    let _input = document.createElement("input");
+    _input.className = "form-control space";
+    _input.type = option.type;
+    _input.value = option.value;
+    _input.id = "options-" + option.id;
+
+    console.log(_input);
+    console.log(_div);
+    _subdiv.appendChild(_input);
+    _div.appendChild(_subdiv);
+    $("#options-form").append(_div);
+  }
+
   const getOptionVal = (option, raw) => {
     var ret = false;
     optionsVal.forEach((optionVal) => {
