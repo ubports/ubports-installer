@@ -52,7 +52,7 @@
     "jquery": "^3.1.1",
     "jquery-i18next": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "promise-android-tools": "^1.0.2",
+    "promise-android-tools": "^1.0.3",
     "request": "^2.79.0",
     "system-image-node-module": "^1.0.9",
     "winston": "^2.3.1"

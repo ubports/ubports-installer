@@ -110,7 +110,7 @@ script.
     views.show("select-os");
   });
 
-  ipcRenderer.on("user:configure", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
+  ipcRenderer.on("user:configure", (osInstructs) => {
     views.show("install");
     $("#options-channel").append(channels);
     options.optionsValToUser();
@@ -145,11 +145,11 @@ script.
   views.show("working", "particles");
 
   ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
+    footer.topText.set("Waiting for device", true);
+    footer.underText.set("Please connect your device with a USB cable");
     if (!remote.getGlobal("installProperties").device) {
       // if the device is not yet set (i.e. from a cli argument), prompt the user
       $("#device-select").append(deviceSelects);
-      footer.topText.set("Waiting for device", true);
-      footer.underText.set("Please connect your device with a USB cable");
       views.show("wait-for-device");
       // Button to open device selector
       $("#btn-modal-select-device").click(() => {

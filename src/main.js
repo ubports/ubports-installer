@@ -127,7 +127,16 @@ ipcMain.on("createBugReport", (event, title) => {
 ipcMain.on("device:selected", (event, device) => {
   adb.stopWaiting();
   global.installProperties.device = device;
-  mainWindow.webContents.send("user:os", global.installConfig, devices.getOsSelects(global.installConfig.operating_systems));
+  if(devices.getOsSelects(global.installConfig.operating_systems).length > 1) {
+    // ask for os selection if there's one os
+    mainWindow.webContents.send(
+      "user:os",
+      global.installConfig, devices.getOsSelects(global.installConfig.operating_systems)
+    );
+  } else {
+    // immediately jump to configure if there's only one os
+    devices.install(global.installConfig.operating_systems[0].steps);
+  }
 });
 
 // The user selected an os
@@ -231,9 +240,8 @@ mainEvent.on("user:device-unsupported", (device) => {
 });
 
 // Set the install configuration data
-mainEvent.on("user:configure", (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
-  global.installProperties.device = device;
-  if (mainWindow) mainWindow.webContents.send("user:configure", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
+mainEvent.on("user:configure", (osInstructs) => {
+  if (mainWindow) mainWindow.webContents.send("user:configure", osInstructs);
 });
 
 // The user selected a device
@@ -262,8 +270,10 @@ function createWindow () {
   // Tasks we need for every start
   mainWindow.webContents.on("did-finish-load", () => {
     adb.startServer().then(() => {
-      devices.waitForDevice();
-    }).catch(e => utils.errorToUser("Failed to start adb server: " + e));
+      if (!global.installProperties.device) {
+        devices.waitForDevice();
+      }
+    }).catch(e => utils.errorToUser(e, "Failed to start adb server"));
     api.getDeviceSelects().then((out) => {
       mainWindow.webContents.send("device:wait:device-selects-ready", out);
     }).catch(e => {

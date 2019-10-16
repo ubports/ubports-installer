@@ -139,7 +139,7 @@ function install(steps) {
                 global.mainEvent.emit("user:write:speed", 0);
                 resolve();
               }, 1000);
-            });
+            }).catch(reject);
           });
         });
         break;
@@ -209,10 +209,7 @@ function install(steps) {
         installPromises.push(() => {
           return new Promise(function(resolve, reject) {
             utils.log.debug("step: " + JSON.stringify(step));
-            global.mainEvent.emit("user:write:working", "particles");
-            global.mainEvent.emit("user:write:status", "System-Image");
-            global.mainEvent.emit("user:write:under", "Going through system-image process");
-            systemImage.installLatestVersion(Object.assign({device: "hammerhead"}), global.installProperties.settings).then(() => {
+            systemImage.installLatestVersion(global.installProperties.settings).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
             }).catch(e => errorToUser(e, "systemimage"));
