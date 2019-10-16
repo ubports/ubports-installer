@@ -241,7 +241,15 @@ mainEvent.on("user:device-unsupported", (device) => {
 
 // Set the install configuration data
 mainEvent.on("user:configure", (osInstructs) => {
-  if (mainWindow) mainWindow.webContents.send("user:configure", osInstructs);
+  if(osInstructs.options) {
+    // If there's something to configure, configure it!
+    if (mainWindow) {
+      mainWindow.webContents.send("user:configure", osInstructs);
+    }
+  } else {
+    // If there's nothing to configure, don't configure anything
+    devices.install(osInstructs.steps);
+  }
 });
 
 // The user selected a device
