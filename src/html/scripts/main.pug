@@ -100,46 +100,22 @@ script.
     footer.underText.set("The device " + device + " is not supported");
     $("[id=your-device]").text(device);
     views.show("not-supported");
-    $("#btn-inst").hide();
   });
 
   ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
     global.installConfig = installConfig;
     global.installConfig.os_to_install = undefined;
     $("#options-os").append(osSelects);
+    $("#your-ubp-device").text(installConfig.name+" ("+installConfig.codename+")");
+    $("#your-ubp-device").click(() => {
+      shell.openExternal("https://devices.ubuntu-touch.io/device/" + installConfig.codename);
+    });
     views.show("select-os");
   });
 
-  ipcRenderer.on("user:configure", (osInstructs) => {
-    views.show("install");
-    $("#options-channel").append(channels);
-    options.optionsValToUser();
-    modals.hide('select-device');
-    $("#btn-inst").show();
-    footer.topText.set(output.name);
-    if (isLegacyAndroid && !ubuntuCom) {
-      $("#legacy-android-note").show();
-      modals.show("legacy-android");
-    }
-    if (autoDetected) {
-      footer.underText.set("Are you ready for Ubuntu Touch on your " + output.name + "?");
-    } else {
-      footer.underText.set("Please connect your " + output.name + " with a USB cable.");
-    }
-    $("#your-ubp-device").text(output.name+" ("+output.device+")");
-    $("#your-ubp-device").click(() => {
-      shell.openExternal("https://devices.ubuntu-touch.io/device/"+output.device);
-    });
-
-    $("#btn-installModal").click(() => {
-      views.show("working", "particles");
-      $("#progress").show();
-      ipcRenderer.send("install", {
-        device: output.device,
-        channel: options.get("channel", true),
-        wipe: options.get("wipe", true)
-      });
-    });
+  ipcRenderer.on("user:configure", (event, osInstructs) => {
+    modals.show("options");
+    osInstructs.options.forEach(addOption);
   });
 
   views.show("working", "particles");
@@ -168,5 +144,3 @@ script.
 
   // Assign buttons
   modals.bind("options");
-  // Initialize options modal
-  options.init();
