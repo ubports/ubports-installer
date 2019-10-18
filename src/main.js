@@ -116,6 +116,11 @@ ipcMain.on("error_ignored", () => {
   utils.log.debug("ERROR IGNORED");
 });
 
+// Begin install process
+ipcMain.on("install", () => {
+  devices.install(global.installConfig.operating_systems[global.installProperties.osIndex].steps);
+});
+
 // Submit a bug-report
 ipcMain.on("createBugReport", (event, title) => {
   utils.createBugReport(title, global.installProperties, (body) => {
@@ -179,7 +184,6 @@ mainEvent.on("user:low-power", () => {
 // Restart the installer
 mainEvent.on("restart", () => {
   global.installProperties.device = undefined;
-  global.installProperties.channel = undefined;
   utils.log.debug("WINDOW RELOADED");
   mainWindow.reload();
 });

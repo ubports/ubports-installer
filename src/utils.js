@@ -75,7 +75,7 @@ function createBugReport(title, installProperties, callback) {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
         "Device: " + (installProperties.device ? installProperties.device : "Not detected") + "%0D%0A" +
-        "Channel: " + (installProperties.channel ? installProperties.channel : "Not yet set") + "%0D%0A" +
+        "Channel: " + (installProperties.settings && installProperties.settings.channel ? installProperties.settings.channel  : "Not yet set") + "%0D%0A" +
         "Package: " + (isSnap() ? "snap" : (packageInfo.package || "source")) + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +

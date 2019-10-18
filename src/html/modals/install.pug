@@ -27,5 +27,5 @@
             b NOTE
             |  You have chosen to wipe, this will erase all your data.
       .modal-footer
-        button.btn.btn-default(type='button', data-dismiss='modal') Cancel
-        button#btn-installModal.btn.btn-primary(type='button', data-dismiss='modal') Continue
+        button.btn.btn-default(type='button', data-dismiss='modal', onclick="ipcRenderer.send('restart');") Cancel
+        button#btn-installModal.btn.btn-primary(type='button', data-dismiss='modal', onclick="ipcRenderer.send('install');") Continue
