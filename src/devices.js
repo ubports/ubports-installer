@@ -117,6 +117,10 @@ function addPathToFiles(files, device) {
 function install(steps) {
   var installPromises = [];
   steps.forEach((step) => {
+    if (step.condition && global.installProperties.settings[step.condition.var] != step.condition.value) {
+      // If the condition is not met, no need to do anything
+      return;
+    }
     switch (step.type) {
       case "download":
         installPromises.push(() => {
