@@ -139,14 +139,21 @@ script.
     let _subdiv = document.createElement("div");
     _subdiv.className = "col-xs-9";
 
-    let _input = document.createElement("input");
+    let _input = document.createElement(option.type == "select" ? "select" : "input");
     _input.className = "form-control space";
-    _input.type = option.type;
+    if (option.type != "select") _input.type = option.type;
     _input.value = option.value;
     _input.id = "options-" + option.var;
 
-    console.log(_input);
-    console.log(_div);
+    if (option.type == "select") {
+      for (var i = 0; i < option.values.length; i++) {
+        let _value = document.createElement("option");
+        _value.value = option.values[i].value;
+        _value.appendChild(document.createTextNode(option.values[i].label))
+        _input.appendChild(_value)
+      }
+    }
+
     _subdiv.appendChild(_input);
     _div.appendChild(_subdiv);
     $("#options-form").append(_div);
