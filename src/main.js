@@ -88,7 +88,7 @@ if (cli.file) {
 global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
   cli: cli.cli,
-  settings: cli.settings ? JSON.parse(cli.settings) : undefined,
+  settings: cli.settings ? JSON.parse(cli.settings) : {},
   verbose: (cli.verbose || cli.debug),
   debug: cli.debug
 };
@@ -144,6 +144,11 @@ ipcMain.on("os:selected", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
   utils.log.debug(global.installConfig.operating_systems[osIndex]);
   mainEvent.emit("user:configure", global.installConfig.operating_systems[osIndex]);
+});
+
+// The user selected an os
+ipcMain.on("option", (event, targetVar, value) => {
+  global.installProperties.settings[targetVar] = value;
 });
 
 //==============================================================================

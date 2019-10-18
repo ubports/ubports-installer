@@ -151,8 +151,8 @@ script.
     _div.appendChild(_subdiv);
     $("#options-form").append(_div);
     $("#btn-options-close").click(() => {
-      if (option.type != "checkbox") console.log(option.var + ": " + $("#options-" + option.var).val());
-      else console.log(option.var + ": " + $("#options-" + option.var).is(":checked"));
+      if (option.type != "checkbox") ipcRenderer.send("option", option.var, $("#options-" + option.var).val());
+      else ipcRenderer.send("option", option.var, $("#options-" + option.var).is(":checked"));
     });
   }
 
