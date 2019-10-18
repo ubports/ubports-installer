@@ -42,7 +42,7 @@ var installLatestVersion = (options) => {
       mainEvent.emit("user:write:working", "push");
       mainEvent.emit("user:write:status", "Sending");
       mainEvent.emit("user:write:under", "Sending files to the device");
-      adb.wipeCache().then(() => {
+      // adb.wipeCache().then(() => {
         adb.shell("mount -a").then(() => {
           adb.shell("mkdir -p /cache/recovery").then(() => {
             adb.pushArray(files, (progress) => {
@@ -52,7 +52,7 @@ var installLatestVersion = (options) => {
             }).catch(e => utils.errorToUser(e, "Push failed: Failed push"));
           }).catch(e => utils.errorToUser(e, "Push failed: Failed to create target dir"));
         }).catch(e => utils.errorToUser(e, "Push failed: Failed to mount"));
-      }).catch(e => utils.errorToUser(e, "Push failed: Failed wipe cache"));
+      // }).catch(e => utils.errorToUser(e, "Push failed: Failed wipe cache"));
     }).catch(e => utils.errorToUser(e, "Download failed"));
   });
 }

@@ -213,7 +213,7 @@ function install(steps) {
         installPromises.push(() => {
           return new Promise(function(resolve, reject) {
             utils.log.debug("step: " + JSON.stringify(step));
-            systemImage.installLatestVersion(global.installProperties.settings).then(() => {
+            systemImage.installLatestVersion(Object.assign({device: global.installConfig.codename}, global.installProperties.settings)).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
             }).catch(e => errorToUser(e, "systemimage"));
