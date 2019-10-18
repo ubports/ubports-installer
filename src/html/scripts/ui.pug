@@ -148,6 +148,8 @@ script.
     if (option.type != "checkbox") _input.className = "form-control space";
     if (option.type != "select") _input.type = option.type;
     _input.value = option.value;
+    // HACK: the checked property behaves super weird for some reason
+    if (option.type == "checkbox" && option.value) _input.checked = option.value;
     _input.id = "options-" + option.var;
 
     // if it's a select, add the values
