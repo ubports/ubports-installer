@@ -347,6 +347,6 @@ app.on('activate', function () {
 
 process.on('unhandledRejection', (r) => {
   utils.log.error(r);
-  if (mainWindow) utils.errorToUser(r);
+  if (mainWindow) utils.errorToUser(r, "unhandledRejection");
   else utils.die(r);
 });
