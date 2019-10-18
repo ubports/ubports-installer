@@ -133,7 +133,7 @@ script.
     _div.className = "form-group";
     let _label = document.createElement("label");
     _label.className = "col-xs-3 control-label";
-    _label.appendChild(document.createTextNode(option.label));
+    _label.appendChild(document.createTextNode(option.name));
     _div.appendChild(_label);
 
     let _subdiv = document.createElement("div");
@@ -143,13 +143,17 @@ script.
     _input.className = "form-control space";
     _input.type = option.type;
     _input.value = option.value;
-    _input.id = "options-" + option.id;
+    _input.id = "options-" + option.var;
 
     console.log(_input);
     console.log(_div);
     _subdiv.appendChild(_input);
     _div.appendChild(_subdiv);
     $("#options-form").append(_div);
+    $("#btn-options-close").click(() => {
+      if (option.type != "checkbox") console.log(option.var + ": " + $("#options-" + option.var).val());
+      else console.log(option.var + ": " + $("#options-" + option.var).is(":checked"));
+    });
   }
 
   $("#btn-bugreport").click(() => {
