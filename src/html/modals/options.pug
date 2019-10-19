@@ -60,7 +60,11 @@
       });
     }
 
+    let optionsAdded = false;
     ipcRenderer.on("user:configure", (event, osInstructs) => {
       modals.show("options");
-      osInstructs.options.forEach(addOption);
+      if (!optionsAdded) {
+        optionsAdded = true;
+        osInstructs.options.forEach(addOption);
+      }
     });
