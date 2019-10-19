@@ -25,8 +25,8 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require('../package.json');
 
-const Adb = require('promise-android-tools').Adb;
-const Fastboot = require('promise-android-tools').Fastboot;
+const Adb = require('../../promise-android-tools/src/module.js').Adb;
+const Fastboot = require('../../promise-android-tools/src/module.js').Fastboot;
 const Api = require("../../ubports-api-node-module/src/module.js").Installer;
 
 const exec = require('child_process').exec;

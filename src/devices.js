@@ -49,7 +49,7 @@ function installStep(step) {
     case "download":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "download");
-        global.mainEvent.emit("user:write:status", "Downloading " + step.group);
+        global.mainEvent.emit("user:write:status", "Downloading " + step.group, true);
         global.mainEvent.emit("user:write:under", "Downloading");
         utils.downloadFiles(addPathToImages(step.files, global.installProperties.device, step.group), (progress, speed) => {
           global.mainEvent.emit("user:write:progress", progress*100);
@@ -78,7 +78,7 @@ function installStep(step) {
     case "fastboot:flash":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Flashing firmware");
+        global.mainEvent.emit("user:write:status", "Flashing firmware", true);
         global.mainEvent.emit("user:write:under", "Flashing firmware partitions using fastboot");
         utils.log.debug(JSON.stringify(addPathToFiles(step.flash, global.installProperties.device)))
         fastboot.flashArray(addPathToFiles(step.flash, global.installProperties.device)).then(resolve).catch(reject);
@@ -87,7 +87,7 @@ function installStep(step) {
     case "fastboot:erase":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Ceaning up");
+        global.mainEvent.emit("user:write:status", "Ceaning up", true);
         global.mainEvent.emit("user:write:under", "Erasing " + step.partition + " partition");
         fastboot.erase(step.partition).then(resolve).catch(reject);
       });
@@ -108,9 +108,12 @@ function installStep(step) {
     case "fastboot:update":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Updating system");
+        global.mainEvent.emit("user:write:status", "Updating system", true);
         global.mainEvent.emit("user:write:under", "Applying fastboot update zip. This may take a while...");
-        fastboot.update(path.join(downloadPath, global.installProperties.device, step.group, step.file)).then(resolve).catch(reject);
+        fastboot.update(
+          path.join(downloadPath, global.installProperties.device, step.group, step.file),
+          global.installProperties.settings.wipe
+        ).then(resolve).catch(reject);
       });
       break;
     case "fastboot:reboot_bootloader":

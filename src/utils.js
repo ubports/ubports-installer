@@ -197,6 +197,10 @@ function getFallbackPlatformTools() {
     {
       package: path.join(toolInPackage, maybeEXE(thisPlatform, "adb")),
       cache: path.join(toolInCache, maybeEXE(thisPlatform, "adb"))
+    },
+    {
+      package: path.join(toolInPackage, maybeEXE(thisPlatform, "mke2fs")),
+      cache: path.join(toolInCache, maybeEXE(thisPlatform, "mke2fs"))
     }
   ]
 }
