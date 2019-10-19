@@ -72,14 +72,7 @@ function installStep(step) {
         global.mainEvent.emit("user:write:working", "particles");+
         global.mainEvent.emit("user:write:status", "Rebooting");
         global.mainEvent.emit("user:write:under", "Rebooting to " + step.to_state);
-        adb.reboot(step.to_state).then(() => {
-          resolve();
-        }).catch((error) => {
-          utils.log.error("reboot failed: " + error);
-          global.mainEvent.emit("user:action", global.installConfig.user_actions[step.to_state], () => {
-            resolve();
-          });
-        });
+        adb.reboot(step.to_state).then(resolve).catch(reject);
       });
       break;
     case "fastboot:flash":
@@ -88,9 +81,7 @@ function installStep(step) {
         global.mainEvent.emit("user:write:status", "Flashing firmware");
         global.mainEvent.emit("user:write:under", "Flashing firmware partitions using fastboot");
         utils.log.debug(JSON.stringify(addPathToFiles(step.flash, global.installProperties.device)))
-        fastboot.flashArray(addPathToFiles(step.flash, global.installProperties.device)).then(() => {
-          resolve();
-        }).catch(e => errorToUser(e, "fastboot flash"));
+        fastboot.flashArray(addPathToFiles(step.flash, global.installProperties.device)).then(resolve).catch(reject);
       });
       break;
     case "fastboot:erase":
@@ -98,9 +89,7 @@ function installStep(step) {
         global.mainEvent.emit("user:write:working", "particles");+
         global.mainEvent.emit("user:write:status", "Ceaning up");
         global.mainEvent.emit("user:write:under", "Erasing " + step.partition + " partition");
-        fastboot.erase(step.partition).then(() => {
-          resolve();
-        }).catch(e => errorToUser(e, "fastboot erase"));
+        fastboot.erase(step.partition).then(resolve).catch(reject);
       });
       break;
     case "fastboot:boot":
@@ -108,41 +97,25 @@ function installStep(step) {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Rebooting");
         global.mainEvent.emit("user:write:under", "Your device is being rebooted...");
-        fastboot.boot(path.join(downloadPath, global.installProperties.device, step.group, step.file), step.partition).then(() => {
-          resolve();
-        }).catch((e) => {
-          if (step.fallback_user_action) {
-            global.mainEvent.emit("user:action", global.installConfig.user_actions[step.fallback_user_action], () => {
-              resolve();
-            });
-          } else {
-            errorToUser(e, "fastboot boot");
-          }
-        });
+        fastboot.boot(path.join(downloadPath, global.installProperties.device, step.group, step.file), step.partition).then(resolve).catch(reject);
       });
       break;
     case "systemimage":
       return new Promise(function(resolve, reject) {
-        systemImage.installLatestVersion(Object.assign({device: global.installConfig.codename}, global.installProperties.settings)).then(() => {
-          resolve();
-        }).catch(e => errorToUser(e, "systemimage"));
+        systemImage.installLatestVersion(Object.assign({device: global.installConfig.codename}, global.installProperties.settings)).then(resolve).catch(reject);
       });
       break;
     case "fastboot:update":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Updating system");
-        global.mainEvent.emit("user:write:under", "Applying fastboot update zip");
-        fastboot.update(path.join(downloadPath, global.installProperties.device, step.group, step.file)).then(() => {
-          resolve();
-        }).catch(e => errorToUser(e, "fastboot update"));
+        global.mainEvent.emit("user:write:under", "Applying fastboot update zip. This may take a while...");
+        fastboot.update(path.join(downloadPath, global.installProperties.device, step.group, step.file)).then(resolve).catch(reject);
       });
       break;
     case "user_action":
       return new Promise(function(resolve, reject) {
-        global.mainEvent.emit("user:action", global.installConfig.user_actions[step.action], () => {
-          resolve();
-        });
+        global.mainEvent.emit("user:action", global.installConfig.user_actions[step.action], resolve);
       });
       break;
     default:
@@ -170,8 +143,7 @@ function assembleInstallSteps(steps) {
                 type: "user_action", action: step.fallback_user_action
               }).then(resolve).catch(reject);
             } else {
-              utils.log.error(step.type + " failed with error " + error);
-              reject(error);
+              errorToUser(error, step.type);
             }
           });
         }
