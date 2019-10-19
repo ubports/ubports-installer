@@ -10,3 +10,57 @@
           form#options-form.form-horizontal
       .modal-footer
         button#btn-options-close.btn.btn-default(type='button', data-dismiss='modal') Next
+  script.
+    function addOption(option) {
+      // div to contain entire option row
+      let _div = document.createElement("div");
+      _div.className = "form-group";
+
+      // label describing the option
+      let _label = document.createElement("label");
+      _label.className = "col-xs-3 control-label";
+      _label.appendChild(document.createTextNode(option.name));
+      _div.appendChild(_label);
+
+      // div to contain input/select element
+      let _subdiv = document.createElement("div");
+      _subdiv.className = "col-xs-9";
+
+      // create the actual input element
+      let _input = document.createElement(option.type == "select" ? "select" : "input");
+      if (option.type != "checkbox") _input.className = "form-control space";
+      if (option.type != "select") _input.type = option.type;
+      _input.value = option.value;
+      // HACK: the checked property behaves super weird for some reason
+      if (option.type == "checkbox" && option.value) _input.checked = option.value;
+      _input.id = "options-" + option.var;
+
+      // if it's a select, add the values
+      if (option.type == "select") {
+        for (var i = 0; i < option.values.length; i++) {
+          let _value = document.createElement("option");
+          _value.value = option.values[i].value;
+          _value.appendChild(document.createTextNode(option.values[i].label));
+          _input.appendChild(_value);
+        }
+      }
+
+      // put it all in there
+      _subdiv.appendChild(_input);
+      _div.appendChild(_subdiv);
+      $("#options-form").append(_div);
+
+      // send data for this option to main for processing
+      $("#btn-options-close").click(() => {
+        if (option.type == "checkbox") {
+          ipcRenderer.send("option", option.var, $("#options-" + option.var).is(":checked"));
+        } else {
+          ipcRenderer.send("option", option.var, $("#options-" + option.var).val());
+        }
+      });
+    }
+
+    ipcRenderer.on("user:configure", (event, osInstructs) => {
+      modals.show("options");
+      osInstructs.options.forEach(addOption);
+    });

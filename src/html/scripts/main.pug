@@ -113,11 +113,6 @@ script.
     views.show("select-os");
   });
 
-  ipcRenderer.on("user:configure", (event, osInstructs) => {
-    modals.show("options");
-    osInstructs.options.forEach(addOption);
-  });
-
   views.show("working", "particles");
 
   ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
