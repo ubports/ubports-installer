@@ -42,59 +42,6 @@ var isLegacyAndroid = (device) => {
   }
 }
 
-var instructReboot = (state, button, callback) => {
-  global.mainEvent.emit("user:write:working", "particles");
-  global.mainEvent.emit("user:write:status", "Rebooting to " + state);
-  global.mainEvent.emit("user:write:under", "Waiting for device to enter " + state + " mode");
-  var manualReboot = () => {
-    utils.log.info("Instructing manual reboot");
-    utils.log.info(button[state]["instruction"]);
-    global.mainEvent.emit("user:reboot", {
-      button: button[state]["button"],
-      instruction: button[state]["instruction"],
-      state: state
-    });
-  }
-  var rebootTimeout = setTimeout(() => { manualReboot(); }, 15000);
-  adb.hasAccess().then((hasAccess) => {
-    if (hasAccess) {
-      adb.reboot(state).then(() => {
-        clearTimeout(rebootTimeout);
-        global.mainEvent.emit("reboot:done");
-      }).catch((err) => {
-        utils.log.warn("Adb failed to reboot!, " + err);
-        clearTimeout(rebootTimeout);
-        manualReboot();
-      });
-    } else {
-      clearTimeout(rebootTimeout);
-      manualReboot();
-    }
-    if (state === "bootloader") {
-      fastboot.waitForDevice().then((err, errM) => {
-        if (err) {
-          utils.errorToUser(errM, "fastboot.waitForDevice");
-          return;
-        } else {
-          clearTimeout(rebootTimeout);
-          global.mainEvent.emit("reboot:done");
-          callback();
-          return;
-        }
-      });
-    } else {
-      adb.waitForDevice().then(() => {
-        clearTimeout(rebootTimeout);
-        global.mainEvent.emit("reboot:done");
-        callback();
-        return;
-      });
-    }
-  }).catch((error) => {
-    utils.errorToUser(error, "Wait for device")
-  });
-}
-
 function addPathToImages(images, device, group) {
   var ret = [];
   images.forEach((image) => {
@@ -159,9 +106,10 @@ function install(steps) {
               resolve();
             }).catch((error) => {
               utils.log.error("reboot failed: " + error);
-              // TODO instructReboot(step.to_state, undefined, resolve);
-              utils.log.info("REBOOT MANUALLY");
-              resolve();
+              global.mainEvent.emit("user:action", global.installConfig.user_actions[step.to_state], () => {
+                utils.log.debug(step.type + " done");
+                resolve();
+              });
             });
           });
         });
@@ -205,7 +153,16 @@ function install(steps) {
             fastboot.boot(path.join(downloadPath, global.installProperties.device, step.group, step.file), step.partition).then(() => {
               utils.log.debug(step.type + " done");
               resolve();
-            }).catch(e => errorToUser(e, "fastboot boot"));
+            }).catch((e) => {
+              if (step.fallback_user_action) {
+                global.mainEvent.emit("user:action", global.installConfig.user_actions[step.fallback_user_action], () => {
+                  utils.log.debug(step.type + " done");
+                  resolve();
+                });
+              } else {
+                errorToUser(e, "fastboot boot");
+              }
+            });
           });
         });
         break;

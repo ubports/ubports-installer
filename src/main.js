@@ -210,16 +210,6 @@ mainEvent.on("user:action", (action, callback) => {
   }
 });
 
-// Prompt the user to reboot
-mainEvent.on("user:reboot", (i) => {
-  if (mainWindow) mainWindow.webContents.send("user:reboot", i);
-});
-
-// Reboot complete, hide the reboot prompt
-mainEvent.on("reboot:done", () => {
-  if (mainWindow) mainWindow.webContents.send("reboot:done");
-});
-
 // Control the progress bar
 mainEvent.on("user:write:progress", (progress) => {
   if (mainWindow) mainWindow.webContents.send("user:write:progress", progress);

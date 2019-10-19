@@ -51,17 +51,6 @@ script.
     });
   });
 
-  ipcRenderer.on("user:reboot", (e, i) => {
-    views.show("reboot-" + i.button);
-    $("[id=reboot-to-state]").text(i.state);
-    $("#complex-reboot-instruction").text(i.instruction);
-  });
-
-  ipcRenderer.on("reboot:done", () => {
-    $('#views-reboot-up').hide();
-    $('#views-reboot-down').hide();
-  });
-
   ipcRenderer.on("user:no-network", () => {
     modals.show('no-network');
   });
