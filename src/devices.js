@@ -142,6 +142,8 @@ function assembleInstallSteps(steps) {
               installStep({
                 type: "user_action", action: step.fallback_user_action
               }).then(resolve).catch(reject);
+            } else if (step.optional) {
+              resolve();
             } else {
               errorToUser(error, step.type);
             }
