@@ -49,11 +49,11 @@ var installLatestVersion = (options) => {
               global.mainEvent.emit("user:write:progress", progress*100);
             }).then(() => {
               resolve();
-            }).catch(e => utils.errorToUser(e, "Push failed: Failed push"));
-          }).catch(e => utils.errorToUser(e, "Push failed: Failed to create target dir"));
-        }).catch(e => utils.errorToUser(e, "Push failed: Failed to mount"));
-      }).catch(e => utils.errorToUser(e, "Push failed: Failed wipe cache"));
-    }).catch(e => utils.errorToUser(e, "Download failed"));
+            }).catch(e => reject("Push failed: Failed push: " + e));
+          }).catch(e => reject("Push failed: Failed to create target dir: " + e));
+        }).catch(e => reject("Push failed: Failed to mount: " + e));
+      }).catch(e => reject("Push failed: Failed wipe cache: " + e));
+    }).catch(e => reject("Download failed: " + e));
   });
 }
 
