@@ -234,6 +234,17 @@ function install(steps) {
           });
         });
         break;
+      case "user_action":
+        installPromises.push(() => {
+          return new Promise(function(resolve, reject) {
+            utils.log.debug("step: " + JSON.stringify(step));
+            global.mainEvent.emit("user:action", global.installConfig.user_actions[step.action], () => {
+              utils.log.debug(step.type + " done");
+              resolve();
+            });
+          });
+        });
+        break;
       default:
         throw "error: unrecognized step type: " + step.type
     }
