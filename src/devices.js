@@ -25,23 +25,6 @@ const path = require("path");
 
 const downloadPath = utils.getUbuntuTouchDir();
 
-// HACK: This should be handled by the server, not locally
-var isLegacyAndroid = (device) => {
-  switch (device) {
-    case "krillin":
-    case "vegetahd":
-    case "cooler":
-    case "frieza":
-    case "turbo":
-    case "arale":
-      utils.log.info("This is a legacy android device");
-      return true;
-    default:
-      utils.log.debug("This is NOT a legacy android device");
-      return false;
-  }
-}
-
 function addPathToImages(images, device, group) {
   var ret = [];
   images.forEach((image) => {
