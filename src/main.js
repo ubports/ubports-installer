@@ -200,6 +200,16 @@ mainEvent.on("user:oem-lock", (callback) => {
   });
 });
 
+// Request user_action
+mainEvent.on("user:action", (action, callback) => {
+  if (mainWindow) {
+    mainWindow.webContents.send("user:action", action);
+    if (action.button) {
+      ipcMain.on("action:completed", callback);
+    }
+  }
+});
+
 // Prompt the user to reboot
 mainEvent.on("user:reboot", (i) => {
   if (mainWindow) mainWindow.webContents.send("user:reboot", i);
