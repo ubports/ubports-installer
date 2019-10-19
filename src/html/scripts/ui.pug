@@ -115,11 +115,6 @@ script.
   }
 
   const modals = {
-    bind: modal => {
-      $("#btn-modal-"+modal).click(() => {
-        $('#'+modal+'-modal').modal('show');
-      });
-    },
     show: modal => {
       $('#'+modal+'-modal').modal('show');
     },
@@ -144,14 +139,6 @@ script.
 
   $("#donate").click(() => {
     shell.openExternal("https://ubports.com/donate");
-  });
-
-  $("#btn-modal-select-device-unsupported").click(() => {
-    modals.show('select-device');
-  });
-
-  $("#btn-modal-dev-mode").click(() => {
-    modals.show('developer-mode-info');
   });
 
   $("#btn-options-close").click(() => {
