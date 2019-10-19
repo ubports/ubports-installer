@@ -25,9 +25,9 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require('../package.json');
 
-const Adb = require('../../promise-android-tools/src/module.js').Adb;
-const Fastboot = require('../../promise-android-tools/src/module.js').Fastboot;
-const Api = require("../../ubports-api-node-module/src/module.js").Installer;
+const Adb = require('promise-android-tools').Adb;
+const Fastboot = require('promise-android-tools').Fastboot;
+const Api = require("ubports-api-node-module").Installer;
 
 const exec = require('child_process').exec;
 const path = require('path');
@@ -131,31 +131,7 @@ ipcMain.on("createBugReport", (event, title) => {
 // The user selected a device
 ipcMain.on("device:selected", (event, device) => {
   adb.stopWaiting();
-  global.installProperties.device = device;
-  function continueWithConfig() {
-    if(global.installConfig.operating_systems.length > 1) {
-      // ask for os selection if there's one os
-      mainWindow.webContents.send(
-        "user:os",
-        global.installConfig, devices.getOsSelects(global.installConfig.operating_systems)
-      );
-    } else {
-      // immediately jump to configure if there's only one os
-      mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
-    }
-  }
-  if(global.installConfig) {
-    // local config specified
-    continueWithConfig();
-  } else {
-    // local config specified
-    api.getDevice(device).then((config) => {
-      global.installConfig = config;
-      continueWithConfig();
-    }).catch(() => {
-      mainEvent.emit("user:device-unsupported", device);
-    });
-  }
+  mainEvent.emit("device", device);
 });
 
 // The user selected an os
@@ -275,11 +251,38 @@ mainEvent.on("user:configure", (osInstructs) => {
   }
 });
 
+mainEvent.on("device", (device) => {
+  global.installProperties.device = device;
+  function continueWithConfig() {
+    if(global.installConfig.operating_systems.length > 1) {
+      // ask for os selection if there's one os
+      mainWindow.webContents.send(
+        "user:os",
+        global.installConfig, devices.getOsSelects(global.installConfig.operating_systems)
+      );
+    } else {
+      // immediately jump to configure if there's only one os
+      mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
+    }
+  }
+  if(global.installConfig && global.installConfig.operating_systems) {
+    // local config specified
+    continueWithConfig();
+  } else {
+    // local config specified
+    api.getDevice(device).then((config) => {
+      global.installConfig = config;
+      continueWithConfig();
+    }).catch(() => {
+      mainEvent.emit("user:device-unsupported", device);
+    });
+  }
+});
+
 // The user selected a device
 mainEvent.on("device:detected", (device) => {
   utils.log.info("device detected: " + device)
-  global.installProperties.device = device;
-  mainWindow.webContents.send("user:os", global.installConfig, devices.getOsSelects(global.installConfig.operating_systems));
+  mainEvent.emit("device", device);
 });
 
 //==============================================================================
