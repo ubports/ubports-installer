@@ -173,7 +173,7 @@ mainEvent.on("user:error", (err) => {
 
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", (callback) => {
-  if (mainWindow) mainWindow.webContents.send("user:connection-lost", callback);
+  if (mainWindow) mainWindow.webContents.send("user:connection-lost", callback || mainWindow.reload());
 });
 
 // The device battery is too low to install

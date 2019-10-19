@@ -153,7 +153,12 @@ function assembleInstallSteps(steps) {
             } else if (step.optional) {
               resolve();
             } else {
-              errorToUser(error, step.type);
+              if (error.includes("no device")) {
+                // TODO restart the current step or the install promises rather than the installer
+                mainEvent.emit("user:connection-lost");
+              } else {
+                utils.errorToUser(error, step.type);
+              }
             }
           });
         }

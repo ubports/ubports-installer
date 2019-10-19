@@ -42,17 +42,19 @@ var installLatestVersion = (options) => {
       mainEvent.emit("user:write:working", "push");
       mainEvent.emit("user:write:status", "Sending");
       mainEvent.emit("user:write:under", "Sending files to the device");
-      adb.wipeCache().then(() => {
-        adb.shell("mount -a").then(() => {
-          adb.shell("mkdir -p /cache/recovery").then(() => {
-            adb.pushArray(files, (progress) => {
-              global.mainEvent.emit("user:write:progress", progress*100);
-            }).then(() => {
-              resolve();
-            }).catch(e => reject("Push failed: Failed push: " + e));
-          }).catch(e => reject("Push failed: Failed to create target dir: " + e));
-        }).catch(e => reject("Push failed: Failed to mount: " + e));
-      }).catch(e => reject("Push failed: Failed wipe cache: " + e));
+      adb.waitForDevice().then(() => {
+        adb.wipeCache().then(() => {
+          adb.shell("mount -a").then(() => {
+            adb.shell("mkdir -p /cache/recovery").then(() => {
+              adb.pushArray(files, (progress) => {
+                global.mainEvent.emit("user:write:progress", progress*100);
+              }).then(() => {
+                resolve();
+              }).catch(e => reject("Push failed: Failed push: " + e));
+            }).catch(e => reject("Push failed: Failed to create target dir: " + e));
+          }).catch(e => reject("Push failed: Failed to mount: " + e));
+        }).catch(e => reject("Push failed: Failed wipe cache: " + e));
+      }).catch(e => reject("no device"));
     }).catch(e => reject("Download failed: " + e));
   });
 }
