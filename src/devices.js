@@ -69,7 +69,7 @@ function installStep(step) {
       break;
     case "adb:reboot":
       return new Promise(function(resolve, reject) {
-        global.mainEvent.emit("user:write:working", "particles");+
+        global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Rebooting");
         global.mainEvent.emit("user:write:under", "Rebooting to " + step.to_state);
         adb.reboot(step.to_state).then(resolve).catch(reject);
@@ -86,7 +86,7 @@ function installStep(step) {
       break;
     case "fastboot:erase":
       return new Promise(function(resolve, reject) {
-        global.mainEvent.emit("user:write:working", "particles");+
+        global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Ceaning up");
         global.mainEvent.emit("user:write:under", "Erasing " + step.partition + " partition");
         fastboot.erase(step.partition).then(resolve).catch(reject);
@@ -111,6 +111,14 @@ function installStep(step) {
         global.mainEvent.emit("user:write:status", "Updating system");
         global.mainEvent.emit("user:write:under", "Applying fastboot update zip. This may take a while...");
         fastboot.update(path.join(downloadPath, global.installProperties.device, step.group, step.file)).then(resolve).catch(reject);
+      });
+      break;
+    case "fastboot:reboot_bootloader":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Rebooting");
+        global.mainEvent.emit("user:write:under", "Rebooting to bootloader");
+        fastboot.rebootBootloader().then(resolve).catch(reject);
       });
       break;
     case "user_action":
