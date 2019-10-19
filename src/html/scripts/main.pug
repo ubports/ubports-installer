@@ -99,6 +99,7 @@ script.
     $("#your-ubp-device").click(() => {
       shell.openExternal("https://devices.ubuntu-touch.io/device/" + installConfig.codename);
     });
+    modals.hide("select-device");
     views.show("select-os");
   });
 
