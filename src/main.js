@@ -132,15 +132,29 @@ ipcMain.on("createBugReport", (event, title) => {
 ipcMain.on("device:selected", (event, device) => {
   adb.stopWaiting();
   global.installProperties.device = device;
-  if(devices.getOsSelects(global.installConfig.operating_systems).length > 1) {
-    // ask for os selection if there's one os
-    mainWindow.webContents.send(
-      "user:os",
-      global.installConfig, devices.getOsSelects(global.installConfig.operating_systems)
-    );
+  function continueWithConfig() {
+    if(global.installConfig.operating_systems.length > 1) {
+      // ask for os selection if there's one os
+      mainWindow.webContents.send(
+        "user:os",
+        global.installConfig, devices.getOsSelects(global.installConfig.operating_systems)
+      );
+    } else {
+      // immediately jump to configure if there's only one os
+      mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
+    }
+  }
+  if(global.installConfig) {
+    // local config specified
+    continueWithConfig();
   } else {
-    // immediately jump to configure if there's only one os
-    mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
+    // local config specified
+    api.getDevice(device).then((config) => {
+      global.installConfig = config;
+      continueWithConfig();
+    }).catch(() => {
+      mainEvent.emit("user:device-unsupported", device);
+    });
   }
 });
 

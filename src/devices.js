@@ -184,13 +184,13 @@ module.exports = {
       adb.getDeviceName().then((device) => {
         adb.getOs().then((operatingSystem) => {
           global.api.resolveAlias(device).then((resolvedDevice) => {
-            global.mainEvent.emit("device:detected", resolvedDevice, (operatingSystem=="ubuntutouch"), true);
+            global.mainEvent.emit("device:detected", resolvedDevice);
           }).catch((error) => { utils.errorToUser(error, "Resolve device alias"); });
         }).catch((error) => { utils.errorToUser(error, "Wait for device"); });
       }).catch((error) => { utils.errorToUser(error, "get device name"); });
     }).catch(e => utils.log.debug("no device detected: " + e));
   },
-  getOsSelects: (osArray) => { // TODO move to api module
+  getOsSelects: (osArray) => { // Can't be moved to support custom config files
     var osSelects = [];
     for (var i = 0; i < osArray.length; i++) {
       osSelects.push("<option name=\"" + i + "\">" + osArray[i].name + "</option>");
