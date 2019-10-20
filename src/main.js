@@ -262,6 +262,7 @@ mainEvent.on("device", (device) => {
       );
     } else {
       // immediately jump to configure if there's only one os
+      global.installProperties.osIndex = 0;
       mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
     }
   }
