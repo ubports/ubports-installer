@@ -145,25 +145,29 @@ function assembleInstallSteps(steps) {
           resolve();
         } else {
           utils.log.debug("running step: " + JSON.stringify(step));
-          installStep(step).then(() => {
-            resolve();
-            utils.log.debug(step.type + " done");
-          }).catch((error) => {
-            if (step.fallback_user_action) {
-              installStep({
-                type: "user_action", action: step.fallback_user_action
-              }).then(resolve).catch(reject);
-            } else if (step.optional) {
+          function runStep() {
+            installStep(step).then(() => {
               resolve();
-            } else {
-              if (error.includes("no device")) {
-                // TODO restart the current step or the install promises rather than the installer
-                mainEvent.emit("user:connection-lost");
+              utils.log.debug(step.type + " done");
+            }).catch((error) => {
+              if (step.fallback_user_action) {
+                installStep({
+                  type: "user_action", action: step.fallback_user_action
+                }).then(resolve).catch(reject);
+              } else if (error.includes("lock")) {
+                global.mainEvent.emit("user:oem-lock", () => { install(steps); });
+              } else if (step.optional) {
+                resolve();
               } else {
-                utils.errorToUser(error, step.type);
+                if (error.includes("no device") || error.includes("No such device")) {
+                  mainEvent.emit("user:connection-lost", runStep);
+                } else {
+                  utils.errorToUser(error, step.type);
+                }
               }
-            }
-          });
+            });
+          }
+          runStep();
         }
       });
     });
@@ -176,6 +180,15 @@ function assembleInstallSteps(steps) {
   });
 
   return installPromises;
+}
+
+function install(steps) {
+  var installPromises = assembleInstallSteps(steps);
+  // Actually run the steps
+  installPromises.reduce(
+    (promiseChain, currentFunction) => promiseChain.then(currentFunction),
+    Promise.resolve()
+  );
 }
 
 module.exports = {
@@ -197,14 +210,7 @@ module.exports = {
     }
     return osSelects;
   },
-  install: (steps) => {
-    var installPromises = assembleInstallSteps(steps);
-    // Actually run the steps
-    installPromises.reduce(
-      (promiseChain, currentFunction) => promiseChain.then(currentFunction),
-      Promise.resolve()
-    );
-  },
+  install: install,
   setRemoteValues: (osInstructs) => {
     return Promise.all(osInstructs.options.map(option => {
       return new Promise(function(resolve, reject) {

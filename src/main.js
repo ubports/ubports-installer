@@ -182,6 +182,9 @@ mainEvent.on("restart", () => {
 mainEvent.on("user:oem-lock", (callback) => {
   mainWindow.webContents.send("user:oem-lock");
   ipcMain.once("user:oem-lock:ok", () => {
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:status", "Unlocking", true);
+    mainEvent.emit("user:write:under", "You might see a confirmation dialog on your device.");
     fastboot.oemUnlock().then(() => {
       callback(true);
     }).catch((err) => {
