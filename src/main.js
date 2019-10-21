@@ -243,7 +243,9 @@ mainEvent.on("user:configure", (osInstructs) => {
   if(osInstructs.options) {
     // If there's something to configure, configure it!
     if (mainWindow) {
-      mainWindow.webContents.send("user:configure", osInstructs);
+      devices.setRemoteValues(osInstructs).then((osInstructs) => {
+        mainWindow.webContents.send("user:configure", osInstructs);
+      }).catch(e => utils.errorToUser(e, "configure"));
     }
   } else {
     // If there's nothing to configure, don't configure anything
