@@ -44,8 +44,11 @@ var installLatestVersion = (options) => {
       mainEvent.emit("user:write:under", "Sending files to the device");
       adb.waitForDevice().then(() => {
         adb.wipeCache().then(() => {
+          utils.log.debug("adb wiped cache");
           adb.shell("mount -a").then(() => {
+            utils.log.debug("adb mounted recovery");
             adb.shell("mkdir -p /cache/recovery").then(() => {
+              utils.log.debug("adb created /cache/recovery directory");
               adb.pushArray(files, (progress) => {
                 global.mainEvent.emit("user:write:progress", progress*100);
               }).then(() => {
