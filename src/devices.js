@@ -67,6 +67,16 @@ function installStep(step) {
         }).catch(reject);
       });
       break;
+    case "adb:format":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Preparing system for installation", true);
+        global.mainEvent.emit("user:write:under", "Formatting " + step.partition);
+        adb.waitForDevice().then(() => {
+          adb.format(step.partition).then(resolve).catch(reject);
+        }).catch(reject);
+      });
+      break;
     case "adb:reboot":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
