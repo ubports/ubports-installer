@@ -49,6 +49,25 @@
       _subdiv.appendChild(_input);
       _div.appendChild(_subdiv);
       $("#options-form").append(_div);
+      
+      // tooltip describing the option
+      if (option.tooltip) {
+        let _tooltipdiv = document.createElement("div");
+        _tooltipdiv.className = "col-xs-3";
+        _div.appendChild(_tooltipdiv);
+        let _tooltip = document.createElement("p");
+        _tooltip.className = "col-xs-9";
+        _tooltip.appendChild(document.createTextNode(option.tooltip + " "));
+        if (option.link) {
+          let _tooltiplink = document.createElement("a");
+          _tooltiplink.id = option.var + "_link"
+          _tooltiplink.appendChild(document.createTextNode("More..."));
+          _tooltip.appendChild(_tooltiplink);
+        }
+        _div.appendChild(_tooltip);
+        // HACK: link target can not be set before, because the element needs to have already been created
+        if (option.link) $("#" + option.var + "_link").click(() => shell.openExternal(option.link));
+      }
 
       // send data for this option to main for processing
       $("#btn-options-close").click(() => {
