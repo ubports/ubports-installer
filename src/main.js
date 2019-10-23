@@ -30,7 +30,6 @@ const Fastboot = require('promise-android-tools').Fastboot;
 const Api = require("ubports-api-node-module").Installer;
 
 var winston = require('winston');
-const exec = require('child_process').exec;
 const path = require('path');
 const url = require('url');
 const events = require("events");
@@ -49,19 +48,11 @@ const devices = require('./devices.js');
 const api = new Api();
 global.api = api;
 var adb = new Adb({
-  exec: (args, callback) => { exec(
-    [(path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb'))].concat(args).join(" "),
-    {options: {maxBuffer: 1024*1024*2}},
-    callback
-  ); }
+  exec: (args, callback) => { utils.execTool("adb", args, callback); }
 });
 global.adb = adb;
 var fastboot = new Fastboot({
-  exec: (args, callback) => { exec(
-    [(path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'fastboot'))].concat(args).join(" "),
-    {options: {maxBuffer: 1024*1024*2}},
-    callback
-  ); }
+  exec: (args, callback) => { utils.execTool("fastboot", args, callback); }
 });
 global.fastboot = fastboot;
 
@@ -95,7 +86,7 @@ global.installProperties = {
 
 global.packageInfo.isSnap = utils.isSnap();
 
-utils.exportExecutablesFromPackage();
+if (!global.packageInfo.isSnap) utils.exportExecutablesFromPackage();
 
 //==============================================================================
 // WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!

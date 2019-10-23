@@ -17,6 +17,7 @@
 
 const http = require("request");
 const download = require("download");
+const exec = require('child_process').exec;
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
@@ -153,6 +154,14 @@ function die(e) {
   process.exit(-1);
 }
 
+function execTool(tool, args, callback) {
+  exec(
+    [path.join((process.env.SNAP || utils.getUbuntuTouchDir()), "platform-tools", tool)].concat(args).join(" "),
+    {options: {maxBuffer: 1024*1024*2}},
+    callback
+  );
+}
+
 // WORKAROUND: the chile spawned by child_process.exec can not access files inside the asar package
 function exportExecutablesFromPackage() {
   fs.copy(
@@ -273,6 +282,7 @@ module.exports = {
   downloadFiles: downloadFiles,
   log: log,
   isSnap: isSnap,
+  execTool: execTool,
   getUbuntuTouchDir: getUbuntuTouchDir,
   createBugReport: createBugReport,
   getUpdateAvailable: getUpdateAvailable,
