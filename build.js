@@ -186,7 +186,7 @@ if (cli.platformTools) {
       if (!cli.downloadOnly) build();
     });
   }).catch(() => {
-    console.error("Failed to download files!")
+    console.error("Failed to download files!");
     process.exit(1);
   });
 } else {

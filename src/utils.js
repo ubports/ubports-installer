@@ -155,43 +155,17 @@ function die(e) {
 
 // WORKAROUND: the chile spawned by child_process.exec can not access files inside the asar package
 function exportExecutablesFromPackage() {
-  getFallbackPlatformTools().forEach((tool) => {
-    fs.copy(tool.package, tool.cache, () => {
-      fs.chmodSync(tool.cache, 0o755);
-    });
-  });
-}
-
-function maybeEXE(platform, tool) {
-  if(platform === "win32") tool+=".exe";
-  return tool;
-}
-
-function getPlatform() {
-  var thisPlatform = os.platform();
-  if(!platforms[thisPlatform]) die("Unsuported platform");
-  return platforms[thisPlatform];
-}
-
-function getFallbackPlatformTools() {
-  var thisPlatform = os.platform();
-  if(!platforms[thisPlatform]) die("Unsupported platform");
-  var toolInPackage = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
-  var toolInCache = path.join(utils.getUbuntuTouchDir(), 'platform-tools');
-  return [
-    {
-      package: path.join(toolInPackage, maybeEXE(thisPlatform, "fastboot")),
-      cache: path.join(toolInCache, maybeEXE(thisPlatform, "fastboot"))
-    },
-    {
-      package: path.join(toolInPackage, maybeEXE(thisPlatform, "adb")),
-      cache: path.join(toolInCache, maybeEXE(thisPlatform, "adb"))
-    },
-    {
-      package: path.join(toolInPackage, maybeEXE(thisPlatform, "mke2fs")),
-      cache: path.join(toolInCache, maybeEXE(thisPlatform, "mke2fs"))
+  fs.copy(
+    path.join(__dirname, "..", "platform-tools", platforms[os.platform()]),
+    path.join(utils.getUbuntuTouchDir(), 'platform-tools'),
+    () => {
+      if (os.platform() !== "win32") {
+        ["adb", "fastboot", "mke2fs"].map(exe => path.join(utils.getUbuntuTouchDir(), 'platform-tools', exe)).forEach((tool) => {
+          fs.chmodSync(tool, 0o755);
+        });
+      }
     }
-  ]
+  );
 }
 
 function isSnap() {
@@ -274,7 +248,7 @@ function downloadFiles(urls, progress, next) {
               reject(err);
               return;
             });
-          });
+          }).catch(reject);
         });
       });
     })).then(() => {
