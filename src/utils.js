@@ -23,9 +23,12 @@ const path = require("path");
 const checksum = require('checksum');
 const mkdirp = require('mkdirp');
 const cp = require('child_process');
-const winston = require('winston');
 const getos = require('getos');
 global.packageInfo = require('../package.json');
+
+if (!fs.existsSync(getUbuntuTouchDir())) {
+  mkdirp.sync(getUbuntuTouchDir());
+}
 
 const platforms = {
   "linux": "linux",
@@ -33,14 +36,11 @@ const platforms = {
   "win32": "win"
 }
 
-if (global.installProperties)
-  winston.level = global.installProperties.verbose ? 'debug' : 'info';
-
 var log = {
-  error: (l) => {winston.log("error", l)},
-  warn:  (l) => {winston.log("warn", l)},
-  info:  (l) => {winston.log("info", l)},
-  debug: (l) => {winston.log("debug", l)}
+  error: (l) => { global.logger.log("error", l); },
+  warn:  (l) => { global.logger.log("warn", l); },
+  info:  (l) => { global.logger.log("info", l); },
+  debug: (l) => { global.logger.log("debug", l); }
 }
 
 function createBugReport(title, installProperties, callback) {
@@ -50,17 +50,16 @@ function createBugReport(title, installProperties, callback) {
     order: 'desc'
   };
 
-  winston.query(options, function (err, results) {
+  global.logger.query(options, function (err, results) {
     if (err) {
       throw err;
     }
 
     var errorLog = "";
     results.file.forEach((err) => {
-      errorLog+=err.level+" "
-      errorLog+=err.timestamp+" "
+      errorLog+=err.level+": "
       errorLog+=err.message+"\n"
-    })
+    });
 
     http.post({
       url: "http://paste.ubuntu.com",
@@ -148,16 +147,6 @@ function getUbuntuTouchDir() {
   }
   return path.join(osCacheDir, "ubports");
 }
-
-if (!fs.existsSync(getUbuntuTouchDir())) {
-  mkdirp.sync(getUbuntuTouchDir());
-}
-
-winston.add(winston.transports.File, {
-  filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log'),
-  level: 'debug', // Print debug logs to the file
-  options: { flags: 'w' } // Clear log before writing to it
-});
 
 function die(e) {
   log.error(e);
@@ -313,6 +302,5 @@ module.exports = {
   getUbuntuTouchDir: getUbuntuTouchDir,
   createBugReport: createBugReport,
   getUpdateAvailable: getUpdateAvailable,
-  die: die,
-  setLogLevel: (level) => { winston.level = level; }
+  die: die
 }

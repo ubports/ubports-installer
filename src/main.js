@@ -29,6 +29,7 @@ const Adb = require('promise-android-tools').Adb;
 const Fastboot = require('promise-android-tools').Fastboot;
 const Api = require("ubports-api-node-module").Installer;
 
+var winston = require('winston');
 const exec = require('child_process').exec;
 const path = require('path');
 const url = require('url');
@@ -89,13 +90,32 @@ global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
   cli: cli.cli,
   settings: cli.settings ? JSON.parse(cli.settings) : {},
-  verbose: (cli.verbose || cli.debug),
   debug: cli.debug
 };
 
 global.packageInfo.isSnap = utils.isSnap();
 
 utils.exportExecutablesFromPackage();
+
+//==============================================================================
+// WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
+//==============================================================================
+
+global.logger = winston.createLogger({
+  format: winston.format.json(),
+  defaultMeta: { service: 'user-service' },
+  transports: [
+    new winston.transports.File({
+      filename: path.join(utils.getUbuntuTouchDir(), 'ubports-installer.log'),
+      options: { flags: 'w' },
+      level: "debug"
+    }),
+    new winston.transports.Console({
+      format: winston.format.simple(),
+      level: cli.verbose ? "debug" : "info"
+    })
+  ]
+});
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING
@@ -296,7 +316,6 @@ mainEvent.on("device:detected", (device) => {
 //==============================================================================
 
 function createWindow () {
-  utils.setLogLevel(global.installProperties.verbose ? "debug" : "info");
   utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
   utils.log.info("This is " + (global.packageInfo.updateAvailable ? "not " : "") + "the latest stable version!");
   mainWindow = new BrowserWindow({
