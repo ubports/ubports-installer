@@ -388,7 +388,13 @@ app.on('activate', function () {
 });
 
 process.on('unhandledRejection', (r) => {
-  utils.log.error(r);
+  utils.log.error("unhandled rejection: " + r);
   if (mainWindow) utils.errorToUser(r, "unhandledRejection");
+  else utils.die(r);
+});
+
+process.on('uncaughtException', (r) => {
+  utils.log.error("uncaught exception: " + r);
+  if (mainWindow) utils.errorToUser(r, "uncaughtException");
   else utils.die(r);
 });
