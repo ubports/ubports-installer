@@ -18,268 +18,229 @@
  */
 
 const http = require("request");
-const ubportsApi = require("ubports-api-node-module");
 const systemImage = require("./system-image");
 const utils = require("./utils");
 const os = require("os");
 const path = require("path");
 
-const devicesApi = new ubportsApi.Devices();
 const downloadPath = utils.getUbuntuTouchDir();
 
-// HACK: This should be handled by the server, not locally
-var isLegacyAndroid = (device) => {
-  switch (device) {
-    case "krillin":
-    case "vegetahd":
-    case "cooler":
-    case "frieza":
-    case "turbo":
-    case "arale":
-      utils.log.info("This is a legacy android device");
-      return true;
-    default:
-      utils.log.debug("This is NOT a legacy android device");
-      return false;
-  }
-}
-
-var instructReboot = (state, button, callback) => {
-  global.mainEvent.emit("user:write:working", "particles");
-  global.mainEvent.emit("user:write:status", "Rebooting to " + state);
-  global.mainEvent.emit("user:write:under", "Waiting for device to enter " + state + " mode");
-  var manualReboot = () => {
-    utils.log.info("Instructing manual reboot");
-    utils.log.info(button[state]["instruction"]);
-    global.mainEvent.emit("user:reboot", {
-      button: button[state]["button"],
-      instruction: button[state]["instruction"],
-      state: state
-    });
-  }
-  var rebootTimeout = setTimeout(() => { manualReboot(); }, 15000);
-  adb.hasAccess().then((hasAccess) => {
-    if (hasAccess) {
-      adb.reboot(state).then(() => {
-        clearTimeout(rebootTimeout);
-        global.mainEvent.emit("reboot:done");
-      }).catch((err) => {
-        utils.log.warn("Adb failed to reboot!, " + err);
-        clearTimeout(rebootTimeout);
-        manualReboot();
-      });
-    } else {
-      clearTimeout(rebootTimeout);
-      manualReboot();
-    }
-    if (state === "bootloader") {
-      fastboot.waitForDevice().then((err, errM) => {
-        if (err) {
-          utils.errorToUser(errM, "fastboot.waitForDevice");
-          return;
-        } else {
-          clearTimeout(rebootTimeout);
-          global.mainEvent.emit("reboot:done");
-          callback();
-          return;
-        }
-      });
-    } else {
-      adb.waitForDevice().then(() => {
-        clearTimeout(rebootTimeout);
-        global.mainEvent.emit("reboot:done");
-        callback();
-        return;
-      });
-    }
-  }).catch((error) => {
-    utils.errorToUser(error, "Wait for device")
-  });
-}
-
-var downloadImages = (images, device) => {
-  utils.log.debug(addPathToImages(images, device));
-  global.mainEvent.emit("user:write:working", "download");
-  global.mainEvent.emit("user:write:status", "Downloading Firmware");
-  global.mainEvent.emit("user:write:under", "Downloading");
-  utils.downloadFiles(images, (progress, speed) => {
-    global.mainEvent.emit("download:progress", progress);
-    global.mainEvent.emit("download:speed", speed);
-  }, (current, total) => {
-    if (current != total) utils.log.debug("Downloading bootstrap image " + (current+1) + " of " + total);
-  }).then((files) => {
-    utils.log.debug(files)
-    // Wait for one second until the progress event stops firing
-    setTimeout(() => {
-      global.mainEvent.emit("download:done");
-    }, 1000);
-  });
-}
-
-function addPathToImages(images, device) {
+function addPathToImages(images, device, group) {
   var ret = [];
   images.forEach((image) => {
     image["partition"] = image.type;
-    image["path"] = path.join(downloadPath, "images", device);
-    image["file"] = path.join(downloadPath, "images", device, path.basename(image.url));
+    image["path"] = path.join(downloadPath, device, group);
+    image["file"] = path.join(path.basename(image.url));
     ret.push(image);
   });
   return ret;
 }
 
-global.mainEvent.on("download:progress", (percent) => {
-  global.mainEvent.emit("user:write:progress", percent*100);
-});
-global.mainEvent.on("download:speed", (speed) => {
-  global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
-});
+function addPathToFiles(files, device) {
+  var ret = [];
+  for (var i = 0; i < files.length; i++) {
+    ret.push({file: path.join(downloadPath, device, files[i].group, files[i].file), partition: files[i].partition });
+  }
+  return ret;
+}
 
-var install = (options) => {
-  if (!options)
-    return false;
-  devicesApi.getInstallInstructs(options.device).then((instructs) => {
-    global.mainEvent.once("adbpush:done", () => {
-      utils.log.info("Done pushing files");
-      utils.log.info("Rebooting to recovery to flash");
-      global.mainEvent.emit("user:write:progress", 0);
-      global.mainEvent.emit("user:write:working", "particles");
-      instructReboot("recovery", instructs.buttons, () => {
-        global.mainEvent.emit("user:write:done");
+function installStep(step) {
+  switch (step.type) {
+    case "download":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "download");
+        global.mainEvent.emit("user:write:status", "Downloading " + step.group, true);
+        global.mainEvent.emit("user:write:under", "Downloading");
+        utils.downloadFiles(addPathToImages(step.files, global.installProperties.device, step.group), (progress, speed) => {
+          global.mainEvent.emit("user:write:progress", progress*100);
+          global.mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
+        }, (current, total) => {
+          utils.log.info("Downloaded file " + current + " of " + total);
+        }).then(() => {
+          setTimeout(() => {
+            global.mainEvent.emit("user:write:working", "particles");
+            global.mainEvent.emit("user:write:under", "Verifying download");
+            global.mainEvent.emit("user:write:progress", 0);
+            global.mainEvent.emit("user:write:speed", 0);
+            resolve();
+          }, 1000);
+        }).catch(reject);
       });
-    });
-    global.mainEvent.once("bootstrap:done", (bootstrap) => {
-      utils.log.info("bootstrap done: " + (bootstrap ? "rebooting automatically" : "rebooting manually"));
-      if (!bootstrap) {
-        instructReboot("recovery", instructs.buttons, () => {
-          systemImage.installLatestVersion({
-            device: options.device,
-            channel: options.channel,
-            wipe: options.wipe
-          });
-        });
-      } else {
-        global.mainEvent.emit("user:write:status", "Rebooting to recovery");
-        global.mainEvent.emit("user:write:under", "Waiting for device to enter recovery mode");
+      break;
+    case "adb:format":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Preparing system for installation", true);
+        global.mainEvent.emit("user:write:under", "Formatting " + step.partition);
         adb.waitForDevice().then(() => {
-          systemImage.installLatestVersion({
-            device: options.device,
-            channel: options.channel,
-            wipe: options.wipe
-          });
-        }).catch((error) => { utils.errorToUser(error, "Wait for device"); });
-      }
-    });
-    if (instructs.images.length > 0) { // If images are specified, flash them (bootstrapping)
-      // We need to be in bootloader
-      global.mainEvent.emit("user:write:status", "Waiting for device to enter bootloader mode");
-      global.mainEvent.emit("user:write:under", "Fastboot is scanning for devices");
-      instructReboot("bootloader", instructs.buttons, () => {
-        global.mainEvent.once("download:done", () => {
-          global.mainEvent.emit("user:write:working", "particles");
-          global.mainEvent.emit("user:write:status", "Flashing images");
-          global.mainEvent.emit("user:write:under", "Flashing recovery and boot images");
-          global.mainEvent.emit("user:write:progress", 0);
-          fastboot.erase("cache").then(() => {
-            fastboot.flashArray(addPathToImages(instructs.images, options.device)).then(() => {
-              if (instructs.bootstrap) { // Device should support the fastboot boot command
-                var recoveryImg;
-                instructs.images.forEach((image) => {
-                  if (image.type == "recovery") recoveryImg = image.file;
-                });
-                fastboot.boot(recoveryImg).then(() => {
-                  global.mainEvent.emit("bootstrap:done", true);
-                }).catch(() => {
-                  global.mainEvent.emit("bootstrap:done", false);
-                });
+          adb.format(step.partition).then(resolve).catch(reject);
+        }).catch(reject);
+      });
+      break;
+    case "adb:reboot":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Rebooting");
+        global.mainEvent.emit("user:write:under", "Rebooting to " + step.to_state);
+        adb.reboot(step.to_state).then(resolve).catch(reject);
+      });
+      break;
+    case "fastboot:flash":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Flashing firmware", true);
+        global.mainEvent.emit("user:write:under", "Flashing firmware partitions using fastboot");
+        utils.log.debug(JSON.stringify(addPathToFiles(step.flash, global.installProperties.device)))
+        fastboot.flashArray(addPathToFiles(step.flash, global.installProperties.device)).then(resolve).catch(reject);
+      });
+      break;
+    case "fastboot:erase":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Ceaning up", true);
+        global.mainEvent.emit("user:write:under", "Erasing " + step.partition + " partition");
+        fastboot.erase(step.partition).then(resolve).catch(reject);
+      });
+      break;
+    case "fastboot:boot":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Rebooting");
+        global.mainEvent.emit("user:write:under", "Your device is being rebooted...");
+        fastboot.boot(path.join(downloadPath, global.installProperties.device, step.group, step.file), step.partition).then(resolve).catch(reject);
+      });
+      break;
+    case "systemimage":
+      return new Promise(function(resolve, reject) {
+        systemImage.installLatestVersion(Object.assign({device: global.installConfig.codename}, global.installProperties.settings)).then(resolve).catch(reject);
+      });
+      break;
+    case "fastboot:update":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Updating system", true);
+        global.mainEvent.emit("user:write:under", "Applying fastboot update zip. This may take a while...");
+        fastboot.update(
+          path.join(downloadPath, global.installProperties.device, step.group, step.file),
+          global.installProperties.settings.wipe
+        ).then(resolve).catch(reject);
+      });
+      break;
+    case "fastboot:reboot_bootloader":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Rebooting");
+        global.mainEvent.emit("user:write:under", "Rebooting to bootloader");
+        fastboot.rebootBootloader().then(resolve).catch(reject);
+      });
+      break;
+    case "user_action":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:action", global.installConfig.user_actions[step.action], resolve);
+      });
+      break;
+    default:
+      throw "error: unrecognized step type: " + step.type
+  }
+}
+
+function assembleInstallSteps(steps) {
+  var installPromises = [];
+  steps.forEach((step) => {
+    installPromises.push(() => {
+      return new Promise(function(resolve, reject) {
+        if (step.condition && global.installProperties.settings[step.condition.var] != step.condition.value) {
+          // If the condition is not met, no need to do anything
+          utils.log.debug("skipping step: " + JSON.stringify(step));
+          resolve();
+        } else {
+          utils.log.debug("running step: " + JSON.stringify(step));
+          function runStep() {
+            installStep(step).then(() => {
+              resolve();
+              utils.log.debug(step.type + " done");
+            }).catch((error) => {
+              if (step.fallback_user_action) {
+                installStep({
+                  type: "user_action", action: step.fallback_user_action
+                }).then(resolve).catch(reject);
+              } else if (error.includes("lock")) {
+                global.mainEvent.emit("user:oem-lock", () => { install(steps); });
+              } else if (step.optional) {
+                resolve();
               } else {
-                global.mainEvent.emit("bootstrap:done", false);
+                if (error.includes("no device") || error.includes("No such device")) {
+                  mainEvent.emit("user:connection-lost", runStep);
+                } else {
+                  utils.errorToUser(error, step.type);
+                }
               }
-            }).catch((error) => { utils.errorToUser(error, "bootstrap"); });
-          }).catch(((e) => { utils.errorToUser(e, "Fastboot: Erase cache"); }));
-        });
-        downloadImages(instructs.images, options.device);
+            });
+          }
+          runStep();
+        }
       });
-    } else { // If no images are specified, go straight to system-image
-      // We need to be in recovery
-      instructReboot("recovery", instructs.buttons, () => {
-        systemImage.installLatestVersion({
-          device: options.device,
-          channel: options.channel,
-          wipe: options.wipe
-        });
-      });
-    }
-  }).catch((e) => { utils.errorToUser(e, "Install"); });
+    });
+  });
+
+  installPromises.push(() => {
+    global.mainEvent.emit("user:write:done");
+    global.mainEvent.emit("user:write:status", global.installConfig.operating_systems[global.installProperties.osIndex].name + " successfully installed!", false);
+    global.mainEvent.emit("user:write:under", global.installConfig.operating_systems[global.installProperties.osIndex].success_message || "All done! Enjoy exploring your new OS!");
+  });
+
+  return installPromises;
+}
+
+function install(steps) {
+  var installPromises = assembleInstallSteps(steps);
+  // Actually run the steps
+  installPromises.reduce(
+    (promiseChain, currentFunction) => promiseChain.then(currentFunction),
+    Promise.resolve()
+  );
 }
 
 module.exports = {
-  getDevice: devicesApi.getDevice,
   waitForDevice: () => {
     adb.waitForDevice().then(() => {
       adb.getDeviceName().then((device) => {
         adb.getOs().then((operatingSystem) => {
-          global.mainEvent.emit("device:select:event", device, (operatingSystem=="ubuntutouch"), true);
-          return;
-        }).catch((error) => {
-          utils.errorToUser(error, "Wait for device")
-        });
-      }).catch((error) => {
-        utils.errorToUser(error, "get device name");
-      });
+          global.api.resolveAlias(device).then((resolvedDevice) => {
+            global.mainEvent.emit("device:detected", resolvedDevice);
+          }).catch((error) => { utils.errorToUser(error, "Resolve device alias"); });
+        }).catch((error) => { utils.errorToUser(error, "Wait for device"); });
+      }).catch((error) => { utils.errorToUser(error, "get device name"); });
     }).catch(e => utils.log.debug("no device detected: " + e));
-    global.mainEvent.once("device:select", (device) => {
-      global.mainEvent.emit("stop");
-      utils.log.info(device + " selected");
-      global.mainEvent.emit("device:select:event", device, false, false);
-    });
-    global.mainEvent.once("device:select:event", (device, ubuntuCom, autoDetected) => {
-      devicesApi.getDevice(device).then((apiData) => {
-          if (apiData) {
-            systemImage.getDeviceChannels(device).then((channels) => {
-              var channelsAppend = [];
-              devicesApi.getInstallInstructs(device).then((ret) => {
-                channels.forEach((channel) => {
-                  var _channel = channel.replace("ubports-touch/", "");
-                  // Ignore blacklisted channels
-                  if (ret["systemServer"]["blacklist"].indexOf(channel) == -1 &&
-                      channel.indexOf("15.04") == -1) {
-                    if (channel === ret["systemServer"]["selected"])
-                      channelsAppend.push("<option value="+channel+" selected>" + _channel + "</option>");
-                    else
-                      channelsAppend.push("<option value="+channel+">" + _channel + "</option>");
-                  }
-                });
-                channelsAppend.push("<option value=ubports-touch/16.04/edge>16.04/edge</option>")
-                global.mainEvent.emit("device:select:data-ready", apiData, device, channelsAppend.join(''), ubuntuCom, autoDetected);
-              }).catch(((e) => { utils.log.error(e); global.mainEvent.emit("user:no-network"); }));
-            }).catch((e) => { utils.log.error(e); global.mainEvent.emit("user:no-network"); });
-          } else {
-            mainEvent.emit("user:device-unsupported", device); // If there is no response, the device is not supported
-            return;
-          }
-        }).catch(((e) => { utils.errorToUser(e, "Device Select"); }));
-    });
+  },
+  getOsSelects: (osArray) => { // Can't be moved to support custom config files
+    var osSelects = [];
+    for (var i = 0; i < osArray.length; i++) {
+      osSelects.push("<option name=\"" + i + "\">" + osArray[i].name + "</option>");
+    }
+    return osSelects;
   },
   install: install,
-  getDeviceSelects: (callback) => {
-    devicesApi.getDevices().then((devices) => {
-      if (devices) {
-        var devicesAppend = [];
-        devices.sort(function(a, b){
-          var y = a.name.toLowerCase();
-          var x = b.name.toLowerCase();
-          if (x < y) {return 1;}
-          if (x > y) {return -1;}
-          return 0;
-        });
-        devices.forEach((device) => {
-          devicesAppend.push("<option name=\"" + device.device + "\">" + device.name + "</option>");
-        });
-        utils.log.debug("Successfully downloaded devices list");
-        callback(devicesAppend.join(''));
-      } else {
-        callback(false);
-      }
-    }).catch(((e) => { utils.errorToUser(e, "getDeviceSelects"); }));
+  setRemoteValues: (osInstructs) => {
+    return Promise.all(osInstructs.options.map(option => {
+      return new Promise(function(resolve, reject) {
+        if (!option.remote_values) {
+          resolve(option); // no remote values, nothing to do
+        } else {
+          switch (option.remote_values.type) {
+            case "systemimagechannels":
+              systemImage.getDeviceChannels(global.installConfig.codename).then((channels) => {
+                option.values = channels.map(channel => {
+                  return { value: channel, label: channel.replace("ubports-touch/", "") }
+                }).reverse();
+                resolve(option);
+              }).catch(e => reject("error fetching system image channels: " + e));
+              break;
+          default:
+            reject("unknown remote_values provider: " + option.remote_values.type);
+          }
+        }
+      });
+    }));
   }
 }

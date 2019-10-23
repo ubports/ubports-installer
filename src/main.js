@@ -27,7 +27,9 @@ global.packageInfo = require('../package.json');
 
 const Adb = require('promise-android-tools').Adb;
 const Fastboot = require('promise-android-tools').Fastboot;
+const Api = require("ubports-api-node-module").Installer;
 
+var winston = require('winston');
 const exec = require('child_process').exec;
 const path = require('path');
 const url = require('url');
@@ -44,6 +46,8 @@ global.mainEvent = mainEvent;
 const utils = require('./utils.js');
 global.utils = utils;
 const devices = require('./devices.js');
+const api = new Api();
+global.api = api;
 var adb = new Adb({
   exec: (args, callback) => { exec(
     [(path.join(utils.getUbuntuTouchDir(), 'platform-tools', 'adb'))].concat(args).join(" "),
@@ -61,22 +65,31 @@ var fastboot = new Fastboot({
 });
 global.fastboot = fastboot;
 
+//==============================================================================
+// PARSE COMMAND-LINE ARGUMENTS
+//==============================================================================
+
 cli
   .name(global.packageInfo.name)
   .version(global.packageInfo.version)
   .description(global.packageInfo.description)
   .option('-d, --device <device>', '[experimental] Override detected device-id (codename)')
-  .option('-c, --channel <channel>', '[experimental] Override the recommended release-channel for the device')
-  .option('-C, --cli', "[experimental] Run without GUI", undefined, 'false')
+  .option('-o, --operating-system <os>', '[experimental] what os to install')
+  .option('-s, --settings "<setting>: <value>[, ...]"', '[experimental] Override install settings')
+  .option('-f, --file <file>', '[experimental] Override the config by loading a file')
+  .option('-c, --cli', "[experimental] Run without GUI", undefined, 'false')
   .option('-v, --verbose', "Enable verbose logging", undefined, 'false')
   .option('-D, --debug', "Enable debugging tools and verbose logging", undefined, 'false')
   .parse(process.argv);
 
+if (cli.file) {
+  global.installConfig = require(path.join(process.cwd(), cli.file));
+}
+
 global.installProperties = {
-  device: cli.device,
-  channel: cli.channel,
+  device: global.installConfig ? global.installConfig.codename : cli.device,
   cli: cli.cli,
-  verbose: (cli.verbose || cli.debug),
+  settings: cli.settings ? JSON.parse(cli.settings) : {},
   debug: cli.debug
 };
 
@@ -85,14 +98,28 @@ global.packageInfo.isSnap = utils.isSnap();
 utils.exportExecutablesFromPackage();
 
 //==============================================================================
-// RENDERER SIGNAL HANDLING
+// WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
 //==============================================================================
 
-// Device selected
-ipcMain.on("user:device:select", (event, installProperties) => {
-  global.installProperties = Object.assign(global.installProperties, installProperties);
-  devices.install(installProperties);
+global.logger = winston.createLogger({
+  format: winston.format.json(),
+  defaultMeta: { service: 'user-service' },
+  transports: [
+    new winston.transports.File({
+      filename: path.join(utils.getUbuntuTouchDir(), 'ubports-installer.log'),
+      options: { flags: 'w' },
+      level: "debug"
+    }),
+    new winston.transports.Console({
+      format: winston.format.simple(),
+      level: cli.verbose ? "debug" : "info"
+    })
+  ]
 });
+
+//==============================================================================
+// RENDERER SIGNAL HANDLING
+//==============================================================================
 
 // Exit process with optional non-zero exit code
 ipcMain.on("die", (exitCode) => {
@@ -109,6 +136,11 @@ ipcMain.on("error_ignored", () => {
   utils.log.debug("ERROR IGNORED");
 });
 
+// Begin install process
+ipcMain.on("install", () => {
+  devices.install(global.installConfig.operating_systems[global.installProperties.osIndex].steps);
+});
+
 // Submit a bug-report
 ipcMain.on("createBugReport", (event, title) => {
   utils.createBugReport(title, global.installProperties, (body) => {
@@ -117,9 +149,21 @@ ipcMain.on("createBugReport", (event, title) => {
 });
 
 // The user selected a device
-ipcMain.on("device:select", (event, device) => {
-  global.installProperties.device = device;
-  mainEvent.emit("device:select", device);
+ipcMain.on("device:selected", (event, device) => {
+  adb.stopWaiting();
+  mainEvent.emit("device", device);
+});
+
+// The user selected an os
+ipcMain.on("os:selected", (event, osIndex) => {
+  global.installProperties.osIndex = osIndex;
+  utils.log.debug(global.installConfig.operating_systems[osIndex]);
+  mainEvent.emit("user:configure", global.installConfig.operating_systems[osIndex]);
+});
+
+// The user selected an os
+ipcMain.on("option", (event, targetVar, value) => {
+  global.installProperties.settings[targetVar] = value;
 });
 
 //==============================================================================
@@ -139,7 +183,7 @@ mainEvent.on("user:error", (err) => {
 
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", (callback) => {
-  if (mainWindow) mainWindow.webContents.send("user:connection-lost", callback);
+  if (mainWindow) mainWindow.webContents.send("user:connection-lost", callback || mainWindow.reload());
 });
 
 // The device battery is too low to install
@@ -150,7 +194,6 @@ mainEvent.on("user:low-power", () => {
 // Restart the installer
 mainEvent.on("restart", () => {
   global.installProperties.device = undefined;
-  global.installProperties.channel = undefined;
   utils.log.debug("WINDOW RELOADED");
   mainWindow.reload();
 });
@@ -159,6 +202,9 @@ mainEvent.on("restart", () => {
 mainEvent.on("user:oem-lock", (callback) => {
   mainWindow.webContents.send("user:oem-lock");
   ipcMain.once("user:oem-lock:ok", () => {
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:status", "Unlocking", true);
+    mainEvent.emit("user:write:under", "You might see a confirmation dialog on your device.");
     fastboot.oemUnlock().then(() => {
       callback(true);
     }).catch((err) => {
@@ -167,19 +213,19 @@ mainEvent.on("user:oem-lock", (callback) => {
   });
 });
 
-// Prompt the user to reboot
-mainEvent.on("user:reboot", (i) => {
-  if (mainWindow) mainWindow.webContents.send("user:reboot", i);
-});
-
-// Reboot complete, hide the reboot prompt
-mainEvent.on("reboot:done", () => {
-  if (mainWindow) mainWindow.webContents.send("reboot:done");
+// Request user_action
+mainEvent.on("user:action", (action, callback) => {
+  if (mainWindow) {
+    mainWindow.webContents.send("user:action", action);
+    if (action.button) {
+      ipcMain.on("action:completed", callback);
+    }
+  }
 });
 
 // Control the progress bar
-mainEvent.on("user:write:progress", (length) => {
-  if (mainWindow) mainWindow.webContents.send("user:write:progress", length);
+mainEvent.on("user:write:progress", (progress) => {
+  if (mainWindow) mainWindow.webContents.send("user:write:progress", progress);
 });
 
 // Installation successfull
@@ -195,8 +241,8 @@ mainEvent.on("user:write:working", (animation) => {
 });
 
 // Set the top text in the footer
-mainEvent.on("user:write:status", (status) => {
-  if (mainWindow) mainWindow.webContents.send("user:write:status", status);
+mainEvent.on("user:write:status", (status, waitDots) => {
+  if (mainWindow) mainWindow.webContents.send("user:write:status", status, waitDots);
 });
 
 // Set the speed part of the footer
@@ -216,14 +262,53 @@ mainEvent.on("user:device-unsupported", (device) => {
 });
 
 // Set the install configuration data
-mainEvent.on("device:select:data-ready", (output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
-  global.installProperties.device = device;
-  if (mainWindow) mainWindow.webContents.send("device:select:data-ready", output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid);
+mainEvent.on("user:configure", (osInstructs) => {
+  if(osInstructs.options) {
+    // If there's something to configure, configure it!
+    if (mainWindow) {
+      devices.setRemoteValues(osInstructs).then((osInstructs) => {
+        mainWindow.webContents.send("user:configure", osInstructs);
+      }).catch(e => utils.errorToUser(e, "configure"));
+    }
+  } else {
+    // If there's nothing to configure, don't configure anything
+    devices.install(osInstructs.steps);
+  }
 });
 
-// No internet connection
-mainEvent.on("user:no-network", () => {
-  if (mainWindow) mainWindow.webContents.send("user:no-network");
+mainEvent.on("device", (device) => {
+  global.installProperties.device = device;
+  function continueWithConfig() {
+    if(global.installConfig.operating_systems.length > 1) {
+      // ask for os selection if there's one os
+      mainWindow.webContents.send(
+        "user:os",
+        global.installConfig, devices.getOsSelects(global.installConfig.operating_systems)
+      );
+    } else {
+      // immediately jump to configure if there's only one os
+      global.installProperties.osIndex = 0;
+      mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
+    }
+  }
+  if(global.installConfig && global.installConfig.operating_systems) {
+    // local config specified
+    continueWithConfig();
+  } else {
+    // local config specified
+    api.getDevice(device).then((config) => {
+      global.installConfig = config;
+      continueWithConfig();
+    }).catch(() => {
+      mainEvent.emit("user:device-unsupported", device);
+    });
+  }
+});
+
+// The user selected a device
+mainEvent.on("device:detected", (device) => {
+  utils.log.info("device detected: " + device)
+  mainEvent.emit("device", device);
 });
 
 //==============================================================================
@@ -231,7 +316,6 @@ mainEvent.on("user:no-network", () => {
 //==============================================================================
 
 function createWindow () {
-  utils.setLogLevel(global.installProperties.verbose ? "debug" : "info");
   utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
   utils.log.info("This is " + (global.packageInfo.updateAvailable ? "not " : "") + "the latest stable version!");
   mainWindow = new BrowserWindow({
@@ -245,11 +329,15 @@ function createWindow () {
   // Tasks we need for every start
   mainWindow.webContents.on("did-finish-load", () => {
     adb.startServer().then(() => {
-      mainWindow.webContents.send("user:adb:ready");
-      devices.waitForDevice();
-    });
-    devices.getDeviceSelects((out) => {
-      mainWindow.webContents.send("device:wait:device-selects-ready", out)
+      if (!global.installProperties.device) {
+        devices.waitForDevice();
+      }
+    }).catch(e => utils.errorToUser(e, "Failed to start adb server"));
+    api.getDeviceSelects().then((out) => {
+      mainWindow.webContents.send("device:wait:device-selects-ready", out);
+    }).catch(e => {
+      utils.log.error("getDeviceSelects error: " + e)
+      mainWindow.webContents.send("user:no-network");
     });
   });
 
@@ -301,6 +389,6 @@ app.on('activate', function () {
 
 process.on('unhandledRejection', (r) => {
   utils.log.error(r);
-  if (mainWindow) utils.errorToUser(r);
+  if (mainWindow) utils.errorToUser(r, "unhandledRejection");
   else utils.die(r);
 });

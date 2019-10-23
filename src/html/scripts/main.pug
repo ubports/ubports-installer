@@ -51,17 +51,6 @@ script.
     });
   });
 
-  ipcRenderer.on("user:reboot", (e, i) => {
-    views.show("reboot-" + i.button);
-    $("[id=reboot-to-state]").text(i.state);
-    $("#complex-reboot-instruction").text(i.instruction);
-  });
-
-  ipcRenderer.on("reboot:done", () => {
-    $('#views-reboot-up').hide();
-    $('#views-reboot-down').hide();
-  });
-
   ipcRenderer.on("user:no-network", () => {
     modals.show('no-network');
   });
@@ -74,6 +63,7 @@ script.
     if(length >= 100) {
       length=100;
     }
+    $("#progress").show();
     $("#progress").width(length.toString()+"%");
   });
 
@@ -82,18 +72,16 @@ script.
       remote.getCurrentWindow().close();
     } else {
       views.show("done");
-      footer.topText.set("Installation complete!");
-      footer.underText.set("It is now safe to unplug the device.");
       $("#progress").width("0%");
     }
   });
 
-  ipcRenderer.on("user:write:status", (e, status) => {
-    footer.topText.set(status, true)
+  ipcRenderer.on("user:write:status", (e, status, waitDots) => {
+    footer.topText.set(status, waitDots);
   });
 
   ipcRenderer.on("user:write:under", (e, status) => {
-    footer.underText.set(status, true)
+    footer.underText.set(status, true);
   });
 
   ipcRenderer.on("user:device-unsupported", (event, device) => {
@@ -101,63 +89,54 @@ script.
     footer.underText.set("The device " + device + " is not supported");
     $("[id=your-device]").text(device);
     views.show("not-supported");
-    $("#btn-inst").hide();
   });
 
-  ipcRenderer.on("device:select:data-ready", (event, output, device, channels, ubuntuCom, autoDetected, isLegacyAndroid) => {
-    views.show("install");
-    $("#options-channel").append(channels);
-    options.optionsValToUser();
-    modals.hide('select-device');
-    $("#btn-inst").show();
-    footer.topText.set(output.name);
-    if (isLegacyAndroid && !ubuntuCom) {
-      $("#legacy-android-note").show();
-      modals.show("legacy-android");
-    }
-    if (autoDetected) {
-      footer.underText.set("Are you ready for Ubuntu Touch on your " + output.name + "?");
-    } else {
-      footer.underText.set("Please connect your " + output.name + " with a USB cable.");
-    }
-    $("#your-ubp-device").text(output.name+" ("+output.device+")");
+  ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
+    global.installConfig = installConfig;
+    global.installConfig.os_to_install = undefined;
+    $("#options-os").append(osSelects);
+    $("#your-ubp-device").text(installConfig.name+" ("+installConfig.codename+")");
     $("#your-ubp-device").click(() => {
-      shell.openExternal("https://devices.ubuntu-touch.io/device/"+output.device);
+      shell.openExternal("https://devices.ubuntu-touch.io/device/" + installConfig.codename);
     });
+    modals.hide("select-device");
+    views.show("select-os");
+  });
 
-    $("#btn-installModal").click(() => {
-      views.show("working", "particles");
-      $("#progress").show();
-      ipcRenderer.send("user:device:select", {
-        device: output.device,
-        channel: options.get("channel", true),
-        wipe: options.get("wipe", true)
+  ipcRenderer.on("user:action", (event, action) => {
+    views.show("user-action");
+    $("#user-action-title").text(action.title)
+    $("#user-action-description").text(action.description)
+
+    if (action.image) $("#user-action-image").attr("src", "../img/" + action.image + ".jpg");
+    else $("#user-action-image").attr("src", "../screens/Screen6.jpg");
+
+    if (action.button) {
+      $("#user-action-button").one("click", () => {
+        event.sender.send("action:completed");
       });
-    });
+      $("#user-action-button").show();
+    } else {
+      $("#user-action-button").hide();
+    }
   });
 
   views.show("working", "particles");
 
   ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
-    $("#device-select").append(deviceSelects);
-  });
-
-  ipcRenderer.on("user:adb:ready", () => {
     footer.topText.set("Waiting for device", true);
     footer.underText.set("Please connect your device with a USB cable");
-    views.show("wait-for-device");
-    // Button to open device selector
-    $("#btn-modal-select-device").click(() => {
-      modals.show('select-device');
-    });
-    // Button to confirm device selection
-    $("#btn-select-device").click(() => {
-      var device = $("#device-select").find(":selected").attr("name");
-      ipcRenderer.send("device:select", device);
-    });
+    if (!remote.getGlobal("installProperties").device) {
+      // if the device is not yet set (i.e. from a cli argument), prompt the user
+      $("#device-select").append(deviceSelects);
+      views.show("wait-for-device");
+      // Button to confirm device selection
+      $("#btn-select-device").click(() => {
+        var device = $("#device-select").find(":selected").attr("name");
+        ipcRenderer.send("device:selected", device);
+      });
+    } else {
+      // if the device is set, just return the device:selected event
+      ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);
+    }
   });
-
-  // Assign buttons
-  modals.bind("options");
-  // Initialize options modal
-  options.init();

@@ -23,9 +23,12 @@ const path = require("path");
 const checksum = require('checksum');
 const mkdirp = require('mkdirp');
 const cp = require('child_process');
-const winston = require('winston');
 const getos = require('getos');
 global.packageInfo = require('../package.json');
+
+if (!fs.existsSync(getUbuntuTouchDir())) {
+  mkdirp.sync(getUbuntuTouchDir());
+}
 
 const platforms = {
   "linux": "linux",
@@ -33,14 +36,11 @@ const platforms = {
   "win32": "win"
 }
 
-if (global.installProperties)
-  winston.level = global.installProperties.verbose ? 'debug' : 'info';
-
 var log = {
-  error: (l) => {winston.log("error", l)},
-  warn:  (l) => {winston.log("warn", l)},
-  info:  (l) => {winston.log("info", l)},
-  debug: (l) => {winston.log("debug", l)}
+  error: (l) => { global.logger.log("error", l); },
+  warn:  (l) => { global.logger.log("warn", l); },
+  info:  (l) => { global.logger.log("info", l); },
+  debug: (l) => { global.logger.log("debug", l); }
 }
 
 function createBugReport(title, installProperties, callback) {
@@ -50,17 +50,16 @@ function createBugReport(title, installProperties, callback) {
     order: 'desc'
   };
 
-  winston.query(options, function (err, results) {
+  global.logger.query(options, function (err, results) {
     if (err) {
       throw err;
     }
 
     var errorLog = "";
     results.file.forEach((err) => {
-      errorLog+=err.level+" "
-      errorLog+=err.timestamp+" "
+      errorLog+=err.level+": "
       errorLog+=err.message+"\n"
-    })
+    });
 
     http.post({
       url: "http://paste.ubuntu.com",
@@ -75,7 +74,7 @@ function createBugReport(title, installProperties, callback) {
         callback("*Automatically generated error report* %0D%0A" +
         "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
         "Device: " + (installProperties.device ? installProperties.device : "Not detected") + "%0D%0A" +
-        "Channel: " + (installProperties.channel ? installProperties.channel : "Not yet set") + "%0D%0A" +
+        "Channel: " + (installProperties.settings && installProperties.settings.channel ? installProperties.settings.channel  : "Not yet set") + "%0D%0A" +
         "Package: " + (isSnap() ? "snap" : (packageInfo.package || "source")) + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
@@ -127,7 +126,7 @@ function getUpdateAvailable() {
     getLatestInstallerVersion().then((latestVersion) => {
       if(latestVersion != global.packageInfo.version) resolve();
       else reject();
-    });
+    }).catch(resolve);
   });
 }
 
@@ -149,16 +148,6 @@ function getUbuntuTouchDir() {
   return path.join(osCacheDir, "ubports");
 }
 
-if (!fs.existsSync(getUbuntuTouchDir())) {
-  mkdirp.sync(getUbuntuTouchDir());
-}
-
-winston.add(winston.transports.File, {
-  filename: path.join(getUbuntuTouchDir(), 'ubports-installer.log'),
-  level: 'debug', // Print debug logs to the file
-  options: { flags: 'w' } // Clear log before writing to it
-});
-
 function die(e) {
   log.error(e);
   process.exit(-1);
@@ -166,39 +155,17 @@ function die(e) {
 
 // WORKAROUND: the chile spawned by child_process.exec can not access files inside the asar package
 function exportExecutablesFromPackage() {
-  getFallbackPlatformTools().forEach((tool) => {
-    fs.copy(tool.package, tool.cache, () => {
-      fs.chmodSync(tool.cache, 0o755);
-    });
-  });
-}
-
-function maybeEXE(platform, tool) {
-  if(platform === "win32") tool+=".exe";
-  return tool;
-}
-
-function getPlatform() {
-  var thisPlatform = os.platform();
-  if(!platforms[thisPlatform]) die("Unsuported platform");
-  return platforms[thisPlatform];
-}
-
-function getFallbackPlatformTools() {
-  var thisPlatform = os.platform();
-  if(!platforms[thisPlatform]) die("Unsupported platform");
-  var toolInPackage = path.join(__dirname, "/../platform-tools/", platforms[thisPlatform]);
-  var toolInCache = path.join(utils.getUbuntuTouchDir(), 'platform-tools');
-  return [
-    {
-      package: path.join(toolInPackage, maybeEXE(thisPlatform, "fastboot")),
-      cache: path.join(toolInCache, maybeEXE(thisPlatform, "fastboot"))
-    },
-    {
-      package: path.join(toolInPackage, maybeEXE(thisPlatform, "adb")),
-      cache: path.join(toolInCache, maybeEXE(thisPlatform, "adb"))
+  fs.copy(
+    path.join(__dirname, "..", "platform-tools", platforms[os.platform()]),
+    path.join(utils.getUbuntuTouchDir(), 'platform-tools'),
+    () => {
+      if (os.platform() !== "win32") {
+        ["adb", "fastboot", "mke2fs"].map(exe => path.join(utils.getUbuntuTouchDir(), 'platform-tools', exe)).forEach((tool) => {
+          fs.chmodSync(tool, 0o755);
+        });
+      }
     }
-  ]
+  );
 }
 
 function isSnap() {
@@ -209,7 +176,7 @@ function checksumFile(file) {
   return new Promise(function(resolve, reject) {
     fs.access(path.join(file.path, path.basename(file.url)), (err) => {
       if (err) {
-        reject();
+        reject(err);
       } else {
         if (!file.checksum) {
           // No checksum so return true;
@@ -221,7 +188,7 @@ function checksumFile(file) {
           }, function(err, sum) {
             utils.log.debug("checked: " +path.basename(file.url), sum === file.checksum);
             if (sum === file.checksum) resolve();
-            else reject();
+            else reject("checksum mismatch: calculated " + sum  + " but expected " + file.checksum);
           });
         }
       }
@@ -281,7 +248,7 @@ function downloadFiles(urls, progress, next) {
               reject(err);
               return;
             });
-          });
+          }).catch(reject);
         });
       });
     })).then(() => {
@@ -309,6 +276,5 @@ module.exports = {
   getUbuntuTouchDir: getUbuntuTouchDir,
   createBugReport: createBugReport,
   getUpdateAvailable: getUpdateAvailable,
-  die: die,
-  setLogLevel: (level) => { winston.level = level; }
+  die: die
 }
