@@ -20,6 +20,7 @@
 const cli = require("commander");
 const electron = require('electron');
 const electronPug = require('electron-pug');
+const terminate = require("terminate");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -373,12 +374,14 @@ function createWindow () {
 app.on('ready', createWindow);
 
 app.on('window-all-closed', function () {
+  adb.killServer().catch();
   utils.log.info("Good bye!");
-  adb.killServer().then(() => {
-    if (process.platform !== 'darwin') {
+  if (process.platform !== 'darwin') {
+    setTimeout(() => {
       app.quit();
-    }
-  });
+      terminate(process.pid, console.error);
+    }, 1000);
+  }
 });
 
 app.on('activate', function () {
