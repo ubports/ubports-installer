@@ -328,11 +328,13 @@ function createWindow () {
 
   // Tasks we need for every start
   mainWindow.webContents.on("did-finish-load", () => {
-    adb.startServer().then(() => {
-      if (!global.installProperties.device) {
-        devices.waitForDevice();
-      }
-    }).catch(e => utils.errorToUser(e, "Failed to start adb server"));
+    setTimeout(() => {
+      adb.startServer().then(() => {
+        if (!global.installProperties.device) {
+          devices.waitForDevice();
+        }
+      }).catch(e => utils.errorToUser(e, "Failed to start adb server"));
+    }, 1000);
     api.getDeviceSelects().then((out) => {
       mainWindow.webContents.send("device:wait:device-selects-ready", out);
     }).catch(e => {
