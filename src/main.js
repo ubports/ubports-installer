@@ -24,7 +24,6 @@ const terminate = require("terminate");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
-const Menu = electron.Menu;
 global.packageInfo = require('../package.json');
 
 const Adb = require('promise-android-tools').Adb;
@@ -134,9 +133,7 @@ ipcMain.on("install", () => {
 
 // Submit a bug-report
 ipcMain.on("createBugReport", (event, title) => {
-  utils.createBugReport(title, global.installProperties, (body) => {
-    electron.shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
-  });
+  utils.sendBugReport(title);
 });
 
 // The user selected a device
@@ -348,8 +345,6 @@ function createWindow () {
     slashes: true
   }));
 
-  mainWindow.setMenu(null); // TODO set menu
-
   if (cli.debug) mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', function () {
@@ -392,48 +387,73 @@ process.on('uncaughtException', (r) => {
   else utils.die(r);
 });
 
-//==============================================================================
-// FUNCTIONAL MENU HANDLING
-//==============================================================================
-
+// Set application menu
 app.on('ready', function () {
-const menuTemplate = [
-  {
-  label: 'Tools',
-  submenu: [{
-    label: 'Donate',
-    accelerator: 'CmdOrCtrl+D',
-         click: () => {
-         electron.shell.openExternal("https://ubports.com/donate");
+  const menuTemplate = [
+    {
+      label: 'About',
+      submenu: [
+        {
+          label: 'About the UBports Foundation...',
+          click: () => electron.shell.openExternal("https://ubports.com")
+        },
+        {
+          label: 'About Ubuntu Touch...',
+          click: () => electron.shell.openExternal("https://ubuntu-touch.io")
+        },
+        {
+          label: 'Donate',
+          click: () => electron.shell.openExternal("https://ubports.com/donate")
+        },
+        {
+          label: 'Source',
+          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/tree/" + global.packageInfo.version)
+        },
+        {
+          label: 'License',
+          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/blob/" + global.packageInfo.version + "/LICENSE")
         }
-  }]
-}, {
-  label: 'Bug found',
-  submenu: [{
-    label: 'Report a bug',
-    accelerator: 'CmdOrCtrl+R',
-         click: () => {
-         electron.shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title=user-requested%20bug-report&body=*Automatically%20generated%20error%20report*%20%0D%0AUBports%20Installer%20Version:%200.4.1-beta%20%0D%0ADevice:%20Not%20detected%0D%0AChannel:%20Not%20yet%20set%0D%0APackage:%20source%0D%0AOperating%20System:%20Ubuntu%20Linux%2016.04%20xenial%20x64%20%0D%0ANodeJS%20version:%20v8.2.1%20%0D%0A%0D%0AError%20log:%20https://paste.ubuntu.com//p/z5bwR59JsW/%20%0D%0A");
+      ]
+    },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'Report a bug',
+          click: () => utils.sendBugReport("user-requested bug-report")
+        },
+        {
+          label: 'View issues',
+          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/issues")
+        },
+        {
+          label: 'Troubleshooting guide',
+          click: () => electron.shell.openExternal("https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting")
+        },
+        {
+          label: 'UBports Forums',
+          click: () => electron.shell.openExternal("https://forums.ubports.com")
         }
-  }]
-}, {
-  label: 'Window',
-  role: 'window',
-  submenu: [{
-    label: 'Minimize',
-    accelerator: 'CmdOrCtrl+M',
-    role: 'minimize'
-}, {
-    label: 'Close',
-    accelerator: 'CmdOrCtrl+W',
-    role: 'close'
+      ]
+    },
+    {
+      label: 'Window',
+      role: 'window',
+      submenu: [
+        {
+          label: 'Minimize',
+          accelerator: 'CmdOrCtrl+M',
+          role: 'minimize'
+        },
+        {
+          label: 'Close',
+          accelerator: 'CmdOrCtrl+W',
+          role: 'close'
+        }
+      ]
     }
-  ]
- }
-];
-  
-    const menu = Menu.buildFromTemplate(menuTemplate);
-    Menu.setApplicationMenu(menu);
+  ];
+
+  const menu = electron.Menu.buildFromTemplate(menuTemplate);
+  electron.Menu.setApplicationMenu(menu);
 });
-
-
