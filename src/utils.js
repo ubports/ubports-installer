@@ -76,7 +76,7 @@ function createBugReport(title, installProperties, callback) {
         "UBports Installer Version: " + global.packageInfo.version + " %0D%0A" +
         "Device: " + (installProperties.device ? installProperties.device : "Not detected") + "%0D%0A" +
         "Channel: " + (installProperties.settings && installProperties.settings.channel ? installProperties.settings.channel  : "Not yet set") + "%0D%0A" +
-        "Package: " + (isSnap() ? "snap" : (packageInfo.package || "source")) + "%0D%0A" +
+        "Package: " + (isSnap() ? "snap" : (global.packageInfo.package || "source")) + "%0D%0A" +
         "Operating System: " + getCleanOs() + " " + os.arch() + " %0D%0A" +
         "NodeJS version: " + process.version + " %0D%0A%0D%0A" +
         "Error log: https://paste.ubuntu.com/" + res.headers.location + " %0D%0A");
@@ -154,26 +154,14 @@ function die(e) {
   process.exit(-1);
 }
 
+let toolpath = global.packageInfo.package ?
+  path.join(__dirname, "../../app.asar.unpacked/platform-tools", platforms[os.platform()]) :
+  path.join(__dirname, "..", "platform-tools", platforms[os.platform()]);
 function execTool(tool, args, callback) {
   exec(
-    [path.join((process.env.SNAP || utils.getUbuntuTouchDir()), "platform-tools", tool)].concat(args).join(" "),
+    [path.join(toolpath, tool)].concat(args).join(" "),
     {options: {maxBuffer: 1024*1024*2}},
     callback
-  );
-}
-
-// WORKAROUND: the chile spawned by child_process.exec can not access files inside the asar package
-function exportExecutablesFromPackage() {
-  fs.copy(
-    path.join(__dirname, "..", "platform-tools", platforms[os.platform()]),
-    path.join(utils.getUbuntuTouchDir(), 'platform-tools'),
-    () => {
-      if (os.platform() !== "win32") {
-        ["adb", "fastboot", "mke2fs"].map(exe => path.join(utils.getUbuntuTouchDir(), 'platform-tools', exe)).forEach((tool) => {
-          fs.chmodSync(tool, 0o755);
-        });
-      }
-    }
   );
 }
 
@@ -278,7 +266,6 @@ function errorToUser(error, errorLocation) {
 
 module.exports = {
   errorToUser: errorToUser,
-  exportExecutablesFromPackage: exportExecutablesFromPackage,
   downloadFiles: downloadFiles,
   log: log,
   isSnap: isSnap,

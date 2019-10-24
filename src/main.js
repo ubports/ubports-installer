@@ -86,8 +86,6 @@ global.installProperties = {
 
 global.packageInfo.isSnap = utils.isSnap();
 
-if (!global.packageInfo.isSnap) utils.exportExecutablesFromPackage();
-
 //==============================================================================
 // WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
 //==============================================================================
