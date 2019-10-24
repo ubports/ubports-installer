@@ -43,9 +43,10 @@ function extractPlatformTools(platformToolsArray, callback) {
       overwrite: true
     }, (e) => {
       fs.removeSync(path.join(i.path, i.target + "_tmp"));
-      if (i.target != "win") {
+      if (cli.os !== "win") {
         fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
         fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
+        fs.chmodSync(path.join(i.path, i.target, "mke2fs"), 0o755);
       }
       if (platformToolsArray.length <= 1) {
         callback()
