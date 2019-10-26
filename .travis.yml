@@ -24,6 +24,7 @@ install:
 - npm install
 - npm prune
 script:
+- npm run lint
 - '[ "$TRAVIS_OS_NAME" == "linux" ] || npm run dist:mac'
 - '[ "$TRAVIS_OS_NAME" == "osx" ] || npm run dist:linux:deb'
 - '[ "$TRAVIS_OS_NAME" == "osx" ] || npm run dist:linux:appimage'

@@ -17,6 +17,7 @@ version: '{build}'
 shallow_clone: true
 clone_depth: 1
 test_script:
+  - npm run lint
   - npm run dist:win
 artifacts:
   - path: dist\ubports-installer*.exe
