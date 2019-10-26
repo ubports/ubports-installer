@@ -13,6 +13,7 @@ apps:
   ubports-installer:
     command: desktop-launch $SNAP/bin/snap-wrapper
     plugs:
+      - home
       - unity7
       - browser-support
       - network
