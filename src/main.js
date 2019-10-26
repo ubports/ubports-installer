@@ -133,9 +133,7 @@ ipcMain.on("install", () => {
 
 // Submit a bug-report
 ipcMain.on("createBugReport", (event, title) => {
-  utils.createBugReport(title, global.installProperties, (body) => {
-    electron.shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
-  });
+  utils.sendBugReport(title);
 });
 
 // The user selected a device
@@ -347,8 +345,6 @@ function createWindow () {
     slashes: true
   }));
 
-  mainWindow.setMenu(null); // TODO set menu
-
   if (cli.debug) mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', function () {
@@ -389,4 +385,75 @@ process.on('uncaughtException', (r) => {
   utils.log.error("uncaught exception: " + r);
   if (mainWindow) utils.errorToUser(r, "uncaughtException");
   else utils.die(r);
+});
+
+// Set application menu
+app.on('ready', function () {
+  const menuTemplate = [
+    {
+      label: 'About',
+      submenu: [
+        {
+          label: 'About the UBports Foundation...',
+          click: () => electron.shell.openExternal("https://ubports.com")
+        },
+        {
+          label: 'About Ubuntu Touch...',
+          click: () => electron.shell.openExternal("https://ubuntu-touch.io")
+        },
+        {
+          label: 'Donate',
+          click: () => electron.shell.openExternal("https://ubports.com/donate")
+        },
+        {
+          label: 'Source',
+          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/tree/" + global.packageInfo.version)
+        },
+        {
+          label: 'License',
+          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/blob/" + global.packageInfo.version + "/LICENSE")
+        }
+      ]
+    },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'Report a bug',
+          click: () => utils.sendBugReport("user-requested bug-report")
+        },
+        {
+          label: 'View issues',
+          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/issues")
+        },
+        {
+          label: 'Troubleshooting guide',
+          click: () => electron.shell.openExternal("https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting")
+        },
+        {
+          label: 'UBports Forums',
+          click: () => electron.shell.openExternal("https://forums.ubports.com")
+        }
+      ]
+    },
+    {
+      label: 'Window',
+      role: 'window',
+      submenu: [
+        {
+          label: 'Minimize',
+          accelerator: 'CmdOrCtrl+M',
+          role: 'minimize'
+        },
+        {
+          label: 'Close',
+          accelerator: 'CmdOrCtrl+W',
+          role: 'close'
+        }
+      ]
+    }
+  ];
+
+  const menu = electron.Menu.buildFromTemplate(menuTemplate);
+  electron.Menu.setApplicationMenu(menu);
 });

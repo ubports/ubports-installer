@@ -17,6 +17,7 @@
 
 const http = require("request");
 const download = require("download");
+const shell = require("electron").shell;
 const exec = require('child_process').exec;
 const os = require("os");
 const fs = require("fs-extra");
@@ -83,6 +84,12 @@ function createBugReport(title, installProperties, callback) {
       });
       else callback(false);
     })
+  });
+}
+
+function sendBugReport(title) {
+  createBugReport(title, global.installProperties, (body) => {
+    shell.openExternal("https://github.com/ubports/ubports-installer/issues/new?title="+title+"&body="+body);
   });
 }
 
@@ -271,7 +278,7 @@ module.exports = {
   isSnap: isSnap,
   execTool: execTool,
   getUbuntuTouchDir: getUbuntuTouchDir,
-  createBugReport: createBugReport,
+  sendBugReport: sendBugReport,
   getUpdateAvailable: getUpdateAvailable,
   die: die
 }
