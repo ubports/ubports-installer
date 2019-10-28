@@ -18,23 +18,23 @@
  */
 
 const cli = require("commander");
-const electron = require('electron');
-const electronPug = require('electron-pug');
+const electron = require("electron");
+const electronPug = require("electron-pug");
 const terminate = require("terminate");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
-global.packageInfo = require('../package.json');
+global.packageInfo = require("../package.json");
 
-const Adb = require('promise-android-tools').Adb;
-const Fastboot = require('promise-android-tools').Fastboot;
+const Adb = require("promise-android-tools").Adb;
+const Fastboot = require("promise-android-tools").Fastboot;
 const Api = require("ubports-api-node-module").Installer;
 
-var winston = require('winston');
-const path = require('path');
-const url = require('url');
+var winston = require("winston");
+const path = require("path");
+const url = require("url");
 const events = require("events");
-class event extends events {};
+class event extends events {}
 
 const pug = new electronPug();
 const ipcMain = electron.ipcMain;
@@ -43,18 +43,22 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
-const utils = require('./utils.js');
+const utils = require("./utils.js");
 global.utils = utils;
-const devices = require('./devices.js');
+const devices = require("./devices.js");
 const api = new Api();
 global.api = api;
 var adb = new Adb({
-  exec: (args, callback) => { utils.execTool("adb", args, callback); },
+  exec: (args, callback) => {
+    utils.execTool("adb", args, callback);
+  },
   log: utils.log.debug
 });
 global.adb = adb;
 var fastboot = new Fastboot({
-  exec: (args, callback) => { utils.execTool("fastboot", args, callback); },
+  exec: (args, callback) => {
+    utils.execTool("fastboot", args, callback);
+  },
   log: utils.log.debug
 });
 global.fastboot = fastboot;
@@ -67,13 +71,27 @@ cli
   .name(global.packageInfo.name)
   .version(global.packageInfo.version)
   .description(global.packageInfo.description)
-  .option('-d, --device <device>', '[experimental] Override detected device-id (codename)')
-  .option('-o, --operating-system <os>', '[experimental] what os to install')
-  .option('-s, --settings "<setting>: <value>[, ...]"', '[experimental] Override install settings')
-  .option('-f, --file <file>', '[experimental] Override the config by loading a file')
-  .option('-c, --cli', "[experimental] Run without GUI", undefined, 'false')
-  .option('-v, --verbose', "Enable verbose logging", undefined, 'false')
-  .option('-D, --debug', "Enable debugging tools and verbose logging", undefined, 'false')
+  .option(
+    "-d, --device <device>",
+    "[experimental] Override detected device-id (codename)"
+  )
+  .option("-o, --operating-system <os>", "[experimental] what os to install")
+  .option(
+    '-s, --settings "<setting>: <value>[, ...]"',
+    "[experimental] Override install settings"
+  )
+  .option(
+    "-f, --file <file>",
+    "[experimental] Override the config by loading a file"
+  )
+  .option("-c, --cli", "[experimental] Run without GUI", undefined, "false")
+  .option("-v, --verbose", "Enable verbose logging", undefined, "false")
+  .option(
+    "-D, --debug",
+    "Enable debugging tools and verbose logging",
+    undefined,
+    "false"
+  )
   .parse(process.argv);
 
 if (cli.file) {
@@ -95,11 +113,11 @@ global.packageInfo.isSnap = utils.isSnap();
 
 global.logger = winston.createLogger({
   format: winston.format.json(),
-  defaultMeta: { service: 'user-service' },
+  defaultMeta: { service: "user-service" },
   transports: [
     new winston.transports.File({
-      filename: path.join(utils.getUbuntuTouchDir(), 'ubports-installer.log'),
-      options: { flags: 'w' },
+      filename: path.join(utils.getUbuntuTouchDir(), "ubports-installer.log"),
+      options: { flags: "w" },
       level: "debug"
     }),
     new winston.transports.Console({
@@ -114,7 +132,7 @@ global.logger = winston.createLogger({
 //==============================================================================
 
 // Exit process with optional non-zero exit code
-ipcMain.on("die", (exitCode) => {
+ipcMain.on("die", exitCode => {
   process.exit(exitCode);
 });
 
@@ -130,7 +148,10 @@ ipcMain.on("error_ignored", () => {
 
 // Begin install process
 ipcMain.on("install", () => {
-  devices.install(global.installConfig.operating_systems[global.installProperties.osIndex].steps);
+  devices.install(
+    global.installConfig.operating_systems[global.installProperties.osIndex]
+      .steps
+  );
 });
 
 // Submit a bug-report
@@ -148,7 +169,10 @@ ipcMain.on("device:selected", (event, device) => {
 ipcMain.on("os:selected", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
   utils.log.debug(global.installConfig.operating_systems[osIndex]);
-  mainEvent.emit("user:configure", global.installConfig.operating_systems[osIndex]);
+  mainEvent.emit(
+    "user:configure",
+    global.installConfig.operating_systems[osIndex]
+  );
 });
 
 // The user selected an os
@@ -161,7 +185,7 @@ ipcMain.on("option", (event, targetVar, value) => {
 //==============================================================================
 
 // Open the bugreporting tool
-mainEvent.on("user:error", (err) => {
+mainEvent.on("user:error", err => {
   try {
     if (mainWindow) mainWindow.webContents.send("user:error", err);
     else utils.die(err);
@@ -172,8 +196,12 @@ mainEvent.on("user:error", (err) => {
 });
 
 // Connection to the device was lost
-mainEvent.on("user:connection-lost", (callback) => {
-  if (mainWindow) mainWindow.webContents.send("user:connection-lost", callback || mainWindow.reload());
+mainEvent.on("user:connection-lost", callback => {
+  if (mainWindow)
+    mainWindow.webContents.send(
+      "user:connection-lost",
+      callback || mainWindow.reload()
+    );
 });
 
 // The device battery is too low to install
@@ -189,17 +217,23 @@ mainEvent.on("restart", () => {
 });
 
 // The device's bootloader is locked, prompt the user to unlock it
-mainEvent.on("user:oem-lock", (callback) => {
+mainEvent.on("user:oem-lock", callback => {
   mainWindow.webContents.send("user:oem-lock");
   ipcMain.once("user:oem-lock:ok", () => {
     mainEvent.emit("user:write:working", "particles");
     mainEvent.emit("user:write:status", "Unlocking", true);
-    mainEvent.emit("user:write:under", "You might see a confirmation dialog on your device.");
-    fastboot.oemUnlock().then(() => {
-      callback(true);
-    }).catch((err) => {
-      mainEvent.emit("user:error", err);
-    });
+    mainEvent.emit(
+      "user:write:under",
+      "You might see a confirmation dialog on your device."
+    );
+    fastboot
+      .oemUnlock()
+      .then(() => {
+        callback(true);
+      })
+      .catch(err => {
+        mainEvent.emit("user:error", err);
+      });
   });
 });
 
@@ -214,7 +248,7 @@ mainEvent.on("user:action", (action, callback) => {
 });
 
 // Control the progress bar
-mainEvent.on("user:write:progress", (progress) => {
+mainEvent.on("user:write:progress", progress => {
   if (mainWindow) mainWindow.webContents.send("user:write:progress", progress);
 });
 
@@ -222,43 +256,50 @@ mainEvent.on("user:write:progress", (progress) => {
 mainEvent.on("user:write:done", () => {
   if (mainWindow) mainWindow.webContents.send("user:write:done");
   if (mainWindow) mainWindow.webContents.send("user:write:speed");
-  utils.log.info("All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!");
+  utils.log.info(
+    "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
+  );
 });
 
 // Show working animation
-mainEvent.on("user:write:working", (animation) => {
+mainEvent.on("user:write:working", animation => {
   if (mainWindow) mainWindow.webContents.send("user:write:working", animation);
 });
 
 // Set the top text in the footer
 mainEvent.on("user:write:status", (status, waitDots) => {
-  if (mainWindow) mainWindow.webContents.send("user:write:status", status, waitDots);
+  if (mainWindow)
+    mainWindow.webContents.send("user:write:status", status, waitDots);
 });
 
 // Set the speed part of the footer
-mainEvent.on("user:write:speed", (speed) => {
+mainEvent.on("user:write:speed", speed => {
   if (mainWindow) mainWindow.webContents.send("user:write:speed", speed);
 });
 
 // Set the lower text in the footer
-mainEvent.on("user:write:under", (status) => {
+mainEvent.on("user:write:under", status => {
   if (mainWindow) mainWindow.webContents.send("user:write:under", status);
 });
 
 // Device is unsupported
-mainEvent.on("user:device-unsupported", (device) => {
+mainEvent.on("user:device-unsupported", device => {
   utils.log.warn("The device " + device + " is not supported!");
-  if (mainWindow) mainWindow.webContents.send("user:device-unsupported", device);
+  if (mainWindow)
+    mainWindow.webContents.send("user:device-unsupported", device);
 });
 
 // Set the install configuration data
-mainEvent.on("user:configure", (osInstructs) => {
-  if(osInstructs.options) {
+mainEvent.on("user:configure", osInstructs => {
+  if (osInstructs.options) {
     // If there's something to configure, configure it!
     if (mainWindow) {
-      devices.setRemoteValues(osInstructs).then((osInstructs) => {
-        mainWindow.webContents.send("user:configure", osInstructs);
-      }).catch(e => utils.errorToUser(e, "configure"));
+      devices
+        .setRemoteValues(osInstructs)
+        .then(osInstructs => {
+          mainWindow.webContents.send("user:configure", osInstructs);
+        })
+        .catch(e => utils.errorToUser(e, "configure"));
     }
   } else {
     // If there's nothing to configure, don't configure anything
@@ -266,38 +307,45 @@ mainEvent.on("user:configure", (osInstructs) => {
   }
 });
 
-mainEvent.on("device", (device) => {
+mainEvent.on("device", device => {
   global.installProperties.device = device;
   function continueWithConfig() {
-    if(global.installConfig.operating_systems.length > 1) {
+    if (global.installConfig.operating_systems.length > 1) {
       // ask for os selection if there's one os
       mainWindow.webContents.send(
         "user:os",
-        global.installConfig, devices.getOsSelects(global.installConfig.operating_systems)
+        global.installConfig,
+        devices.getOsSelects(global.installConfig.operating_systems)
       );
     } else {
       // immediately jump to configure if there's only one os
       global.installProperties.osIndex = 0;
-      mainEvent.emit("user:configure", global.installConfig.operating_systems[0]);
+      mainEvent.emit(
+        "user:configure",
+        global.installConfig.operating_systems[0]
+      );
     }
   }
-  if(global.installConfig && global.installConfig.operating_systems) {
+  if (global.installConfig && global.installConfig.operating_systems) {
     // local config specified
     continueWithConfig();
   } else {
     // local config specified
-    api.getDevice(device).then((config) => {
-      global.installConfig = config;
-      continueWithConfig();
-    }).catch(() => {
-      mainEvent.emit("user:device-unsupported", device);
-    });
+    api
+      .getDevice(device)
+      .then(config => {
+        global.installConfig = config;
+        continueWithConfig();
+      })
+      .catch(() => {
+        mainEvent.emit("user:device-unsupported", device);
+      });
   }
 });
 
 // The user selected a device
-mainEvent.on("device:detected", (device) => {
-  utils.log.info("device detected: " + device)
+mainEvent.on("device:detected", device => {
+  utils.log.info("device detected: " + device);
   mainEvent.emit("device", device);
 });
 
@@ -305,51 +353,73 @@ mainEvent.on("device:detected", (device) => {
 // CREATE WINDOW
 //==============================================================================
 
-function createWindow () {
-  utils.log.info("Welcome to the UBports Installer version " + global.packageInfo.version + "!");
-  utils.log.info("This is " + (global.packageInfo.updateAvailable ? "not " : "") + "the latest stable version!");
+function createWindow() {
+  utils.log.info(
+    "Welcome to the UBports Installer version " +
+      global.packageInfo.version +
+      "!"
+  );
+  utils.log.info(
+    "This is " +
+      (global.packageInfo.updateAvailable ? "not " : "") +
+      "the latest stable version!"
+  );
   mainWindow = new BrowserWindow({
-    width: cli.cli ? 0 : (cli.debug ? 1600 : 800),
+    width: cli.cli ? 0 : cli.debug ? 1600 : 800,
     height: cli.cli ? 0 : 600,
     show: !cli.cli,
     icon: path.join(__dirname, "../build/icons/icon.png"),
-    title: "UBports Installer ("+global.packageInfo.version+")"
+    title: "UBports Installer (" + global.packageInfo.version + ")"
   });
 
   // Tasks we need for every start
   mainWindow.webContents.on("did-finish-load", () => {
-    adb.startServer().then(() => {
-      if (!global.installProperties.device) {
-        devices.waitForDevice();
-      }
-    }).catch(e => utils.errorToUser(e, "Failed to start adb server"));
-    api.getDeviceSelects().then((out) => {
-      mainWindow.webContents.send("device:wait:device-selects-ready", out);
-    }).catch(e => {
-      utils.log.error("getDeviceSelects error: " + e)
-      mainWindow.webContents.send("user:no-network");
-    });
+    adb
+      .startServer()
+      .then(() => {
+        if (!global.installProperties.device) {
+          devices.waitForDevice();
+        }
+      })
+      .catch(e => utils.errorToUser(e, "Failed to start adb server"));
+    api
+      .getDeviceSelects()
+      .then(out => {
+        mainWindow.webContents.send("device:wait:device-selects-ready", out);
+      })
+      .catch(e => {
+        utils.log.error("getDeviceSelects error: " + e);
+        mainWindow.webContents.send("user:no-network");
+      });
   });
 
   // Task we need only on the first start
   mainWindow.webContents.once("did-finish-load", () => {
-    utils.getUpdateAvailable().then(() => {
-      utils.log.info("This is not the latest version of the UBports Installer! Please update: https://devices.ubuntu-touch.io/installer/" + (global.packageInfo.package ? global.packageInfo.package : ""));
-      mainWindow.webContents.send("user:update-available");
-    }).catch(() => {
-      utils.log.debug("This is the latest version.")
-    });
+    utils
+      .getUpdateAvailable()
+      .then(() => {
+        utils.log.info(
+          "This is not the latest version of the UBports Installer! Please update: https://devices.ubuntu-touch.io/installer/" +
+            (global.packageInfo.package ? global.packageInfo.package : "")
+        );
+        mainWindow.webContents.send("user:update-available");
+      })
+      .catch(() => {
+        utils.log.debug("This is the latest version.");
+      });
   });
 
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'html/index.pug'),
-    protocol: 'file:',
-    slashes: true
-  }));
+  mainWindow.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "html/index.pug"),
+      protocol: "file:",
+      slashes: true
+    })
+  );
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
-  mainWindow.on('closed', function () {
+  mainWindow.on("closed", function() {
     mainWindow = null;
   });
 }
@@ -358,12 +428,12 @@ function createWindow () {
 // FUNCTIONAL EVENT HANDLING
 //==============================================================================
 
-app.on('ready', createWindow);
+app.on("ready", createWindow);
 
-app.on('window-all-closed', function () {
+app.on("window-all-closed", function() {
   adb.killServer().catch();
   utils.log.info("Good bye!");
-  if (process.platform !== 'darwin') {
+  if (process.platform !== "darwin") {
     setTimeout(() => {
       app.quit();
       terminate(process.pid, console.error);
@@ -371,86 +441,101 @@ app.on('window-all-closed', function () {
   }
 });
 
-app.on('activate', function () {
+app.on("activate", function() {
   if (mainWindow === null) {
     createWindow();
   }
 });
 
-process.on('unhandledRejection', (r) => {
+process.on("unhandledRejection", r => {
   utils.log.error("unhandled rejection: " + r);
   if (mainWindow) utils.errorToUser(r, "unhandledRejection");
   else utils.die(r);
 });
 
-process.on('uncaughtException', (r) => {
+process.on("uncaughtException", r => {
   utils.log.error("uncaught exception: " + r);
   if (mainWindow) utils.errorToUser(r, "uncaughtException");
   else utils.die(r);
 });
 
 // Set application menu
-app.on('ready', function () {
+app.on("ready", function() {
   const menuTemplate = [
     {
-      label: 'About',
+      label: "About",
       submenu: [
         {
-          label: 'About the UBports Foundation...',
+          label: "About the UBports Foundation...",
           click: () => electron.shell.openExternal("https://ubports.com")
         },
         {
-          label: 'About Ubuntu Touch...',
+          label: "About Ubuntu Touch...",
           click: () => electron.shell.openExternal("https://ubuntu-touch.io")
         },
         {
-          label: 'Donate',
+          label: "Donate",
           click: () => electron.shell.openExternal("https://ubports.com/donate")
         },
         {
-          label: 'Source',
-          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/tree/" + global.packageInfo.version)
+          label: "Source",
+          click: () =>
+            electron.shell.openExternal(
+              "https://github.com/ubports/ubports-installer/tree/" +
+                global.packageInfo.version
+            )
         },
         {
-          label: 'License',
-          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/blob/" + global.packageInfo.version + "/LICENSE")
+          label: "License",
+          click: () =>
+            electron.shell.openExternal(
+              "https://github.com/ubports/ubports-installer/blob/" +
+                global.packageInfo.version +
+                "/LICENSE"
+            )
         }
       ]
     },
     {
-      label: 'Help',
+      label: "Help",
       submenu: [
         {
-          label: 'Report a bug',
+          label: "Report a bug",
           click: () => utils.sendBugReport("user-requested bug-report")
         },
         {
-          label: 'View issues',
-          click: () => electron.shell.openExternal("https://github.com/ubports/ubports-installer/issues")
+          label: "View issues",
+          click: () =>
+            electron.shell.openExternal(
+              "https://github.com/ubports/ubports-installer/issues"
+            )
         },
         {
-          label: 'Troubleshooting guide',
-          click: () => electron.shell.openExternal("https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting")
+          label: "Troubleshooting guide",
+          click: () =>
+            electron.shell.openExternal(
+              "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
+            )
         },
         {
-          label: 'UBports Forums',
+          label: "UBports Forums",
           click: () => electron.shell.openExternal("https://forums.ubports.com")
         }
       ]
     },
     {
-      label: 'Window',
-      role: 'window',
+      label: "Window",
+      role: "window",
       submenu: [
         {
-          label: 'Minimize',
-          accelerator: 'CmdOrCtrl+M',
-          role: 'minimize'
+          label: "Minimize",
+          accelerator: "CmdOrCtrl+M",
+          role: "minimize"
         },
         {
-          label: 'Close',
-          accelerator: 'CmdOrCtrl+W',
-          role: 'close'
+          label: "Close",
+          accelerator: "CmdOrCtrl+W",
+          role: "close"
         }
       ]
     }

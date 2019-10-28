@@ -29,14 +29,20 @@
     "dist:linux": "node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft cleanbuild",
     "dist:linux:appimage": "node ./build.js -o 'linux' -p 'AppImage'",
     "dist:linux:deb": "node ./build.js -o 'linux' -p 'deb'",
-    "dist:linux:snap": "snapcraft cleanbuild"
+    "dist:linux:snap": "snapcraft cleanbuild",
+    "lint": "./node_modules/.bin/eslint src/*.js",
+    "lint-fix": "./node_modules/.bin/eslint src/*.js --fix"
   },
   "devDependencies": {
     "electron": "^1.8.8",
     "electron-builder": "^20.36.2",
     "electron-packager": "^12.2.0",
     "sinon": "^7.5.0",
-    "unzipper": "^0.9.4"
+    "unzipper": "^0.9.4",
+    "eslint": "^6.5.1",
+    "eslint-config-prettier": "^6.4.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "prettier": "^1.18.2"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",

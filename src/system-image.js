@@ -20,49 +20,81 @@
 const utils = require("./utils");
 const systemImageClient = require("system-image-node-module").Client;
 
-const systemImage = new systemImageClient({path: utils.getUbuntuTouchDir()});
+const systemImage = new systemImageClient({ path: utils.getUbuntuTouchDir() });
 
-const getDeviceChannels = (device) => {
+const getDeviceChannels = device => {
   return systemImage.getDeviceChannels(device);
-}
+};
 
-var installLatestVersion = (options) => {
+var installLatestVersion = options => {
   return new Promise(function(resolve, reject) {
     mainEvent.emit("user:write:working", "download");
     mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
     mainEvent.emit("user:write:under", "Downloading");
-    systemImage.downloadLatestVersion(options, (progress, speed) => {
-      mainEvent.emit("user:write:progress", progress*100);
-      mainEvent.emit("user:write:speed", Math.round(speed*100)/100);
-    }, (current, total) => {
-      if (current != total) utils.log.debug("Downloading system-image file " + (current+1) + " of " + total);
-    }).then((files) => {
-      mainEvent.emit("download:done");
-      mainEvent.emit("user:write:progress", 0);
-      mainEvent.emit("user:write:working", "push");
-      mainEvent.emit("user:write:status", "Sending", true);
-      mainEvent.emit("user:write:under", "Sending files to the device");
-      adb.waitForDevice().then(() => {
-        adb.wipeCache().then(() => {
-          utils.log.debug("adb wiped cache");
-          adb.shell("mount -a").then(() => {
-            utils.log.debug("adb mounted recovery");
-            adb.shell("mkdir -p /cache/recovery").then(() => {
-              utils.log.debug("adb created /cache/recovery directory");
-              adb.pushArray(files, (progress) => {
-                global.mainEvent.emit("user:write:progress", progress*100);
-              }).then(() => {
-                resolve();
-              }).catch(e => reject("Push failed: Failed push: " + e));
-            }).catch(e => reject("Push failed: Failed to create target dir: " + e));
-          }).catch(e => reject("Push failed: Failed to mount: " + e));
-        }).catch(e => reject("Push failed: Failed wipe cache: " + e));
-      }).catch(e => reject("no device"));
-    }).catch(e => reject("Download failed: " + e));
+    systemImage
+      .downloadLatestVersion(
+        options,
+        (progress, speed) => {
+          mainEvent.emit("user:write:progress", progress * 100);
+          mainEvent.emit("user:write:speed", Math.round(speed * 100) / 100);
+        },
+        (current, total) => {
+          if (current != total)
+            utils.log.debug(
+              "Downloading system-image file " + (current + 1) + " of " + total
+            );
+        }
+      )
+      .then(files => {
+        mainEvent.emit("download:done");
+        mainEvent.emit("user:write:progress", 0);
+        mainEvent.emit("user:write:working", "push");
+        mainEvent.emit("user:write:status", "Sending", true);
+        mainEvent.emit("user:write:under", "Sending files to the device");
+        adb
+          .waitForDevice()
+          .then(() => {
+            adb
+              .wipeCache()
+              .then(() => {
+                utils.log.debug("adb wiped cache");
+                adb
+                  .shell("mount -a")
+                  .then(() => {
+                    utils.log.debug("adb mounted recovery");
+                    adb
+                      .shell("mkdir -p /cache/recovery")
+                      .then(() => {
+                        utils.log.debug(
+                          "adb created /cache/recovery directory"
+                        );
+                        adb
+                          .pushArray(files, progress => {
+                            global.mainEvent.emit(
+                              "user:write:progress",
+                              progress * 100
+                            );
+                          })
+                          .then(() => {
+                            resolve();
+                          })
+                          .catch(e => reject("Push failed: Failed push: " + e));
+                      })
+                      .catch(e =>
+                        reject("Push failed: Failed to create target dir: " + e)
+                      );
+                  })
+                  .catch(e => reject("Push failed: Failed to mount: " + e));
+              })
+              .catch(e => reject("Push failed: Failed wipe cache: " + e));
+          })
+          .catch(e => reject("no device"));
+      })
+      .catch(e => reject("Download failed: " + e));
   });
-}
+};
 
 module.exports = {
   getDeviceChannels: getDeviceChannels,
   installLatestVersion: installLatestVersion
-}
+};
