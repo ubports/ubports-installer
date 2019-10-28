@@ -51,13 +51,15 @@ global.api = api;
 var adb = new Adb({
   exec: (args, callback) => {
     utils.execTool("adb", args, callback);
-  }
+  },
+  log: utils.log.debug
 });
 global.adb = adb;
 var fastboot = new Fastboot({
   exec: (args, callback) => {
     utils.execTool("fastboot", args, callback);
-  }
+  },
+  log: utils.log.debug
 });
 global.fastboot = fastboot;
 
