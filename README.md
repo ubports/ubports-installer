@@ -1,68 +1,24 @@
+# UBports Installer [![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![Snap Status](https://build.snapcraft.io/badge/ubports/ubports-installer.svg)](https://build.snapcraft.io/user/ubports/ubports-installer)
 
-------------------------------------------------------------------------
+Fear not! Installing [UBports](https://ubports.com) [Ubuntu Touch](https://ubuntu-touch.io) on your [device](https://devices.ubuntu-touch.io) is easy! Just download the UBports Installer package for your operating system and sit back and relax while your computer does all the rest. Installing third-party operating systems has never been so easy!
 
-# <a href="https://imgbb.com/"><img src="https://i.ibb.co/5WgVdC1/uports.png" alt="uports" border="0"></a> &nbsp; UBports Installer &nbsp; <a href="https://imgbb.com/"><img src="https://i.ibb.co/5WgVdC1/uports.png" alt="uports" border="0"></a>
+| ![linux logo](https://i.ibb.co/CPq1pL9/linux.png) &nbsp; Linux | ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png) &nbsp; macOS | ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png) &nbsp; Windows |
+|---|---|---|
+|[snap](https://snapcraft.io/ubports-installer), [AppImage](https://devices.ubuntu-touch.io/installer/appimage), [deb](https://devices.ubuntu-touch.io/installer/deb) | [dmg](https://devices.ubuntu-touch.io/installer/dmg) | [exe](https://devices.ubuntu-touch.io/installer/exe) |
 
-[![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![Snap Status](https://build.snapcraft.io/badge/ubports/ubports-installer.svg)](https://build.snapcraft.io/user/ubports/ubports-installer)
-
-![logo](http://usefoss.com/wp-content/uploads/2016/08/UBports-Site_Logo.png)
-
-This tool is still under development, [bugreports](https://github.com/ubports/ubports-installer/issues/new) and [contributions](https://github.com/ubports/ubports-installer/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are appreciated!
-
-------------------------------------------------------------------------
-
-## ![download logo](https://i.ibb.co/fXV1fGD/download.png") &nbsp; How to install &nbsp; ![download logo](https://i.ibb.co/fXV1fGD/download.png")
-
-### ![linux logo](https://i.ibb.co/CPq1pL9/linux.png) &nbsp; Linux &nbsp; ![linux logo](https://i.ibb.co/CPq1pL9/linux.png)
-
-**Snap:**
-
-1. Open a terminal
-2. Run `snap install ubports-installer` to install
-4. Run `ubports-installer` or select the icon in your application list to start the program
-
-**Deb:**
-
-1. Download the latest [deb](https://devices.ubuntu-touch.io/installer/deb) file from https://github.com/ubports/ubports-installer/releases/latest
-2. Open the deb package with your software installation tool and follow the on-screen instructions
-3. Launch the program from your application list
-
-**Appimage:**
-
-1. Download the latest [AppImage](https://devices.ubuntu-touch.io/installer/appimage) file from https://github.com/ubports/ubports-installer/releases/latest
-2. [Make the AppImage executable](https://discourse.appimage.org/t/how-to-make-an-appimage-executable/80)
-3. Run the file by double-clicking
-
-### ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png) &nbsp; Mac &nbsp; ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png)
-
-1. Download the latest [dmg](https://devices.ubuntu-touch.io/installer/mac) file from https://github.com/ubports/ubports-installer/releases/latest
-2. Open the file and follow the onscreen instructions
-3. Launch the program from the application list
-
-### ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png) &nbsp; Windows &nbsp; ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png)
-
-1. Install the [universal adb driver](http://adb.clockworkmod.com/) or a device-specific driver
-2. Download the latest [exe](https://devices.ubuntu-touch.io/installer/windows) file from https://github.com/ubports/ubports-installer/releases/latest
-3. Launch the program and follow the on-screen instructions
-
-
-------------------------------------------------------------------------
-
-## :fire: &nbsp; Usage &nbsp; :fire:
-
-Using the graphical user interface of the UBports Installer is recommended for most cases. <br>
-Powerusers can also make use of the experimental command-line interface. See `ubports-installer -h` for information.
-
-------------------------------------------------------------------------
-
-## :wrench: &nbsp; Troubleshooting &nbsp; :wrench:
+## Troubleshooting
 
 Troubleshooting information can be found [in the docs](https://docs.ubports.com/en/latest/userguide/install.html). If you need help, you can join UBports' support channels on [telegram](https://t.me/WelcomePlus) or [matrix](https://matrix.to/#/!KwdniMNeTmClpgHkND:matrix.org?via=matrix.org&via=ubports.chat&via=disroot.org) or ask a question [in the forum](https://forums.ubports.com/) or on [askubuntu](https://askubuntu.com). If you believe that the UBports Installer is not working correctly, you can also [file a new issue](https://github.com/ubports/ubports-installer/issues/new) to help us solve the problem. As a last resort, we also have [manual installation instructions for every device](https://devices.ubuntu-touch.io), that you can follow if you want to install without using the UBports Installer.
 
+## Config files
 
-------------------------------------------------------------------------
+By default, the Installer will always use the latest version of the [installation configuration files](https://github.com/ubports/installer-configs) available. Should you want to specify a custom config file, you can do that by starting the Installer with the `-f ./path/to/config.json` argument. This can be used to test changes to the configuration or even to add new devices to the installer. The [structure of the config files is specified here](https://github.com/ubports/installer-configs/blob/master/v1/_device.schema.json).
 
-## :scroll: &nbsp; How to run the program from source &nbsp; :scroll:
+## Logs
+
+If the installer runs into an error, it will usually present you with the option to create a bug report. It is always a good idea to make use of that feature, because that way the developers will almost always have all the information they need to help you. If you still have to look at the log file for some reason, you can find it in `~/.cache/ubports/ubports-installer.log` on linux (or `~/snap/ubports-installer/current/.cache/ubports/ubports-installer.log` if you're using the snap package). On Windows, it will be located at `%APPDATA%\ubports\ubports-installer.log` and on macOS you can find it under `$HOME/Library/Caches/ubports/ubports-installer.log`.
+
+## Set up for development
 
 ```
 git clone https://github.com/ubports/ubports-installer.git
@@ -72,13 +28,22 @@ cd ubports-installer
 
 ### Run with npm
 
-You will have to either install `fastboot` and `adb` or run a build once (see below) to download the fallback tools.
+```
+$ npm start -- -h
+Usage: ubports-installer [options]
 
+Options:
+  -V, --version                               output the version number
+  -s, --settings "<setting>: <value>[, ...]"  [experimental] Override install settings
+  -f, --file <file>                           [experimental] Override the config by loading a file
+  -v, --verbose                               Enable verbose logging
+  -D, --debug                                 Enable debugging tools and verbose logging
+  -h, --help                                  output usage information
 ```
-npm start            # for the normal mode with GUI
-npm start -- -D      # for debug tools and verbose logging
-npm start -- --cli   # for CLI mode without GUI
-```
+
+### Lint
+
+Before filing a PR, please make sure you follow our coding style. Just run `npm lint` to see if there are any problems. If there are, it might even be possible to fix them automatically by running `npm lint-fix`.
 
 ### Build packages
 
@@ -87,6 +52,3 @@ npm run-script dist:linux
 npm run-script dist:mac
 npm run-script dist:win
 ```
-
-
-------------------------------------------------------------------------
