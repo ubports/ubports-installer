@@ -18,9 +18,8 @@
  */
 
 const cli = require("commander");
-const electron = require("electron");
-const electronPug = require("electron-pug");
-const terminate = require("terminate");
+const electron = require('electron');
+const electronPug = require('electron-pug');
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -436,8 +435,7 @@ app.on("window-all-closed", function() {
   if (process.platform !== "darwin") {
     setTimeout(() => {
       app.quit();
-      terminate(process.pid, console.error);
-    }, 1000);
+    }, 50);
   }
 });
 
