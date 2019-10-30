@@ -1,6 +1,5 @@
 name: ubports-installer
 version: readfromscript
-version-script: "cat package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g"
 summary: The easy way to install Ubuntu Touch on UBports devices.
 description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
 icon: build/icons/icon.png
@@ -8,10 +7,11 @@ architectures: [amd64]
 
 grade: stable
 confinement: strict
+base: core18
 
 apps:
   ubports-installer:
-    command: desktop-launch $SNAP/bin/snap-wrapper
+    command: ./app/ubports-installer
     plugs:
       - home
       - unity7
@@ -21,14 +21,24 @@ apps:
       - pulseaudio
       - opengl
       - adb-support
+      - raw-usb
       - desktop
       - desktop-legacy
       - wayland
+    environment:
+      "FONTCONFIG_PATH": "$SNAP/etc/fonts"
+      "FONTCONFIG_FILE": "$SNAP/etc/fonts/fonts.conf"
+      "XDG_DATA_HOME": "$SNAP/usr/share"
+      "LD_LIBRARY_PATH": "$SNAP_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/"
 
 parts:
   ubports-installer:
-    plugin: nodejs
-    node-engine: 8.10.0
+    plugin: dump
+    source: .
+    build-packages:
+      - npm
+      - nodejs
+      - libgconf-2-4
     stage-packages:
       - libnotify4
       - libappindicator1
@@ -39,13 +49,16 @@ parts:
       - gconf2
       - libasound2
       - pulseaudio
-    after:
-      - desktop-glib-only
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version `cat package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
     override-build: |
+      echo "Running override-build script"
+      npm install
       ./build.js -o 'linux' -p 'dir'
-      mkdir $SNAPCRAFT_PART_INSTALL/app
+      mkdir -p $SNAPCRAFT_PART_INSTALL/app
+      rm -rf $SNAPCRAFT_PART_INSTALL/app/*
       mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
-      mv bin/* $SNAPCRAFT_PART_INSTALL/bin
     prime:
       - -node_modules
       - -lib/node_modules
