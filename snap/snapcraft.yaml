@@ -4,6 +4,7 @@ summary: The easy way to install Ubuntu Touch on UBports devices.
 description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
 icon: build/icons/icon.png
 architectures: [amd64]
+license: GPL-3.0
 
 grade: stable
 confinement: strict
