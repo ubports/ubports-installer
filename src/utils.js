@@ -26,6 +26,7 @@ const checksum = require("checksum");
 const mkdirp = require("mkdirp");
 const cp = require("child_process");
 const getos = require("getos");
+const psTree = require("ps-tree");
 global.packageInfo = require("../package.json");
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
@@ -229,12 +230,32 @@ let toolpath = global.packageInfo.package
       platforms[os.platform()]
     )
   : path.join(__dirname, "..", "platform-tools", platforms[os.platform()]);
+let processes = [];
 function execTool(tool, args, callback) {
-  exec(
+  let pid = exec(
     [path.join(toolpath, tool)].concat(args).join(" "),
-    { options: { maxBuffer: 1024 * 1024 * 2 } },
+    {
+      maxBuffer: 1024 * 1024 * 2
+    },
     callback
   );
+  processes.push(pid);
+  pid.on("exit", () => {
+    processes.splice(processes.indexOf(pid), 1);
+  });
+}
+
+// Since child_process.exec spins up a shell on posix, simply killing the process itself will orphan its children, who then will be adopted by pid 1 and continue running as zombie processes until the end of time.
+function killSubprocesses() {
+  if (process.platform === "win32") {
+    processes.forEach(child => child.kill());
+  } else {
+    processes.forEach(pid => {
+      psTree(pid.pid, function(err, children) {
+        cp.spawn("kill", ["-9"].concat(children.map(p => p.PID)));
+      });
+    });
+  }
 }
 
 function isSnap() {
@@ -370,6 +391,7 @@ module.exports = {
   log: log,
   isSnap: isSnap,
   execTool: execTool,
+  killSubprocesses: killSubprocesses,
   getUbuntuTouchDir: getUbuntuTouchDir,
   sendBugReport: sendBugReport,
   getUpdateAvailable: getUpdateAvailable,

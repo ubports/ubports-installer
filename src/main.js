@@ -20,7 +20,6 @@
 const cli = require("commander");
 const electron = require("electron");
 const electronPug = require("electron-pug");
-const terminate = require("terminate");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -188,9 +187,8 @@ ipcMain.on("option", (event, targetVar, value) => {
 mainEvent.on("user:error", err => {
   try {
     if (mainWindow) mainWindow.webContents.send("user:error", err);
-    else utils.die(err);
+    else process.exit(1);
   } catch (e) {
-    utils.log.error(e);
     process.exit(1);
   }
 });
@@ -359,11 +357,6 @@ function createWindow() {
       global.packageInfo.version +
       "!"
   );
-  utils.log.info(
-    "This is " +
-      (global.packageInfo.updateAvailable ? "not " : "") +
-      "the latest stable version!"
-  );
   mainWindow = new BrowserWindow({
     width: cli.cli ? 0 : cli.debug ? 1600 : 800,
     height: cli.cli ? 0 : 600,
@@ -381,11 +374,15 @@ function createWindow() {
           devices.waitForDevice();
         }
       })
-      .catch(e => utils.errorToUser(e, "Failed to start adb server"));
+      .catch(e => {
+        if (!e.includes("Killed"))
+          utils.errorToUser(e, "Failed to start adb server");
+      });
     api
       .getDeviceSelects()
       .then(out => {
-        mainWindow.webContents.send("device:wait:device-selects-ready", out);
+        if (mainWindow)
+          mainWindow.webContents.send("device:wait:device-selects-ready", out);
       })
       .catch(e => {
         utils.log.error("getDeviceSelects error: " + e);
@@ -404,9 +401,7 @@ function createWindow() {
         );
         mainWindow.webContents.send("user:update-available");
       })
-      .catch(() => {
-        utils.log.debug("This is the latest version.");
-      });
+      .catch(() => {}); // Ignore errors, since this is non-essential
   });
 
   mainWindow.loadURL(
@@ -431,12 +426,15 @@ function createWindow() {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
-  adb.killServer().catch();
-  utils.log.info("Good bye!");
+  adb
+    .killServer()
+    .then(utils.killSubprocesses)
+    .catch(utils.killSubprocesses);
   if (process.platform !== "darwin") {
+    utils.log.info("Good bye!");
     setTimeout(() => {
       app.quit();
-      terminate(process.pid, console.error);
+      process.exit(0);
     }, 1000);
   }
 });
