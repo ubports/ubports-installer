@@ -283,6 +283,8 @@ function assembleInstallSteps(steps) {
                     error.includes("No such device")
                   ) {
                     mainEvent.emit("user:connection-lost", runStep);
+                  } else if (error.includes("Killed")) {
+                    reject(); // Used for exiting the installer
                   } else {
                     utils.errorToUser(error, step.type);
                   }
@@ -316,10 +318,12 @@ function assembleInstallSteps(steps) {
 function install(steps) {
   var installPromises = assembleInstallSteps(steps);
   // Actually run the steps
-  installPromises.reduce(
-    (promiseChain, currentFunction) => promiseChain.then(currentFunction),
-    Promise.resolve()
-  );
+  installPromises
+    .reduce(
+      (promiseChain, currentFunction) => promiseChain.then(currentFunction),
+      Promise.resolve()
+    )
+    .catch(() => {}); // errors can be ignored here, since this is exclusively used for killing the promise chain
 }
 
 module.exports = {

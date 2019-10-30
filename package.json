@@ -49,6 +49,7 @@
     "download": "^7.1.0",
     "electron-prompt": "^1.4.0",
     "popper.js": "^1.14.3",
+    "ps-tree": "^1.2.0",
     "checksum": "^0.1.1",
     "commander": "^2.9.0",
     "electron-open-link-in-browser": "^1.0.2",
