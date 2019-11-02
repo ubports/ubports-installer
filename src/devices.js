@@ -293,12 +293,12 @@ function assembleInstallSteps(steps) {
                   })
                     .then(resolve)
                     .catch(reject);
+                } else if (step.optional) {
+                  resolve();
                 } else if (error && error.includes("lock")) {
                   global.mainEvent.emit("user:oem-lock", () => {
                     install(steps);
                   });
-                } else if (step.optional) {
-                  resolve();
                 } else {
                   if (
                     error &&
