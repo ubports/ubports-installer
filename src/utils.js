@@ -381,7 +381,9 @@ function downloadFiles(urls, progress, next) {
 function errorToUser(error, errorLocation) {
   var errorString =
     "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
-  utils.log.error(errorString);
+  utils.log.error(
+    errorString + (error.stack ? "\nstack trace: " + error.stack : "")
+  );
   global.mainEvent.emit("user:error", errorString);
 }
 
