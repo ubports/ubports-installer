@@ -445,16 +445,20 @@ app.on("activate", function() {
   }
 });
 
-process.on("unhandledRejection", r => {
-  utils.log.error("unhandled rejection: " + r);
-  if (mainWindow) utils.errorToUser(r, "unhandledRejection");
-  else utils.die(r);
+process.on("unhandledRejection", (reason, promise) => {
+  if (mainWindow) {
+    utils.errorToUser(reason, "unhandled rejection at " + promise);
+  } else {
+    utils.die(reason);
+  }
 });
 
-process.on("uncaughtException", r => {
-  utils.log.error("uncaught exception: " + r);
-  if (mainWindow) utils.errorToUser(r, "uncaughtException");
-  else utils.die(r);
+process.on("uncaughtException", (error, origin) => {
+  if (mainWindow) {
+    utils.errorToUser(error, "uncaught exception at " + origin);
+  } else {
+    utils.die(error);
+  }
 });
 
 // Set application menu
