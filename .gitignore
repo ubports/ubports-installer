@@ -50,3 +50,9 @@ dist
 
 # Environment
 .env
+
+# KDE folder settings
+.directory
+
+# Visual Studio Code settings folder
+.vscode
