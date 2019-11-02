@@ -239,6 +239,17 @@ function installStep(step) {
           .catch(reject);
       });
       break;
+    case "fastboot:continue":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Continuing boot", true);
+        global.mainEvent.emit("user:write:under", "Resuming boot");
+        fastboot
+          .continue()
+          .then(resolve)
+          .catch(reject);
+      });
+      break;
     case "user_action":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit(
