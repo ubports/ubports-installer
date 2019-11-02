@@ -220,10 +220,32 @@ function installStep(step) {
     case "fastboot:reboot_bootloader":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Rebooting");
+        global.mainEvent.emit("user:write:status", "Rebooting", true);
         global.mainEvent.emit("user:write:under", "Rebooting to bootloader");
         fastboot
           .rebootBootloader()
+          .then(resolve)
+          .catch(reject);
+      });
+      break;
+    case "fastboot:reboot":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Rebooting", true);
+        global.mainEvent.emit("user:write:under", "Rebooting system");
+        fastboot
+          .reboot()
+          .then(resolve)
+          .catch(reject);
+      });
+      break;
+    case "fastboot:continue":
+      return new Promise(function(resolve, reject) {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Continuing boot", true);
+        global.mainEvent.emit("user:write:under", "Resuming boot");
+        fastboot
+          .continue()
           .then(resolve)
           .catch(reject);
       });
