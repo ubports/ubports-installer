@@ -295,7 +295,11 @@ function assembleInstallSteps(steps) {
                     .catch(reject);
                 } else if (step.optional) {
                   resolve();
-                } else if (step.type.includes("fastboot") && error && error.includes("lock")) {
+                } else if (
+                  step.type.includes("fastboot") &&
+                  error &&
+                  error.includes("lock")
+                ) {
                   global.mainEvent.emit("user:oem-lock", () => {
                     install(steps);
                   });
