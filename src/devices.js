@@ -271,19 +271,19 @@ function assembleInstallSteps(steps) {
                   })
                     .then(resolve)
                     .catch(reject);
-                } else if (error.includes("lock")) {
+                } else if (error || error.includes("lock")) {
                   global.mainEvent.emit("user:oem-lock", () => {
                     install(steps);
                   });
                 } else if (step.optional) {
                   resolve();
                 } else {
-                  if (
+                  if (error || (
                     error.includes("no device") ||
                     error.includes("No such device")
-                  ) {
+                  )) {
                     mainEvent.emit("user:connection-lost", runStep);
-                  } else if (error.includes("Killed")) {
+                  } else if (error || error.includes("Killed")) {
                     reject(); // Used for exiting the installer
                   } else {
                     utils.errorToUser(error, step.type);
