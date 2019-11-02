@@ -278,10 +278,11 @@ function assembleInstallSteps(steps) {
                 } else if (step.optional) {
                   resolve();
                 } else {
-                  if (error || (
-                    error.includes("no device") ||
-                    error.includes("No such device")
-                  )) {
+                  if (
+                    error ||
+                    (error.includes("no device") ||
+                      error.includes("No such device"))
+                  ) {
                     mainEvent.emit("user:connection-lost", runStep);
                   } else if (error || error.includes("Killed")) {
                     reject(); // Used for exiting the installer
