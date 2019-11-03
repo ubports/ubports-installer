@@ -361,20 +361,13 @@ module.exports = {
         adb
           .getDeviceName()
           .then(device => {
-            adb
-              .getOs()
-              .then(operatingSystem => {
-                global.api
-                  .resolveAlias(device)
-                  .then(resolvedDevice => {
-                    global.mainEvent.emit("device:detected", resolvedDevice);
-                  })
-                  .catch(error => {
-                    utils.errorToUser(error, "Resolve device alias");
-                  });
+            global.api
+              .resolveAlias(device)
+              .then(resolvedDevice => {
+                global.mainEvent.emit("device:detected", resolvedDevice);
               })
               .catch(error => {
-                utils.errorToUser(error, "Wait for device");
+                utils.errorToUser(error, "Resolve device alias");
               });
           })
           .catch(error => {
