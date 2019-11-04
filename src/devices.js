@@ -307,7 +307,9 @@ function assembleInstallSteps(steps) {
                   if (
                     error &&
                     (error.includes("no device") ||
-                      error.includes("No such device"))
+                      error.includes("device offline") ||
+                      error.includes("No such device") ||
+                      error.includes("connection lost"))
                   ) {
                     mainEvent.emit("user:connection-lost", runStep);
                   } else if (error && error.includes("Killed")) {
