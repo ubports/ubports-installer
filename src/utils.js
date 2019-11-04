@@ -237,7 +237,20 @@ function execTool(tool, args, callback) {
     {
       maxBuffer: 1024 * 1024 * 2
     },
-    callback
+    (error, stdout, stderr) => {
+      global.logger.log(
+        "command",
+        tool +
+          ": " +
+          JSON.stringify({
+            args: args,
+            error: error,
+            stdout: stdout,
+            stderr: stderr
+          })
+      );
+      callback(error, stdout, stderr);
+    }
   );
   processes.push(pid);
   pid.on("exit", () => {
