@@ -126,7 +126,7 @@ global.logger = winston.createLogger({
     new winston.transports.File({
       filename: path.join(utils.getUbuntuTouchDir(), "ubports-installer.log"),
       options: { flags: "w" },
-      level: "debug"
+      level: "command"
     }),
     new winston.transports.Console({
       format: winston.format.simple(),
