@@ -68,8 +68,13 @@ global.fastboot = fastboot;
 
 cli
   .name(global.packageInfo.name)
-  .version(global.packageInfo.version)
-  .description(global.packageInfo.description)
+  .description(
+    global.packageInfo.description +
+      "\nVersion: " +
+      global.packageInfo.version +
+      "\nPackage: " +
+      (global.packageInfo.package || "source")
+  )
   .option(
     "-d, --device <device>",
     "[experimental] Override detected device-id (codename)"
@@ -77,20 +82,13 @@ cli
   .option("-o, --operating-system <os>", "[experimental] what os to install")
   .option(
     '-s, --settings "<setting>: <value>[, ...]"',
-    "[experimental] Override install settings"
+    "Override install settings"
   )
-  .option(
-    "-f, --file <file>",
-    "[experimental] Override the config by loading a file"
-  )
+  .option("-f, --file <file>", "Override the config by loading a file")
   .option("-c, --cli", "[experimental] Run without GUI", undefined, "false")
   .option("-v, --verbose", "Enable verbose logging", undefined, "false")
-  .option(
-    "-D, --debug",
-    "Enable debugging tools and verbose logging",
-    undefined,
-    "false"
-  )
+  .option("-V, --veryVerbose", "Log *everything*", undefined, "false")
+  .option("-D, --debug", "Enable debugging tools", undefined, "false")
   .parse(process.argv);
 
 if (cli.file) {
@@ -104,7 +102,10 @@ global.installProperties = {
   debug: cli.debug
 };
 
-global.packageInfo.isSnap = utils.isSnap();
+if (utils.isSnap()) {
+  global.packageInfo.isSnap = utils.isSnap();
+  global.packageInfo.package = "snap";
+}
 
 //==============================================================================
 // WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
@@ -113,15 +114,23 @@ global.packageInfo.isSnap = utils.isSnap();
 global.logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: "user-service" },
+  levels: {
+    error: 0,
+    warn: 1,
+    info: 2,
+    verbose: 3,
+    debug: 4,
+    command: 5
+  },
   transports: [
     new winston.transports.File({
       filename: path.join(utils.getUbuntuTouchDir(), "ubports-installer.log"),
       options: { flags: "w" },
-      level: "debug"
+      level: "command"
     }),
     new winston.transports.Console({
       format: winston.format.simple(),
-      level: cli.verbose ? "debug" : "info"
+      level: cli.veryVerbose ? "command" : cli.verbose ? "debug" : "info"
     })
   ]
 });
