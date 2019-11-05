@@ -4,7 +4,7 @@ html
     link(rel='stylesheet', href='../../node_modules/bootstrap/dist/css/bootstrap.min.css')
     link(rel='stylesheet', href='../css/style.css')
   body
-    include scripts/root
+    script(src="scripts/root.js")
     .header.is-over
       h3#header-text.text-muted.installer UBports Installer (#{global.packageInfo.version})
     button#help.help-button.btn.btn-primary.is-over Report a bug
@@ -46,9 +46,9 @@ html
     include modals/no-network
   // --- Scripts ---
   // Animated loading screen
-  include scripts/particleground
-  include scripts/start
+  script(src="scripts/particleground.js")
+  script(src="scripts/start.js")
   // UI-related event management
-  include scripts/ui
+  script(src="scripts/ui.js")
   // Functionality-related event management
-  include scripts/dots
+  script(src="scripts/dots.js")
