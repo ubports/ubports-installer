@@ -149,11 +149,6 @@ ipcMain.on("restart", () => {
   mainEvent.emit("restart");
 });
 
-// The user ignored an error
-ipcMain.on("error_ignored", () => {
-  utils.log.debug("ERROR IGNORED");
-});
-
 // Begin install process
 ipcMain.on("install", () => {
   devices.install(
@@ -171,6 +166,11 @@ ipcMain.on("createBugReport", (event, title) => {
 ipcMain.on("device:selected", (event, device) => {
   adb.stopWaiting();
   mainEvent.emit("device", device);
+});
+
+// Error from the renderer process
+ipcMain.on("renderer:error", (event, error) => {
+  mainEvent.emit("user:error", error);
 });
 
 // The user selected an os
@@ -193,10 +193,31 @@ ipcMain.on("option", (event, targetVar, value) => {
 //==============================================================================
 
 // Open the bugreporting tool
-mainEvent.on("user:error", err => {
+mainEvent.on("user:error", (error, restart, ignore) => {
   try {
-    if (mainWindow) mainWindow.webContents.send("user:error", err);
-    else process.exit(1);
+    if (mainWindow) {
+      mainWindow.webContents.send("user:error", error);
+      ipcMain.once("user:error:reply", (e, reply) => {
+        switch (reply) {
+          case "ignore":
+            utils.log.warn("error ignored");
+            if (ignore) setTimeout(ignore, 500);
+            break;
+          case "restart":
+            utils.log.warn("restart after error");
+            if (restart) setTimeout(restart, 500);
+            else mainEvent.emit("restart");
+            break;
+          case "bugreport":
+            utils.sendBugReport(error);
+            break;
+          default:
+            break;
+        }
+      });
+    } else {
+      process.exit(1);
+    }
   } catch (e) {
     process.exit(1);
   }

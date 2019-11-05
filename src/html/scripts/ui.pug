@@ -119,11 +119,6 @@ script.
     }
   }
 
-  $("#btn-bugreport").click(() => {
-    var title = $("#error-body").text();
-    ipcRenderer.send("createBugReport", title);
-  });
-
   $("#btn-exit").click(() => {
     var window = remote.getCurrentWindow();
     window.close();

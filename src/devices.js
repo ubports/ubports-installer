@@ -279,6 +279,9 @@ function assembleInstallSteps(steps) {
           resolve();
         } else {
           utils.log.debug("running step: " + JSON.stringify(step));
+          function restartInstall() {
+            install(steps);
+          }
           function runStep() {
             installStep(step)
               .then(() => {
@@ -315,7 +318,12 @@ function assembleInstallSteps(steps) {
                   } else if (error && error.includes("Killed")) {
                     reject(); // Used for exiting the installer
                   } else {
-                    utils.errorToUser(error, step.type);
+                    utils.errorToUser(
+                      error,
+                      step.type,
+                      restartInstall,
+                      runStep
+                    );
                   }
                 }
               });

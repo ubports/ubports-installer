@@ -17,6 +17,24 @@
         p If you need help, you can join UBports' support channels on #[a(onclick="shell.openExternal('https://t.me/WelcomePlus')") telegram] or #[a(onclick="shell.openExternal('https://matrix.to/#/!KwdniMNeTmClpgHkND:matrix.org?via=matrix.org&via=ubports.chat&via=disroot.org')") matrix] or ask a question #[a(onclick="shell.openExternal('https://forums.ubports.com')") in the forum] or on #[a(onclick="shell.openExternal('https://askubuntu.com')") askubuntu]. As a last resort, we also have #[a(onclick="shell.openExternal('https://devices.ubuntu-touch.io')") manual installation instructions for every device], that you can follow if you want to install without using the UBports Installer.
 
       .modal-footer
-        button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick="restartInstaller()") Try again
-        button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick="ignoreError()") Ignore
-        button#btn-bugreport.btn.btn-primary(type='button') Report a bug
+        button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick='ipcRenderer.send("user:error:reply", "restart")') Try again
+        button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick='ipcRenderer.send("user:error:reply", "ignore")') Ignore
+        button#btn-bugreport.btn.btn-primary(type='button', onclick='ipcRenderer.send("user:error:reply", "bugreport")') Report a bug
+  script.
+    ipcRenderer.on("user:error", (event, error, restart, ignore) => {
+      if(global.packageInfo.updateAvailable) {
+        $("#not-latest-stable").show();
+        if (global.packageInfo.isSnap) {
+          $("#snap-update-instructions-error").show();
+        } else {
+          $("#generic-update-instructions-error").show();
+        }
+      }
+      $("#error-body").text(error);
+      $("#error-modal").modal("show");
+    });
+
+    // Catch all unhandled errors in rendering process
+    window.onerror = (err, url, line) => {
+      ipcRenderer.send("renderer:error", err + " (MainRenderer:" + line + ")");
+    }

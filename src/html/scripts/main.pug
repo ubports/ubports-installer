@@ -1,24 +1,4 @@
 script.
-  // CATCH ANY ERRORS!
-  var onErr = (err) => {
-    if(global.packageInfo.updateAvailable) {
-      $("#not-latest-stable").show();
-      if (global.packageInfo.isSnap) {
-        $("#snap-update-instructions-error").show();
-      } else {
-        $("#generic-update-instructions-error").show();
-      }
-    }
-    $("#error-body").text(err);
-    $("#error-modal").modal("show");
-  }
-
-  window.onerror = (err, url, line) => {
-    onErr(err+" (MainRenderer:"+line+")");
-  }
-
-  ipcRenderer.on("user:error", (event, err) => { onErr(err); });
-
   ipcRenderer.on("user:write:working", (e, animation) => {
     views.show("working", animation);
   });
@@ -31,14 +11,6 @@ script.
   ipcRenderer.on("user:low-power", (callback) => {
     modals.show("low-power");
   });
-
-  var ignoreError = () => {
-    ipcRenderer.send('error_ignored');
-  }
-
-  var restartInstaller = () => {
-    ipcRenderer.send('restart');
-  }
 
   ipcRenderer.on("user:oem-lock", (event) => {
     modals.show('oem-lock');
