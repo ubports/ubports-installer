@@ -239,7 +239,46 @@ function installStep(step) {
         global.mainEvent.emit(
           "user:action",
           global.installConfig.user_actions[step.action],
-          resolve
+          () => {
+            switch (step.action) {
+              case "recovery":
+              case "system":
+                global.mainEvent.emit("user:write:working", "particles");
+                global.mainEvent.emit(
+                  "user:write:status",
+                  "Waiting for device",
+                  true
+                );
+                global.mainEvent.emit(
+                  "user:write:under",
+                  "Adb is scanning for devices"
+                );
+                adb
+                  .waitForDevice()
+                  .then(resolve)
+                  .catch(() => mainEvent.emit("user:connection-lost", resolve));
+                break;
+              case "bootloader":
+                global.mainEvent.emit("user:write:working", "particles");
+                global.mainEvent.emit(
+                  "user:write:status",
+                  "Waiting for device",
+                  true
+                );
+                global.mainEvent.emit(
+                  "user:write:under",
+                  "Fastboot is scanning for devices"
+                );
+                fastboot
+                  .waitForDevice()
+                  .then(resolve)
+                  .catch(() => mainEvent.emit("user:connection-lost", resolve));
+                break;
+              default:
+                resolve();
+                break;
+            }
+          }
         );
       });
     default:
