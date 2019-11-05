@@ -76,11 +76,14 @@
         } else {
           ipcRenderer.send("option", option.var, $("#options-" + option.var).val());
         }
+        modals.show('install');
       });
     }
 
     let optionsAdded = false;
     ipcRenderer.on("user:configure", (event, osInstructs) => {
+      views.show("working", "particles");
+      footer.underText.set("Please Configure the installation");
       modals.show("options");
       if (!optionsAdded) {
         optionsAdded = true;

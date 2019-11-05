@@ -9,3 +9,21 @@
       button#btn-modal-dev-mode.btn.btn-primary(type='button', style='width: 100%; margin-bottom: 10px;', onclick="modals.show('developer-mode-info');") How do I enable developer mode?
       p If your device is not detected automatically, you can select it manually to proceed. Please note that the UBports Installer will only work on #[a(onclick="shell.openExternal('http://devices.ubuntu-touch.io')") supported devices].
       button#btn-modal-select-device.btn.btn-default(type='button', style='width: 100%;', onclick="modals.show('select-device');") Select device manually
+  script.
+    ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
+      footer.topText.set("Waiting for device", true);
+      footer.underText.set("Please connect your device with a USB cable");
+      if (!remote.getGlobal("installProperties").device) {
+        // if the device is not yet set (i.e. from a cli argument), prompt the user
+        $("#device-select").append(deviceSelects);
+        views.show("wait-for-device");
+        // Button to confirm device selection
+        $("#btn-select-device").click(() => {
+          var device = $("#device-select").find(":selected").attr("name");
+          ipcRenderer.send("device:selected", device);
+        });
+      } else {
+        // if the device is set, just return the device:selected event
+        ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);
+      }
+    });

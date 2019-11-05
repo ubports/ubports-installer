@@ -97,9 +97,7 @@ if (cli.file) {
 
 global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
-  cli: cli.cli,
-  settings: cli.settings ? JSON.parse(cli.settings) : {},
-  debug: cli.debug
+  settings: cli.settings ? JSON.parse(cli.settings) : {}
 };
 
 if (utils.isSnap()) {
@@ -149,11 +147,6 @@ ipcMain.on("restart", () => {
   mainEvent.emit("restart");
 });
 
-// The user ignored an error
-ipcMain.on("error_ignored", () => {
-  utils.log.debug("ERROR IGNORED");
-});
-
 // Begin install process
 ipcMain.on("install", () => {
   devices.install(
@@ -171,6 +164,11 @@ ipcMain.on("createBugReport", (event, title) => {
 ipcMain.on("device:selected", (event, device) => {
   adb.stopWaiting();
   mainEvent.emit("device", device);
+});
+
+// Error from the renderer process
+ipcMain.on("renderer:error", (event, error) => {
+  mainEvent.emit("user:error", error);
 });
 
 // The user selected an os
@@ -193,22 +191,43 @@ ipcMain.on("option", (event, targetVar, value) => {
 //==============================================================================
 
 // Open the bugreporting tool
-mainEvent.on("user:error", err => {
+mainEvent.on("user:error", (error, restart, ignore) => {
   try {
-    if (mainWindow) mainWindow.webContents.send("user:error", err);
-    else process.exit(1);
+    if (mainWindow) {
+      mainWindow.webContents.send("user:error", error);
+      ipcMain.once("user:error:reply", (e, reply) => {
+        switch (reply) {
+          case "ignore":
+            utils.log.warn("error ignored");
+            if (ignore) setTimeout(ignore, 500);
+            break;
+          case "restart":
+            utils.log.warn("restart after error");
+            if (restart) setTimeout(restart, 500);
+            else mainEvent.emit("restart");
+            break;
+          case "bugreport":
+            utils.sendBugReport(error);
+            break;
+          default:
+            break;
+        }
+      });
+    } else {
+      process.exit(1);
+    }
   } catch (e) {
     process.exit(1);
   }
 });
 
 // Connection to the device was lost
-mainEvent.on("user:connection-lost", callback => {
-  if (mainWindow)
-    mainWindow.webContents.send(
-      "user:connection-lost",
-      callback || mainWindow.reload()
-    );
+mainEvent.on("user:connection-lost", reconnect => {
+  if (mainWindow) mainWindow.webContents.send("user:connection-lost");
+  ipcMain.once("reconnect", () => {
+    if (reconnect) setTimeout(reconnect, 500);
+    else mainEvent.emit("restart");
+  });
 });
 
 // The device battery is too low to install
@@ -218,7 +237,8 @@ mainEvent.on("user:low-power", () => {
 
 // Restart the installer
 mainEvent.on("restart", () => {
-  global.installProperties.device = undefined;
+  global.installProperties = { settings: {} };
+  global.installConfig = {};
   utils.log.debug("WINDOW RELOADED");
   mainWindow.reload();
 });
@@ -317,27 +337,23 @@ mainEvent.on("user:configure", osInstructs => {
 mainEvent.on("device", device => {
   global.installProperties.device = device;
   function continueWithConfig() {
-    if (global.installConfig.operating_systems.length > 1) {
-      // ask for os selection if there's one os
-      mainWindow.webContents.send(
-        "user:os",
-        global.installConfig,
-        devices.getOsSelects(global.installConfig.operating_systems)
-      );
-    } else {
-      // immediately jump to configure if there's only one os
-      global.installProperties.osIndex = 0;
-      mainEvent.emit(
-        "user:configure",
-        global.installConfig.operating_systems[0]
-      );
-    }
+    mainWindow.webContents.send(
+      "user:os",
+      global.installConfig,
+      devices.getOsSelects(global.installConfig.operating_systems)
+    );
   }
   if (global.installConfig && global.installConfig.operating_systems) {
     // local config specified
     continueWithConfig();
   } else {
-    // local config specified
+    // fetch remote config
+    global.mainEvent.emit("user:write:working", "particles");
+    global.mainEvent.emit("user:write:status", "Preparing installation", true);
+    global.mainEvent.emit(
+      "user:write:under",
+      "Fetching installation instructions"
+    );
     api
       .getDevice(device)
       .then(config => {

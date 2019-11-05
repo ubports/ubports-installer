@@ -15,3 +15,7 @@
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Close
         button#btn-select-device.btn.btn-primary(type='button', data-dismiss='modal') Select
+  script.
+    ipcRenderer.on("user:os", () => {
+      modals.hide("select-device");
+    });

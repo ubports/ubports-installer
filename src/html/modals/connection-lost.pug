@@ -11,4 +11,8 @@
         b
           | If this continues to happen, you might want to try using a different USB cable. Old cables tend to become less reliable. Please try using a different USB cable and do not touch the device during the installation, unless you are prompted to do so.
       .modal-footer
-        button#btn-reconnect.btn.btn-primary(type='button', data-dismiss='modal') Try again
+        button#btn-reconnect.btn.btn-primary(type='button', data-dismiss='modal', onclick='ipcRenderer.send("reconnect")') Try again
+  script.
+    ipcRenderer.on("user:connection-lost", () => {
+      modals.show("connection-lost");
+    });
