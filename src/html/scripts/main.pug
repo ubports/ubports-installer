@@ -35,12 +35,8 @@ script.
   });
 
   ipcRenderer.on("user:write:done", () => {
-    if (global.installProperties.cli) {
-      remote.getCurrentWindow().close();
-    } else {
-      views.show("done");
-      $("#progress").width("0%");
-    }
+    views.show("done");
+    $("#progress").width("0%");
   });
 
   ipcRenderer.on("user:write:status", (e, status, waitDots) => {

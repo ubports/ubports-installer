@@ -97,9 +97,7 @@ if (cli.file) {
 
 global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
-  cli: cli.cli,
   settings: cli.settings ? JSON.parse(cli.settings) : {},
-  debug: cli.debug
 };
 
 if (utils.isSnap()) {
@@ -239,7 +237,8 @@ mainEvent.on("user:low-power", () => {
 
 // Restart the installer
 mainEvent.on("restart", () => {
-  global.installProperties.device = undefined;
+  global.installProperties = { settings: {} };
+  global.installConfig = {};
   utils.log.debug("WINDOW RELOADED");
   mainWindow.reload();
 });
