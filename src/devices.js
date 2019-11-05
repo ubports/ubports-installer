@@ -87,7 +87,6 @@ function installStep(step) {
           })
           .catch(reject);
       });
-      break;
     case "adb:format":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -110,7 +109,6 @@ function installStep(step) {
           })
           .catch(reject);
       });
-      break;
     case "adb:reboot":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -124,7 +122,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "fastboot:flash":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -140,7 +137,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "fastboot:erase":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -154,7 +150,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "fastboot:boot":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -176,7 +171,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "systemimage":
       return new Promise(function(resolve, reject) {
         systemImage
@@ -189,7 +183,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "fastboot:update":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -211,7 +204,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "fastboot:reboot_bootloader":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -222,7 +214,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "fastboot:reboot":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -233,7 +224,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "fastboot:continue":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
@@ -244,7 +234,6 @@ function installStep(step) {
           .then(resolve)
           .catch(reject);
       });
-      break;
     case "user_action":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit(
@@ -253,7 +242,6 @@ function installStep(step) {
           resolve
         );
       });
-      break;
     default:
       throw "error: unrecognized step type: " + step.type;
   }
