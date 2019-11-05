@@ -30,8 +30,8 @@
     "dist:linux:appimage": "node ./build.js -o 'linux' -p 'AppImage'",
     "dist:linux:deb": "node ./build.js -o 'linux' -p 'deb'",
     "dist:linux:snap": "snapcraft cleanbuild",
-    "lint": "./node_modules/.bin/eslint src/*.js",
-    "lint-fix": "./node_modules/.bin/eslint src/*.js --fix"
+    "lint": "./node_modules/.bin/eslint *.js $(find src -type f -name \\*.js)",
+    "lint-fix": "./node_modules/.bin/eslint *.js $(find src -type f -name \\*.js) --fix"
   },
   "devDependencies": {
     "electron": "^1.8.8",
