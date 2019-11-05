@@ -97,7 +97,7 @@ if (cli.file) {
 
 global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
-  settings: cli.settings ? JSON.parse(cli.settings) : {},
+  settings: cli.settings ? JSON.parse(cli.settings) : {}
 };
 
 if (utils.isSnap()) {
@@ -350,7 +350,10 @@ mainEvent.on("device", device => {
     // fetch remote config
     global.mainEvent.emit("user:write:working", "particles");
     global.mainEvent.emit("user:write:status", "Preparing installation", true);
-    global.mainEvent.emit("user:write:under", "Fetching installation instructions");
+    global.mainEvent.emit(
+      "user:write:under",
+      "Fetching installation instructions"
+    );
     api
       .getDevice(device)
       .then(config => {
