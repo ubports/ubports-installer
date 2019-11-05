@@ -57,10 +57,15 @@ script.
   ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
     global.installConfig = installConfig;
     global.installConfig.os_to_install = undefined;
+    footer.topText.set(installConfig.name+" ("+installConfig.codename+")");
+    footer.underText.set("Please select an operating system for installation");
     $("#options-os").append(osSelects);
-    $("#your-ubp-device").text(installConfig.name+" ("+installConfig.codename+")");
-    $("#your-ubp-device").click(() => {
+    $("#device-name").text(installConfig.name+" ("+installConfig.codename+")");
+    $("#device-page-link").click(() => {
       shell.openExternal("https://devices.ubuntu-touch.io/device/" + installConfig.codename);
+    });
+    $("#device-config").click(() => {
+      shell.openExternal("https://github.com/ubports/installer-configs/blob/master/v1/" + installConfig.codename + ".json");
     });
     modals.hide("select-device");
     views.show("select-os");

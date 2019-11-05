@@ -337,27 +337,20 @@ mainEvent.on("user:configure", osInstructs => {
 mainEvent.on("device", device => {
   global.installProperties.device = device;
   function continueWithConfig() {
-    if (global.installConfig.operating_systems.length > 1) {
-      // ask for os selection if there's one os
-      mainWindow.webContents.send(
-        "user:os",
-        global.installConfig,
-        devices.getOsSelects(global.installConfig.operating_systems)
-      );
-    } else {
-      // immediately jump to configure if there's only one os
-      global.installProperties.osIndex = 0;
-      mainEvent.emit(
-        "user:configure",
-        global.installConfig.operating_systems[0]
-      );
-    }
+    mainWindow.webContents.send(
+      "user:os",
+      global.installConfig,
+      devices.getOsSelects(global.installConfig.operating_systems)
+    );
   }
   if (global.installConfig && global.installConfig.operating_systems) {
     // local config specified
     continueWithConfig();
   } else {
-    // local config specified
+    // fetch remote config
+    global.mainEvent.emit("user:write:working", "particles");
+    global.mainEvent.emit("user:write:status", "Preparing installation", true);
+    global.mainEvent.emit("user:write:under", "Fetching installation instructions");
     api
       .getDevice(device)
       .then(config => {
