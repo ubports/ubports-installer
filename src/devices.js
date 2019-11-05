@@ -77,11 +77,11 @@ function installStep(step) {
             }
           )
           .then(() => {
+            global.mainEvent.emit("user:write:working", "particles");
+            global.mainEvent.emit("user:write:under", "Verifying download");
+            global.mainEvent.emit("user:write:progress", 0);
+            global.mainEvent.emit("user:write:speed", 0);
             setTimeout(() => {
-              global.mainEvent.emit("user:write:working", "particles");
-              global.mainEvent.emit("user:write:under", "Verifying download");
-              global.mainEvent.emit("user:write:progress", 0);
-              global.mainEvent.emit("user:write:speed", 0);
               resolve();
             }, 1000);
           })
