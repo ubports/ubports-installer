@@ -18,3 +18,20 @@
         button#btn-exit.btn.btn-default(type='button', data-dismiss='modal') Abort
         button#btn-unlock.btn.btn-primary(type='button') Unlock
         i#unlock-prog.fa.fa-cog.fa-spin.fa-2x.fa-fw.hidden(hidden='hidden')
+  script.
+    ipcRenderer.on("user:oem-lock", (event) => {
+      modals.show('oem-lock');
+    });
+
+    $("#btn-unlock").click(() => {
+      event.sender.send("user:oem-lock:ok");
+      modals.hide('oem-lock');
+      $("#btn-unlock").attr("disabled", true);
+      $("#btn-exit").attr("disabled", true);
+      $("#unlock-prog").removeClass("hidden");
+    });
+
+    $("#btn-exit").click(() => {
+      var window = remote.getCurrentWindow();
+      window.close();
+    });

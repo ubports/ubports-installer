@@ -18,3 +18,7 @@
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
         button#btn-driver-never-ask.btn.btn-primary(type='button', data-dismiss='modal', onclick="localStorage.setItem('neverAskForWindowsDrivers', 'true');") Don't ask me again
+  script.
+    if (process.platform === "win32" && !localStorage.getItem('neverAskForWindowsDrivers')) {
+      modals.show('windows-drivers');
+    }

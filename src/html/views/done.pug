@@ -15,3 +15,8 @@
       p
         | Got more devices you want to flash?
       button.btn.btn-info(type='button', style='width: 100%;', onclick="ipcRenderer.send('restart');") Flash another device!
+  script.
+    ipcRenderer.on("user:write:done", () => {
+      views.show("done");
+      $("#progress").width("0%");
+    });

@@ -4,3 +4,7 @@
     .loader-line-mask
       .loader-line
 img.ubp-robot(width='100', src='../img/yumi.svg')
+script.
+  ipcRenderer.on("user:write:working", (e, animation) => {
+    views.show("working", animation);
+  });

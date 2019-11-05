@@ -10,3 +10,7 @@
           | The installer could not connect to UBports' servers to download the devices list. Are you connected to the internet?
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal', onclick="ipcRenderer.send('restart');") Try again
+  script.
+    ipcRenderer.on("user:no-network", () => {
+      modals.show('no-network');
+    });

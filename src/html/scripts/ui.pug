@@ -119,11 +119,6 @@ script.
     }
   }
 
-  $("#btn-exit").click(() => {
-    var window = remote.getCurrentWindow();
-    window.close();
-  });
-
   $("#help").click(() => {
     ipcRenderer.send("createBugReport", "user-requested bug-report");
   });
@@ -132,20 +127,24 @@ script.
     shell.openExternal("https://ubports.com/donate");
   });
 
-  $("#btn-options-close").click(() => {
-    modals.show('install');
-  });
-
-  if (process.platform === "win32" && !localStorage.getItem('neverAskForWindowsDrivers')) {
-    modals.show('windows-drivers');
-  }
-
-  ipcRenderer.on("user:update-available", () => {
-    if (global.packageInfo.isSnap) {
-      $("#snap-update-instructions").show();
-      $("#btn-update-installer").hide();
-    } else {
-      $("#generic-update-instructions").show();
+  ipcRenderer.on("user:write:progress", (e, length) => {
+    if(length >= 100) {
+      length=100;
     }
-    modals.show('new-update');
+    $("#progress").show();
+    $("#progress").width(length.toString()+"%");
   });
+
+  ipcRenderer.on("user:write:status", (e, status, waitDots) => {
+    footer.topText.set(status, waitDots);
+  });
+
+  ipcRenderer.on("user:write:under", (e, status) => {
+    footer.underText.set(status, true);
+  });
+
+  ipcRenderer.on("user:write:speed", (e, speed) => {
+    footer.speedText.set(speed);
+  });
+
+  views.show("working", "particles");

@@ -15,3 +15,19 @@
           .col-xs-9
             select#options-os.form-control.space
       button#btn-inst.btn.btn-primary(type='button', style='width: 100%; margin-top: 10px;', onclick="ipcRenderer.send(\"os:selected\", getElementById('options-os').selectedIndex); global.installConfig.os_to_install = getElementById('options-os').selectedIndex;") Install
+  script.
+    ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
+      global.installConfig = installConfig;
+      global.installConfig.os_to_install = undefined;
+      footer.topText.set(installConfig.name+" ("+installConfig.codename+")");
+      footer.underText.set("Please select an operating system for installation");
+      $("#options-os").append(osSelects);
+      $("#device-name").text(installConfig.name+" ("+installConfig.codename+")");
+      $("#device-page-link").click(() => {
+        shell.openExternal("https://devices.ubuntu-touch.io/device/" + installConfig.codename);
+      });
+      $("#device-config").click(() => {
+        shell.openExternal("https://github.com/ubports/installer-configs/blob/master/v1/" + installConfig.codename + ".json");
+      });
+      views.show("select-os");
+    });

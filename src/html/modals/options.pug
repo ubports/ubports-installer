@@ -76,6 +76,7 @@
         } else {
           ipcRenderer.send("option", option.var, $("#options-" + option.var).val());
         }
+        modals.show('install');
       });
     }
 

@@ -12,3 +12,13 @@
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
         button#btn-update-installer.btn.btn-primary(type='button', onclick="shell.openExternal('https://github.com/ubports/ubports-installer/releases/latest')") Download
+  script.
+    ipcRenderer.on("user:update-available", () => {
+      if (global.packageInfo.isSnap) {
+        $("#snap-update-instructions").show();
+        $("#btn-update-installer").hide();
+      } else {
+        $("#generic-update-instructions").show();
+      }
+      modals.show('new-update');
+    });
