@@ -1,24 +1,24 @@
 const switchHide = (from, to) => {
-  $("."+from).hide();
-  $("."+to).show();
-}
+  $("." + from).hide();
+  $("." + to).show();
+};
 
-const hideAll = (id) => {
-  $("."+id).hide();
-}
+const hideAll = id => {
+  $("." + id).hide();
+};
 
-const showAll = (id) => {
-  $("."+id).show();
-}
+const showAll = id => {
+  $("." + id).show();
+};
 
 const show = (cat, id) => {
   hideAll(cat);
-  $("#"+cat+"-"+id).show();
-}
+  $("#" + cat + "-" + id).show();
+};
 
 const setText = (cat, id, text) => {
-  $("."+cat+"-"+id).text(text);
-}
+  $("." + cat + "-" + id).text(text);
+};
 
 const animations = {
   hideAll: () => {
@@ -45,12 +45,12 @@ const animations = {
     $("#particles-foreground").hide();
     $("#particles-background").hide();
   }
-}
+};
 
 const views = {
   hideAll: () => hideAll("views"),
   show: (id, animation) => {
-    if (id != "working"){
+    if (id != "working") {
       if (id == "done") {
         $(".ubp-robot").addClass("ubp-robot-side");
         $(".ubp-robot").removeClass("ubp-robot-foot");
@@ -67,55 +67,55 @@ const views = {
       show("views", "working");
       switch (animation) {
         case "particles":
-          animations.particles()
+          animations.particles();
           break;
         case "download":
-          animations.download()
+          animations.download();
           break;
         case "push":
-          animations.push()
+          animations.push();
           break;
         default:
           animations.hideAll();
       }
     }
   }
-}
+};
 
 const userText = {
   set: (id, text) => setText("user", id, text),
   remove: id => setText("user", id, "")
-}
+};
 
 const footer = {
   topText: {
     set: (text, dots) => {
-      if (dots) $("#wait-dot").show()
-      else $("#wait-dot").hide()
-      return $("#footer-top").text(text)
+      if (dots) $("#wait-dot").show();
+      else $("#wait-dot").hide();
+      return $("#footer-top").text(text);
     }
   },
   underText: {
-    set: (text) => {
-      return $("#footer-bottom").text(text)
+    set: text => {
+      return $("#footer-bottom").text(text);
     }
   },
   speedText: {
-    set: (text) => {
+    set: text => {
       if (text) return $("#footer-speed").text(" at " + text + " MB/s");
       else return $("#footer-speed").text("");
     }
   }
-}
+};
 
 const modals = {
   show: modal => {
-    $('#'+modal+'-modal').modal('show');
+    $("#" + modal + "-modal").modal("show");
   },
   hide: modal => {
-    $('#'+modal+'-modal').modal('hide');
+    $("#" + modal + "-modal").modal("hide");
   }
-}
+};
 
 $("#help").click(() => {
   ipcRenderer.send("createBugReport", "user-requested bug-report");
@@ -126,11 +126,11 @@ $("#donate").click(() => {
 });
 
 ipcRenderer.on("user:write:progress", (e, length) => {
-  if(length >= 100) {
-    length=100;
+  if (length >= 100) {
+    length = 100;
   }
   $("#progress").show();
-  $("#progress").width(length.toString()+"%");
+  $("#progress").width(length.toString() + "%");
 });
 
 ipcRenderer.on("user:write:status", (e, status, waitDots) => {

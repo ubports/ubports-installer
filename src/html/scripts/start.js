@@ -1,6 +1,6 @@
-particleground(document.getElementById('particles-foreground'), {
-  dotColor: 'rgba(0, 0, 0, 1)',
-  lineColor: 'rgba(0, 0, 0, 0.1)',
+particleground(document.getElementById("particles-foreground"), {
+  dotColor: "rgba(0, 0, 0, 1)",
+  lineColor: "rgba(0, 0, 0, 0.1)",
   minSpeedX: 0.3,
   maxSpeedX: 0.6,
   minSpeedY: 0.3,
@@ -9,12 +9,12 @@ particleground(document.getElementById('particles-foreground'), {
   curvedLines: false,
   proximity: 250,
   parallaxMultiplier: 10,
-  particleRadius: 6,
+  particleRadius: 6
 });
 
-particleground(document.getElementById('particles-background'), {
-  dotColor: 'rgba(0, 0, 0, 0.9)',
-  lineColor: 'rgba(0, 0, 0, 0.1)',
+particleground(document.getElementById("particles-background"), {
+  dotColor: "rgba(0, 0, 0, 0.9)",
+  lineColor: "rgba(0, 0, 0, 0.1)",
   minSpeedX: 0.075,
   maxSpeedX: 0.15,
   minSpeedY: 0.075,
@@ -23,5 +23,5 @@ particleground(document.getElementById('particles-background'), {
   curvedLines: false,
   proximity: 100,
   parallaxMultiplier: 20,
-  particleRadius: 3,
+  particleRadius: 3
 });
