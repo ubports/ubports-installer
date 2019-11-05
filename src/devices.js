@@ -133,11 +133,6 @@ function installStep(step) {
           "user:write:under",
           "Flashing firmware partitions using fastboot"
         );
-        utils.log.debug(
-          JSON.stringify(
-            addPathToFiles(step.flash, global.installProperties.device)
-          )
-        );
         fastboot
           .flashArray(
             addPathToFiles(step.flash, global.installProperties.device)
