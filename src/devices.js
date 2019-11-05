@@ -314,7 +314,10 @@ function assembleInstallSteps(steps) {
                       error.includes("No such device") ||
                       error.includes("connection lost"))
                   ) {
-                    mainEvent.emit("user:connection-lost", runStep);
+                    mainEvent.emit(
+                      "user:connection-lost",
+                      step.resumable ? runStep : restartInstall
+                    );
                   } else if (error && error.includes("Killed")) {
                     reject(); // Used for exiting the installer
                   } else {

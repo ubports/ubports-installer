@@ -3,11 +3,6 @@ script.
     views.show("working", animation);
   });
 
-  ipcRenderer.on("user:connection-lost", (e, callback) => {
-    modals.show("connection-lost");
-    $("#btn-reconnect").click(callback);
-  });
-
   ipcRenderer.on("user:low-power", (callback) => {
     modals.show("low-power");
   });

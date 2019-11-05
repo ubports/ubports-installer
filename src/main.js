@@ -224,12 +224,12 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 });
 
 // Connection to the device was lost
-mainEvent.on("user:connection-lost", callback => {
-  if (mainWindow)
-    mainWindow.webContents.send(
-      "user:connection-lost",
-      callback || mainWindow.reload()
-    );
+mainEvent.on("user:connection-lost", reconnect => {
+  if (mainWindow) mainWindow.webContents.send("user:connection-lost");
+  ipcMain.once("reconnect", () => {
+    if (reconnect) setTimeout(reconnect, 500);
+    else mainEvent.emit("restart");
+  });
 });
 
 // The device battery is too low to install
