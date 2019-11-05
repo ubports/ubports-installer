@@ -298,9 +298,7 @@ function assembleInstallSteps(steps) {
                   error &&
                   error.includes("lock")
                 ) {
-                  global.mainEvent.emit("user:oem-lock", () => {
-                    install(steps);
-                  });
+                  global.mainEvent.emit("user:oem-lock", runStep);
                 } else {
                   if (
                     error &&
