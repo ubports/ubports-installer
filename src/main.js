@@ -109,6 +109,15 @@ if (utils.isSnap()) {
 // WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
 //==============================================================================
 
+winston.addColors({
+  error: "red",
+  warn: "yellow",
+  info: "green",
+  verbose: "blue",
+  debug: "white",
+  command: "grey"
+});
+
 global.logger = winston.createLogger({
   format: winston.format.json(),
   defaultMeta: { service: "user-service" },
@@ -127,7 +136,10 @@ global.logger = winston.createLogger({
       level: "command"
     }),
     new winston.transports.Console({
-      format: winston.format.simple(),
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      ),
       level: cli.veryVerbose ? "command" : cli.verbose ? "debug" : "info"
     })
   ]
