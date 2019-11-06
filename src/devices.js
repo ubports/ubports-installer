@@ -253,11 +253,14 @@ function installStep(step) {
                   "user:write:under",
                   "Adb is scanning for devices"
                 );
-                adb
-                  .waitForDevice()
-                  .then(resolve)
-                  .catch(() => mainEvent.emit("user:connection-lost", resolve));
-                break;
+                function adbWait() {
+                  return adb
+                    .waitForDevice()
+                    .catch(() =>
+                      mainEvent.emit("user:connection-lost", adbWait)
+                    );
+                }
+                return adbWait();
               case "bootloader":
                 global.mainEvent.emit("user:write:working", "particles");
                 global.mainEvent.emit(
@@ -269,11 +272,14 @@ function installStep(step) {
                   "user:write:under",
                   "Fastboot is scanning for devices"
                 );
-                fastboot
-                  .waitForDevice()
-                  .then(resolve)
-                  .catch(() => mainEvent.emit("user:connection-lost", resolve));
-                break;
+                function fastbootWait() {
+                  return fastboot
+                    .waitForDevice()
+                    .catch(() =>
+                      mainEvent.emit("user:connection-lost", fastbootWait)
+                    );
+                }
+                return fastbootWait();
               default:
                 resolve();
                 break;
