@@ -28,22 +28,34 @@ const animations = {
     $("#download-animation").hide();
   },
   particles: () => {
-    $("#particles-foreground").show();
-    $("#particles-background").show();
-    $("#push-animation").hide();
-    $("#download-animation").hide();
+    if (!localStorage.getItem("animationsDisabled")) {
+      $("#particles-foreground").show();
+      $("#particles-background").show();
+      $("#push-animation").hide();
+      $("#download-animation").hide();
+    } else {
+      animations.hideAll();
+    }
   },
   download: () => {
-    $("#download-animation").show();
-    $("#push-animation").hide();
-    $("#particles-foreground").hide();
-    $("#particles-background").hide();
+    if (!localStorage.getItem("animationsDisabled")) {
+      $("#download-animation").show();
+      $("#push-animation").hide();
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+    } else {
+      animations.hideAll();
+    }
   },
   push: () => {
-    $("#push-animation").show();
-    $("#download-animation").hide();
-    $("#particles-foreground").hide();
-    $("#particles-background").hide();
+    if (!localStorage.getItem("animationsDisabled")) {
+      $("#push-animation").show();
+      $("#download-animation").hide();
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+    } else {
+      animations.hideAll();
+    }
   }
 };
 
@@ -143,6 +155,11 @@ ipcRenderer.on("user:write:under", (e, status) => {
 
 ipcRenderer.on("user:write:speed", (e, speed) => {
   footer.speedText.set(speed);
+});
+
+ipcRenderer.on("localstorage:set", (e, item, value) => {
+  if (value) localStorage.setItem(item, value);
+  else localStorage.removeItem(item);
 });
 
 views.show("working", "particles");
