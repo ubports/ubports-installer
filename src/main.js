@@ -374,8 +374,7 @@ mainEvent.on("device:detected", device => {
 
 // Set localstorage item
 mainEvent.on("localstorage:set", (item, value) => {
-  if (mainWindow)
-    mainWindow.webContents.send("localstorage:set", item, value);
+  if (mainWindow) mainWindow.webContents.send("localstorage:set", item, value);
 });
 
 //==============================================================================
@@ -575,11 +574,13 @@ app.on("ready", function() {
           submenu: [
             {
               label: "Enable",
-              click: () => mainEvent.emit("localstorage:set", "animationsDisabled", false)
+              click: () =>
+                mainEvent.emit("localstorage:set", "animationsDisabled", false)
             },
             {
               label: "Disable",
-              click: () => mainEvent.emit("localstorage:set", "animationsDisabled", true)
+              click: () =>
+                mainEvent.emit("localstorage:set", "animationsDisabled", true)
             }
           ]
         }
