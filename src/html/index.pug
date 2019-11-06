@@ -11,9 +11,9 @@ html
     button#donate.donate-button.btn.btn-primary.is-over Donate
     #particles-background.vertical-centered-box
     #particles-foreground.vertical-centered-box
-    #download-animation.vertical-centered-box.download-animation.is-under
+    #download-animation(style='display: none').vertical-centered-box.download-animation.is-under
       i.is-under
-    #push-animation.vertical-centered-box.push-animation.is-under
+    #push-animation(style='display: none').vertical-centered-box.push-animation.is-under
       i.is-under
     // Views
     include views/done
@@ -42,6 +42,7 @@ html
     include modals/developer-mode
     include modals/options
     include modals/new-update
+    include modals/udev
     include modals/windows-drivers
     include modals/no-network
   // --- Scripts ---
