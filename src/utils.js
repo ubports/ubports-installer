@@ -94,10 +94,16 @@ function createBugReport(title, installProperties, callback) {
                   ? installProperties.device
                   : "Not detected") +
                 "%0D%0A" +
-                "Channel: " +
-                (installProperties.settings &&
-                installProperties.settings.channel
-                  ? installProperties.settings.channel
+                "OS to install: " +
+                (global.installProperties.osIndex !== undefined
+                  ? global.installConfig.operating_systems[
+                    global.installProperties.osIndex
+                  ].name
+                  : "Not yet set") +
+                "%0D%0A" +
+                "Settings: " +
+                (global.installProperties.settings ?
+                  JSON.stringify(global.installProperties.settings)
                   : "Not yet set") +
                 "%0D%0A" +
                 "Package: " +
