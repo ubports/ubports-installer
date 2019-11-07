@@ -256,6 +256,7 @@ function installStep(step) {
                 function adbWait() {
                   return adb
                     .waitForDevice()
+                    .then(resolve)
                     .catch(() =>
                       mainEvent.emit("user:connection-lost", adbWait)
                     );
@@ -275,6 +276,7 @@ function installStep(step) {
                 function fastbootWait() {
                   return fastboot
                     .waitForDevice()
+                    .then(resolve)
                     .catch(() =>
                       mainEvent.emit("user:connection-lost", fastbootWait)
                     );
