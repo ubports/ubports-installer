@@ -161,6 +161,9 @@ ipcMain.on("restart", () => {
 
 // Begin install process
 ipcMain.on("install", () => {
+  utils.log.debug(
+    "settings: " + JSON.stringify(global.installProperties.settings)
+  );
   devices.install(
     global.installConfig.operating_systems[global.installProperties.osIndex]
       .steps
@@ -186,7 +189,10 @@ ipcMain.on("renderer:error", (event, error) => {
 // The user selected an os
 ipcMain.on("os:selected", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
-  utils.log.debug(global.installConfig.operating_systems[osIndex]);
+  utils.log.debug(
+    "os config: " +
+      JSON.stringify(global.installConfig.operating_systems[osIndex])
+  );
   mainEvent.emit(
     "user:configure",
     global.installConfig.operating_systems[osIndex]
