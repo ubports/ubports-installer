@@ -483,7 +483,7 @@ app.on("window-all-closed", function() {
     setTimeout(() => {
       app.quit();
       process.exit(0);
-    }, 1000);
+    }, 2000);
   }
 });
 

@@ -28,13 +28,15 @@ const getDeviceChannels = device => {
 
 var installLatestVersion = options => {
   return new Promise(function(resolve, reject) {
-    mainEvent.emit("user:write:working", "download");
+    mainEvent.emit("user:write:working", "particles");
     mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
-    mainEvent.emit("user:write:under", "Downloading");
+    mainEvent.emit("user:write:under", "Checking local files");
     systemImage
       .downloadLatestVersion(
         options,
         (progress, speed) => {
+          mainEvent.emit("user:write:working", "download");
+          mainEvent.emit("user:write:under", "Downloading");
           mainEvent.emit("user:write:progress", progress * 100);
           mainEvent.emit("user:write:speed", Math.round(speed * 100) / 100);
         },
