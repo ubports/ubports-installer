@@ -65,6 +65,20 @@ var installLatestVersion = options => {
                     adb
                       .shell("mkdir -p /cache/recovery")
                       .then(() => {
+                        adb
+                          .verifyPartitionType("data", "ext4")
+                          .then(isExt4 => {
+                            if (isExt4) {
+                              utils.log.debug(
+                                "data partition seems to exist as ext4"
+                              );
+                            } else {
+                              utils.log.warning(
+                                "data partition does not seem to exist as ext4"
+                              );
+                            }
+                          })
+                          .catch(utils.log.warn);
                         utils.log.debug(
                           "adb created /cache/recovery directory"
                         );
