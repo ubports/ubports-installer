@@ -58,7 +58,7 @@
     "jquery-i18next": "^1.2.0",
     "mkdirp": "^0.5.1",
     "popper.js": "^1.16.0",
-    "promise-android-tools": "^1.0.11",
+    "promise-android-tools": "^1.0.12",
     "ps-tree": "^1.2.0",
     "request": "^2.79.0",
     "system-image-node-module": "^1.0.10",
