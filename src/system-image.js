@@ -28,13 +28,15 @@ const getDeviceChannels = device => {
 
 var installLatestVersion = options => {
   return new Promise(function(resolve, reject) {
-    mainEvent.emit("user:write:working", "download");
+    mainEvent.emit("user:write:working", "particles");
     mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
-    mainEvent.emit("user:write:under", "Downloading");
+    mainEvent.emit("user:write:under", "Checking local files");
     systemImage
       .downloadLatestVersion(
         options,
         (progress, speed) => {
+          mainEvent.emit("user:write:working", "download");
+          mainEvent.emit("user:write:under", "Downloading");
           mainEvent.emit("user:write:progress", progress * 100);
           mainEvent.emit("user:write:speed", Math.round(speed * 100) / 100);
         },
@@ -65,6 +67,20 @@ var installLatestVersion = options => {
                     adb
                       .shell("mkdir -p /cache/recovery")
                       .then(() => {
+                        adb
+                          .verifyPartitionType("data", "ext4")
+                          .then(isExt4 => {
+                            if (isExt4) {
+                              utils.log.debug(
+                                "data partition seems to exist as ext4"
+                              );
+                            } else {
+                              utils.log.warning(
+                                "data partition does not seem to exist as ext4"
+                              );
+                            }
+                          })
+                          .catch(utils.log.warn);
                         utils.log.debug(
                           "adb created /cache/recovery directory"
                         );
