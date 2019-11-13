@@ -24,7 +24,7 @@
     });
 
     $("#btn-unlock").click(() => {
-      event.sender.send("user:oem-lock:ok");
+      ipcRenderer.send("user:oem-lock:ok");
       modals.hide('oem-lock');
       $("#btn-unlock").attr("disabled", true);
       $("#btn-exit").attr("disabled", true);
