@@ -85,7 +85,7 @@ function installStep(step) {
               resolve();
             }, 1000);
           })
-          .catch((error) => {
+          .catch(error => {
             utils.log.error("download error: " + error);
             mainEvent.emit("user:no-network");
           });
