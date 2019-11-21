@@ -37,6 +37,7 @@ body .vertical-centered-box .content {
 }
 
 .help-button {
+  z-index: 10 !important;
   top: 15px !important;
   position: absolute;
   right: 15px !important;
@@ -46,6 +47,7 @@ body .vertical-centered-box .content {
 }
 
 .donate-button {
+  z-index: 10 !important;
   top: 15px !important;
   position: absolute;
   right: 135px !important;
