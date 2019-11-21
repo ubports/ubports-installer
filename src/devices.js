@@ -408,7 +408,8 @@ module.exports = {
                 global.mainEvent.emit("device:detected", resolvedDevice);
               })
               .catch(error => {
-                utils.errorToUser(error, "Resolve device alias");
+                utils.log.error("getDeviceName error: " + error);
+                mainEvent.emit("user:no-network");
               });
           })
           .catch(error => {
