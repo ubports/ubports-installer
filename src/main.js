@@ -398,6 +398,11 @@ mainEvent.on("localstorage:set", (item, value) => {
   if (mainWindow) mainWindow.webContents.send("localstorage:set", item, value);
 });
 
+// Set localstorage item
+mainEvent.on("user:no-network", () => {
+  if (mainWindow) mainWindow.webContents.send("user:no-network");
+});
+
 //==============================================================================
 // CREATE WINDOW
 //==============================================================================
