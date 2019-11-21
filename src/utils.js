@@ -376,10 +376,7 @@ function downloadFiles(urls, progress, next) {
                       resolve();
                       return;
                     })
-                    .catch(err => {
-                      reject(err);
-                      return;
-                    });
+                    .catch(reject);
                 })
                 .catch(reject);
             });

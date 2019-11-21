@@ -85,7 +85,10 @@ function installStep(step) {
               resolve();
             }, 1000);
           })
-          .catch(reject);
+          .catch((error) => {
+            utils.log.error("download error: " + error);
+            mainEvent.emit("user:no-network");
+          });
       });
     case "adb:format":
       return new Promise(function(resolve, reject) {
