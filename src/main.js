@@ -45,7 +45,10 @@ global.mainEvent = mainEvent;
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
-const api = new Api();
+const api = new Api({
+  timeout: 7500,
+  cachetime: 60000
+});
 global.api = api;
 var adb = new Adb({
   exec: (args, callback) => {
