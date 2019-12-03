@@ -302,14 +302,18 @@ function checksumFile(file) {
                 "checked: " + path.basename(file.url),
                 sum === file.checksum
               );
-              if (sum === file.checksum) resolve();
-              else
+              if (sum === file.checksum) {
+                resolve();
+              } else {
                 reject(
-                  "checksum mismatch: calculated " +
-                    sum +
-                    " but expected " +
-                    file.checksum
+                  new Error(
+                    "checksum mismatch: calculated " +
+                      sum +
+                      " but expected " +
+                      file.checksum
+                  )
                 );
+              }
             }
           );
         }

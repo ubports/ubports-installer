@@ -293,7 +293,7 @@ function installStep(step) {
         );
       });
     default:
-      throw "error: unrecognized step type: " + step.type;
+      throw new Error("unrecognized step type: " + step.type);
   }
 }
 
@@ -322,43 +322,36 @@ function assembleInstallSteps(steps) {
                 utils.log.debug(step.type + " done");
               })
               .catch(error => {
-                if (step.fallback_user_action) {
+                if (step.optional) {
+                  resolve();
+                } else if (step.fallback_user_action) {
                   installStep({
                     type: "user_action",
                     action: step.fallback_user_action
                   })
                     .then(resolve)
                     .catch(reject);
-                } else if (step.optional) {
-                  resolve();
                 } else if (
                   step.type.includes("fastboot") &&
-                  error &&
-                  error.includes("lock")
+                  error.message.includes("lock")
                 ) {
                   global.mainEvent.emit("user:oem-lock", runStep);
+                } else if (error.message.includes("low power")) {
+                  global.mainEvent.emit("user:low-power");
+                } else if (
+                  error.message.includes("no device") ||
+                  error.message.includes("device offline") ||
+                  error.message.includes("No such device") ||
+                  error.message.includes("connection lost")
+                ) {
+                  mainEvent.emit(
+                    "user:connection-lost",
+                    step.resumable ? runStep : restartInstall
+                  );
+                } else if (error.message.includes("Killed")) {
+                  reject(); // Used for exiting the installer
                 } else {
-                  if (
-                    error &&
-                    (error.includes("no device") ||
-                      error.includes("device offline") ||
-                      error.includes("No such device") ||
-                      error.includes("connection lost"))
-                  ) {
-                    mainEvent.emit(
-                      "user:connection-lost",
-                      step.resumable ? runStep : restartInstall
-                    );
-                  } else if (error && error.includes("Killed")) {
-                    reject(); // Used for exiting the installer
-                  } else {
-                    utils.errorToUser(
-                      error,
-                      step.type,
-                      restartInstall,
-                      runStep
-                    );
-                  }
+                  utils.errorToUser(error, step.type, restartInstall, runStep);
                 }
               });
           }
@@ -455,12 +448,17 @@ module.exports = {
                     resolve(option);
                   })
                   .catch(e =>
-                    reject("error fetching system image channels: " + e)
+                    reject(
+                      new Error("fetching system image channels failed: " + e)
+                    )
                   );
                 break;
               default:
                 reject(
-                  "unknown remote_values provider: " + option.remote_values.type
+                  new Error(
+                    "unknown remote_values provider: " +
+                      option.remote_values.type
+                  )
                 );
             }
           }
