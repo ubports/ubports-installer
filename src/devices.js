@@ -175,17 +175,12 @@ function installStep(step) {
           .catch(reject);
       });
     case "systemimage":
-      return new Promise(function(resolve, reject) {
-        systemImage
-          .installLatestVersion(
-            Object.assign(
-              { device: global.installConfig.codename },
-              global.installProperties.settings
-            )
-          )
-          .then(resolve)
-          .catch(reject);
-      });
+      return systemImage.installLatestVersion(
+        Object.assign(
+          { device: global.installConfig.codename },
+          global.installProperties.settings
+        )
+      );
     case "fastboot:update":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
