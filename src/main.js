@@ -200,6 +200,13 @@ ipcMain.on("os:selected", (event, osIndex) => {
     "user:configure",
     global.installConfig.operating_systems[osIndex]
   );
+  if (global.installConfig.operating_systems[osIndex].prerequisites.length) {
+    mainWindow.webContents.send(
+      "user:prerequisites",
+      global.installConfig,
+      osIndex
+    );
+  }
 });
 
 // The user selected an os
@@ -364,6 +371,9 @@ mainEvent.on("device", device => {
       global.installConfig,
       devices.getOsSelects(global.installConfig.operating_systems)
     );
+    if (global.installConfig.unlock.length) {
+      mainWindow.webContents.send("user:unlock", global.installConfig);
+    }
   }
   if (global.installConfig && global.installConfig.operating_systems) {
     // local config specified

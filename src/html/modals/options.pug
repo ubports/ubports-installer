@@ -8,6 +8,7 @@
       .modal-body
         div
           form#options-form.form-horizontal
+        p #[b NOTE]: Installing may in rare cases lead to data loss. If the device is running Android, please note that you won't be able to access your Android data and/or apps in Ubuntu Touch. However the Android data will use storage space, so if you don't want it, please select the "Wipe" option. It's always wise to backup before installing.
       .modal-footer
         button#btn-options-close.btn.btn-default(type='button', data-dismiss='modal') Next
   script.
@@ -49,7 +50,7 @@
       _subdiv.appendChild(_input);
       _div.appendChild(_subdiv);
       $("#options-form").append(_div);
-      
+
       // tooltip describing the option
       if (option.tooltip) {
         let _tooltipdiv = document.createElement("div");
@@ -76,7 +77,7 @@
         } else {
           ipcRenderer.send("option", option.var, $("#options-" + option.var).val());
         }
-        modals.show('install');
+        ipcRenderer.send('install');
       });
     }
 
