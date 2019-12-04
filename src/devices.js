@@ -143,7 +143,7 @@ function installStep(step) {
     case "fastboot:erase":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Ceaning up", true);
+        global.mainEvent.emit("user:write:status", "Cleaning up", true);
         global.mainEvent.emit(
           "user:write:under",
           "Erasing " + step.partition + " partition"
