@@ -371,10 +371,7 @@ mainEvent.on("device", device => {
       devices.getOsSelects(global.installConfig.operating_systems)
     );
     if (global.installConfig.unlock.length) {
-      mainWindow.webContents.send(
-        "user:unlock",
-        global.installConfig
-      );
+      mainWindow.webContents.send("user:unlock", global.installConfig);
     }
   }
   if (global.installConfig && global.installConfig.operating_systems) {
