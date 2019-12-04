@@ -244,6 +244,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
+  utils.log.warn("connectiion to device lost");
   if (mainWindow) mainWindow.webContents.send("user:connection-lost");
   ipcMain.once("reconnect", () => {
     if (reconnect) setTimeout(reconnect, 500);
