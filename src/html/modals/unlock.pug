@@ -4,7 +4,7 @@
       .modal-header
         button.close(type='button', data-dismiss='modal', aria-label='Close')
           span(aria-hidden='true') ×
-        h4.modal-title.user-modal-install-title Read before installing!
+        h4#unlock-modal-title.modal-title.user-modal-install-title Read before installing!
       .modal-body
         #actions(style="display: inline-block;")
       .modal-footer
@@ -52,15 +52,19 @@
         _div.appendChild(_tooltip);
         // HACK: link target can not be set before, because the element needs to have already been created
         if (action.link) $("#" + baseId + "_link").click(() => shell.openExternal(action.link));
-        if (action.link) $("#" + baseId + "_link").click(() => console.log(action.link));
       }
     }
 
-    let unlockActionsAdded = false;
-    ipcRenderer.on("user:os", (event, installConfig) => {
+    ipcRenderer.on("user:unlock", (event, installConfig) => {
+      document.getElementById("unlock-modal-title").innerHTML = "Unlock the device";
       modals.show('unlock');
-      if (!unlockActionsAdded) {
-        unlockActionsAdded = true;
-        installConfig.unlock.forEach(actionId => addAction(installConfig.user_actions[actionId]));
-      }
+      document.getElementById("actions").innerHTML = ""; // remove all previously added actions
+      installConfig.unlock.forEach(actionId => addAction(installConfig.user_actions[actionId]));
+    });
+
+    ipcRenderer.on("user:prerequisites", (event, installConfig, osIndex) => {
+      document.getElementById("unlock-modal-title").innerHTML = "Before we continue...";
+      modals.show('unlock');
+      document.getElementById("actions").innerHTML = ""; // remove all previously added actions
+      installConfig.operating_systems[osIndex].prerequisites.forEach(actionId => addAction(installConfig.user_actions[actionId]));
     });

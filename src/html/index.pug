@@ -32,17 +32,20 @@ html
           span#footer-bottom.text-muted Starting adb service
           span#footer-speed.text-muted
     // --- Modals ---
-    include modals/unlock
-    include modals/connection-lost
-    include modals/oem-lock
-    include modals/legacy-android
-    include modals/low-power
+    // low prio
     include modals/select-device
     include modals/developer-mode
+    include modals/oem-lock
     include modals/options
-    include modals/new-update
+    // medium prio
+    include modals/unlock
+    // high prio
     include modals/udev
     include modals/windows-drivers
+    include modals/new-update
+    // errors
+    include modals/low-power
+    include modals/connection-lost
     include modals/no-network
     include modals/error
   // --- Scripts ---
