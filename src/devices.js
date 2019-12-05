@@ -175,12 +175,21 @@ function installStep(step) {
           .catch(reject);
       });
     case "systemimage":
-      return systemImage.installLatestVersion(
-        Object.assign(
-          { device: global.installConfig.codename },
-          global.installProperties.settings
-        )
-      );
+      return new Promise(function(resolve, reject) {
+        mainEvent.emit("user:write:progress", 0);
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
+        mainEvent.emit("user:write:under", "Checking local files");
+        systemImage
+          .installLatestVersion(
+            Object.assign(
+              { device: global.installConfig.codename },
+              global.installProperties.settings
+            )
+          )
+          .then(resolve)
+          .catch(reject);
+      });
     case "fastboot:update":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
