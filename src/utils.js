@@ -244,6 +244,10 @@ function getUbuntuTouchDir() {
   return path.join(osCacheDir, "ubports");
 }
 
+function cleanInstallerCache() {
+  fs.emptyDir(getUbuntuTouchDir());
+}
+
 function die(e) {
   log.error(e);
   process.exit(-1);
@@ -428,6 +432,7 @@ function errorToUser(error, errorLocation, restart, ignore) {
 }
 
 module.exports = {
+  cleanInstallerCache: cleanInstallerCache,
   errorToUser: errorToUser,
   downloadFiles: downloadFiles,
   log: log,
