@@ -214,6 +214,9 @@ ipcMain.on("option", (event, targetVar, value) => {
   global.installProperties.settings[targetVar] = value;
 });
 
+// The user requested udev rules to be set
+ipcMain.on("udev", utils.setUdevRules);
+
 //==============================================================================
 // RENDERER COMMUNICATION
 //==============================================================================
