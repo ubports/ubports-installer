@@ -632,7 +632,7 @@ app.on("ready", function() {
         {
           label: "Set udev rules",
           click: utils.setUdevRules,
-          visible: !utils.isSnap() && (process.platform === "linux")
+          visible: !utils.isSnap() && process.platform === "linux"
         },
         {
           label: "Developer tools",
