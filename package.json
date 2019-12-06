@@ -61,6 +61,7 @@
     "promise-android-tools": "^2.0.1",
     "ps-tree": "^1.2.0",
     "request": "^2.79.0",
+    "sudo-prompt": "^9.1.1",
     "system-image-node-module": "^1.0.10",
     "ubports-api-node-module": "^2.0.3",
     "winston": "^3.1.2"

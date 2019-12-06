@@ -19,6 +19,7 @@ const http = require("request");
 const download = require("download");
 const shell = require("electron").shell;
 const exec = require("child_process").exec;
+const sudo = require("sudo-prompt");
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
@@ -195,6 +196,24 @@ function getLatestInstallerVersion() {
   });
 }
 
+function setUdevRules() {
+  sudo.exec(
+    "cp " + path.join(__dirname, "../build/10-ubports.rules") +
+    " /etc/udev/rules.d/ && " +
+    "(udevadm control --reload-rules || echo \"\") && " +
+    "(udevadm trigger || echo \"\") && " +
+    "(service udev restart || echo \"\")",
+    {
+      name: "UBports Installer",
+      icns: path.join(__dirname, "../build/icons/icon.icns")
+    },
+    (error) => {
+      if (error) log.warn("setting udev rules failed");
+      else log.debug("udev rules set");
+    }
+  );
+}
+
 function getUpdateAvailable() {
   return new Promise((resolve, reject) => {
     getLatestInstallerVersion()
@@ -278,7 +297,7 @@ function killSubprocesses() {
 }
 
 function isSnap() {
-  return process.env.SNAP_NAME;
+  return process.env.SNAP_NAME || false;
 }
 
 function checksumFile(file) {
@@ -416,6 +435,7 @@ module.exports = {
   killSubprocesses: killSubprocesses,
   getUbuntuTouchDir: getUbuntuTouchDir,
   sendBugReport: sendBugReport,
+  setUdevRules: setUdevRules,
   getUpdateAvailable: getUpdateAvailable,
   die: die
 };
