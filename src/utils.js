@@ -198,16 +198,17 @@ function getLatestInstallerVersion() {
 
 function setUdevRules() {
   sudo.exec(
-    "cp " + path.join(__dirname, "../build/10-ubports.rules") +
-    " /etc/udev/rules.d/ && " +
-    "(udevadm control --reload-rules || echo \"\") && " +
-    "(udevadm trigger || echo \"\") && " +
-    "(service udev restart || echo \"\")",
+    "cp " +
+      path.join(__dirname, "../build/10-ubports.rules") +
+      " /etc/udev/rules.d/ && " +
+      '(udevadm control --reload-rules || echo "") && ' +
+      '(udevadm trigger || echo "") && ' +
+      '(service udev restart || echo "")',
     {
       name: "UBports Installer",
       icns: path.join(__dirname, "../build/icons/icon.icns")
     },
-    (error) => {
+    error => {
       if (error) log.warn("setting udev rules failed");
       else log.debug("udev rules set");
     }
