@@ -614,6 +614,10 @@ app.on("ready", function() {
         {
           label: "Report a bug",
           click: () => utils.sendBugReport("user-requested bug-report")
+        },
+        {
+          label: "Clean cached files",
+          click: utils.cleanInstallerCache
         }
       ]
     },
