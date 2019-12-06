@@ -622,6 +622,24 @@ app.on("ready", function() {
           ]
         }
       ]
+    },
+    {
+      label: "Tools",
+      submenu: [
+        {
+          label: "Set udev rules",
+          click: utils.setUdevRules,
+          visible: !utils.isSnap() && (process.platform === "linux")
+        },
+        {
+          label: "Developer tools",
+          click: () => mainWindow.webContents.openDevTools()
+        },
+        {
+          label: "Report a bug",
+          click: () => utils.sendBugReport("user-requested bug-report")
+        }
+      ]
     }
   ];
 
