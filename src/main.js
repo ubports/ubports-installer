@@ -569,33 +569,6 @@ app.on("ready", function() {
       ]
     },
     {
-      label: "Help",
-      submenu: [
-        {
-          label: "Report a bug",
-          click: () => utils.sendBugReport("user-requested bug-report")
-        },
-        {
-          label: "View issues",
-          click: () =>
-            electron.shell.openExternal(
-              "https://github.com/ubports/ubports-installer/issues"
-            )
-        },
-        {
-          label: "Troubleshooting guide",
-          click: () =>
-            electron.shell.openExternal(
-              "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
-            )
-        },
-        {
-          label: "UBports Forums",
-          click: () => electron.shell.openExternal("https://forums.ubports.com")
-        }
-      ]
-    },
-    {
       label: "Window",
       role: "window",
       submenu: [
@@ -641,6 +614,33 @@ app.on("ready", function() {
         {
           label: "Report a bug",
           click: () => utils.sendBugReport("user-requested bug-report")
+        }
+      ]
+    },
+    {
+      label: "Help",
+      submenu: [
+        {
+          label: "Report a bug",
+          click: () => utils.sendBugReport("user-requested bug-report")
+        },
+        {
+          label: "View issues",
+          click: () =>
+            electron.shell.openExternal(
+              "https://github.com/ubports/ubports-installer/issues"
+            )
+        },
+        {
+          label: "Troubleshooting guide",
+          click: () =>
+            electron.shell.openExternal(
+              "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
+            )
+        },
+        {
+          label: "UBports Forums",
+          click: () => electron.shell.openExternal("https://forums.ubports.com")
         }
       ]
     }
