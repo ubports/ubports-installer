@@ -592,8 +592,10 @@ app.on("ready", function() {
             },
             {
               label: "Disable",
-              click: () =>
-                mainEvent.emit("localstorage:set", "animationsDisabled", true)
+              click: () => {
+                mainWindow.webContents.send("animations:hide");
+                mainEvent.emit("localstorage:set", "animationsDisabled", true);
+              }
             }
           ]
         }

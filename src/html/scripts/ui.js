@@ -157,6 +157,8 @@ ipcRenderer.on("user:write:speed", (e, speed) => {
   footer.speedText.set(speed);
 });
 
+ipcRenderer.on("animations:hide", animations.hideAll);
+
 ipcRenderer.on("localstorage:set", (e, item, value) => {
   if (value) localStorage.setItem(item, value);
   else localStorage.removeItem(item);
