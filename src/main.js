@@ -91,7 +91,7 @@ cli
   .option("-c, --cli", "[experimental] Run without GUI", undefined, "false")
   .option("-v, --verbose", "Enable verbose logging", undefined, "false")
   .option("-V, --veryVerbose", "Log *everything*", undefined, "false")
-  .option("-D, --debug", "Enable debugging tools", undefined, "false")
+  .option("-D, --debug", "Enable debugging tools", undefined, "true")
   .parse(process.argv);
 
 if (cli.file) {
@@ -102,6 +102,16 @@ global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
   settings: cli.settings ? JSON.parse(cli.settings) : {}
 };
+
+// AW : For backup and recovery
+global.Backup ={
+  systemsize : 0,
+  usersize : 0,
+  TotalSize : 0,
+  BackupList : [],
+  BackupListNames : [],
+  config : []
+}
 
 if (utils.isSnap()) {
   global.packageInfo.isSnap = utils.isSnap();
@@ -157,10 +167,41 @@ ipcMain.on("die", exitCode => {
   process.exit(exitCode);
 });
 
+// AW : backup
+ipcMain.on("backup", (event,installConfig) => {
+  mainEvent.emit("backup", installConfig);
+});
+ipcMain.on("user:backup", () => {
+  mainEvent.emit("user:backup");
+});
+ipcMain.on("user:backup:start", (event,BackupName) => {
+  mainEvent.emit("user:backup:start", BackupName);
+});
+
+// AW : Restore a backup
+ipcMain.on("restore", (event,installConfig) => {
+  mainEvent.emit("restore", installConfig);
+});
+ipcMain.on("user:restore", () => {
+  mainEvent.emit("user:restore");
+});
+ipcMain.on("user:restore:start", (event,BackupName) => {
+  mainEvent.emit("user:restore:start", BackupName);
+});
+
+// AW : Common to backup and restore
+ipcMain.on("user:backuprestore:done", (event,task) => {
+  utils.log.info("Screen done called");
+  mainEvent.emit("user:backuprestore:done", task);
+});
+
+
+
 // Restart the installer
 ipcMain.on("restart", () => {
   mainEvent.emit("restart");
 });
+
 
 // Begin install process
 ipcMain.on("install", () => {
@@ -200,22 +241,12 @@ ipcMain.on("os:selected", (event, osIndex) => {
     "user:configure",
     global.installConfig.operating_systems[osIndex]
   );
-  if (global.installConfig.operating_systems[osIndex].prerequisites.length) {
-    mainWindow.webContents.send(
-      "user:prerequisites",
-      global.installConfig,
-      osIndex
-    );
-  }
 });
 
 // The user selected an os
 ipcMain.on("option", (event, targetVar, value) => {
   global.installProperties.settings[targetVar] = value;
 });
-
-// The user requested udev rules to be set
-ipcMain.on("udev", utils.setUdevRules);
 
 //==============================================================================
 // RENDERER COMMUNICATION
@@ -254,7 +285,6 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
-  utils.log.warn("connectiion to device lost");
   if (mainWindow) mainWindow.webContents.send("user:connection-lost");
   ipcMain.once("reconnect", () => {
     if (reconnect) setTimeout(reconnect, 500);
@@ -266,6 +296,123 @@ mainEvent.on("user:connection-lost", reconnect => {
 mainEvent.on("user:low-power", () => {
   if (mainWindow) mainWindow.webContents.send("user:low-power");
 });
+
+// AW : Backup 
+mainEvent.on("backup", (installConfig) => {
+  devices.getUserSystemFileSize().then ( ()=>{
+    utils.log.info(global.Backup.TotalSize);
+    mainWindow.webContents.send("user:backup", global.Backup.TotalSize / (1024 * 1024), installConfig);
+  }).catch(e => {utils.errorToUser(e, "backup");utils.log.warn("Unable to get device space " + e)} );
+});
+
+// AW : Backup/Restore finished 
+mainEvent.on("user:backuprestore:done", (task) => {  
+  if (mainWindow) mainWindow.webContents.send("user:backuprestore:done", task);
+});
+
+// AW : Backup Start (TO-DO : Move it to device.js ?)
+mainEvent.on("user:backup:start", (BackupName) => {
+  utils.log.warn("Starting Backup : "+BackupName);
+
+  mainEvent.emit("user:write:working", "pull");
+  mainEvent.emit("user:write:status", "Backuping your device, please wait [Step 1/3]", true);
+  mainEvent.emit("user:write:under","Reboot into recovery ...");
+  // Reboot into recovery
+  adb.reboot("recovery").then(() => {
+    utils.log.debug("booting into recovery");
+    adb.waitForDevice().then(() => { 
+        // Get device SN for later
+        adb.getSerialno().then(stdout=>{global.Backup.deviceSN = stdout;utils.log.info("Device SN: "+global.Backup.deviceSN);}).catch(e=>utils.log.debug(e));
+
+        // booted in recovery, checking partitions
+        utils.log.info("Checking partition");
+        mainEvent.emit("user:write:under","Device under recovery, checking partition");
+        // Check partition and mount it if not already mounted (Meizu pro5)
+        devices.mountPartToBackup(installConfig.codename).then(()=>{
+                // Partition Ready to be backuped
+                utils.log.info("Partition Mounted");
+                global.mainEvent.emit("user:write:progress", 0);
+                global.mainEvent.emit("user:write:speed", 0);
+                mainEvent.emit("user:write:under","Backuping your device, please wait [Step 1/3]");
+                mainEvent.emit("user:write:under" , "Backing up system-data");
+
+                // Get the toolpath for adb, needed in the backup command line
+                var toolsPath = utils.getToolPath();
+                utils.log.debug("tool path :"+toolsPath);
+
+                // Create the backup folder
+                var BackupPath = utils.CreateBackupDir(BackupName);
+
+                // Now Starting system backup
+                adb.backup("data/system-data",path.join(BackupPath,BackupName+"_system.tar"),toolsPath,progress => {
+                            global.mainEvent.emit("user:write:progress",progress);
+                            //utils.log.warn("progress : "+progress);
+                            }).then(() => {
+                    mainEvent.emit("user:write:status", "Backuping your device, please wait [Step 2/3]", true);
+                    mainEvent.emit("user:write:under" , "Backing up user-data");
+                    global.mainEvent.emit("user:write:progress", 100);
+                    utils.log.info("Backup user data...");
+                    // And user-data backup
+                    adb.backup("data/user-data",path.join(BackupPath,BackupName+"_user.tar"),toolsPath,progress => {
+                                global.mainEvent.emit("user:write:progress",progress);
+                                //utils.log.warn("progress : "+progress);
+                                }).then(() => {
+                        mainEvent.emit("user:write:status", "Backuping your device, please wait [Step 3/3]", true);
+                        mainEvent.emit("user:write:under","Done !");
+                        // Generate the backup descriptor
+                        utils.generateBackupConfigFile( path.join(BackupPath,BackupName), global.installConfig.codename,global.Backup.deviceSN, 610, 12400 );
+                        // Backup finished, rebooting
+                        adb.reboot("system").then(() => {
+                            mainEvent.emit("user:write:status", "Backup finished", false);
+                            mainEvent.emit("user:backuprestore:done","backup");
+                            utils.log.info("Backup Done");
+                        }).catch(e => {utils.errorToUser(e, "backup");utils.log.warn("Fail to reboot device into OS " + e)}); // fin reboot device
+                    }).catch(e => {utils.errorToUser(e, "backup");utils.log.warn("unable to backup user-data " + e)}); // fin backup user-data
+                }).catch(e => {utils.errorToUser(e, "backup");utils.log.warn("Unable to backup system-data " + e)}); // Fin backup system-data
+        }).catch(e => {utils.errorToUser(e, "backup");utils.log.warn("Unable to find partition to backup " + e)}) // fin mount device partition
+    }).catch(e => {utils.errorToUser(e, "backup");utils.log.warn("no device " + e)} );// Fin recherche device
+  }).catch(e => {utils.errorToUser(e, "backup");utils.log.warn("reboot fail " + e)} ); // Fin reboot recovery
+});
+
+
+// AW : Restore 
+mainEvent.on("restore", (installConfig) => {
+  utils.log.info("RSTORE");
+  
+  var BackPath = utils.getUbuntuTouchBackupDir();
+  utils.getBackupContent ( BackPath ).then( (files)=>{
+     global.Backup.BackupListNames = files;
+     utils.log.info("backup selected : "+global.Backup.BackupListNames[0]);
+     
+     var i = 0;
+     files.forEach(function (file) {
+                      global.Backup.BackupList.push('<option name="' + i + '">' + file + "</option>");
+                      i++;
+                      utils.log.debug(file); 
+                      global.Backup.BackupListNames.push(file);
+                      });
+
+     utils.log.info("backup list : "+global.Backup.BackupList);//global.Backup.config = 
+     //utils.log.info(path.join(BackPath, global.Backup.BackupListNames[0],global.Backup.BackupListNames[0]+'_config.bkp'));
+     global.Backup.config = utils.loadBackupConfig(path.join(BackPath, global.Backup.BackupListNames[0], global.Backup.BackupListNames[0]+'_config.bkp'));
+     utils.log.info("Device loaded : "+global.Backup.config.devicetype);
+     devices.getDeviceUsedSpaceForBackup().then ( res=>{global.backupsize=res;utils.log.warn(res);mainWindow.webContents.send("user:restore", global.backupsize, installConfig, global.Backup);});
+   }).catch(e => {utils.log.warn(e)});
+  
+
+  
+  
+  //if (mainWindow) mainWindow.webContents.send("user:restore", global.backupsize, installConfig);
+});
+
+// AW : restore 
+mainEvent.on("user:restore", (selectedBackup) => {
+  //devices.getDeviceUsedSpaceForBackup().then ( res=>{global.backupsize=res;utils.log.warn(global.backupsize);});
+  mainWindow.webContents.send("user:restore", global.backupsize, installConfig, global.Backup);
+  utils.log.info("iCICI");  
+//if (mainWindow) mainWindow.webContents.send("user:restore", global.backupsize);
+});
+
 
 // Restart the installer
 mainEvent.on("restart", () => {
@@ -374,9 +521,6 @@ mainEvent.on("device", device => {
       global.installConfig,
       devices.getOsSelects(global.installConfig.operating_systems)
     );
-    if (global.installConfig.unlock.length) {
-      mainWindow.webContents.send("user:unlock", global.installConfig);
-    }
   }
   if (global.installConfig && global.installConfig.operating_systems) {
     // local config specified
@@ -569,6 +713,33 @@ app.on("ready", function() {
       ]
     },
     {
+      label: "Help",
+      submenu: [
+        {
+          label: "Report a bug",
+          click: () => utils.sendBugReport("user-requested bug-report")
+        },
+        {
+          label: "View issues",
+          click: () =>
+            electron.shell.openExternal(
+              "https://github.com/ubports/ubports-installer/issues"
+            )
+        },
+        {
+          label: "Troubleshooting guide",
+          click: () =>
+            electron.shell.openExternal(
+              "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
+            )
+        },
+        {
+          label: "UBports Forums",
+          click: () => electron.shell.openExternal("https://forums.ubports.com")
+        }
+      ]
+    },
+    {
       label: "Window",
       role: "window",
       submenu: [
@@ -596,55 +767,6 @@ app.on("ready", function() {
                 mainEvent.emit("localstorage:set", "animationsDisabled", true)
             }
           ]
-        }
-      ]
-    },
-    {
-      label: "Tools",
-      submenu: [
-        {
-          label: "Set udev rules",
-          click: utils.setUdevRules,
-          visible: !utils.isSnap() && process.platform === "linux"
-        },
-        {
-          label: "Developer tools",
-          click: () => mainWindow.webContents.openDevTools()
-        },
-        {
-          label: "Report a bug",
-          click: () => utils.sendBugReport("user-requested bug-report")
-        },
-        {
-          label: "Clean cached files",
-          click: utils.cleanInstallerCache
-        }
-      ]
-    },
-    {
-      label: "Help",
-      submenu: [
-        {
-          label: "Report a bug",
-          click: () => utils.sendBugReport("user-requested bug-report")
-        },
-        {
-          label: "View issues",
-          click: () =>
-            electron.shell.openExternal(
-              "https://github.com/ubports/ubports-installer/issues"
-            )
-        },
-        {
-          label: "Troubleshooting guide",
-          click: () =>
-            electron.shell.openExternal(
-              "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
-            )
-        },
-        {
-          label: "UBports Forums",
-          click: () => electron.shell.openExternal("https://forums.ubports.com")
         }
       ]
     }

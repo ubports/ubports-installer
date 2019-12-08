@@ -15,6 +15,8 @@ html
       i.is-under
     #push-animation(style='display: none').vertical-centered-box.push-animation.is-under
       i.is-under
+    #pull-animation(style='display: none').vertical-centered-box.pull-animation.is-under
+      i.is-under
     // Views
     include views/done
     include views/user-action
@@ -22,6 +24,9 @@ html
     include views/not-supported
     include views/wait-for-device
     include views/working
+    include views/backup-device
+    include views/restore-device
+    include views/backup-restore-done
     #progress.progress(hidden='hidden')
     footer.footer.is-over
       .container
@@ -32,20 +37,17 @@ html
           span#footer-bottom.text-muted Starting adb service
           span#footer-speed.text-muted
     // --- Modals ---
-    // low prio
+    include modals/install
+    include modals/connection-lost
+    include modals/oem-lock
+    include modals/legacy-android
+    include modals/low-power
     include modals/select-device
     include modals/developer-mode
-    include modals/oem-lock
     include modals/options
-    // medium prio
-    include modals/unlock
-    // high prio
+    include modals/new-update
     include modals/udev
     include modals/windows-drivers
-    include modals/new-update
-    // errors
-    include modals/low-power
-    include modals/connection-lost
     include modals/no-network
     include modals/error
   // --- Scripts ---

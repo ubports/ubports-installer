@@ -166,6 +166,7 @@ body .vertical-centered-box .content {
   z-index: -1;
 }
 
+.pull-animation,
 .push-animation,
 .download-animation {
   margin-top: 60px;
@@ -175,6 +176,7 @@ body .vertical-centered-box .content {
   z-index: -1;
 }
 
+.pull-animation img,
 .push-animation img,
 .download-animation img {
   max-width: 100%;
@@ -182,6 +184,7 @@ body .vertical-centered-box .content {
   display: block;
 }
 
+.pull-animation i,
 .push-animation i,
 .download-animation i {
   background-repeat: repeat;
@@ -193,6 +196,7 @@ body .vertical-centered-box .content {
   left: 0;
 }
 
+.pull-animation i,
 .push-animation i,
 .download-animation i {
   content: "";
@@ -207,6 +211,11 @@ body .vertical-centered-box .content {
 .push-animation i {
   background-image: url("../img/arrow-right.png");
   animation: push-animation 10s linear infinite;
+}
+
+.pull-animation i {
+  background-image: url("../img/arrow-left.png");
+  animation: pull-animation 10s linear infinite;
 }
 
 @keyframes download-animation {
@@ -224,6 +233,15 @@ body .vertical-centered-box .content {
   }
   to {
     background-position: 900px 0px;
+  }
+}
+
+@keyframes pull-animation {
+  from {
+    background-position: 900px 0;
+  }
+  to {
+    background-position: 0px 0px;
   }
 }
 

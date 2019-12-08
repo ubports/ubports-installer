@@ -19,7 +19,6 @@ const http = require("request");
 const download = require("download");
 const shell = require("electron").shell;
 const exec = require("child_process").exec;
-const sudo = require("sudo-prompt");
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
@@ -32,6 +31,11 @@ global.packageInfo = require("../package.json");
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
   mkdirp.sync(getUbuntuTouchDir());
+}
+
+// AW : create a backup folder
+if (!fs.existsSync(getUbuntuTouchBackupDir())) {
+  mkdirp.sync(getUbuntuTouchBackupDir());
 }
 
 const platforms = {
@@ -196,25 +200,6 @@ function getLatestInstallerVersion() {
   });
 }
 
-function setUdevRules() {
-  sudo.exec(
-    "cp " +
-      path.join(__dirname, "../build/10-ubports.rules") +
-      " /etc/udev/rules.d/ && " +
-      '(udevadm control --reload-rules || echo "") && ' +
-      '(udevadm trigger || echo "") && ' +
-      '(service udev restart || echo "")',
-    {
-      name: "UBports Installer",
-      icns: path.join(__dirname, "../build/icons/icon.icns")
-    },
-    error => {
-      if (error) log.warn("setting udev rules failed");
-      else log.debug("udev rules set");
-    }
-  );
-}
-
 function getUpdateAvailable() {
   return new Promise((resolve, reject) => {
     getLatestInstallerVersion()
@@ -244,8 +229,67 @@ function getUbuntuTouchDir() {
   return path.join(osCacheDir, "ubports");
 }
 
-function cleanInstallerCache() {
-  fs.emptyDir(getUbuntuTouchDir());
+// AW : Return the backup path 
+function getUbuntuTouchBackupDir() {
+  var osBackupDir;
+  switch (process.platform) {
+    case "linux":
+      osBackupDir = path.join(process.env.HOME);
+      break;
+    case "darwin":
+      osBackupDir = path.join(process.env.HOME);
+      break;
+    case "win32":
+      osBackupDir = process.env.HOMEPATH;
+      break;
+    default:
+      throw Error("Unknown platform " + process.platform);
+  }
+  return path.join(osBackupDir, "ubDeviceBackup");
+}
+
+// AW : Create the backup path
+function CreateBackupDir(folder) {
+  mkdirp.sync(path.join(getUbuntuTouchBackupDir(),folder));
+  return path.join(getUbuntuTouchBackupDir(),folder);
+}
+
+// AW : Get backup folder content and create a lise
+function getBackupContent (directoryPath) {
+  var bckpSelects = [];
+  var bckpNames = [];
+  return new Promise((resolve, reject) => {
+    fs.readdir(directoryPath, function (err, files) {
+       //handling error
+       if (err) {
+                 log.warn('Unable to scan directory: ' + err);
+                 reject(err);
+                } 
+       resolve(files);
+    /*
+       var i = 0;
+       
+       files.forEach(function (file) {
+                      bckpSelects.push('<option name="' + i + '">' + file + "</option>");
+                      i++;
+                      log.debug(file); 
+                      bckpNames.push(file);
+                      });
+       log.debug(bckpSelects);
+       global.Backup.BackupListNames = bckpNames;
+       log.info(global.Backup.BackupListNames);
+       global.Backup.BackupList = bckpSelects; 
+
+    */ });
+  });
+}
+
+// AW : Read Backup config file
+function loadBackupConfig(file) {
+  log.debug("Loading backup config file: "+file);
+  let rawdata = fs.readFileSync(file);
+  log.debug(JSON.parse(rawdata));
+  return (JSON.parse(rawdata) );
 }
 
 function die(e) {
@@ -261,11 +305,13 @@ let toolpath = global.packageInfo.package
     )
   : path.join(__dirname, "..", "platform-tools", platforms[os.platform()]);
 let processes = [];
+
+// AW : Modifying the maxBuffer size to handle the output of the backup (all file path backuped on the device!)
 function execTool(tool, args, callback) {
   let pid = exec(
     [path.join(toolpath, tool)].concat(args).join(" "),
     {
-      maxBuffer: 1024 * 1024 * 2
+      maxBuffer: 1024 * 1024 * 100
     },
     (error, stdout, stderr) => {
       global.logger.log(
@@ -288,6 +334,11 @@ function execTool(tool, args, callback) {
   });
 }
 
+// AW : Needed for backup
+function getToolPath() {
+  return toolpath;
+}
+
 // Since child_process.exec spins up a shell on posix, simply killing the process itself will orphan its children, who then will be adopted by pid 1 and continue running as zombie processes until the end of time.
 function killSubprocesses() {
   if (process.platform === "win32") {
@@ -302,7 +353,25 @@ function killSubprocesses() {
 }
 
 function isSnap() {
-  return process.env.SNAP_NAME || false;
+  return process.env.SNAP_NAME;
+}
+
+// AW : Generate a config file for the backup created
+function generateBackupConfigFile( file, devicetype, devicesn, systemsize, usersize )
+{
+  var content = '{ "backupname":"'+ path.basename(file)+
+                '","backupdate":"'+ Date.now()+
+               '", "devicetype":"'+ devicetype+
+               '", "devicesn":"'  + devicesn+
+               '", "systemsize":' + systemsize+
+                ', "usersize":'   + usersize+'}';
+
+  fs.writeFile(file+"_config.bkp", content, function(err) {
+    if(err) {
+        return utils.log.warn(err);
+    }
+    utils.log.info("The backup config file was saved");
+  }); 
 }
 
 function checksumFile(file) {
@@ -326,18 +395,14 @@ function checksumFile(file) {
                 "checked: " + path.basename(file.url),
                 sum === file.checksum
               );
-              if (sum === file.checksum) {
-                resolve();
-              } else {
+              if (sum === file.checksum) resolve();
+              else
                 reject(
-                  new Error(
-                    "checksum mismatch: calculated " +
-                      sum +
-                      " but expected " +
-                      file.checksum
-                  )
+                  "checksum mismatch: calculated " +
+                    sum +
+                    " but expected " +
+                    file.checksum
                 );
-              }
             }
           );
         }
@@ -432,16 +497,20 @@ function errorToUser(error, errorLocation, restart, ignore) {
 }
 
 module.exports = {
-  cleanInstallerCache: cleanInstallerCache,
   errorToUser: errorToUser,
   downloadFiles: downloadFiles,
+  getBackupContent:getBackupContent,
+  getUbuntuTouchBackupDir:getUbuntuTouchBackupDir,
+  loadBackupConfig: loadBackupConfig,
   log: log,
   isSnap: isSnap,
   execTool: execTool,
   killSubprocesses: killSubprocesses,
   getUbuntuTouchDir: getUbuntuTouchDir,
   sendBugReport: sendBugReport,
-  setUdevRules: setUdevRules,
   getUpdateAvailable: getUpdateAvailable,
+  getToolPath: getToolPath,
+  generateBackupConfigFile:generateBackupConfigFile,
+  CreateBackupDir:CreateBackupDir,
   die: die
 };

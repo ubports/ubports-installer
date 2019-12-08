@@ -7,13 +7,11 @@
         h4.modal-title Warning!
       .modal-body
         p
-          | The installer needs to have the appropriate udev rules set to be able to communicate with devices over adb or fastboot. Click the button below to have the installer set up the rules automatically. You will be prompted to authorize this with your admin password.
-          br
-          | Alternatively, you can choose to do this #[a(onclick="shell.openExternal('https://docs.ubports.com/en/latest/userguide/install.html#missing-udev-rules')") manually] through the command-line.
+          | Please make sure you have the #[a(onclick="shell.openExternal('https://docs.ubports.com/en/latest/userguide/install.html#missing-udev-rules')") required udev-rules] set, or the Installer will not be able to detect your device.
+          | If you have already set the required rules, you can dismiss this message and simply continue with the installation.
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
-        button.btn.btn-default(type='button', data-dismiss='modal', onclick="localStorage.setItem('neverAskForUdevRules', 'true');") Don't ask me again
-        button.btn.btn-primary(type='button', data-dismiss='modal', onclick="localStorage.setItem('neverAskForUdevRules', 'true'); ipcRenderer.send('udev');") Set up rules automatically.
+        button.btn.btn-primary(type='button', data-dismiss='modal', onclick="localStorage.setItem('neverAskForUdevRules', 'true');") Don't ask me again
   script.
     if (process.platform === "linux" && !process.env.SNAP && !localStorage.getItem('neverAskForUdevRules')) {
       setTimeout(() => modals.show('udev'), 1000);

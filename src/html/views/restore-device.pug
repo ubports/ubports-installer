@@ -1,0 +1,55 @@
+#views-restore-device.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
+    .col-xs-6(style='height: 100%')
+      h4.user-install-header#device-name(style='font-weight: bold;') Retore a backup
+      p
+        | Please select the backup file :
+      //input#text-backname.form-control.space(type="file")
+      select#options-bckp.form-control.space
+      br
+      span#backupname
+      br
+      span#backupdev
+      br
+      span#backupsn
+      form.form-horizontal
+        .form-group
+          .col-xs-3
+            label.control-label ...
+          .col-xs-9
+            
+      p
+        | This operation will take a while ! Are you sure ?
+      button#btn-modal-select-device.btn.btn-primary(type='button', style='width: 100%; margin-top: 50px;', onclick="ipcRenderer.send('user:restore:start',(global.BackupName));") Yep, let's go !
+      button#btn-device.btn.btn-default(type='button', style='width: 100%;margin-top: 50px;', onclick="ipcRenderer.send('restart');") eh no wait
+  script.
+    $(function() {
+    $("#options-bckp").change(function() {
+        var $this = $(this);
+        console.log($this.val());
+        ipcRenderer.send('user:restore:select',($this.val() ) );
+       });
+     });
+
+
+    ipcRenderer.on("user:restore", (event,backupConfig, installConfig, backup) => {
+
+      $("#options-bckp").append(backup.BackupList);
+      document.getElementById("backupname").innerHTML = "#[b Name:] "+backup.config.backupname;
+      document.getElementById("backupsn").innerHTML   = "#[b SN:] "+backup.config.devicesn;
+      document.getElementById("backupdev").innerHTML = "#[b Device:] "+backup.config.devicetype;
+      
+
+
+      footer.underText.set("Select your backup");
+      console.log(backup.config);
+
+      //$("#sizeinfo").text("Please be sure to have at least #[b "+backupConfig+" Go] free on your hard-drive.");
+      var d = new Date();
+      var dateback = d.getFullYear() +"-"+ (d.getMonth()+1) + "-" + d.getDate()  + "_" +d.getHours() + d.getMinutes();
+      $("#text-backname").attr("value",installConfig.codename+"_"+dateback);
+      global.BackupName = installConfig.codename+"_"+dateback;
+      views.show("restore-device");
+    });

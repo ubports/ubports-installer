@@ -27,7 +27,10 @@ const getDeviceChannels = device => {
 };
 
 var installLatestVersion = options => {
-  return Promise.all([
+  return new Promise(function(resolve, reject) {
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
+    mainEvent.emit("user:write:under", "Checking local files");
     systemImage
       .downloadLatestVersion(
         options,
@@ -45,44 +48,66 @@ var installLatestVersion = options => {
         }
       )
       .then(files => {
+        mainEvent.emit("download:done");
         mainEvent.emit("user:write:progress", 0);
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Preparing", true);
-        mainEvent.emit("user:write:under", "Preparing system-image");
-        return files;
-      }),
-    adb
-      .waitForDevice()
-      .then(() => adb.wipeCache())
-      .then(() => utils.log.debug("adb wiped cache"))
-      .then(() => adb.shell("mount -a"))
-      .then(() => utils.log.debug("adb mounted recovery"))
-      .then(() => adb.shell("mkdir -p /cache/recovery"))
-      .then(() => {
-        utils.log.debug("adb created /cache/recovery directory");
+        mainEvent.emit("user:write:working", "push");
+        mainEvent.emit("user:write:status", "Sending", true);
+        mainEvent.emit("user:write:under", "Sending files to the device");
         adb
-          .verifyPartitionType("data", "ext4")
-          .then(isExt4 => {
-            if (isExt4) utils.log.debug("ext4 data partition ok");
-            else utils.log.warning("no ext4 data partition");
+          .waitForDevice()
+          .then(() => {
+            adb
+              .wipeCache()
+              .then(() => {
+                utils.log.debug("adb wiped cache");
+                adb
+                  .shell("mount -a")
+                  .then(() => {
+                    utils.log.debug("adb mounted recovery");
+                    adb
+                      .shell("mkdir -p /cache/recovery")
+                      .then(() => {
+                        adb
+                          .verifyPartitionType("data", "ext4")
+                          .then(isExt4 => {
+                            if (isExt4) {
+                              utils.log.debug(
+                                "data partition seems to exist as ext4"
+                              );
+                            } else {
+                              utils.log.warning(
+                                "data partition does not seem to exist as ext4"
+                              );
+                            }
+                          })
+                          .catch(utils.log.warn);
+                        utils.log.debug(
+                          "adb created /cache/recovery directory"
+                        );
+                        adb
+                          .pushArray(files, progress => {
+                            global.mainEvent.emit(
+                              "user:write:progress",
+                              progress * 100
+                            );
+                          })
+                          .then(() => {
+                            resolve();
+                          })
+                          .catch(e => reject("Push failed: Failed push: " + e));
+                      })
+                      .catch(e =>
+                        reject("Push failed: Failed to create target dir: " + e)
+                      );
+                  })
+                  .catch(e => reject("Push failed: Failed to mount: " + e));
+              })
+              .catch(e => reject("Push failed: Failed wipe cache: " + e));
           })
-          .catch(e => utils.log.warn(e));
+          .catch(e => reject("no device"));
       })
-  ])
-    .then(ret => {
-      mainEvent.emit("user:write:working", "push");
-      mainEvent.emit("user:write:status", "Sending", true);
-      mainEvent.emit("user:write:under", "Sending files to the device");
-      return ret[0]; // files from download promise
-    })
-    .then(files =>
-      adb.pushArray(files, progress => {
-        global.mainEvent.emit("user:write:progress", progress * 100);
-      })
-    )
-    .catch(e => {
-      throw new Error(e);
-    });
+      .catch(e => reject("Download failed: " + e));
+  });
 };
 
 module.exports = {

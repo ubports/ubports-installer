@@ -143,7 +143,7 @@ function installStep(step) {
     case "fastboot:erase":
       return new Promise(function(resolve, reject) {
         global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Cleaning up", true);
+        global.mainEvent.emit("user:write:status", "Ceaning up", true);
         global.mainEvent.emit(
           "user:write:under",
           "Erasing " + step.partition + " partition"
@@ -176,10 +176,6 @@ function installStep(step) {
       });
     case "systemimage":
       return new Promise(function(resolve, reject) {
-        mainEvent.emit("user:write:progress", 0);
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
-        mainEvent.emit("user:write:under", "Checking local files");
         systemImage
           .installLatestVersion(
             Object.assign(
@@ -297,7 +293,7 @@ function installStep(step) {
         );
       });
     default:
-      throw new Error("unrecognized step type: " + step.type);
+      throw "error: unrecognized step type: " + step.type;
   }
 }
 
@@ -326,36 +322,43 @@ function assembleInstallSteps(steps) {
                 utils.log.debug(step.type + " done");
               })
               .catch(error => {
-                if (step.optional) {
-                  resolve();
-                } else if (step.fallback_user_action) {
+                if (step.fallback_user_action) {
                   installStep({
                     type: "user_action",
                     action: step.fallback_user_action
                   })
                     .then(resolve)
                     .catch(reject);
+                } else if (step.optional) {
+                  resolve();
                 } else if (
                   step.type.includes("fastboot") &&
-                  error.message.includes("lock")
+                  error &&
+                  error.includes("lock")
                 ) {
                   global.mainEvent.emit("user:oem-lock", runStep);
-                } else if (error.message.includes("low power")) {
-                  global.mainEvent.emit("user:low-power");
-                } else if (
-                  error.message.includes("no device") ||
-                  error.message.includes("device offline") ||
-                  error.message.includes("No such device") ||
-                  error.message.includes("connection lost")
-                ) {
-                  mainEvent.emit(
-                    "user:connection-lost",
-                    step.resumable ? runStep : restartInstall
-                  );
-                } else if (error.message.includes("Killed")) {
-                  reject(); // Used for exiting the installer
                 } else {
-                  utils.errorToUser(error, step.type, restartInstall, runStep);
+                  if (
+                    error &&
+                    (error.includes("no device") ||
+                      error.includes("device offline") ||
+                      error.includes("No such device") ||
+                      error.includes("connection lost"))
+                  ) {
+                    mainEvent.emit(
+                      "user:connection-lost",
+                      step.resumable ? runStep : restartInstall
+                    );
+                  } else if (error && error.includes("Killed")) {
+                    reject(); // Used for exiting the installer
+                  } else {
+                    utils.errorToUser(
+                      error,
+                      step.type,
+                      restartInstall,
+                      runStep
+                    );
+                  }
                 }
               });
           }
@@ -383,6 +386,80 @@ function assembleInstallSteps(steps) {
   return installPromises;
 }
 
+// AW : Return the total partition size of system+user (only working on recovery)
+function getUserSystemFileSize(type)
+ {
+   var fileSize = 0;
+  return new Promise(function(resolve, reject) {
+   adb.getAdbState().then(stdout => {
+     var system ="";
+     var user = "";
+     if (stdout == 2) {system="/"; user="/userdata";} else {system="/data/system-data"; user="/data/user-data";}
+     adb.getFileSize(user).then(stdout=>{
+           utils.log.debug("Returned userdata FileSize is "+stdout+ " Ko"); 
+           fileSize = stdout;
+           global.Backup.usersize = fileSize;
+           adb.getFileSize(system).then(stdout=>{
+              fileSize = fileSize + stdout;
+              global.Backup.systemsize = stdout;
+              utils.log.debug("Returned systemdata FileSize is "+global.Backup.systemsize+ " Ko"); 
+              utils.log.debug("Returned Total FileSize is "+fileSize+ " Ko");
+              global.Backup.TotalSize = fileSize;//resolve(fileSize)
+              resolve();
+           }).catch(reject); // system file size error
+      }).catch(reject); // user filesize error
+    }).catch(reject); // adb state error
+  });
+ }
+
+// AW : Return the total used space for system+user data on Ubuntu os only
+async function getDeviceUsedSpaceForBackup() {
+
+// Error to handle : No such file or directory
+// --output=used: No such file or directory
+
+  var res  = await adb.shell('df -hBG / --output=used|tail -n1');
+  var res2 = await adb.shell('df -hBG /userdata --output=used|tail -n1');
+  res= parseFloat(res);
+  res2 = parseFloat(res2);
+  return res+res2;
+ }
+
+// AW : Check if /data/user-data is present and mount it if not.
+function mountPartToBackup (device) {
+  utils.log.info("mountPartToBackup");
+  return new Promise(function(resolve, reject) {
+    var data_partition ="";
+    switch (device) {
+        case "turbo":
+            data_partition = "/dev/block/sda44";
+            break;
+        default:
+           data_partition = "/data"
+        break;
+    }
+    utils.log.info("device partition: "+data_partition);    
+    adb.shell("ls /data|grep system-data").then( (stdout)=>{
+        utils.log.info("ls ok");
+        if (stdout) {resolve();} 
+        else {
+              utils.log.info("nothing found");
+              adb.shell("mount "+data_partition+" /data").then( (stdout)=>{
+                  utils.log.info("mounted");
+                  resolve();
+              }).catch(reject); // mount
+              resolve();
+             }
+       }).catch (e=>{ 
+                     adb.shell("mount "+data_partition+" /data").then( (stdout)=>{
+                         utils.log.info("has been mounted");
+                         resolve();
+                     }).catch(e=>{reject("Unable to mount partition "+data_partition+" "+e)}); // mount
+                           //reject("Partition not mounted "+e);
+                    });//ls
+  });
+}
+
 function install(steps) {
   var installPromises = assembleInstallSteps(steps);
   // Actually run the steps
@@ -395,6 +472,9 @@ function install(steps) {
 }
 
 module.exports = {
+  getDeviceUsedSpaceForBackup: getDeviceUsedSpaceForBackup,
+  getUserSystemFileSize:getUserSystemFileSize,
+  mountPartToBackup: mountPartToBackup,
   waitForDevice: () => {
     adb
       .waitForDevice()
@@ -452,17 +532,12 @@ module.exports = {
                     resolve(option);
                   })
                   .catch(e =>
-                    reject(
-                      new Error("fetching system image channels failed: " + e)
-                    )
+                    reject("error fetching system image channels: " + e)
                   );
                 break;
               default:
                 reject(
-                  new Error(
-                    "unknown remote_values provider: " +
-                      option.remote_values.type
-                  )
+                  "unknown remote_values provider: " + option.remote_values.type
                 );
             }
           }
