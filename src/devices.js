@@ -50,7 +50,7 @@ function addPathToFiles(files, device) {
 function installStep(step) {
   switch (step.type) {
     case "download":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "download");
         global.mainEvent.emit(
           "user:write:status",
@@ -58,7 +58,7 @@ function installStep(step) {
           true
         );
         global.mainEvent.emit("user:write:under", "Downloading");
-        utils
+        return utils
           .downloadFiles(
             addPathToImages(
               step.files,
@@ -81,17 +81,14 @@ function installStep(step) {
             global.mainEvent.emit("user:write:under", "Verifying download");
             global.mainEvent.emit("user:write:progress", 0);
             global.mainEvent.emit("user:write:speed", 0);
-            setTimeout(() => {
-              resolve();
-            }, 1000);
           })
           .catch(error => {
             utils.log.error("download error: " + error);
             mainEvent.emit("user:no-network");
           });
-      });
+      };
     case "adb:format":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit(
           "user:write:status",
@@ -102,200 +99,167 @@ function installStep(step) {
           "user:write:under",
           "Formatting " + step.partition
         );
-        adb
-          .waitForDevice()
-          .then(() => {
-            adb
-              .format(step.partition)
-              .then(resolve)
-              .catch(reject);
-          })
-          .catch(reject);
-      });
+        return adb.waitForDevice().then(() => adb.format(step.partition));
+      };
     case "adb:reboot":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Rebooting");
         global.mainEvent.emit(
           "user:write:under",
           "Rebooting to " + step.to_state
         );
-        adb
-          .reboot(step.to_state)
-          .then(resolve)
-          .catch(reject);
-      });
+        return adb.reboot(step.to_state);
+      };
     case "fastboot:flash":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Flashing firmware", true);
         global.mainEvent.emit(
           "user:write:under",
           "Flashing firmware partitions using fastboot"
         );
-        fastboot
-          .flashArray(
-            addPathToFiles(step.flash, global.installProperties.device)
-          )
-          .then(resolve)
-          .catch(reject);
-      });
+        return fastboot.flashArray(
+          addPathToFiles(step.flash, global.installProperties.device)
+        );
+      };
     case "fastboot:erase":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Cleaning up", true);
         global.mainEvent.emit(
           "user:write:under",
           "Erasing " + step.partition + " partition"
         );
-        fastboot
-          .erase(step.partition)
-          .then(resolve)
-          .catch(reject);
-      });
+        return fastboot.erase(step.partition);
+      };
     case "fastboot:boot":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Rebooting");
         global.mainEvent.emit(
           "user:write:under",
           "Your device is being rebooted..."
         );
-        fastboot
-          .boot(
-            path.join(
-              downloadPath,
-              global.installProperties.device,
-              step.group,
-              step.file
-            ),
-            step.partition
-          )
-          .then(resolve)
-          .catch(reject);
-      });
+        return fastboot.boot(
+          path.join(
+            downloadPath,
+            global.installProperties.device,
+            step.group,
+            step.file
+          ),
+          step.partition
+        );
+      };
     case "systemimage":
-      return new Promise(function(resolve, reject) {
+      return () => {
         mainEvent.emit("user:write:progress", 0);
         mainEvent.emit("user:write:working", "particles");
         mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
         mainEvent.emit("user:write:under", "Checking local files");
-        systemImage
-          .installLatestVersion(
-            Object.assign(
-              { device: global.installConfig.codename },
-              global.installProperties.settings
-            )
+        return systemImage.installLatestVersion(
+          Object.assign(
+            { device: global.installConfig.codename },
+            global.installProperties.settings
           )
-          .then(resolve)
-          .catch(reject);
-      });
+        );
+      };
     case "fastboot:update":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Updating system", true);
         global.mainEvent.emit(
           "user:write:under",
           "Applying fastboot update zip. This may take a while..."
         );
-        fastboot
-          .update(
-            path.join(
-              downloadPath,
-              global.installProperties.device,
-              step.group,
-              step.file
-            ),
-            global.installProperties.settings.wipe
-          )
-          .then(resolve)
-          .catch(reject);
-      });
+        return fastboot.update(
+          path.join(
+            downloadPath,
+            global.installProperties.device,
+            step.group,
+            step.file
+          ),
+          global.installProperties.settings.wipe
+        );
+      };
     case "fastboot:reboot_bootloader":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Rebooting", true);
         global.mainEvent.emit("user:write:under", "Rebooting to bootloader");
-        fastboot
-          .rebootBootloader()
-          .then(resolve)
-          .catch(reject);
-      });
+        return fastboot.rebootBootloader();
+      };
     case "fastboot:reboot":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Rebooting", true);
         global.mainEvent.emit("user:write:under", "Rebooting system");
-        fastboot
-          .reboot()
-          .then(resolve)
-          .catch(reject);
-      });
+        return fastboot.reboot();
+      };
     case "fastboot:continue":
-      return new Promise(function(resolve, reject) {
+      return () => {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Continuing boot", true);
         global.mainEvent.emit("user:write:under", "Resuming boot");
-        fastboot
-          .continue()
-          .then(resolve)
-          .catch(reject);
-      });
+        fastboot.continue();
+      };
     case "user_action":
-      return new Promise(function(resolve, reject) {
-        global.mainEvent.emit(
-          "user:action",
-          global.installConfig.user_actions[step.action],
-          () => {
-            switch (step.action) {
-              case "recovery":
-              case "system":
-                global.mainEvent.emit("user:write:working", "particles");
-                global.mainEvent.emit(
-                  "user:write:status",
-                  "Waiting for device",
-                  true
-                );
-                global.mainEvent.emit(
-                  "user:write:under",
-                  "Adb is scanning for devices"
-                );
-                function adbWait() {
-                  return adb
-                    .waitForDevice()
-                    .then(resolve)
-                    .catch(() =>
-                      mainEvent.emit("user:connection-lost", adbWait)
-                    );
-                }
-                return adbWait();
-              case "bootloader":
-                global.mainEvent.emit("user:write:working", "particles");
-                global.mainEvent.emit(
-                  "user:write:status",
-                  "Waiting for device",
-                  true
-                );
-                global.mainEvent.emit(
-                  "user:write:under",
-                  "Fastboot is scanning for devices"
-                );
-                function fastbootWait() {
-                  return fastboot
-                    .waitForDevice()
-                    .then(resolve)
-                    .catch(() =>
-                      mainEvent.emit("user:connection-lost", fastbootWait)
-                    );
-                }
-                return fastbootWait();
-              default:
-                resolve();
-                break;
+      return () => {
+        return new Promise(function(resolve, reject) {
+          global.mainEvent.emit(
+            "user:action",
+            global.installConfig.user_actions[step.action],
+            () => {
+              switch (step.action) {
+                case "recovery":
+                case "system":
+                  global.mainEvent.emit("user:write:working", "particles");
+                  global.mainEvent.emit(
+                    "user:write:status",
+                    "Waiting for device",
+                    true
+                  );
+                  global.mainEvent.emit(
+                    "user:write:under",
+                    "Adb is scanning for devices"
+                  );
+                  function adbWait() {
+                    return adb
+                      .waitForDevice()
+                      .then(resolve)
+                      .catch(() =>
+                        mainEvent.emit("user:connection-lost", adbWait)
+                      );
+                  }
+                  return adbWait();
+                case "bootloader":
+                  global.mainEvent.emit("user:write:working", "particles");
+                  global.mainEvent.emit(
+                    "user:write:status",
+                    "Waiting for device",
+                    true
+                  );
+                  global.mainEvent.emit(
+                    "user:write:under",
+                    "Fastboot is scanning for devices"
+                  );
+                  function fastbootWait() {
+                    return fastboot
+                      .waitForDevice()
+                      .then(resolve)
+                      .catch(() =>
+                        mainEvent.emit("user:connection-lost", fastbootWait)
+                      );
+                  }
+                  return fastbootWait();
+                default:
+                  resolve();
+                  break;
+              }
             }
-          }
-        );
-      });
+          );
+        });
+      };
     default:
       throw new Error("unrecognized step type: " + step.type);
   }
@@ -320,7 +284,7 @@ function assembleInstallSteps(steps) {
             install(steps);
           }
           function runStep() {
-            installStep(step)
+            installStep(step)()
               .then(() => {
                 resolve();
                 utils.log.debug(step.type + " done");
@@ -332,7 +296,7 @@ function assembleInstallSteps(steps) {
                   installStep({
                     type: "user_action",
                     action: step.fallback_user_action
-                  })
+                  })()
                     .then(resolve)
                     .catch(reject);
                 } else if (
