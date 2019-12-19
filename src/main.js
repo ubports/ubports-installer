@@ -435,7 +435,7 @@ function createWindow() {
     title: "UBports Installer (" + global.packageInfo.version + ")"
   });
 
-  // Tasks we need for every start
+  // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
     adb
       .startServer()
@@ -445,7 +445,7 @@ function createWindow() {
         }
       })
       .catch(e => {
-        if (!e.includes("Killed"))
+        if (!e.message.includes("Killed"))
           utils.errorToUser(e, "Failed to start adb server");
       });
     api
