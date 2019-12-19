@@ -263,7 +263,9 @@ let toolpath = global.packageInfo.package
 let processes = [];
 function execTool(tool, args, callback) {
   let pid = exec(
-    [path.join(toolpath, tool)].concat(args).join(" "),
+    [
+      path.join(toolpath, tool).replace(" ", "\ ")
+    ].concat(args).join(" "),
     {
       maxBuffer: 1024 * 1024 * 2
     },
