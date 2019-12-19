@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.4.14-beta",
+  "version": "0.4.15-beta",
   "description": "The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
   "keywords": [
     "Ubuntu",
@@ -39,7 +39,7 @@
     "electron-packager": "^12.2.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.7.0",
-    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-prettier": "^3.1.2",
     "prettier": "^1.19.1",
     "sinon": "^7.5.0",
     "unzipper": "^0.9.4"
