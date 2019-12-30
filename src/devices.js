@@ -358,7 +358,135 @@ function install(steps) {
     .catch(() => {}); // errors can be ignored here, since this is exclusively used for killing the promise chain
 }
 
+// AW : Return the total partition size of system+user
+function getUserSystemFileSize() {
+  var fileSize = 0;
+  return new Promise(function(resolve, reject) {
+    adb
+      .getState()
+      .then(stdout => {
+        var system = "";
+        var user = "";
+        if (stdout == "device") {
+          system = "/userdata/system-data";
+          user = "/userdata/user-data";
+        } else {
+          system = "/data/system-data";
+          user = "/data/user-data";
+        }
+        adb
+          .getFileSize(user)
+          .then(stdout => {
+            utils.log.debug("Returned userdata FileSize is " + stdout + " Ko");
+            fileSize = stdout;
+            global.Backup.usersize = fileSize;
+            adb
+              .getFileSize(system)
+              .then(stdout => {
+                fileSize = fileSize + stdout;
+                global.Backup.systemsize = stdout;
+                utils.log.debug(
+                  "Returned systemdata FileSize is " +
+                    global.Backup.systemsize +
+                    " Ko"
+                );
+                utils.log.debug(
+                  "Returned Total FileSize is " + fileSize + " Ko"
+                );
+                global.Backup.TotalSize = fileSize; //resolve(fileSize)
+                resolve();
+              })
+              .catch(reject); // system file size error
+          })
+          .catch(reject); // user filesize error
+      })
+      .catch(reject); // adb state error
+  });
+}
+
+// AW : Return the total used space for system+user data on Ubuntu os only
+async function getDeviceUsedSpaceForBackup() {
+  // Error to handle : No such file or directory
+  // --output=used: No such file or directory
+
+  var res = await adb.shell("df -hBG / --output=used|tail -n1");
+  var res2 = await adb.shell("df -hBG /userdata --output=used|tail -n1");
+  res = parseFloat(res);
+  res2 = parseFloat(res2);
+  return res + res2;
+}
+
+// AW : Check if /data/user-data is present and mount it if not.
+function mountPartToBackup(device) {
+  utils.log.info("mountPartToBackup");
+  return new Promise(function(resolve, reject) {
+    var data_partition = "";
+    switch (device) {
+      case "turbo":
+        data_partition = "/dev/block/sda44";
+        break;
+      default:
+        data_partition = "/data";
+        break;
+    }
+    utils.log.info("device partition: " + data_partition);
+    adb
+      .shell("ls /data|grep system-data")
+      .then(stdout => {
+        utils.log.info("ls ok");
+        if (stdout) {
+          resolve();
+        } else {
+          utils.log.info("nothing found");
+          adb
+            .shell("mount " + data_partition + " /data")
+            .then(stdout => {
+              utils.log.info("mounted");
+              resolve();
+            })
+            .catch(reject); // mount
+          resolve();
+        }
+      })
+      .catch(e => {
+        adb
+          .shell("mount " + data_partition + " /data")
+          .then(stdout => {
+            utils.log.info("Partition has been mounted");
+            resolve();
+          })
+          .catch(e => {
+            reject("Unable to mount partition " + data_partition + " " + e);
+          }); // mount
+        //reject("Partition not mounted "+e);
+      }); //ls
+  });
+}
+
+// Check if we can restore the backup (checking available size)
+function isBackupRestorable(backup) {
+  return adb
+    .getTotalSize("/userdata")
+    .then(tot => {
+      utils.log.info(
+        "Backup size:" +
+          (backup.config.systemsize + backup.config.usersize) +
+          ", device size:" +
+          tot
+      );
+      if (tot > backup.config.systemsize + backup.config.usersize) return true;
+      else return false;
+    })
+    .catch(err => {
+      return false;
+    });
+}
+
 module.exports = {
+  isBackupRestorable: isBackupRestorable,
+  getDeviceUsedSpaceForBackup: getDeviceUsedSpaceForBackup,
+  getUserSystemFileSize: getUserSystemFileSize,
+  mountPartToBackup: mountPartToBackup,
   waitForDevice: () => {
     adb
       .waitForDevice()

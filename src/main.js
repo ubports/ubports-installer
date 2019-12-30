@@ -108,6 +108,17 @@ if (utils.isSnap()) {
   global.packageInfo.package = "snap";
 }
 
+// AW : For backup and recovery
+global.Backup = {
+  systemsize: 0,
+  usersize: 0,
+  TotalSize: 0,
+  otaversion: "",
+  BackupList: [],
+  BackupListNames: [],
+  config: []
+};
+
 //==============================================================================
 // WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
 //==============================================================================
@@ -160,6 +171,38 @@ ipcMain.on("die", exitCode => {
 // Restart the installer
 ipcMain.on("restart", () => {
   mainEvent.emit("restart");
+});
+
+// AW : backup
+ipcMain.on("backup", (event, installConfig) => {
+  mainEvent.emit("backup", installConfig);
+});
+ipcMain.on("user:backup", () => {
+  mainEvent.emit("user:backup");
+});
+ipcMain.on("user:backup:start", (event, BackupName) => {
+  mainEvent.emit("user:backup:start", BackupName);
+});
+
+// AW : Restore a backup
+ipcMain.on("restore", (event, installConfig) => {
+  mainEvent.emit("restore", installConfig);
+});
+ipcMain.on("user:restore", () => {
+  mainEvent.emit("user:restore");
+});
+ipcMain.on("user:restore:start", (event, BackupIndex) => {
+  mainEvent.emit("user:restore:start", BackupIndex);
+});
+
+// AW : Common to backup and restore
+ipcMain.on("user:backuprestore:done", (event, task) => {
+  utils.log.info("Screen done called");
+  mainEvent.emit("user:backuprestore:done", task);
+});
+ipcMain.on("user:restore:select", (event, fileindex) => {
+  utils.log.info("Selected file : " + fileindex);
+  mainEvent.emit("user:restore:select", fileindex);
 });
 
 // Begin install process
@@ -265,6 +308,420 @@ mainEvent.on("user:connection-lost", reconnect => {
 // The device battery is too low to install
 mainEvent.on("user:low-power", () => {
   if (mainWindow) mainWindow.webContents.send("user:low-power");
+});
+
+// AW : Backup
+mainEvent.on("backup", installConfig => {
+  adb
+    .getOsName()
+    .then(stdout => {
+      utils.log.info("OTA version:" + stdout);
+      global.Backup.otaversion = stdout;
+    })
+    .catch(err => {
+      throw new Error(err);
+    });
+  devices
+    .getUserSystemFileSize()
+    .then(() => {
+      utils.log.info(global.Backup.TotalSize);
+      mainWindow.webContents.send(
+        "user:backup",
+        global.Backup.TotalSize / (1024 * 1024),
+        installConfig
+      );
+    })
+    .catch(e => {
+      utils.errorToUser(e, "backup");
+      utils.log.warn("Unable to get device space " + e);
+    });
+});
+
+// AW : Backup/Restore finished
+mainEvent.on("user:backuprestore:done", task => {
+  if (mainWindow) mainWindow.webContents.send("user:backuprestore:done", task);
+});
+
+// AW : Backup Start (TO-DO : Move it to device.js ?)
+mainEvent.on("user:backup:start", BackupName => {
+  utils.log.warn("Starting Backup : " + BackupName);
+
+  mainEvent.emit("user:write:working", "pull");
+  mainEvent.emit(
+    "user:write:status",
+    "Backuping your device, please wait [Step 1/3]",
+    true
+  );
+  mainEvent.emit("user:write:under", "Reboot into recovery ...");
+  // Reboot into recovery
+  adb
+    .reboot("recovery")
+    .then(() => {
+      utils.log.debug("booting into recovery");
+      adb
+        .waitForDevice()
+        .then(() => {
+          // Get device SN for later
+          adb
+            .getSerialno()
+            .then(stdout => {
+              global.Backup.deviceSN = stdout;
+              utils.log.info("Device SN: " + global.Backup.deviceSN);
+            })
+            .catch(e => utils.log.debug(e));
+
+          // booted in recovery, checking partitions
+          utils.log.info("Checking partition");
+          mainEvent.emit(
+            "user:write:under",
+            "Device under recovery, checking partition"
+          );
+          // Check partition and mount it if not already mounted (Meizu pro5)
+          devices
+            .mountPartToBackup(installConfig.codename)
+            .then(() => {
+              // Partition Ready to be backuped
+              utils.log.info("Partition Mounted");
+              global.mainEvent.emit("user:write:progress", 0);
+              global.mainEvent.emit("user:write:speed", 0);
+              mainEvent.emit(
+                "user:write:under",
+                "Backuping your device, please wait [Step 1/3]"
+              );
+              mainEvent.emit("user:write:under", "Backing up system-data");
+
+              // Get the toolpath for adb, needed in the backup command line
+              var toolsPath = utils.getToolPath();
+              utils.log.debug("tool path :" + toolsPath);
+
+              // Create the backup folder
+              var BackupPath = utils.createBackupDir(BackupName);
+
+              // Now Starting system backup
+              adb
+                .createRemoteUbuntuBackup(
+                  "data/system-data",
+                  path.join(BackupPath, BackupName + "_system.tar"),
+                  toolsPath,
+                  progress => {
+                    global.mainEvent.emit("user:write:progress", progress);
+                    //utils.log.warn("progress : "+progress);
+                  }
+                )
+                .then(() => {
+                  mainEvent.emit(
+                    "user:write:status",
+                    "Backuping your device, please wait [Step 2/3]",
+                    true
+                  );
+                  mainEvent.emit("user:write:under", "Backing up user-data");
+                  global.mainEvent.emit("user:write:progress", 100);
+                  utils.log.info("Backup user data...");
+                  // And user-data backup
+                  adb
+                    .createRemoteUbuntuBackup(
+                      "data/user-data",
+                      path.join(BackupPath, BackupName + "_user.tar"),
+                      toolsPath,
+                      progress => {
+                        global.mainEvent.emit("user:write:progress", progress);
+                        //utils.log.warn("progress : "+progress);
+                      }
+                    )
+                    .then(() => {
+                      mainEvent.emit(
+                        "user:write:status",
+                        "Backuping your device, please wait [Step 3/3]",
+                        true
+                      );
+                      mainEvent.emit("user:write:under", "Done !");
+                      // Generate the backup descriptor
+                      utils.generateBackupConfigFile(
+                        path.join(BackupPath, BackupName),
+                        global.installConfig.codename,
+                        global.Backup.deviceSN,
+                        global.Backup.systemsize,
+                        global.Backup.usersize,
+                        global.Backup.otaversion
+                      );
+                      // Backup finished, rebooting
+                      adb
+                        .reboot("system")
+                        .then(() => {
+                          mainEvent.emit(
+                            "user:write:status",
+                            "Backup finished",
+                            false
+                          );
+                          mainEvent.emit("user:backuprestore:done", "backup");
+                          utils.log.info("Backup Done");
+                        })
+                        .catch(e => {
+                          utils.errorToUser(e, "backup");
+                          utils.log.warn("Fail to reboot device into OS " + e);
+                        }); // fin reboot device
+                    })
+                    .catch(e => {
+                      utils.errorToUser(e, "backup");
+                      utils.log.warn("unable to backup user-data " + e);
+                    }); // fin backup user-data
+                })
+                .catch(e => {
+                  utils.errorToUser(e, "backup");
+                  utils.log.warn("Unable to backup system-data " + e);
+                }); // Fin backup system-data
+            })
+            .catch(e => {
+              utils.errorToUser(e, "backup");
+              utils.log.warn("Unable to find partition to backup " + e);
+            }); // fin mount device partition
+        })
+        .catch(e => {
+          utils.errorToUser(e, "backup");
+          utils.log.warn("no device " + e);
+        }); // Fin recherche device
+    })
+    .catch(e => {
+      utils.errorToUser(e, "backup");
+      utils.log.warn("reboot fail " + e);
+    }); // Fin reboot recovery
+});
+
+// AW : Restore view
+mainEvent.on("restore", installConfig => {
+  utils.log.info("RESTORE DEVICE");
+
+  global.Backup.BackupListNames = [];
+  var BackPath = utils.getUbuntuTouchBackupDir();
+  utils
+    .getBackupContent(BackPath)
+    .then(files => {
+      global.Backup.BackupListNames = files;
+      utils.log.info("backup selected : " + global.Backup.BackupListNames[0]);
+
+      var i = 0;
+      global.Backup.BackupList = [];
+      files.forEach(function(file) {
+        global.Backup.BackupList.push(
+          '<option value="' + i + '">' + file + "</option>"
+        );
+        i++;
+        utils.log.debug(file);
+        global.Backup.BackupListNames.push(file);
+      });
+
+      utils.log.info("Backup list : " + global.Backup.BackupList);
+      global.Backup.config = utils.loadBackupConfig(
+        path.join(
+          BackPath,
+          global.Backup.BackupListNames[0],
+          global.Backup.BackupListNames[0] + "_config.bkp"
+        )
+      );
+      utils.log.info("Device loaded : " + global.Backup.config.devicetype);
+      devices.getDeviceUsedSpaceForBackup().then(res => {
+        global.backupsize = res;
+        utils.log.warn(res);
+
+        mainWindow.webContents.send(
+          "user:restore",
+          global.backupsize,
+          installConfig,
+          global.Backup
+        ); //backupConfig, installConfig, backup
+
+        devices
+          .isBackupRestorable(global.Backup)
+          .then(res => {
+            var comment = "";
+            if (res == true) comment = "";
+            else comment = "Not enough free space on the device.";
+            mainWindow.webContents.send(
+              "user:restore:select",
+              global.Backup,
+              comment
+            );
+          })
+          .catch(e => {
+            throw new Error(e);
+          });
+      });
+    })
+    .catch(e => {
+      utils.log.warn(e);
+    });
+
+  //if (mainWindow) mainWindow.webContents.send("user:restore", global.backupsize, installConfig);
+});
+
+// AW : restore
+mainEvent.on("user:restore:select", selectedBackup => {
+  var BackPath = utils.getUbuntuTouchBackupDir();
+  global.Backup.config = utils.loadBackupConfig(
+    path.join(
+      BackPath,
+      global.Backup.BackupListNames[selectedBackup],
+      global.Backup.BackupListNames[selectedBackup] + "_config.bkp"
+    )
+  );
+  utils.log.info("Device loaded : " + global.Backup.config.devicetype);
+  var comment = "";
+  devices
+    .isBackupRestorable(global.Backup)
+    .then(res => {
+      if (res == true) comment = "";
+      else comment = "Not enough free space on the device.";
+      mainWindow.webContents.send(
+        "user:restore:select",
+        global.Backup,
+        comment
+      );
+    })
+    .catch(e => {
+      throw new Error(e);
+    });
+});
+
+// start restore
+mainEvent.on("user:restore:start", backupIndex => {
+  utils.log.info(
+    "Starting restore of backup " +
+      backupIndex +
+      "file : " +
+      global.Backup.BackupListNames[backupIndex]
+  );
+  var backupbasename = global.Backup.BackupListNames[backupIndex];
+  var BackupPath = utils.getUbuntuTouchBackupDir();
+
+  mainEvent.emit("user:write:working", "push");
+  mainEvent.emit(
+    "user:write:status",
+    "Restoring your device, please wait [Step 1/3]",
+    true
+  );
+  mainEvent.emit("user:write:under", "Reboot into recovery ...");
+  // Reboot into recovery
+  adb
+    .reboot("recovery")
+    .then(() => {
+      utils.log.debug("booting into recovery");
+      adb
+        .waitForDevice()
+        .then(() => {
+          // booted in recovery, checking partitions
+          utils.log.info("Checking partition");
+          mainEvent.emit(
+            "user:write:under",
+            "Device under recovery, checking partition"
+          );
+          // Check partition and mount it if not already mounted (Meizu pro5)
+          devices
+            .mountPartToBackup(installConfig.codename)
+            .then(() => {
+              // Partition Ready to be backuped
+              utils.log.info("Partition Mounted");
+              global.mainEvent.emit("user:write:progress", 20);
+              global.mainEvent.emit("user:write:speed", 0);
+              mainEvent.emit(
+                "user:write:under",
+                "Restoring your device, please wait [Step 1/3]"
+              );
+              mainEvent.emit("user:write:under", "Restoring system-data");
+
+              // Get the toolpath for adb, needed in the restore command line
+              var toolsPath = utils.getToolPath();
+              utils.log.debug("tool path :" + toolsPath);
+
+              // Now Starting system restore applyRemoteUbuntuBackup(srcfile,destfile, adbpath, progress)
+              adb
+                .applyRemoteUbuntuBackup(
+                  "data/system-data",
+                  path.join(
+                    BackupPath,
+                    backupbasename,
+                    backupbasename + "_system.tar"
+                  ),
+                  toolsPath,
+                  global.Backup.systemsize,
+                  progress => {
+                    global.mainEvent.emit("user:write:progress", progress);
+                    //utils.log.warn("progress : "+progress);
+                  }
+                )
+                .then(() => {
+                  mainEvent.emit(
+                    "user:write:status",
+                    "Retoring your device, please wait [Step 2/3]",
+                    true
+                  );
+                  mainEvent.emit("user:write:under", "Restoring user-data");
+                  global.mainEvent.emit("user:write:progress", 50);
+                  utils.log.info("Restoring user data...");
+                  // And user-data backup
+                  adb
+                    .applyRemoteUbuntuBackup(
+                      "data/user-data",
+                      path.join(
+                        BackupPath,
+                        backupbasename,
+                        backupbasename + "_user.tar"
+                      ),
+                      toolsPath,
+                      global.Backup.usersize,
+                      progress => {
+                        global.mainEvent.emit("user:write:progress", progress);
+                        //utils.log.warn("progress : "+progress);
+                      }
+                    )
+                    .then(() => {
+                      mainEvent.emit(
+                        "user:write:status",
+                        "Restoring your device, please wait [Step 3/3]",
+                        true
+                      );
+                      mainEvent.emit("user:write:under", "Done !");
+
+                      // Restore finished, rebooting
+                      adb
+                        .reboot("system")
+                        .then(() => {
+                          mainEvent.emit(
+                            "user:write:status",
+                            "Restore finished",
+                            false
+                          );
+                          mainEvent.emit("user:backuprestore:done", "backup");
+                          utils.log.info("Restore Done");
+                        })
+                        .catch(e => {
+                          utils.errorToUser(e, "restore");
+                          utils.log.warn("Fail to reboot device into OS " + e);
+                        }); // fin reboot device
+                    })
+                    .catch(e => {
+                      utils.errorToUser(e, "restore");
+                      utils.log.warn("unable to backup user-data " + e);
+                    }); // fin backup user-data
+                })
+                .catch(e => {
+                  utils.errorToUser(e, "restore");
+                  utils.log.warn("Unable to backup system-data " + e);
+                }); // Fin backup system-data
+            })
+            .catch(e => {
+              utils.errorToUser(e, "restore");
+              utils.log.warn("Unable to find partition to backup " + e);
+            }); // fin mount device partition
+        })
+        .catch(e => {
+          utils.errorToUser(e, "restore");
+          utils.log.warn("no device " + e);
+        }); // Fin recherche device
+    })
+    .catch(e => {
+      utils.errorToUser(e, "restore");
+      utils.log.warn("reboot fail " + e);
+    }); // Fin reboot recovery
 });
 
 // Restart the installer

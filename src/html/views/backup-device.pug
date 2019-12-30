@@ -1,0 +1,41 @@
+#views-backup-device.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
+    .col-xs-6(style='height: 100%')
+      h4.user-install-header#device-name(style='font-weight: bold;') Device Backup
+      - var backupsize = 0;
+      span#sizeinfo(style='color:blue;') Refreshing ...
+      br
+      br
+      p
+        | Please give a name to your backup
+      form.form-horizontal
+        .form-group
+          .col-xs-3
+            label.control-label Name
+          .col-xs-9
+            input#text-backname.form-control.space(type="text", value="")
+      p
+        |
+        |
+        | This operation will take a while ! Are you sure ?
+      button#btn-modal-select-device.btn.btn-primary(type='button', style='width: 100%; margin-top: 50px;', onclick="ipcRenderer.send('user:backup:start',(global.BackupName));") Yep, let's go !
+      button#btn-device.btn.btn-default(type='button', style='width: 100%;margin-top: 50px;', onclick="ipcRenderer.send('restart');") Not now
+  script.
+    $("#text-backname").one("change", () => {
+          global.BackupName=document.getElementById("text-backname").value;
+        });
+    ipcRenderer.on("user:backup", (event,backupConfig, installConfig) => {
+      if (backupConfig<1000)
+      	document.getElementById("sizeinfo").innerHTML = "Please be sure to have at least #[b "+backupConfig.toFixed(2)+" Go] free on your hardrive.";
+      else
+      	document.getElementById("sizeinfo").innerHTML = "Please be sure to have at least #[b "+Math.round(backupConfig)+" Go] free on your hardrive.";
+      footer.underText.set("Choose a backup name");
+      //$("#sizeinfo").text("Please be sure to have at least #[b "+backupConfig+" Go] free on your hard-drive.");
+      var d = new Date();
+      var dateback = d.getFullYear() +"-"+ (d.getMonth()+1) + "-" + d.getDate()  + "_" +d.getHours() + d.getMinutes();
+      $("#text-backname").attr("value",installConfig.codename+"_"+dateback);
+      global.BackupName = installConfig.codename+"_"+dateback;
+      views.show("backup-device");
+    });
