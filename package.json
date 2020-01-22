@@ -34,7 +34,7 @@
     "lint-fix": "./node_modules/.bin/eslint *.js src/*.js src/html/scripts/*.js --fix"
   },
   "devDependencies": {
-    "electron": "^1.8.8",
+    "electron": "^6.1.7",
     "electron-builder": "^20.36.2",
     "electron-packager": "^12.2.0",
     "eslint": "^6.7.2",
@@ -51,10 +51,10 @@
     "download": "^7.1.0",
     "electron-open-link-in-browser": "^1.0.2",
     "electron-prompt": "^1.4.0",
-    "electron-pug": "^1.5.1",
+    "electron-pug": "^2.0.0",
     "fs-extra": "^2.0.0",
     "getos": "^3.0.1",
-    "jquery": "^3.1.1",
+    "jquery": "^3.4.1",
     "jquery-i18next": "^1.2.0",
     "mkdirp": "^0.5.1",
     "popper.js": "^1.16.0",
