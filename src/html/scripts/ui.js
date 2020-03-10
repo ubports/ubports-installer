@@ -3,7 +3,6 @@ const switchHide = (from, to) => {
     elementsToHide.forEach(el => el.display = "none");
     const elementsToDisplay = document.getElementsByClassName(to);
     elementsToDisplay.forEach(el => el.style.display = "block");
-
 };
 
 const hideAll = id => {
