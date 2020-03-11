@@ -182,7 +182,7 @@ ipcRenderer.on("user:write:progress", (e, length) => {
   }
   const progress = document.getElementById("#progress");
   progress.style.display = `block`;
-  progress.setAttribute("style", `${length.toString()}%`);
+  progress.setAttribute("width", `${length.toString()}%`);
 });
 
 ipcRenderer.on("user:write:status", (e, status, waitDots) => {
