@@ -17,7 +17,7 @@ const showAll = id => {
 
 const show = (cat, id) => {
   hideAll(cat);
-  document.getElementById(`#${cat}-${id}`).style.display = "block";
+  document.getElementById(`${cat}-${id}`).style.display = "block";
 };
 
 const setText = (cat, id, text) => {
@@ -26,37 +26,37 @@ const setText = (cat, id, text) => {
 };
 const animations = {
   hideAll: () => {
-    document.getElementById("#particles-foreground").style.display = "none";
-    document.getElementById("#particles-background").style.display = "none";
-    document.getElementById("#push-animation").style.display = "none";
-    document.getElementById("#download-animation").style.display = "none";
+    document.getElementById("particles-foreground").style.display = "none";
+    document.getElementById("particles-background").style.display = "none";
+    document.getElementById("push-animation").style.display = "none";
+    document.getElementById("download-animation").style.display = "none";
   },
   particles: () => {
     if (!localStorage.getItem("animationsDisabled")) {
-      document.getElementById("#particles-foreground").style.display = "block";
-      document.getElementById("#particles-background").style.display = "block";
-      document.getElementById("#push-animation").style.display = "none";
-      document.getElementById("#download-animation").style.display = "none";
+      document.getElementById("particles-foreground").style.display = "block";
+      document.getElementById("particles-background").style.display = "block";
+      document.getElementById("push-animation").style.display = "none";
+      document.getElementById("download-animation").style.display = "none";
     } else {
       animations.hideAll();
     }
   },
   download: () => {
     if (!localStorage.getItem("animationsDisabled")) {
-      document.getElementById("#download-animation").style.display = "block";
-      document.getElementById("#push-animation").style.display = "none";
-      document.getElementById("#particles-foreground").style.display = "none";
-      document.getElementById("#particles-background").style.display = "none";
+      document.getElementById("download-animation").style.display = "block";
+      document.getElementById("push-animation").style.display = "none";
+      document.getElementById("particles-foreground").style.display = "none";
+      document.getElementById("particles-background").style.display = "none";
     } else {
       animations.hideAll();
     }
   },
   push: () => {
     if (!localStorage.getItem("animationsDisabled")) {
-      document.getElementById("#push-animation").style.display = "block";
-      document.getElementById("#download-animation").style.display = "none";
-      document.getElementById("#particles-foreground").style.display = "none";
-      document.getElementById("#particles-background").style.display = "none";
+      document.getElementById("push-animation").style.display = "block";
+      document.getElementById("download-animation").style.display = "none";
+      document.getElementById("particles-foreground").style.display = "none";
+      document.getElementById("particles-background").style.display = "none";
     } else {
       animations.hideAll();
     }
@@ -137,8 +137,8 @@ const userText = {
 const footer = {
   topText: {
     set: (text, dots) => {
-      const awaitDot = document.getElementById("#wait-dot");
-      const footerTop = document.getElementById("#footer-top");
+      const awaitDot = document.getElementById("wait-dot");
+      const footerTop = document.getElementById("footer-top");
 
       if (dots) awaitDot.style.dispay = "block";
       else awaitDot.style.dispay = "none";
@@ -147,12 +147,12 @@ const footer = {
   },
   underText: {
     set: text => {
-      return (document.getElementById("#footer-bottom").innerText = text);
+      return (document.getElementById("footer-bottom").innerText = text);
     }
   },
   speedText: {
     set: text => {
-      const footerSpeed = document.getElementById("#footer-speed");
+      const footerSpeed = document.getElementById("footer-speed");
       if (text) return (footerSpeed.innerText = ` at ${text} MB/s`);
       else return (footerSpeed.innerText = "");
     }
@@ -161,18 +161,18 @@ const footer = {
 
 const modals = {
   show: modal => {
-    document.getElementById(`#${modal}-modal`).modal("show");
+    document.getElementById(`${modal}-modal`).modal("show");
   },
   hide: modal => {
-    document.getElementById(`#${modal}-modal`).modal("hide");
+    document.getElementById(`${modal}-modal`).modal("hide");
   }
 };
 
-document.getElementById("#help").onclick = () => {
+document.getElementById("help").onclick = () => {
   ipcRenderer.send("createBugReport", "user-requested bug-report");
 };
 
-document.getElementById("#donate").onclick = () => {
+document.getElementById("donate").onclick = () => {
   shell.openExternal("https://ubports.com/donate");
 };
 
@@ -180,7 +180,7 @@ ipcRenderer.on("user:write:progress", (e, length) => {
   if (length >= 100) {
     length = 100;
   }
-  const progress = document.getElementById("#progress");
+  const progress = document.getElementById("progress");
   progress.style.display = `block`;
   progress.setAttribute("width", `${length.toString()}%`);
 });
