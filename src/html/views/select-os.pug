@@ -21,13 +21,13 @@
       global.installConfig.os_to_install = undefined;
       footer.topText.set(installConfig.name+" ("+installConfig.codename+")");
       footer.underText.set("Please select an operating system for installation");
-      $("#options-os").append(osSelects);
-      $("#device-name").text(installConfig.name+" ("+installConfig.codename+")");
-      $("#device-page-link").click(() => {
+      document.getElementById("options-os").innerHTML += osSelects
+      document.getElementById("device-name").innerText = `${installConfig.name} (${installConfig.codename})`;
+      document.getElementById("device-page-link").onclick = () => {
         shell.openExternal("https://devices.ubuntu-touch.io/device/" + installConfig.codename);
-      });
-      $("#device-config").click(() => {
+      }
+      document.getElementById("device-config").onclick = () => {
         shell.openExternal("https://github.com/ubports/installer-configs/blob/master/v1/" + installConfig.codename + ".json");
-      });
+      }
       views.show("select-os");
     });
