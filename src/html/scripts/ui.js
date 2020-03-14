@@ -1,3 +1,14 @@
+const visibility = {
+  show: id => {
+    document.getElementById(id).classList.remove("hidden");
+  },
+  hide: id => {
+    document.getElementById(id).classList.add("hidden");
+  },
+  toggle: id => {
+    document.getElementById(id).classList.toggle("hidden");
+  }
+};
 const switchHide = (from, to) => {
   const elementsToHide = document.getElementsByClassName(from);
   elementsToHide.forEach(el => (el.display = "none"));
