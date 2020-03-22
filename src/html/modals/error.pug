@@ -23,15 +23,15 @@
   script.
     ipcRenderer.on("user:error", (event, error, restart, ignore) => {
       if(global.packageInfo.updateAvailable) {
-        $("#not-latest-stable").show();
+        document.getElementById("not-latest-stable").style.display = "block";
         if (global.packageInfo.isSnap) {
-          $("#snap-update-instructions-error").show();
+          document.getElementById("snap-update-instructions-error").style.display = "block";
         } else {
-          $("#generic-update-instructions-error").show();
+          document.getElementById("generic-update-instructions-error").style.display = "block";
         }
       }
-      $("#error-body").text(error);
-      $("#error-modal").modal("show");
+      document.getElementById("error-body").innerText = error;
+      document.getElementById("error-modal").modal("show");
     });
 
     // Catch all unhandled errors in rendering process

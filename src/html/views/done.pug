@@ -18,5 +18,5 @@
   script.
     ipcRenderer.on("user:write:done", () => {
       views.show("done");
-      $("#progress").width("0%");
+      document.getElementById("progress").style.width = "0";
     });

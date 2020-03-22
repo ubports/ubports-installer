@@ -15,10 +15,10 @@
   script.
     ipcRenderer.on("user:update-available", () => {
       if (global.packageInfo.isSnap) {
-        $("#snap-update-instructions").show();
-        $("#btn-update-installer").hide();
+        document.getElementById("snap-update-instructions").style.display = "block";
+        document.getElementById("btn-update-installer").style.display = "none";
       } else {
-        $("#generic-update-instructions").show();
+        document.getElementById("generic-update-instructions").style.display = "block";
       }
       modals.show('new-update');
     });

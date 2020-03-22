@@ -9,18 +9,20 @@
   script.
     ipcRenderer.on("user:action", (event, action) => {
       views.show("user-action");
-      $("#user-action-title").text(action.title)
-      $("#user-action-description").text(action.description)
+      document.getElementById("user-action-title").innerText = action.title;
+      document.getElementById("user-action-description").innerText = action.description;
 
-      if (action.image) $("#user-action-image").attr("src", "../img/" + action.image + ".jpg");
-      else $("#user-action-image").attr("src", "../screens/Screen6.jpg");
+      if (action.image) document.getElementById("user-action-image").src = `../img/${action.image}.jpg`;
+      else document.getElementById("user-action-image").src = `../screens/Screen6.jpg`;
 
+      const userActionBtn = document.getElementById("user-action-button");
       if (action.button) {
-        $("#user-action-button").one("click", () => {
+        userActionBtn.onclick = () => {
+          userActionBtn.onclick = "";
           event.sender.send("action:completed");
-        });
-        $("#user-action-button").show();
+        }
+        userActionBtn.style.display = "block";
       } else {
-        $("#user-action-button").hide();
+        userActionBtn.style.display = "none";
       }
     });

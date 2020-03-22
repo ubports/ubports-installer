@@ -49,7 +49,7 @@
       // put it all in there
       _subdiv.appendChild(_input);
       _div.appendChild(_subdiv);
-      $("#options-form").append(_div);
+      document.getElementById("options-form").appendChild(_div)
 
       // tooltip describing the option
       if (option.tooltip) {
@@ -67,17 +67,18 @@
         }
         _div.appendChild(_tooltip);
         // HACK: link target can not be set before, because the element needs to have already been created
-        if (option.link) $("#" + option.var + "_link").click(() => shell.openExternal(option.link));
+        if (option.link)
+          document.getElementById(`${option.var}_link`).onclick = ()=>shell.openExternal(option.link);
       }
 
       // send data for this option to main for processing
-      $("#btn-options-close").click(() => {
+      document.getElementById("btn-options-close").onclick = () => {
         if (option.type == "checkbox") {
-          ipcRenderer.send("option", option.var, $("#options-" + option.var).is(":checked"));
+          ipcRenderer.send("option", option.var, document.getElementById(`options-${option.var}`).checked);
         } else {
-          ipcRenderer.send("option", option.var, $("#options-" + option.var).val());
+          ipcRenderer.send("option", option.var, document.getElementById(`options-${option.var}`).value);
         }
-      });
+      }
     }
 
     let optionsAdded = false;
@@ -89,7 +90,7 @@
       views.show("working", "particles");
       footer.underText.set("Please Configure the installation");
       modals.show("options");
-      $("#btn-options-close").click(() => {
+      document.getElementById("btn-options-close").onclick = () => {
         setTimeout(() => ipcRenderer.send('install'), 250);
       });
     });
