@@ -30,7 +30,7 @@
     "dist:linux:appimage": "node ./build.js -o 'linux' -p 'AppImage'",
     "dist:linux:deb": "node ./build.js -o 'linux' -p 'deb'",
     "dist:linux:snap": "snapcraft cleanbuild",
-    "lint": "npx eslint *.js 'src/**/*.js'",
+    "lint": "npx eslint *.js \"src/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },
   "devDependencies": {
