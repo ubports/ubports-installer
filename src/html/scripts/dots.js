@@ -1,5 +1,5 @@
 const dots = window.setInterval(function() {
-  const wait = document.getElementById("wait-dot");
-  if (wait.innerText.length > 4) wait.innerText = "";
-  else wait.innerText += ".";
+  var wait = $("[id=wait-dot]");
+  if (wait.text().length > 4) wait.text("");
+  else wait.append(".");
 }, 400);

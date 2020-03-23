@@ -23,6 +23,6 @@
     ipcRenderer.on("user:device-unsupported", (event, device) => {
       footer.topText.set("Device not supported");
       footer.underText.set("The device " + device + " is not supported");
-      document.getElementById("your-device").innerText = device;
+      $("[id=your-device]").text(device);
       views.show("not-supported");
     });

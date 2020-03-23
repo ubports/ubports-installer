@@ -23,14 +23,15 @@
       modals.show('oem-lock');
     });
 
-    document.getElementById("btn-unlock").onclick = () => {
+    $("#btn-unlock").click(() => {
       ipcRenderer.send("user:oem-lock:ok");
       modals.hide('oem-lock');
-      document.getElementById("btn-unlock").disabled = true;
-      document.getElementById("btn-exit").disabled = true;
-      document.getElementById("unlock-prog").classList.remove("hidden");
-    };
-    document.getElementById("btn-exit").onclick = ()=> {
-      const window = remote.getCurrentWindow();
+      $("#btn-unlock").attr("disabled", true);
+      $("#btn-exit").attr("disabled", true);
+      $("#unlock-prog").removeClass("hidden");
+    });
+
+    $("#btn-exit").click(() => {
+      var window = remote.getCurrentWindow();
       window.close();
     });
