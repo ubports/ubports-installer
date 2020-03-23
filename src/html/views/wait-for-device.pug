@@ -15,14 +15,13 @@
       footer.underText.set("Please connect your device with a USB cable");
       if (!remote.getGlobal("installProperties").device) {
         // if the device is not yet set (i.e. from a cli argument), prompt the user
-        document.getElementById("device-select").innerHTML = deviceSelects;
+        $("#device-select").append(deviceSelects);
         views.show("wait-for-device");
         // Button to confirm device selection
-        document.getElementById("btn-select-devices").onclick = () => {
-          const device = document.getElementById("device-select");
-          const deviceName = device.options[device.selectedIndex].getAttribute("name");
-          ipcRenderer.send("device:selected", deviceName);
-        };
+        $("#btn-select-device").click(() => {
+          var device = $("#device-select").find(":selected").attr("name");
+          ipcRenderer.send("device:selected", device);
+        });
       } else {
         // if the device is set, just return the device:selected event
         ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);

@@ -36,7 +36,7 @@
       // put it all in there
       _subdiv.appendChild(_p);
       _div.appendChild(_subdiv);
-      document.getElementById("actions").appendChild(_div);
+      $("#actions").append(_div);
 
       // help link
       if (action.link) {
@@ -51,8 +51,7 @@
         _tooltip.appendChild(_tooltiplink);
         _div.appendChild(_tooltip);
         // HACK: link target can not be set before, because the element needs to have already been created
-        if (action.link)
-          document.getElementById(`${baseId}_link`).onclick = () => shell.openExternal(action.link);
+        if (action.link) $("#" + baseId + "_link").click(() => shell.openExternal(action.link));
       }
     }
 

@@ -54,6 +54,8 @@
     "electron-pug": "^2.0.0",
     "fs-extra": "^2.0.0",
     "getos": "^3.0.1",
+    "jquery": "^3.4.1",
+    "jquery-i18next": "^1.2.0",
     "mkdirp": "^0.5.1",
     "popper.js": "^1.16.0",
     "promise-android-tools": "^2.0.2",

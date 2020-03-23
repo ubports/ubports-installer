@@ -327,6 +327,3 @@ lesshat-selector {
   font-weight: 400;
   src: local('Ubuntu'), local('Ubuntu Regular'), local('Ubuntu-Regular'), url('../fonts/Ubuntu.ttf') format('truetype');
 }
-.hidden {
-  display: none !important;
-}
