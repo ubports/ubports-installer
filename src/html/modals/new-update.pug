@@ -11,7 +11,7 @@
         #snap-update-instructions.p(hidden='hidden') Run #[code snap refresh ubports-installer --stable] in your terminal to install the latest version.
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
-        button#btn-update-installer.btn.btn-primary(type='button', onclick="shell.openExternal('https://github.com/ubports/ubports-installer/releases/latest')") Download
+        button#btn-update-installer.btn.btn-primary(type='button', onclick=`shell.openExternal('https://devices.ubuntu-touch.io/installer/${global.packageInfo.package ? '?package=' + global.packageInfo.package : ""}')`) Download
   script.
     ipcRenderer.on("user:update-available", () => {
       if (global.packageInfo.isSnap) {

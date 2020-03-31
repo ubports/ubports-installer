@@ -472,7 +472,9 @@ async function createWindow() {
       .then(() => {
         utils.log.info(
           "This is not the latest version of the UBports Installer! Please update: https://devices.ubuntu-touch.io/installer/" +
-            (global.packageInfo.package ? global.packageInfo.package : "")
+            (global.packageInfo.package
+              ? "?package=" + global.packageInfo.package
+              : "")
         );
         mainWindow.webContents.send("user:update-available");
       })
