@@ -126,7 +126,8 @@ switch (cli.os) {
           "android-tools-adb",
           "android-tools-fastboot"
         ]
-      }
+      },
+      afterPack: "./afterPack.js"
     });
     break;
   case "win":
