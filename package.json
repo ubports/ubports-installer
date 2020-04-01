@@ -26,10 +26,10 @@
     "start": "electron .",
     "dist:mac": "node ./build.js -o 'mac' -p 'dmg'",
     "dist:win": "node ./build.js -o \"win\" -p \"exe\"",
-    "dist:linux": "node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft cleanbuild",
+    "dist:linux": "node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft",
     "dist:linux:appimage": "node ./build.js -o 'linux' -p 'AppImage'",
     "dist:linux:deb": "node ./build.js -o 'linux' -p 'deb'",
-    "dist:linux:snap": "snapcraft cleanbuild",
+    "dist:linux:snap": "snapcraft",
     "lint": "npx eslint *.js \"src/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },

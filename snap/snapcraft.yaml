@@ -12,7 +12,7 @@ base: core18
 
 apps:
   ubports-installer:
-    command: ./app/ubports-installer
+    command: ./app/ubports-installer --no-sandbox
     plugs:
       - home
       - unity7
@@ -49,6 +49,7 @@ parts:
       - fontconfig-config
       - gconf2
       - libasound2
+      - libgtk-3-0
       - pulseaudio
     override-pull: |
       snapcraftctl pull

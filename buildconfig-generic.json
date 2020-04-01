@@ -1,7 +1,7 @@
 {
   "appId": "com.ubports.installer",
   "productName": "ubports-installer",
-  "copyright": "Copyright © 2017-2019 UBports Foundation",
+  "copyright": "Copyright © 2017-2020 UBports Foundation",
   "publish": [],
   "files": [
     "src/**/*",
