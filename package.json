@@ -58,7 +58,7 @@
     "jquery-i18next": "^1.2.0",
     "mkdirp": "^0.5.4",
     "popper.js": "^1.16.0",
-    "promise-android-tools": "^2.0.2",
+    "promise-android-tools": "^2.0.4",
     "ps-tree": "^1.2.0",
     "request": "^2.88.2",
     "sudo-prompt": "^9.1.1",
