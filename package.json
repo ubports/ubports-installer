@@ -63,7 +63,7 @@
     "request": "^2.88.2",
     "sudo-prompt": "^9.1.1",
     "system-image-node-module": "^1.0.11",
-    "ubports-api-node-module": "^3.0.0",
+    "ubports-api-node-module": "^3.0.1",
     "winston": "^3.1.2"
   }
 }
