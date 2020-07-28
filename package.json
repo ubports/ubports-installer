@@ -36,7 +36,7 @@
   "devDependencies": {
     "electron": "^5.0.13",
     "electron-builder": "^20.36.2",
-    "electron-packager": "^12.2.0",
+    "electron-packager": "^15.0.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
