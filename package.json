@@ -38,8 +38,8 @@
     "electron-builder": "^20.36.2",
     "electron-packager": "^12.2.0",
     "eslint": "^6.7.2",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
     "prettier": "^1.19.1",
     "sinon": "^7.5.0",
     "unzipper": "^0.9.4"
@@ -53,17 +53,17 @@
     "electron-prompt": "^1.5.1",
     "electron-pug": "^2.0.0",
     "fs-extra": "^2.0.0",
-    "getos": "^3.1.5",
+    "getos": "^3.2.1",
     "jquery": "^3.5.0",
     "jquery-i18next": "^1.2.0",
-    "mkdirp": "^0.5.4",
+    "mkdirp": "^0.5.5",
     "popper.js": "^1.16.0",
     "promise-android-tools": "^2.0.4",
     "ps-tree": "^1.2.0",
     "request": "^2.88.2",
-    "sudo-prompt": "^9.1.1",
+    "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.0.11",
     "ubports-api-node-module": "^3.0.1",
-    "winston": "^3.1.2"
+    "winston": "^3.3.3"
   }
 }
