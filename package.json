@@ -36,7 +36,7 @@
   "devDependencies": {
     "electron": "^5.0.13",
     "electron-builder": "^20.36.2",
-    "electron-packager": "^15.0.0",
+    "electron-packager": "^15.1.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
@@ -50,7 +50,7 @@
     "commander": "^2.9.0",
     "download": "^7.1.0",
     "electron-open-link-in-browser": "^1.0.2",
-    "electron-prompt": "^1.5.1",
+    "electron-prompt": "^1.6.0",
     "electron-pug": "^2.0.0",
     "fs-extra": "^2.0.0",
     "getos": "^3.2.1",
