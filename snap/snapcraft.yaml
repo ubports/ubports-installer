@@ -56,6 +56,7 @@ parts:
       snapcraftctl set-version `cat package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
     override-build: |
       echo "Running override-build script"
+      npm install npm@latest -g
       npm install
       ./build.js -o 'linux' -p 'dir'
       mkdir -p $SNAPCRAFT_PART_INSTALL/app
