@@ -311,7 +311,7 @@ function assembleInstallSteps(steps) {
                     .catch(reject);
                 } else if (
                   step.type.includes("fastboot") &&
-                  error.message.includes("lock")
+                  error.message.includes("bootloader is locked")
                 ) {
                   global.mainEvent.emit("user:oem-lock", runStep);
                 } else if (error.message.includes("low power")) {
