@@ -9,7 +9,7 @@ license: GPL-3.0
 
 grade: stable
 confinement: strict
-base: core18
+base: core20
 
 apps:
   ubports-installer:
