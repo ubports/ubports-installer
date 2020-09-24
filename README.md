@@ -20,6 +20,7 @@ If the installer runs into an error, it will usually present you with the option
 
 ## Set up for development
 
+Currently our script will automatically install the toolchain for you on Arch, Ubuntu, OpenSUSE and other apt based distributions.
 ```
 git clone https://github.com/ubports/ubports-installer.git
 cd ubports-installer
