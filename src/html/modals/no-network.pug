@@ -7,7 +7,7 @@
         h4.modal-title Internet connection lost
       .modal-body
         p
-          | The installer failed to connect to the UBports servers. Are you connected to the internet?
+          | The installer failed to connect to the UBports servers. Are you connected to the internet? If you're using a proxy, you might have to #[a(onclick="shell.openExternal('https://github.com/ubports/ubports-installer/issues/1322')") disable it].
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal', onclick="ipcRenderer.send('restart');") Try again
   script.
