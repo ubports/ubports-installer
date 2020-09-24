@@ -133,6 +133,16 @@ function installStep(step) {
         );
         return fastboot.erase(step.partition);
       };
+    case "fastboot:format":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Cleaning up", true);
+        global.mainEvent.emit(
+          "user:write:under",
+          "Formatting " + step.partition + " partition"
+        );
+        return fastboot.format(step.partition);
+      };
     case "fastboot:boot":
       return () => {
         global.mainEvent.emit("user:write:working", "particles");
