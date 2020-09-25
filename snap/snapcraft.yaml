@@ -20,7 +20,6 @@ apps:
       - browser-support
       - network
       - gsettings
-      - pulseaudio
       - opengl
       - adb-support
       - raw-usb
@@ -51,7 +50,7 @@ parts:
       - gconf2
       - libasound2
       - libgtk-3-0
-      - pulseaudio
+      - libx11-xcb-dev
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
