@@ -265,12 +265,10 @@ function installStep(step) {
                     "Adb is scanning for devices"
                   );
                   function adbWait() {
-                    return adb
-                      .waitForDevice()
-                      .then(resolve)
-                      .catch(() =>
-                        mainEvent.emit("user:connection-lost", adbWait)
-                      );
+                    return adb.hasAccess().then(access => {
+                      if (access) resolve();
+                      else mainEvent.emit("user:connection-lost", adbWait);
+                    });
                   }
                   return adbWait();
                 case "bootloader":
@@ -285,12 +283,10 @@ function installStep(step) {
                     "Fastboot is scanning for devices"
                   );
                   function fastbootWait() {
-                    return fastboot
-                      .waitForDevice()
-                      .then(resolve)
-                      .catch(() =>
-                        mainEvent.emit("user:connection-lost", fastbootWait)
-                      );
+                    return fastboot.hasAccess().then(access => {
+                      if (access) resolve();
+                      else mainEvent.emit("user:connection-lost", adbWait);
+                    });
                   }
                   return fastbootWait();
                 default:
