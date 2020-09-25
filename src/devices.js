@@ -91,7 +91,11 @@ function installStep(step) {
     case "unpack":
       return () => {
         global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", `Unpacking ${step.group}`, true);
+        global.mainEvent.emit(
+          "user:write:status",
+          `Unpacking ${step.group}`,
+          true
+        );
         global.mainEvent.emit("user:write:under", `Unpacking...`);
         let basepath = path.join(
           utils.getUbuntuTouchDir(),
