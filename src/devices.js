@@ -289,7 +289,7 @@ function installStep(step) {
                     return adb.hasAccess().then(access => {
                       if (access) resolve();
                       else mainEvent.emit("user:connection-lost", adbWait);
-                    });
+                    }).catch(utils.log.warn);
                   }
                   return adbWait();
                 case "bootloader":
@@ -307,7 +307,7 @@ function installStep(step) {
                     return fastboot.hasAccess().then(access => {
                       if (access) resolve();
                       else mainEvent.emit("user:connection-lost", adbWait);
-                    });
+                    }).catch(utils.log.warn);
                   }
                   return fastbootWait();
                 default:
