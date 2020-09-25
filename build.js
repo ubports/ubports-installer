@@ -43,27 +43,30 @@ function extractPlatformTools(platformToolsArray, callback) {
   var i = platformToolsArray[0];
   unzip.unpack(
     path.join(i.path, path.basename(i.url)),
-    path.join(i.path, i.target + "_tmp")
-  );
-  fs.move(
-    path.join(i.path, i.target + "_tmp", "platform-tools"),
-    path.join(i.path, i.target),
-    {
-      overwrite: true
-    },
-    e => {
-      fs.removeSync(path.join(i.path, i.target + "_tmp"));
-      if (cli.os !== "win") {
-        fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
-        fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
-        fs.chmodSync(path.join(i.path, i.target, "mke2fs"), 0o755);
-      }
-      if (platformToolsArray.length <= 1) {
-        callback();
-      } else {
-        platformToolsArray.shift();
-        extractPlatformTools(platformToolsArray, callback);
-      }
+    path.join(i.path, i.target + "_tmp"),
+    (err, res) => {
+      if (err) process.exit(1);
+      fs.move(
+        path.join(i.path, i.target + "_tmp", "platform-tools"),
+        path.join(i.path, i.target),
+        {
+          overwrite: true
+        },
+        e => {
+          fs.removeSync(path.join(i.path, i.target + "_tmp"));
+          if (cli.os !== "win") {
+            fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
+            fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
+            fs.chmodSync(path.join(i.path, i.target, "mke2fs"), 0o755);
+          }
+          if (platformToolsArray.length <= 1) {
+            callback();
+          } else {
+            platformToolsArray.shift();
+            extractPlatformTools(platformToolsArray, callback);
+          }
+        }
+      );
     }
   );
 }
