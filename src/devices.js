@@ -22,6 +22,7 @@ const systemImage = require("./system-image");
 const utils = require("./utils");
 const os = require("os");
 const path = require("path");
+const pack = require("7zip-min");
 
 const downloadPath = utils.getUbuntuTouchDir();
 
@@ -86,6 +87,30 @@ function installStep(step) {
             utils.log.error("download error: " + error);
             mainEvent.emit("user:no-network");
           });
+      };
+    case "unpack":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", `Unpacking ${step.group}`, true);
+        global.mainEvent.emit("user:write:under", `Unpacking...`);
+        let basepath = path.join(
+          utils.getUbuntuTouchDir(),
+          global.installProperties.device,
+          step.group
+        );
+        return Promise.all(
+          step.files.map(
+            file =>
+              new Promise(function(resolve, reject) {
+                pack.unpack(
+                  path.join(basepath, file.archive),
+                  path.join(basepath, file.dir),
+                  reject
+                );
+                resolve();
+              })
+          )
+        );
       };
     case "adb:format":
       return () => {
