@@ -12,7 +12,7 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 const builder = require("electron-builder");
 const cli = require("commander");
-const unzip = require("unzipper");
+const unzip = require("7zip-min");
 const path = require("path");
 const fs = require("fs-extra");
 const download = require("download");
@@ -41,35 +41,31 @@ function getAndroidPlatformTools() {
 
 function extractPlatformTools(platformToolsArray, callback) {
   var i = platformToolsArray[0];
-  fs.createReadStream(path.join(i.path, path.basename(i.url)))
-    .pipe(
-      unzip.Extract({
-        path: path.join(i.path, i.target + "_tmp")
-      })
-    )
-    .on("close", () => {
-      fs.move(
-        path.join(i.path, i.target + "_tmp", "platform-tools"),
-        path.join(i.path, i.target),
-        {
-          overwrite: true
-        },
-        e => {
-          fs.removeSync(path.join(i.path, i.target + "_tmp"));
-          if (cli.os !== "win") {
-            fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
-            fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
-            fs.chmodSync(path.join(i.path, i.target, "mke2fs"), 0o755);
-          }
-          if (platformToolsArray.length <= 1) {
-            callback();
-          } else {
-            platformToolsArray.shift();
-            extractPlatformTools(platformToolsArray, callback);
-          }
-        }
-      );
-    });
+  unzip.unpack(
+    path.join(i.path, path.basename(i.url)),
+    path.join(i.path, i.target + "_tmp")
+  );
+  fs.move(
+    path.join(i.path, i.target + "_tmp", "platform-tools"),
+    path.join(i.path, i.target),
+    {
+      overwrite: true
+    },
+    e => {
+      fs.removeSync(path.join(i.path, i.target + "_tmp"));
+      if (cli.os !== "win") {
+        fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
+        fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
+        fs.chmodSync(path.join(i.path, i.target, "mke2fs"), 0o755);
+      }
+      if (platformToolsArray.length <= 1) {
+        callback();
+      } else {
+        platformToolsArray.shift();
+        extractPlatformTools(platformToolsArray, callback);
+      }
+    }
+  );
 }
 
 cli
