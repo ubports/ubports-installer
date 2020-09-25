@@ -1,0 +1,15 @@
+#views-backup-restore-done.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
+    .col-xs-6
+      h4(style='font-weight: bold;') Success!
+      span#task(style='color:blue;') Status
+      
+      button.btn.btn-info(type='button', style='width: 100%; margin-top: 20px;', onclick="ipcRenderer.send('restart');") Finish
+  script.
+    ipcRenderer.on("user:backuprestore:done", (event, task) => {
+      document.getElementById("task").innerHTML = "Your "+task+" "+global.BackupName+" is finished !";
+      views.show("backup-restore-done");
+      $("#progress").width("0%");
+    });

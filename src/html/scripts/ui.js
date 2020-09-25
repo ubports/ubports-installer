@@ -20,11 +20,13 @@ const setText = (cat, id, text) => {
   $("." + cat + "-" + id).text(text);
 };
 
+// AW : Added Pull Animation
 const animations = {
   hideAll: () => {
     $("#particles-foreground").hide();
     $("#particles-background").hide();
     $("#push-animation").hide();
+    $("#pull-animation").hide();
     $("#download-animation").hide();
   },
   particles: () => {
@@ -32,6 +34,7 @@ const animations = {
       $("#particles-foreground").show();
       $("#particles-background").show();
       $("#push-animation").hide();
+      $("#pull-animation").hide();
       $("#download-animation").hide();
     } else {
       animations.hideAll();
@@ -41,6 +44,7 @@ const animations = {
     if (!localStorage.getItem("animationsDisabled")) {
       $("#download-animation").show();
       $("#push-animation").hide();
+      $("#pull-animation").hide();
       $("#particles-foreground").hide();
       $("#particles-background").hide();
     } else {
@@ -49,7 +53,19 @@ const animations = {
   },
   push: () => {
     if (!localStorage.getItem("animationsDisabled")) {
+      $("#pull-animation").hide();
       $("#push-animation").show();
+      $("#download-animation").hide();
+      $("#particles-foreground").hide();
+      $("#particles-background").hide();
+    } else {
+      animations.hideAll();
+    }
+  },
+  pull: () => {
+    if (!localStorage.getItem("animationsDisabled")) {
+      $("#pull-animation").show();
+      $("#push-animation").hide();
       $("#download-animation").hide();
       $("#particles-foreground").hide();
       $("#particles-background").hide();
@@ -59,6 +75,7 @@ const animations = {
   }
 };
 
+// AW : Added pull animation
 const views = {
   hideAll: () => hideAll("views"),
   show: (id, animation) => {
@@ -86,6 +103,9 @@ const views = {
           break;
         case "push":
           animations.push();
+          break;
+        case "pull":
+          animations.pull();
           break;
         default:
           animations.hideAll();

@@ -34,6 +34,11 @@ if (!fs.existsSync(getUbuntuTouchDir())) {
   mkdirp.sync(getUbuntuTouchDir());
 }
 
+// AW : create a backup folder
+if (!fs.existsSync(getUbuntuTouchBackupDir())) {
+  mkdirp.sync(getUbuntuTouchBackupDir());
+}
+
 const platforms = {
   linux: "linux",
   darwin: "mac",
@@ -431,6 +436,122 @@ function errorToUser(error, errorLocation, restart, ignore) {
   global.mainEvent.emit("user:error", errorString, restart, ignore);
 }
 
+// AW : Return the backup path
+function getUbuntuTouchBackupDir() {
+  var osBackupDir;
+  switch (process.platform) {
+    case "linux":
+      osBackupDir = path.join(process.env.HOME);
+      break;
+    case "darwin":
+      osBackupDir = path.join(process.env.HOME);
+      break;
+    case "win32":
+      osBackupDir = process.env.HOMEPATH;
+      break;
+    default:
+      throw Error("Unknown platform " + process.platform);
+  }
+  return path.join(osBackupDir, "ubDeviceBackup");
+}
+
+// AW : Create the backup path
+function createBackupDir(folder) {
+  mkdirp.sync(path.join(getUbuntuTouchBackupDir(), folder));
+  return path.join(getUbuntuTouchBackupDir(), folder);
+}
+
+// AW : Get backup folder content
+function getBackupContent(directoryPath) {
+  var bckpSelects = [];
+  var bckpNames = [];
+  return new Promise((resolve, reject) => {
+    fs.readdir(directoryPath, function(err, files) {
+      //handling error
+      if (err) {
+        log.warn("Unable to scan directory: " + err);
+        reject(err);
+      }
+      resolve(files);
+    });
+  });
+}
+
+// AW : Read Backup config file
+function loadBackupConfig(file) {
+  log.debug("Loading backup config file: " + file);
+  let rawdata = fs.readFileSync(file);
+  log.debug(JSON.parse(rawdata));
+  return JSON.parse(rawdata);
+}
+
+// AW : Modifying the maxBuffer size to handle the output of the backup (all file path backuped on the device!)
+function execTool(tool, args, callback) {
+  let pid = exec(
+    [path.join(toolpath, tool)].concat(args).join(" "),
+    {
+      maxBuffer: 1024 * 1024 * 100
+    },
+    (error, stdout, stderr) => {
+      global.logger.log(
+        "command",
+        tool +
+          ": " +
+          JSON.stringify({
+            args: args,
+            error: error,
+            stdout: stdout,
+            stderr: stderr
+          })
+      );
+      callback(error, stdout, stderr);
+    }
+  );
+  processes.push(pid);
+  pid.on("exit", () => {
+    processes.splice(processes.indexOf(pid), 1);
+  });
+}
+
+// AW : Needed for backup
+function getToolPath() {
+  return toolpath;
+}
+
+// AW : Generate a config file for the backup created
+function generateBackupConfigFile(
+  file,
+  devicetype,
+  devicesn,
+  systemsize,
+  usersize,
+  ubuntuversion
+) {
+  var content =
+    '{ "backupname":"' +
+    path.basename(file) +
+    '","backupdate":"' +
+    Date.now() +
+    '", "devicetype":"' +
+    devicetype +
+    '", "devicesn":"' +
+    devicesn +
+    '", "systemsize":' +
+    systemsize +
+    ', "usersize":' +
+    usersize +
+    ',"otaversion":"' +
+    ubuntuversion +
+    '"}';
+
+  fs.writeFile(file + "_config.bkp", content, function(err) {
+    if (err) {
+      return utils.log.warn(err);
+    }
+    utils.log.info("The backup config file was saved");
+  });
+}
+
 module.exports = {
   cleanInstallerCache: cleanInstallerCache,
   errorToUser: errorToUser,
@@ -443,5 +564,11 @@ module.exports = {
   sendBugReport: sendBugReport,
   setUdevRules: setUdevRules,
   getUpdateAvailable: getUpdateAvailable,
+  getBackupContent: getBackupContent,
+  getUbuntuTouchBackupDir: getUbuntuTouchBackupDir,
+  loadBackupConfig: loadBackupConfig,
+  generateBackupConfigFile: generateBackupConfigFile,
+  createBackupDir: createBackupDir,
+  getToolPath: getToolPath,
   die: die
 };

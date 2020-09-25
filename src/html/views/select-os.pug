@@ -15,6 +15,8 @@
           .col-xs-9
             select#options-os.form-control.space
       button#btn-inst.btn.btn-primary(type='button', style='width: 100%; margin-top: 10px;', onclick="ipcRenderer.send(\"os:selected\", getElementById('options-os').selectedIndex); global.installConfig.os_to_install = getElementById('options-os').selectedIndex;") Install
+      button#btn-backup-device.btn.btn-default(type='button', style='width: 100%; margin-top: 50px;', onclick="Backup();") Backup my device
+      button#btn-restore-device.btn.btn-default(type='button', style='width: 100%; margin-top: 10px;', onclick="Restore();") Restore a backup
   script.
     ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
       global.installConfig = installConfig;
@@ -31,3 +33,13 @@
       });
       views.show("select-os");
     });
+
+    var Backup = function(){
+     footer.underText.set("Backup my device " + global.installConfig.codename);
+     ipcRenderer.send("backup",(global.installConfig));views.show("backup-device");
+    };
+
+    var Restore = function(){
+     footer.underText.set("Restoring a backup on my device " + global.installConfig.codename);
+     ipcRenderer.send("restore",(global.installConfig));views.show("restore-device");
+    };

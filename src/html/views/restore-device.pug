@@ -1,0 +1,83 @@
+#views-restore-device.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
+    .col-xs-6(style='height: 100%')
+      h4.user-install-header#device-name(style='font-weight: bold;') Retore a backup
+      p
+        | Please select the backup file :
+      //input#text-backname.form-control.space(type="file")
+      select#options-bckp.form-control.space
+      br
+      span#backupname
+      br
+      span#backupdev
+      br
+      span#backupsn
+      br
+      br
+      form.form-horizontal
+        .form-group
+          .col-xs-1
+            img#imgwarn(style='height: 24px; width: 24px', src='../img/warning.png', hidden='hidden')
+          .col-xs-10
+            span#warn(hidden='hidden')
+            
+      p
+        | This operation will take a while ! Are you sure ?
+      button#btn-start.btn.btn-primary(type='button', style='width: 100%; margin-top: 20px;', onclick="ipcRenderer.send('user:restore:start',(global.BackupIndex));") Yep, let's go !
+      button#btn-device.btn.btn-default(type='button', style='width: 100%;margin-top: 10px;', onclick="ipcRenderer.send('restart');", hidden='display') eh no wait
+  script.
+    $(function() {
+    $("#options-bckp").change(function() {
+        var $this = $(this);
+        var fileindex = $this.val();
+        console.log(fileindex);
+        global.BackupIndex = fileindex;
+        ipcRenderer.send('user:restore:select',fileindex )
+       });
+     });
+
+    ipcRenderer.on("user:restore:select", (event, backup, comment) => {
+      //views.show("restore-device");
+      document.getElementById("backupname").innerHTML = "#[b Name:] "+backup.config.backupname;
+      document.getElementById("backupsn").innerHTML   = "#[b SN:] "+backup.config.devicesn;
+      document.getElementById("backupdev").innerHTML = "#[b Device:] "+backup.config.devicetype;
+      global.Backup = backup;      
+      global.installConfig = installConfig;
+      if (comment) {
+       document.getElementById("warn").innerHTML = comment;
+       $("#btn-start").hide();
+       $("#imgwarn").show();
+       $("#warn").show();
+      }
+      else
+       {
+        document.getElementById("warn").innerHTML = comment;
+        $("#btn-start").show();
+        $("#imgwarn").hide();
+        $("#warn").hide();
+       }
+    });
+
+    ipcRenderer.on("user:restore", (event,backupConfig, installConfig, backup) => {
+
+      $("#options-bckp").empty;
+      $("#options-bckp").append(backup.BackupList);
+      document.getElementById("backupname").innerHTML = "#[b Name:] "+backup.config.backupname;
+      document.getElementById("backupsn").innerHTML   = "#[b SN:] "+backup.config.devicesn;
+      document.getElementById("backupdev").innerHTML = "#[b Device:] "+backup.config.devicetype;
+      global.Backup = backup;      
+      global.installConfig = installConfig;
+
+
+      footer.underText.set("Select your backup");
+      console.log(backup.config);
+
+      //$("#sizeinfo").text("Please be sure to have at least #[b "+backupConfig+" Go] free on your hard-drive.");
+      var d = new Date();
+      var dateback = d.getFullYear() +"-"+ (d.getMonth()+1) + "-" + d.getDate()  + "_" +d.getHours() + d.getMinutes();
+      $("#text-backname").attr("value",installConfig.codename+"_"+dateback);
+      global.BackupName = installConfig.codename+"_"+dateback;
+      views.show("restore-device");
+    });
