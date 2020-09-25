@@ -109,9 +109,11 @@ function installStep(step) {
                 pack.unpack(
                   path.join(basepath, file.archive),
                   path.join(basepath, file.dir),
-                  reject
+                  (err, res) => {
+                    if (err) reject(err);
+                    else resolve();
+                  }
                 );
-                resolve();
               })
           )
         );
