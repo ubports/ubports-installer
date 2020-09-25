@@ -132,6 +132,27 @@ function installStep(step) {
         );
         return adb.waitForDevice().then(() => adb.format(step.partition));
       };
+    case "adb:sideload":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit(
+          "user:write:status",
+          `Sideloading ${step.group}`,
+          true
+        );
+        global.mainEvent.emit(
+          "user:write:under",
+          "Sideloading might take up to ten minutes..."
+        );
+        return adb.sideload(
+          path.join(
+            downloadPath,
+            global.installProperties.device,
+            step.group,
+            step.file
+          )
+        );
+      };
     case "adb:reboot":
       return () => {
         global.mainEvent.emit("user:write:working", "particles");
