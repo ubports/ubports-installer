@@ -28,6 +28,7 @@ const mkdirp = require("mkdirp");
 const cp = require("child_process");
 const getos = require("getos");
 const psTree = require("ps-tree");
+const util = require("util");
 global.packageInfo = require("../package.json");
 
 if (!fs.existsSync(getUbuntuTouchDir())) {
@@ -443,5 +444,6 @@ module.exports = {
   sendBugReport: sendBugReport,
   setUdevRules: setUdevRules,
   getUpdateAvailable: getUpdateAvailable,
-  die: die
+  die: die,
+  unpack: util.promisify(require("7zip-min").unpack)
 };
