@@ -102,11 +102,11 @@ function installStep(step) {
           step.group
         );
         return Promise.all(
-          step.files.map(
-            file => utils.unpack(
-                  path.join(basepath, file.archive),
-                  path.join(basepath, file.dir)
-                )
+          step.files.map(file =>
+            utils.unpack(
+              path.join(basepath, file.archive),
+              path.join(basepath, file.dir)
+            )
           )
         ).catch(error => {
           throw new Error(`Unpack error: ${error}`);
@@ -308,7 +308,8 @@ function installStep(step) {
                       .hasAccess()
                       .then(access => {
                         if (access) resolve();
-                        else mainEvent.emit("user:connection-lost", fastbootWait);
+                        else
+                          mainEvent.emit("user:connection-lost", fastbootWait);
                       })
                       .catch(e => {
                         utils.log.warn(e);
