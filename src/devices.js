@@ -314,7 +314,7 @@ function installStep(step) {
                       .hasAccess()
                       .then(access => {
                         if (access) resolve();
-                        else mainEvent.emit("user:connection-lost", adbWait);
+                        else mainEvent.emit("user:connection-lost", fastbootWait);
                       })
                       .catch(e => {
                         utils.log.warn(e);
