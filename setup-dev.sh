@@ -4,7 +4,7 @@ distro=$(lsb_release -si)
 version=$(lsb_release -sr)
 
 packageCommand="apt install"
-case "${distro}" in 
+case "${distro}" in
     "Arch")
         packageCommand="pacman -S"
         packages="npm nodejs"
@@ -37,6 +37,6 @@ echo "Setting up node modules..."
 npm install
 
 echo "Downloading platform tools"
-node build.js --download-only --os=linux
+node build.js --os=linux --no-build
 
-echo "Done!"
+echo "Dev setup complete. Thank you for hacking on the UBports Installer!"

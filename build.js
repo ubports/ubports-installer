@@ -12,64 +12,22 @@ Author: Marius Gripsgard <mariogrip@ubports.com>
 
 const builder = require("electron-builder");
 const cli = require("commander");
-const unzip = require("7zip-min");
 const path = require("path");
 const fs = require("fs-extra");
+const util = require("util");
 const download = require("download");
-const events = require("events");
-class event extends events {}
-const Platform = builder.Platform;
+const unpack = util.promisify(require("7zip-min").unpack);
+
 const platformToolsPath = "./platform-tools";
-const platformToolsUrls = {
-  linux:
-    "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
-  mac:
-    "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
-  win:
-    "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
-};
+const platformToolsUrl = () =>
+  `https://dl.google.com/android/repository/platform-tools-latest-${
+    cli.os === "mac" ? "darwin" : cli.os === "win" ? "windows" : cli.os
+  }.zip`;
+const heimdallUrl = () =>
+  `https://heimdall.free-droid.com/heimdall-${cli.os}.zip`;
 
-function getAndroidPlatformTools() {
-  return [
-    {
-      url: platformToolsUrls[cli.os],
-      path: platformToolsPath,
-      target: cli.os
-    }
-  ];
-}
-
-function extractPlatformTools(platformToolsArray, callback) {
-  var i = platformToolsArray[0];
-  unzip.unpack(
-    path.join(i.path, path.basename(i.url)),
-    path.join(i.path, i.target + "_tmp"),
-    (err, res) => {
-      if (err) process.exit(1);
-      fs.move(
-        path.join(i.path, i.target + "_tmp", "platform-tools"),
-        path.join(i.path, i.target),
-        {
-          overwrite: true
-        },
-        e => {
-          fs.removeSync(path.join(i.path, i.target + "_tmp"));
-          if (cli.os !== "win") {
-            fs.chmodSync(path.join(i.path, i.target, "fastboot"), 0o755);
-            fs.chmodSync(path.join(i.path, i.target, "adb"), 0o755);
-            fs.chmodSync(path.join(i.path, i.target, "mke2fs"), 0o755);
-          }
-          if (platformToolsArray.length <= 1) {
-            callback();
-          } else {
-            platformToolsArray.shift();
-            extractPlatformTools(platformToolsArray, callback);
-          }
-        }
-      );
-    }
-  );
-}
+var targetOs;
+var buildConfig = require("./buildconfig-generic.json");
 
 cli
   .version(require("./package.json").version)
@@ -82,31 +40,17 @@ cli
     JSON.parse,
     ""
   )
-  .option(
-    "-d, --download-only",
-    "Only download platform tools",
-    undefined,
-    false
-  )
-  .option(
-    "-n, --no-platform-tools",
-    "Build without platform tools",
-    undefined,
-    false
-  )
+  .option("-b, --no-build", "Only download platform tools", undefined, false)
+  .option("-d, --no-download", "Skip platform tools download", undefined, false)
+  .option("-r, --re-download", "Re-download platform tools", undefined, false)
   .parse(process.argv);
-
-var targetOs;
-var buildConfig = require("./buildconfig-generic.json");
-
-// --- --- --- --- --- --- BEGIN --- --- --- --- --- ---
 
 cli.parse(process.argv);
 
 // Validate and configure operating system
 switch (cli.os) {
   case "linux":
-    targetOs = Platform.LINUX;
+    targetOs = builder.Platform.LINUX;
     buildConfig = Object.assign(buildConfig, {
       linux: {
         target: cli.package,
@@ -130,7 +74,7 @@ switch (cli.os) {
     });
     break;
   case "win":
-    targetOs = Platform.WINDOWS;
+    targetOs = builder.Platform.WINDOWS;
     buildConfig = Object.assign(buildConfig, {
       win: {
         target: ["portable"],
@@ -139,7 +83,7 @@ switch (cli.os) {
     });
     break;
   case "mac":
-    targetOs = Platform.MAC;
+    targetOs = builder.Platform.MAC;
     buildConfig = Object.assign(buildConfig, {
       mac: {
         target: "dmg",
@@ -154,81 +98,138 @@ switch (cli.os) {
 }
 
 // Configure package
-switch (cli.package) {
-  case "AppImage":
-  case "deb":
-  case "dir":
-    if (cli.os != "linux") {
-      console.log(cli.package + " can only be built on Linux!");
-      process.exit(1);
-    }
-    break;
-  case "dmg":
-    if (cli.os != "mac") {
-      console.log(cli.package + " can only be built on macOS!");
-      process.exit(1);
-    }
-    break;
-  case "exe":
-    if (cli.os != "win") {
-      console.log(cli.package + " can only be built on Windows!");
-      process.exit(1);
-    }
-    break;
-  case "":
-    break;
-  default:
-    if (!cli.downloadOnly) {
-      console.log("Building " + cli.package + " is not configured!");
-      process.exit(1);
-    } else {
+if (cli.build) {
+  switch (cli.package) {
+    case "AppImage":
+    case "deb":
+    case "dir":
+      if (cli.os != "linux") {
+        console.log(cli.package + " can only be built for Linux!");
+        process.exit(1);
+      }
       break;
-    }
-}
-
-var build = () => {
-  // Build
-  if (!cli.downloadOnly) {
-    builder
-      .build({
-        targets: builder.createTargets([targetOs]),
-        config: Object.assign(buildConfig, {
-          extraMetadata: cli.package
-            ? Object.assign(cli.extraMetadata, { package: cli.package })
-            : cli.extraMetadata
-        })
-      })
-      .then(() => {
-        console.log("Done");
-      })
-      .catch(e => {
-        if (
-          e.message.indexOf("GitHub Personal Access Token is not set") !== -1
-        ) {
-          console.log("Done");
-          process.exit(0);
-        } else {
-          console.log(e);
-          process.exit(1);
-        }
-      });
+    case "dmg":
+      if (cli.os != "mac") {
+        console.log(cli.package + " can only be built for macOS!");
+        process.exit(1);
+      }
+      break;
+    case "exe":
+      if (cli.os != "win") {
+        console.log(cli.package + " can only be built for Windows!");
+        process.exit(1);
+      }
+      break;
+    case "":
+      break;
+    default:
+      if (!cli.downloadOnly) {
+        console.log("Building " + cli.package + " is not configured!");
+        process.exit(1);
+      } else {
+        break;
+      }
   }
-};
-
-// Download platform tools
-if (cli.platformTools) {
-  download(getAndroidPlatformTools()[0].url, getAndroidPlatformTools()[0].path)
-    .then(() => {
-      console.log("files downloaded!");
-      extractPlatformTools(getAndroidPlatformTools(), () => {
-        console.log("Platform tools downloaded successfully!");
-        if (!cli.downloadOnly) build();
-      });
-    })
-    .catch(() => {
-      console.error("Failed to download files!");
-      process.exit(1);
-    });
-} else {
-  build();
 }
+
+const build = () =>
+  cli.build
+    ? builder
+        .build({
+          targets: builder.createTargets([targetOs]),
+          config: Object.assign(buildConfig, {
+            extraMetadata: cli.package
+              ? Object.assign(cli.extraMetadata, { package: cli.package })
+              : cli.extraMetadata
+          })
+        })
+        .then(() => console.log("build complete"))
+        .catch(e => {
+          if (
+            e.message.indexOf("GitHub Personal Access Token is not set") !== -1
+          ) {
+            console.log("build complete");
+          } else {
+            throw new Error(`Build error: ${e}`);
+          }
+        })
+    : Promise.resolve().then(() => console.log("build skipped"));
+
+const downloadAdbFastboot = () =>
+  fs.existsSync(path.join(platformToolsPath, cli.os, "fastboot")) &&
+  fs.existsSync(path.join(platformToolsPath, cli.os, "adb")) &&
+  fs.existsSync(path.join(platformToolsPath, cli.os, "mke2fs"))
+    ? Promise.resolve().then(() => console.log("adb/fastboot re-used"))
+    : download(platformToolsUrl(), platformToolsPath)
+        .then(() => console.log("adb/fastboot downloaded"))
+        .then(() =>
+          unpack(
+            path.join(platformToolsPath, path.basename(platformToolsUrl())),
+            path.join(platformToolsPath, cli.os + "_tmp")
+          )
+        )
+        .then(() =>
+          fs.copy(
+            path.join(platformToolsPath, cli.os + "_tmp", "platform-tools"),
+            path.join(platformToolsPath, cli.os),
+            { overwrite: true }
+          )
+        )
+        .then(() => console.log("adb/fastboot unpacked"))
+        .then(() => fs.remove(path.join(platformToolsPath, cli.os + "_tmp")))
+        .catch(e => {
+          throw new Error(`Adb/Fastboot failed ${e}`);
+        });
+
+const downloadHeimdall = () =>
+  fs.existsSync(path.join(platformToolsPath, cli.os, "heimdall"))
+    ? Promise.resolve().then(() => console.log("heimdall re-used"))
+    : download(heimdallUrl(), platformToolsPath)
+        .then(() => console.log("heimdall downloaded"))
+        .then(() =>
+          unpack(
+            path.join(platformToolsPath, path.basename(heimdallUrl())),
+            path.join(platformToolsPath, cli.os)
+          )
+        )
+        .then(() => console.log("heimdall unpacked"))
+        .catch(e => {
+          throw new Error("Heimdall failed", e);
+        });
+
+const downloadPlatformTools = () =>
+  cli.download
+    ? (cli.reDownload ? fs.emptyDir(platformToolsPath) : Promise.resolve())
+        .then(() =>
+          Promise.all([
+            downloadAdbFastboot()
+            // downloadHeimdall() TODO uncomment for https://github.com/ubports/ubports-installer/issues/1376
+          ])
+        )
+        .then(() =>
+          cli.os !== "win"
+            ? Promise.all(
+                // TODO include "heimdall" for https://github.com/ubports/ubports-installer/issues/1376
+                ["fastboot", "adb", "mke2fs"].map(executable =>
+                  fs.chmod(
+                    path.join(platformToolsPath, cli.os, executable),
+                    0o755
+                  )
+                )
+              )
+            : Promise.resolve()
+        )
+        .then(() => console.log("platform tools complete"))
+        .catch(e => {
+          throw new Error(e);
+        })
+    : Promise.resolve().then(() => console.log("platform tools skipped"));
+
+// actual work happens here
+downloadPlatformTools()
+  .then(() => build())
+  .then(() => console.log("all done!"))
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  });
