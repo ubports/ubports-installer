@@ -45,8 +45,6 @@ cli
   .option("-r, --re-download", "Re-download platform tools", undefined, false)
   .parse(process.argv);
 
-cli.parse(process.argv);
-
 // Validate and configure operating system
 switch (cli.os) {
   case "linux":
