@@ -17,30 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const http = require("request");
 const systemImage = require("./system-image");
 const utils = require("./utils");
-const os = require("os");
 const path = require("path");
-
-const downloadPath = utils.getUbuntuTouchDir();
-
-function addPathToImages(images, device, group) {
-  var ret = [];
-  images.forEach(image => {
-    image["partition"] = image.type;
-    image["path"] = path.join(downloadPath, device, group);
-    image["file"] = path.join(path.basename(image.url));
-    ret.push(image);
-  });
-  return ret;
-}
+const { download } = require("progressive-downloader");
 
 function addPathToFiles(files, device) {
   var ret = [];
   for (var i = 0; i < files.length; i++) {
     ret.push({
-      file: path.join(downloadPath, device, files[i].group, files[i].file),
+      file: path.join(
+        utils.getUbuntuTouchDir(),
+        device,
+        files[i].group,
+        files[i].file
+      ),
       partition: files[i].partition
     });
   }
@@ -51,34 +42,68 @@ function installStep(step) {
   switch (step.type) {
     case "download":
       return () => {
-        global.mainEvent.emit("user:write:working", "download");
-        global.mainEvent.emit(
-          "user:write:status",
-          "Downloading " + step.group,
-          true
-        );
-        global.mainEvent.emit("user:write:under", "Downloading");
-        return utils
-          .downloadFiles(
-            addPathToImages(
-              step.files,
+        return download(
+          step.files.map(file => ({
+            ...file,
+            checksum:
+              file.checksum && file.checksum.sum && file.checksum.algorithm
+                ? file.checksum
+                : file.checksum
+                ? { sum: file.checksum, algorithm: "sha256" }
+                : null,
+            partition: file.type,
+            path: path.join(
+              utils.getUbuntuTouchDir(),
               global.installProperties.device,
-              step.group
+              step.group,
+              path.basename(file.url)
             ),
-            (progress, speed) => {
-              global.mainEvent.emit("user:write:progress", progress * 100);
-              global.mainEvent.emit(
-                "user:write:speed",
-                Math.round(speed * 100) / 100
-              );
-            },
-            (current, total) => {
-              utils.log.info("Downloaded file " + current + " of " + total);
+            file: path.join(path.basename(file.url))
+          })),
+          (progress, speed) => {
+            global.mainEvent.emit("user:write:progress", progress * 100);
+            global.mainEvent.emit(
+              "user:write:speed",
+              Math.round(speed * 100) / 100
+            );
+            global.mainEvent.emit("user:write:under", "Downloading");
+          },
+          (current, total) => {
+            utils.log.info(`Downloaded file ${current} of ${total}`);
+            global.mainEvent.emit(
+              "user:write:status",
+              `${current} of ${total} files downloaded and verified`,
+              true
+            );
+          },
+          activity => {
+            utils.log.info(activity);
+            switch (activity) {
+              case "downloading":
+                utils.log.info(`downloading ${step.group} files`);
+                global.mainEvent.emit("user:write:working", "download");
+                break;
+              case "preparing":
+                utils.log.info(
+                  `checking previously downloaded ${step.group} files`
+                );
+                global.mainEvent.emit("user:write:working", "particles");
+                global.mainEvent.emit(
+                  "user:write:status",
+                  "Preparing download",
+                  true
+                );
+                global.mainEvent.emit(
+                  "user:write:under",
+                  `Checking ${step.group} files...`
+                );
+              default:
+                break;
             }
-          )
+          }
+        )
           .then(() => {
             global.mainEvent.emit("user:write:working", "particles");
-            global.mainEvent.emit("user:write:under", "Verifying download");
             global.mainEvent.emit("user:write:progress", 0);
             global.mainEvent.emit("user:write:speed", 0);
           })
@@ -199,7 +224,7 @@ function installStep(step) {
         );
         return fastboot.boot(
           path.join(
-            downloadPath,
+            utils.getUbuntuTouchDir(),
             global.installProperties.device,
             step.group,
             step.file
@@ -230,7 +255,7 @@ function installStep(step) {
         );
         return fastboot.update(
           path.join(
-            downloadPath,
+            utils.getUbuntuTouchDir(),
             global.installProperties.device,
             step.group,
             step.file

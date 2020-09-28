@@ -15,25 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const http = require("request");
-const download = require("download");
+const axios = require("axios");
 const shell = require("electron").shell;
-const exec = require("child_process").exec;
 const sudo = require("sudo-prompt");
+const FormData = require("form-data");
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
 const checksum = require("checksum");
-const mkdirp = require("mkdirp");
 const cp = require("child_process");
-const getos = require("getos");
 const psTree = require("ps-tree");
 const util = require("util");
 global.packageInfo = require("../package.json");
 
-if (!fs.existsSync(getUbuntuTouchDir())) {
-  mkdirp.sync(getUbuntuTouchDir());
-}
+fs.ensureDir(getUbuntuTouchDir());
 
 const platforms = {
   linux: "linux",
@@ -74,59 +69,55 @@ function createBugReport(title, installProperties, callback) {
       errorLog += err.message + "\n";
     });
 
-    http.post(
-      {
-        url: "http://paste.ubuntu.com",
-        form: {
-          poster: "UBports Installer bug",
-          syntax: "text",
-          content: "Title: " + title + "\n\n" + errorLog
-        }
-      },
-      (err, res, bod) => {
-        if (!err && res.statusCode === 302)
-          getos((e, gOs) => {
-            callback(
-              "*Automatically generated error report* %0D%0A" +
-                "UBports Installer Version: " +
-                global.packageInfo.version +
-                " %0D%0A" +
-                "Device: " +
-                (installProperties.device
-                  ? installProperties.device
-                  : "Not detected") +
-                "%0D%0A" +
-                "OS to install: " +
-                (global.installProperties.osIndex !== undefined
-                  ? global.installConfig.operating_systems[
-                      global.installProperties.osIndex
-                    ].name
-                  : "Not yet set") +
-                "%0D%0A" +
-                "Settings: " +
-                (global.installProperties.settings
-                  ? JSON.stringify(global.installProperties.settings)
-                  : "Not yet set") +
-                "%0D%0A" +
-                "Package: " +
-                (isSnap() ? "snap" : global.packageInfo.package || "source") +
-                "%0D%0A" +
-                "Operating System: " +
-                getCleanOs() +
-                " " +
-                os.arch() +
-                " %0D%0A" +
-                "NodeJS version: " +
-                process.version +
-                " %0D%0A%0D%0A" +
-                "Error log: https://paste.ubuntu.com/" +
-                res.headers.location +
-                " %0D%0A"
-            );
-          });
-        else callback(false);
-      }
-    );
+    const form = new FormData();
+    form.append("poster", "hello");
+    form.append("syntax", "text");
+    form.append("expiration", "year");
+    form.append("content", `Title: ${title}\n\n${errorLog}`);
+
+    axios
+      .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
+      .then(r => `https://paste.ubuntu.com/${r.request.path}`)
+      .then(pasteurl =>
+        callback(
+          "*Automatically generated error report* %0D%0A" +
+            "UBports Installer Version: " +
+            global.packageInfo.version +
+            " %0D%0A" +
+            "Device: " +
+            (installProperties.device
+              ? installProperties.device
+              : "Not detected") +
+            "%0D%0A" +
+            "OS to install: " +
+            (global.installProperties.osIndex !== undefined
+              ? global.installConfig.operating_systems[
+                  global.installProperties.osIndex
+                ].name
+              : "Not yet set") +
+            "%0D%0A" +
+            "Settings: " +
+            (global.installProperties.settings
+              ? JSON.stringify(global.installProperties.settings)
+              : "Not yet set") +
+            "%0D%0A" +
+            "Package: " +
+            (isSnap() ? "snap" : global.packageInfo.package || "source") +
+            "%0D%0A" +
+            "Operating System: " +
+            getCleanOs() +
+            " " +
+            os.arch() +
+            " %0D%0A" +
+            "NodeJS version: " +
+            process.version +
+            " %0D%0A%0D%0A" +
+            "Error log: " +
+            pasteurl +
+            " %0D%0A"
+        )
+      )
+      .catch(() => callback(false));
   });
 }
 
@@ -142,59 +133,50 @@ function sendBugReport(title) {
 }
 
 function getCleanOs() {
-  try {
-    return getos((e, gOs) => {
-      if (gOs.os == "linux")
-        return (
-          gOs.dist +
-          (gOs.release = !undefined ? " " + gOs.release : "") +
-          (gOs.codename = !undefined ? " " + gOs.codename : "")
-        );
-      else if (gOs.os == "darwin")
-        return (
-          "macOS " +
-          cp
-            .execSync("sw_vers -productVersion")
-            .toString()
-            .trim() +
-          cp
-            .execSync("sw_vers -buildVersion")
-            .toString()
-            .trim()
-        );
-      else if (gOs.os == "win32")
-        return cp
-          .execSync("ver")
+  let versionString = "";
+  switch (process.platform) {
+    case "linux":
+      versionString = cp
+        .execSync("lsb_release -ds")
+        .toString()
+        .trim();
+      break;
+    case "darwin":
+      versionString =
+        cp
+          .execSync("sw_vers -productVersion")
+          .toString()
+          .trim() +
+        cp
+          .execSync("sw_vers -buildVersion")
           .toString()
           .trim();
-      else {
-        return gOs.os;
-      }
-    });
-  } catch (e) {
-    log.error(e);
-    return process.platform;
+      break;
+    case "win32":
+      versionString = cp
+        .execSync("ver")
+        .toString()
+        .trim();
+      break;
+    default:
+      break;
   }
+  return [os.type(), versionString, os.release(), os.arch()]
+    .filter(i => i)
+    .join(" ");
 }
 
 function getLatestInstallerVersion() {
-  return new Promise((resolve, reject) => {
-    http.get(
+  return axios
+    .get(
+      "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
       {
-        url:
-          "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
         json: true,
-        headers: { "User-Agent": "request" }
-      },
-      (err, res, bod) => {
-        if (!err && res.statusCode === 200) {
-          resolve(bod.tag_name);
-        } else {
-          reject();
-        }
+        headers: { "User-Agent": "axios" }
       }
-    );
-  });
+    )
+    .then(r => r.data.tag_name)
+    .catch(log.error);
 }
 
 function setUdevRules() {
@@ -263,7 +245,7 @@ let toolpath = global.packageInfo.package
   : path.join(__dirname, "..", "platform-tools", platforms[os.platform()]);
 let processes = [];
 function execTool(tool, args, callback) {
-  let pid = exec(
+  let pid = cp.exec(
     [path.join(toolpath, tool)].concat(args).join(" "),
     {
       maxBuffer: 1024 * 1024 * 2
@@ -347,82 +329,6 @@ function checksumFile(file) {
   });
 }
 
-/*
-urls format:
-[
-  {
-    url: "http://test.com", (source url)
-    path: ".bla/bal/", (download target)
-    checksum: "d342j43lj34hgth324hj32ke4" (sha256sum)
-  }
-]
-*/
-function downloadFiles(urls, progress, next) {
-  return new Promise(function(resolve, reject) {
-    var filesDownloaded = 0;
-    var overallSize = 0;
-    var overallDownloaded = 0;
-    var previousOverallDownloaded = 0;
-    var downloadProgress = 0;
-    var progressInterval = setInterval(() => {
-      downloadProgress = overallDownloaded / overallSize;
-      if (overallSize != 0) {
-        if (downloadProgress < 0.999) {
-          progress(
-            downloadProgress,
-            (overallDownloaded - previousOverallDownloaded) / 1000000
-          );
-          previousOverallDownloaded = overallDownloaded;
-        } else {
-          clearInterval(progressInterval);
-          progress(1, 0);
-        }
-      }
-    }, 1000);
-    Promise.all(
-      urls.map(file => {
-        return new Promise(function(resolve, reject) {
-          checksumFile(file)
-            .then(() => {
-              next(++filesDownloaded, urls.length);
-              resolve();
-              return;
-            })
-            .catch(() => {
-              download(file.url, file.path)
-                .on("response", res => {
-                  var totalSize = eval(res.headers["content-length"]);
-                  overallSize += totalSize;
-                  var downloaded = 0;
-                  res.on("data", data => {
-                    overallDownloaded += data.length;
-                  });
-                })
-                .then(() => {
-                  checksumFile(file)
-                    .then(() => {
-                      next(++filesDownloaded, urls.length);
-                      resolve();
-                      return;
-                    })
-                    .catch(reject);
-                })
-                .catch(reject);
-            });
-        });
-      })
-    )
-      .then(() => {
-        resolve();
-        return;
-      })
-      .catch(err => {
-        reject(err);
-        return;
-      });
-  });
-}
-
 function errorToUser(error, errorLocation, restart, ignore) {
   var errorString =
     "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
@@ -435,7 +341,6 @@ function errorToUser(error, errorLocation, restart, ignore) {
 module.exports = {
   cleanInstallerCache: cleanInstallerCache,
   errorToUser: errorToUser,
-  downloadFiles: downloadFiles,
   log: log,
   isSnap: isSnap,
   execTool: execTool,
