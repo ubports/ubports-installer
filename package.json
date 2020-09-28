@@ -57,12 +57,12 @@
     "jquery": "^3.5.0",
     "jquery-i18next": "^1.2.0",
     "popper.js": "^1.16.0",
-    "progressive-downloader": "^1.0.2",
+    "progressive-downloader": "^1.0.3",
     "promise-android-tools": "^2.0.7",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.0.12",
-    "ubports-api-node-module": "^3.0.1",
+    "ubports-api-node-module": "^3.0.2",
     "winston": "^3.3.3"
   }
 }
