@@ -89,6 +89,31 @@ function installStep(step) {
             mainEvent.emit("user:no-network");
           });
       };
+    case "unpack":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit(
+          "user:write:status",
+          `Unpacking ${step.group}`,
+          true
+        );
+        global.mainEvent.emit("user:write:under", `Unpacking...`);
+        let basepath = path.join(
+          utils.getUbuntuTouchDir(),
+          global.installProperties.device,
+          step.group
+        );
+        return Promise.all(
+          step.files.map(file =>
+            utils.unpack(
+              path.join(basepath, file.archive),
+              path.join(basepath, file.dir)
+            )
+          )
+        ).catch(error => {
+          throw new Error(`Unpack error: ${error}`);
+        });
+      };
     case "adb:format":
       return () => {
         global.mainEvent.emit("user:write:working", "particles");
@@ -102,6 +127,27 @@ function installStep(step) {
           "Formatting " + step.partition
         );
         return adb.waitForDevice().then(() => adb.format(step.partition));
+      };
+    case "adb:sideload":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit(
+          "user:write:status",
+          `Sideloading ${step.group}`,
+          true
+        );
+        global.mainEvent.emit(
+          "user:write:under",
+          "Sideloading might take up to ten minutes..."
+        );
+        return adb.sideload(
+          path.join(
+            downloadPath,
+            global.installProperties.device,
+            step.group,
+            step.file
+          )
+        );
       };
     case "adb:reboot":
       return () => {
@@ -237,11 +283,15 @@ function installStep(step) {
                   );
                   function adbWait() {
                     return adb
-                      .waitForDevice()
-                      .then(resolve)
-                      .catch(() =>
-                        mainEvent.emit("user:connection-lost", adbWait)
-                      );
+                      .hasAccess()
+                      .then(access => {
+                        if (access) resolve();
+                        else mainEvent.emit("user:connection-lost", adbWait);
+                      })
+                      .catch(e => {
+                        utils.log.warn(e);
+                        resolve();
+                      });
                   }
                   return adbWait();
                 case "bootloader":
@@ -257,11 +307,16 @@ function installStep(step) {
                   );
                   function fastbootWait() {
                     return fastboot
-                      .waitForDevice()
-                      .then(resolve)
-                      .catch(() =>
-                        mainEvent.emit("user:connection-lost", fastbootWait)
-                      );
+                      .hasAccess()
+                      .then(access => {
+                        if (access) resolve();
+                        else
+                          mainEvent.emit("user:connection-lost", fastbootWait);
+                      })
+                      .catch(e => {
+                        utils.log.warn(e);
+                        resolve();
+                      });
                   }
                   return fastbootWait();
                 default:

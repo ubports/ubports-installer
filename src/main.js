@@ -300,7 +300,7 @@ mainEvent.on("user:action", (action, callback) => {
   if (mainWindow) {
     mainWindow.webContents.send("user:action", action);
     if (action.button) {
-      ipcMain.on("action:completed", callback);
+      ipcMain.once("action:completed", callback);
     }
   }
 });
