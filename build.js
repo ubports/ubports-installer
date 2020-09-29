@@ -15,11 +15,11 @@ const cli = require("commander");
 const path = require("path");
 const fs = require("fs-extra");
 const util = require("util");
-const download = require("download");
+const { download } = require("progressive-downloader");
 const unpack = util.promisify(require("7zip-min").unpack);
 
 const platformToolsPath = "./platform-tools";
-const platformToolsUrl = () =>
+const adbFastbootUrl = () =>
   `https://dl.google.com/android/repository/platform-tools-latest-${
     cli.os === "mac" ? "darwin" : cli.os === "win" ? "windows" : cli.os
   }.zip`;
@@ -32,17 +32,21 @@ var buildConfig = require("./buildconfig-generic.json");
 cli
   .version(require("./package.json").version)
   .usage("./build.js -o <os> -p <package> [options]")
-  .option("-o, --os <os>", "Target operating system")
-  .option("-p, --package [package]", "Target package")
+  .option(
+    "-o, --os <os>",
+    "Target operating system",
+    p => (["mac", "win", "linux"].includes(p) ? p : process.platform),
+    process.platform
+  )
+  .option("-p, --package [package]", "Target package", "dir")
   .option(
     "-e, --extra-metadata [JSON]",
-    "Inject JSON into package.json",
+    "extra data for package.json",
     JSON.parse,
     ""
   )
-  .option("-b, --no-build", "Only download platform tools", undefined, false)
-  .option("-d, --no-download", "Skip platform tools download", undefined, false)
-  .option("-r, --re-download", "Re-download platform tools", undefined, false)
+  .option("-b, --no-build", "Only download platform tools")
+  .option("-d, --no-download", "Skip platform tools download")
   .parse(process.argv);
 
 // Validate and configure operating system
@@ -100,7 +104,6 @@ if (cli.build) {
   switch (cli.package) {
     case "AppImage":
     case "deb":
-    case "dir":
       if (cli.os != "linux") {
         console.log(cli.package + " can only be built for Linux!");
         process.exit(1);
@@ -118,15 +121,11 @@ if (cli.build) {
         process.exit(1);
       }
       break;
-    case "":
+    case "dir":
       break;
     default:
-      if (!cli.downloadOnly) {
-        console.log("Building " + cli.package + " is not configured!");
-        process.exit(1);
-      } else {
-        break;
-      }
+      console.log("Building " + cli.package + " is not configured!");
+      process.exit(1);
   }
 }
 
@@ -153,62 +152,36 @@ const build = () =>
         })
     : Promise.resolve().then(() => console.log("build skipped"));
 
-const downloadAdbFastboot = () =>
-  fs.existsSync(path.join(platformToolsPath, cli.os, "fastboot")) &&
-  fs.existsSync(path.join(platformToolsPath, cli.os, "adb")) &&
-  fs.existsSync(path.join(platformToolsPath, cli.os, "mke2fs"))
-    ? Promise.resolve().then(() => console.log("adb/fastboot re-used"))
-    : download(platformToolsUrl(), platformToolsPath)
-        .then(() => console.log("adb/fastboot downloaded"))
+const downloadPlatformTools = () =>
+  cli.download
+    ? Promise.resolve(fs.emptyDirSync(platformToolsPath)) // HACK fs.emptyDir does not seem to return a promise
         .then(() =>
-          unpack(
-            path.join(platformToolsPath, path.basename(platformToolsUrl())),
-            path.join(platformToolsPath, cli.os + "_tmp")
+          download([
+            {
+              url: heimdallUrl(),
+              path: path.join(platformToolsPath, `${cli.os}.zip`)
+            },
+            {
+              url: adbFastbootUrl(),
+              path: path.join(platformToolsPath, "adb-fastboot.zip")
+            }
+          ])
+        )
+        .then(archives =>
+          Promise.all(
+            archives.map(a => unpack(a.path, a.path.replace(".zip", "")))
           )
         )
         .then(() =>
           fs.copy(
-            path.join(platformToolsPath, cli.os + "_tmp", "platform-tools"),
-            path.join(platformToolsPath, cli.os),
-            { overwrite: true }
-          )
-        )
-        .then(() => console.log("adb/fastboot unpacked"))
-        .then(() => fs.remove(path.join(platformToolsPath, cli.os + "_tmp")))
-        .catch(e => {
-          throw new Error(`Adb/Fastboot failed ${e}`);
-        });
-
-const downloadHeimdall = () =>
-  fs.existsSync(path.join(platformToolsPath, cli.os, "heimdall"))
-    ? Promise.resolve().then(() => console.log("heimdall re-used"))
-    : download(heimdallUrl(), platformToolsPath)
-        .then(() => console.log("heimdall downloaded"))
-        .then(() =>
-          unpack(
-            path.join(platformToolsPath, path.basename(heimdallUrl())),
+            path.join(platformToolsPath, "adb-fastboot/platform-tools"),
             path.join(platformToolsPath, cli.os)
           )
-        )
-        .then(() => console.log("heimdall unpacked"))
-        .catch(e => {
-          throw new Error("Heimdall failed", e);
-        });
-
-const downloadPlatformTools = () =>
-  cli.download
-    ? (cli.reDownload ? fs.emptyDir(platformToolsPath) : Promise.resolve())
-        .then(() =>
-          Promise.all([
-            downloadAdbFastboot()
-            // downloadHeimdall() TODO uncomment for https://github.com/ubports/ubports-installer/issues/1376
-          ])
         )
         .then(() =>
           cli.os !== "win"
             ? Promise.all(
-                // TODO include "heimdall" for https://github.com/ubports/ubports-installer/issues/1376
-                ["fastboot", "adb", "mke2fs"].map(executable =>
+                ["fastboot", "adb", "mke2fs", "heimdall"].map(executable =>
                   fs.chmod(
                     path.join(platformToolsPath, cli.os, executable),
                     0o755
@@ -217,11 +190,8 @@ const downloadPlatformTools = () =>
               )
             : Promise.resolve()
         )
-        .then(() => console.log("platform tools complete"))
-        .catch(e => {
-          throw new Error(e);
-        })
-    : Promise.resolve().then(() => console.log("platform tools skipped"));
+        .then(() => console.log("download complete"))
+    : Promise.resolve().then(() => console.log("download skipped"));
 
 // actual work happens here
 downloadPlatformTools()
