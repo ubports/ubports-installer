@@ -143,7 +143,7 @@ function installStep(step) {
           "user:write:under",
           "Formatting " + step.partition + " partition"
         );
-        return fastboot.format(step.partition);
+        return fastboot.format(step.partition, step.type, step.size);
       };
     case "fastboot:boot":
       return () => {
