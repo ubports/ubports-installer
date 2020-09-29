@@ -41,7 +41,9 @@ function addPathToFiles(files, device) {
   for (var i = 0; i < files.length; i++) {
     ret.push({
       file: path.join(downloadPath, device, files[i].group, files[i].file),
-      partition: files[i].partition
+      partition: files[i].partition,
+      force: files[i].force,
+      raw: files[i].raw
     });
   }
   return ret;
@@ -187,7 +189,7 @@ function installStep(step) {
           "user:write:under",
           "Formatting " + step.partition + " partition"
         );
-        return fastboot.format(step.partition);
+        return fastboot.format(step.partition, step.type, step.size);
       };
     case "fastboot:boot":
       return () => {
