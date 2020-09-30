@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,13 @@
 const axios = require("axios");
 const shell = require("electron").shell;
 const sudo = require("sudo-prompt");
-const FormData = require("form-data");
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
-const checksum = require("checksum");
 const cp = require("child_process");
 const psTree = require("ps-tree");
 const util = require("util");
+const { createBugReport } = require("./bugreport.js");
 global.packageInfo = require("../package.json");
 
 fs.ensureDir(getUbuntuTouchDir());
@@ -51,108 +50,12 @@ var log = {
   }
 };
 
-const getSettingsString = () =>
-  `%60${JSON.stringify(global.installProperties.settings || {})}%60`;
-
-const getPackageString = () =>
-  `%60${isSnap() ? "snap" : global.packageInfo.package || "source"}%60`;
-
-const getDeviceString = () =>
-  global.installProperties.device
-    ? `%60${global.installProperties.device}%60`
-    : "Not detected";
-
-const getTargetOsString = () =>
-  !util.isUndefined(global.installProperties.osIndex)
-    ? global.installConfig.operating_systems[global.installProperties.osIndex]
-        .name
-    : "Not yet set";
-
-const getDebugInfo = (reason, logurl) =>
-  `*Generated for ${global.packageInfo.version}* %0D%0A
-Device: ${getDeviceString()} %0D%0A
-OS to install: ${getTargetOsString()} %0D%0A
-Settings: ${getSettingsString()} %0D%0A
-Package: ${getPackageString()} %0D%0A
-Operating System: ${getOsString()} %0D%0A
-NodeJS version: ${process.version} %0D%0A
-Error log: ${logurl} %0D%0A%0D%0A
-%60%60%60 %0D%0A
-${reason} %0D%0A
-%60%60%60 %0D%0A`;
-
-function createBugReport(title, callback) {
-  var options = {
-    limit: 400,
-    start: 0,
-    order: "desc"
-  };
-
-  global.logger.query(options, function(err, results) {
-    if (err) {
-      throw err;
-    }
-
-    var errorLog = "";
-    results.file.forEach(err => {
-      errorLog += err.level + ": ";
-      errorLog += err.message + "\n";
-    });
-
-    const form = new FormData();
-    form.append("poster", "UBports Installer");
-    form.append("syntax", "text");
-    form.append("expiration", "year");
-    form.append("content", `Title: ${title}\n\n${errorLog}`);
-
-    axios
-      .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
-      .then(r => `https://paste.ubuntu.com/${r.request.path}`)
-      .then(logurl => callback(getDebugInfo(title, logurl)))
-      .catch(() => callback(false));
-  });
-}
-
 function sendBugReport(title) {
   createBugReport(title, body => {
     shell.openExternal(
       `https://github.com/ubports/ubports-installer/issues/new?title=${title}&body=${body}`
     );
   });
-}
-
-function getOsString() {
-  let versionString = "";
-  switch (process.platform) {
-    case "linux":
-      versionString = cp
-        .execSync("lsb_release -ds")
-        .toString()
-        .trim();
-      break;
-    case "darwin":
-      versionString =
-        cp
-          .execSync("sw_vers -productVersion")
-          .toString()
-          .trim() +
-        cp
-          .execSync("sw_vers -buildVersion")
-          .toString()
-          .trim();
-      break;
-    case "win32":
-      versionString = cp
-        .execSync("ver")
-        .toString()
-        .trim();
-      break;
-    default:
-      break;
-  }
-  return ["%60", os.type(), versionString, os.release(), os.arch(), "%60"]
-    .filter(i => i)
-    .join(" ");
 }
 
 function getLatestInstallerVersion() {
@@ -287,16 +190,16 @@ function errorToUser(error, errorLocation, restart, ignore) {
 }
 
 module.exports = {
-  cleanInstallerCache: cleanInstallerCache,
-  errorToUser: errorToUser,
-  log: log,
-  isSnap: isSnap,
-  execTool: execTool,
-  killSubprocesses: killSubprocesses,
-  getUbuntuTouchDir: getUbuntuTouchDir,
-  sendBugReport: sendBugReport,
-  setUdevRules: setUdevRules,
-  getUpdateAvailable: getUpdateAvailable,
-  die: die,
+  cleanInstallerCache,
+  errorToUser,
+  log,
+  isSnap,
+  execTool,
+  killSubprocesses,
+  getUbuntuTouchDir,
+  sendBugReport,
+  setUdevRules,
+  getUpdateAvailable,
+  die,
   unpack: util.promisify(require("7zip-min").unpack)
 };
