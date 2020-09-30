@@ -25,8 +25,7 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require("../package.json");
 
-const Adb = require("promise-android-tools").Adb;
-const Fastboot = require("promise-android-tools").Fastboot;
+const { Adb, Fastboot, Heimdall } = require("promise-android-tools");
 const Api = require("ubports-api-node-module").Installer;
 
 var winston = require("winston");
@@ -63,6 +62,13 @@ var fastboot = new Fastboot({
   log: utils.log.debug
 });
 global.fastboot = fastboot;
+var heimdall = new Heimdall({
+  exec: (args, callback) => {
+    utils.execTool("heimdall", args, callback);
+  },
+  log: utils.log.debug
+});
+global.heimdall = heimdall;
 
 //==============================================================================
 // PARSE COMMAND-LINE ARGUMENTS

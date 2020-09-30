@@ -286,6 +286,18 @@ function installStep(step) {
         global.mainEvent.emit("user:write:under", "Resuming boot");
         fastboot.continue();
       };
+    case "heimdall:flash":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Flashing firmware", true);
+        global.mainEvent.emit(
+          "user:write:under",
+          "Flashing firmware partitions using fastboot"
+        );
+        return heimdall.flashArray(
+          addPathToFiles(step.flash, global.installProperties.device)
+        );
+      };
     case "user_action":
       return () => {
         return new Promise(function(resolve, reject) {
@@ -344,6 +356,31 @@ function installStep(step) {
                       });
                   }
                   return fastbootWait();
+                case "download":
+                  global.mainEvent.emit("user:write:working", "particles");
+                  global.mainEvent.emit(
+                    "user:write:status",
+                    "Waiting for device",
+                    true
+                  );
+                  global.mainEvent.emit(
+                    "user:write:under",
+                    "Heimdall is scanning for devices"
+                  );
+                  function heimdallWait() {
+                    return heimdall
+                      .hasAccess()
+                      .then(access => {
+                        if (access) resolve();
+                        else
+                          mainEvent.emit("user:connection-lost", heimdallWait);
+                      })
+                      .catch(e => {
+                        utils.log.warn(e);
+                        resolve();
+                      });
+                  }
+                  return heimdallWait();
                 default:
                   resolve();
                   break;
