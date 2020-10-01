@@ -53,7 +53,7 @@ parts:
       - libx11-xcb-dev
     override-pull: |
       snapcraftctl pull
-      snapcraftctl set-version `./build.js -V`
+      snapcraftctl set-version `cat package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
     override-build: |
       echo "Running override-build script"
       npm install npm@latest -g
