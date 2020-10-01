@@ -292,7 +292,7 @@ function installStep(step) {
         global.mainEvent.emit("user:write:status", "Flashing firmware", true);
         global.mainEvent.emit(
           "user:write:under",
-          "Flashing firmware partitions using fastboot"
+          "Flashing firmware partitions using heimdall"
         );
         return heimdall.flashArray(
           addPathToFiles(step.flash, global.installProperties.device)
