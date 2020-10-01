@@ -20,7 +20,7 @@ addons:
     - graphicsmagick
     - xz-utils
 install:
-- nvm install 8
+- nvm install 12
 - npm install
 - npm prune
 script:
