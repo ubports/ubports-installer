@@ -57,7 +57,6 @@ parts:
     override-build: |
       echo "Running override-build script"
       npm install npm@latest -g
-      nvm install 12
       npx npm install
       ./build.js -o 'linux' -p 'dir'
       mkdir -p $SNAPCRAFT_PART_INSTALL/app
