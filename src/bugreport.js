@@ -16,77 +16,74 @@
  */
 
 const axios = require("axios");
-const os = require("os");
-const cp = require("child_process");
 const util = require("util");
+const os = require("os");
+const { osInfo } = require("systeminformation");
+const cp = require("child_process");
 
 const FormData = require("form-data");
 
-const getDeviceString = () =>
-  global.installProperties.device
-    ? `%60${global.installProperties.device}%60`
-    : "Not detected";
-
-const getTargetOsString = () =>
-  !util.isUndefined(global.installProperties.osIndex)
-    ? global.installConfig.operating_systems[global.installProperties.osIndex]
-        .name
-    : "Not yet set";
-
-const getSettingsString = () =>
-  `%60${JSON.stringify(global.installProperties.settings || {})}%60`;
-
-const getPackageString = () =>
-  `%60${
-    process.env.SNAP_NAME ? "snap" : global.packageInfo.package || "source"
-  }%60`;
-
-const getOsString = () => {
+function getDeviceString() {
   try {
-    let versionString = "";
-    switch (process.platform) {
-      case "linux":
-        versionString = cp
-          .execSync("lsb_release -ds")
-          .toString()
-          .trim();
-        break;
-      case "darwin":
-        versionString =
-          cp
-            .execSync("sw_vers -productVersion")
-            .toString()
-            .trim() +
-          cp
-            .execSync("sw_vers -buildVersion")
-            .toString()
-            .trim();
-        break;
-      case "win32":
-        versionString = cp
-          .execSync("ver")
-          .toString()
-          .trim();
-        break;
-      default:
-        break;
-    }
-    return ["%60", os.type(), versionString, os.release(), os.arch(), "%60"]
-      .filter(i => i)
-      .join(" ");
-  } catch (error) {
-    log.error(error);
-    return `%60${process.platform}%60`;
+    return global.installProperties.device
+      ? `%60${global.installProperties.device}%60`
+      : "Not detected";
+  } catch (e) {
+    return "unknown";
   }
-};
+}
 
-const getDebugInfo = (reason, logurl) =>
+function getTargetOsString() {
+  try {
+    return !util.isUndefined(global.installProperties.osIndex)
+      ? global.installConfig.operating_systems[global.installProperties.osIndex]
+          .name
+      : "Not yet set";
+  } catch (e) {
+    return "unknown";
+  }
+}
+
+function getSettingsString() {
+  try {
+    `%60${JSON.stringify(global.installProperties.settings || {})}%60`;
+  } catch (e) {
+    return "unknown";
+  }
+}
+
+function getPackageString() {
+  try {
+    return `%60${
+      process.env.SNAP_NAME ? "snap" : global.packageInfo.package || "source"
+    }%60`;
+  } catch (e) {
+    return "unknown";
+  }
+}
+
+function getOsString(hostOs) {
+  return [
+    hostOs.distro,
+    hostOs.release,
+    hostOs.codename,
+    hostOs.platform,
+    hostOs.kernel,
+    hostOs.arch,
+    hostOs.build,
+    hostOs.servicepack
+  ]
+    .filter(i => i)
+    .join(" ");
+}
+
+const getDebugInfo = (reason, logurl, hostOs) =>
   `UBports Installer: %60${global.packageInfo.version}%60 %0D%0A
 Device: ${getDeviceString()} %0D%0A
 OS to install: ${getTargetOsString()} %0D%0A
 Settings: ${getSettingsString()} %0D%0A
 Package: ${getPackageString()} %0D%0A
-Operating System: ${getOsString()} %0D%0A
+Operating System: ${getOsString(hostOs)} %0D%0A
 NodeJS version: %60${process.version}%60 %0D%0A
 Error log: ${logurl} %0D%0A
 %60%60%60 %0D%0A
@@ -121,7 +118,9 @@ function createBugReport(title, callback) {
     axios
       .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
       .then(r => `https://paste.ubuntu.com/${r.request.path}`)
-      .then(logurl => callback(getDebugInfo(title, logurl)))
+      .then(logurl =>
+        osInfo(hostOs => callback(getDebugInfo(title, logurl, hostOs)))
+      )
       .catch(() => callback(false));
   });
 }
