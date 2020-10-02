@@ -41,6 +41,7 @@ parts:
       - nodejs
       - libgconf-2-4
     stage-packages:
+      - libusb-1.0-0
       - libnotify4
       - libappindicator1
       - libxtst6
@@ -65,3 +66,6 @@ parts:
     prime:
       - -node_modules
       - -lib/node_modules
+      - -**/arm/**
+      - -**/arm64/**
+      - -**/ia32/**
