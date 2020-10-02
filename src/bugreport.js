@@ -17,9 +17,7 @@
 
 const axios = require("axios");
 const util = require("util");
-const os = require("os");
 const { osInfo } = require("systeminformation");
-const cp = require("child_process");
 
 const FormData = require("form-data");
 
