@@ -9,5 +9,8 @@
     "platform-tools/${os}/**/*",
     "build/icons/icon.*"
   ],
-  "asarUnpack": "platform-tools/${os}/**/*"
+  "asarUnpack": [
+    "platform-tools/${os}/**/*",
+    "node_modules/7zip-min/*"
+  ]
 }
