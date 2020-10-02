@@ -57,7 +57,7 @@
     "jquery": "^3.5.0",
     "jquery-i18next": "^1.2.0",
     "popper.js": "^1.16.0",
-    "progressive-downloader": "^1.0.4",
+    "progressive-downloader": "^1.0.5",
     "promise-android-tools": "^2.1.0",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
