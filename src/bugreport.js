@@ -75,7 +75,7 @@ function getOsString(hostOs) {
     .join(" ");
 }
 
-function getDebugInfo (reason, logurl, runurl, hostOs) {
+function getDebugInfo(reason, logurl, runurl, hostOs) {
   return `UBports Installer: %60${global.packageInfo.version}%60 %0D%0A
 Device: ${getDeviceString()} %0D%0A
 OS to install: ${getTargetOsString()} %0D%0A
@@ -116,12 +116,12 @@ function createBugReport(title, callback) {
     form.append("content", `Title: ${title}\n\n${errorLog}`);
 
     Promise.all([
-        axios
-          .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
-          .then(r => `https://paste.ubuntu.com/${r.request.path}`)
-          .catch(() => false),
-        createOpenCutsRun("FAIL", errorLog).catch(() => false)
-      ])
+      axios
+        .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
+        .then(r => `https://paste.ubuntu.com/${r.request.path}`)
+        .catch(() => false),
+      createOpenCutsRun("FAIL", errorLog).catch(() => false)
+    ])
       .then(res =>
         osInfo(hostOs => callback(getDebugInfo(title, res[0], res[1], hostOs)))
       )
@@ -129,32 +129,36 @@ function createBugReport(title, callback) {
   });
 }
 
-function getOpenCutsComment (hostOs) {
-  return "This run was automatically posted by the UBports Installer." +
+function getOpenCutsComment(hostOs) {
+  return (
+    "This run was automatically posted by the UBports Installer." +
     (global.installProperties.device
       ? ` Device: ${global.installProperties.device}`
       : "") +
     ` OS to install: ${getTargetOsString()}` +
-    ` NodeJS version: ${process.version}`;
+    ` NodeJS version: ${process.version}`
+  );
 }
 
 const openCutsOs = {
   darwin: "macOS",
   linux: "Linux",
   win32: "Windows"
-}
-const openCutsAuth = process.env.OPENCUTS_API_KEY ? {
-  headers: {
-    authorization: process.env.OPENCUTS_API_KEY
-  }
-} : {};
+};
+const openCutsAuth = process.env.OPENCUTS_API_KEY
+  ? {
+      headers: {
+        authorization: process.env.OPENCUTS_API_KEY
+      }
+    }
+  : {};
 function createOpenCutsRun(result = "PASS", errorLog) {
   return axios({
-      url: `https://ubports.open-cuts.org/graphql`,
-      method: "post",
-      ...openCutsAuth,
-      data: {
-        query: `mutation {
+    url: `https://ubports.open-cuts.org/graphql`,
+    method: "post",
+    ...openCutsAuth,
+    data: {
+      query: `mutation {
           smartRun(
             testId: "5e9d75406346e112514cfeca"
             systemId: "5e9d746c6346e112514cfec7"
@@ -163,7 +167,9 @@ function createOpenCutsRun(result = "PASS", errorLog) {
               result: ${result},
               comment: "${getOpenCutsComment()}",
               combination: [
-                { variable: "Environment", value: "${openCutsOs[process.platform]}" },
+                { variable: "Environment", value: "${
+                  openCutsOs[process.platform]
+                }" },
                 { variable: "Package", value: "${global.packageInfo.package ||
                   "source"}" }
               ]
@@ -171,12 +177,12 @@ function createOpenCutsRun(result = "PASS", errorLog) {
             }
           ) { id }
         }`
-      }
-    })
-      .then(({ data }) =>
-        `https://ubports.open-cuts.org/run/${data.data.smartRun.id}`
-      )
-      .catch(error => global.logger.log("error", error));
+    }
+  })
+    .then(
+      ({ data }) => `https://ubports.open-cuts.org/run/${data.data.smartRun.id}`
+    )
+    .catch(error => global.logger.log("error", error));
 }
 
 module.exports = {
