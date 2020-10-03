@@ -75,19 +75,21 @@ function getOsString(hostOs) {
     .join(" ");
 }
 
-const getDebugInfo = (reason, logurl, hostOs) =>
-  `UBports Installer: %60${global.packageInfo.version}%60 %0D%0A
+function getDebugInfo (reason, logurl, runurl, hostOs) {
+  return `UBports Installer: %60${global.packageInfo.version}%60 %0D%0A
 Device: ${getDeviceString()} %0D%0A
 OS to install: ${getTargetOsString()} %0D%0A
 Settings: ${getSettingsString()} %0D%0A
 Package: ${getPackageString()} %0D%0A
 Operating System: ${getOsString(hostOs)} %0D%0A
 NodeJS version: %60${process.version}%60 %0D%0A
-Error log: ${logurl} %0D%0A
+OPEN-CUTS run: ${runurl || "*failed to post run*"} %0D%0A
+Error log: ${logurl || "*failed to post log*"} %0D%0A
 %60%60%60 %0D%0A
 ${reason} %0D%0A
 %60%60%60 %0D%0A%0D%0A
 <!-- please add any info that might be useful to reproduce this issue -->`;
+}
 
 function createBugReport(title, callback) {
   var options = {
@@ -113,16 +115,71 @@ function createBugReport(title, callback) {
     form.append("expiration", "year");
     form.append("content", `Title: ${title}\n\n${errorLog}`);
 
-    axios
-      .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
-      .then(r => `https://paste.ubuntu.com/${r.request.path}`)
-      .then(logurl =>
-        osInfo(hostOs => callback(getDebugInfo(title, logurl, hostOs)))
+    Promise.all([
+        axios
+          .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
+          .then(r => `https://paste.ubuntu.com/${r.request.path}`)
+          .catch(() => false),
+        createOpenCutsRun("FAIL", errorLog).catch(() => false)
+      ])
+      .then(res =>
+        osInfo(hostOs => callback(getDebugInfo(title, res[0], res[1], hostOs)))
       )
       .catch(() => callback(false));
   });
 }
 
+function getOpenCutsComment (hostOs) {
+  return "This run was automatically posted by the UBports Installer." +
+    (global.installProperties.device
+      ? ` Device: ${global.installProperties.device}`
+      : "") +
+    ` OS to install: ${getTargetOsString()}` +
+    ` NodeJS version: ${process.version}`;
+}
+
+const openCutsOs = {
+  darwin: "macOS",
+  linux: "Linux",
+  win32: "Windows"
+}
+const openCutsAuth = process.env.OPENCUTS_API_KEY ? {
+  headers: {
+    authorization: process.env.OPENCUTS_API_KEY
+  }
+} : {};
+function createOpenCutsRun(result = "PASS", errorLog) {
+  return axios({
+      url: `https://ubports.open-cuts.org/graphql`,
+      method: "post",
+      ...openCutsAuth,
+      data: {
+        query: `mutation {
+          smartRun(
+            testId: "5e9d75406346e112514cfeca"
+            systemId: "5e9d746c6346e112514cfec7"
+            tag: "${global.packageInfo.version}"
+            run: {
+              result: ${result},
+              comment: "${getOpenCutsComment()}",
+              combination: [
+                { variable: "Environment", value: "${openCutsOs[process.platform]}" },
+                { variable: "Package", value: "${global.packageInfo.package ||
+                  "source"}" }
+              ]
+              logs: [{name: "ubports-installer.log", content: "log will go here"}]
+            }
+          ) { id }
+        }`
+      }
+    })
+      .then(({ data }) =>
+        `https://ubports.open-cuts.org/run/${data.data.smartRun.id}`
+      )
+      .catch(error => global.logger.log("error", error));
+}
+
 module.exports = {
-  createBugReport
+  createBugReport,
+  createOpenCutsRun
 };

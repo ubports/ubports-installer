@@ -40,6 +40,7 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
+const {createOpenCutsRun} = require("./bugreport.js");
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
@@ -323,6 +324,11 @@ mainEvent.on("user:write:done", () => {
   utils.log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
+  if (process.env.OPENCUTS_API_KEY) {
+    createOpenCutsRun().then(url =>
+      utils.log.info(`Thank you for reporting! You can view run here: ${url}`)
+    );
+  }
 });
 
 // Show working animation
