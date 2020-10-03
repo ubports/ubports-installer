@@ -21,6 +21,7 @@ const FormData = require("form-data");
 const util = require("util");
 const { osInfo } = require("systeminformation");
 const { GraphQLClient, gql } = require("graphql-request");
+const { toolpath, getUbuntuTouchDir } = require("./utils");
 require("cross-fetch/polyfill");
 
 /**
@@ -209,14 +210,17 @@ async function paste(
  * @returns {String} issue title
  */
 function getIssueTitle(reason) {
-  if (!reason) {
+  const _reason = reason
+    .replace(`${toolpath}/`, "")
+    .replace(`${getUbuntuTouchDir()}/`, "");
+  if (!_reason) {
     return encodeURIComponent("please describe the problem in a few words");
-  } else if (reason.length > 200) {
+  } else if (_reason.length > 200) {
     return encodeURIComponent(
-      `${reason.slice(0, 75)} [...] ${reason.slice(reason.length - 100)}`
+      `${_reason.slice(0, 75)} [...] ${_reason.slice(_reason.length - 100)}`
     );
   } else {
-    return encodeURIComponent(reason);
+    return encodeURIComponent(_reason);
   }
 }
 

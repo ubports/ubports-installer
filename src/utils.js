@@ -118,7 +118,7 @@ function die(e) {
   process.exit(-1);
 }
 
-let toolpath = global.packageInfo.package
+const toolpath = global.packageInfo.package
   ? path.join(
       __dirname,
       "../../app.asar.unpacked/platform-tools",
@@ -191,6 +191,7 @@ module.exports = {
   log,
   isSnap,
   execTool,
+  toolpath,
   killSubprocesses,
   getUbuntuTouchDir,
   setUdevRules,
