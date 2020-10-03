@@ -16,7 +16,6 @@
  */
 
 const axios = require("axios");
-const shell = require("electron").shell;
 const sudo = require("sudo-prompt");
 const os = require("os");
 const fs = require("fs-extra");
@@ -24,7 +23,6 @@ const path = require("path");
 const cp = require("child_process");
 const psTree = require("ps-tree");
 const util = require("util");
-const { createBugReport } = require("./report.js");
 global.packageInfo = require("../package.json");
 
 fs.ensureDir(getUbuntuTouchDir());
@@ -49,14 +47,6 @@ var log = {
     global.logger.log("debug", l);
   }
 };
-
-function sendBugReport(title) {
-  createBugReport(title, body => {
-    shell.openExternal(
-      `https://github.com/ubports/ubports-installer/issues/new?title=${title}&body=${body}`
-    );
-  });
-}
 
 function getLatestInstallerVersion() {
   return axios
@@ -203,7 +193,6 @@ module.exports = {
   execTool,
   killSubprocesses,
   getUbuntuTouchDir,
-  sendBugReport,
   setUdevRules,
   getUpdateAvailable,
   die,

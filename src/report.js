@@ -15,82 +15,129 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { shell } = require("electron");
 const axios = require("axios");
+const FormData = require("form-data");
 const util = require("util");
 const { osInfo } = require("systeminformation");
 const { GraphQLClient, gql } = require("graphql-request");
-require('cross-fetch/polyfill');
+require("cross-fetch/polyfill");
 
-const FormData = require("form-data");
-
+/**
+ * Get device string
+ * @returns {String} codename of the device to install or a string indicating its absence
+ */
 function getDeviceString() {
   try {
     return global.installProperties.device
-      ? `%60${global.installProperties.device}%60`
-      : "Not detected";
+      ? `${global.installProperties.device}`
+      : "(device not yet detected)";
   } catch (e) {
     return "unknown";
   }
 }
 
+/**
+ * Get target os string
+ * @returns {String} codename of the os to install or a string indicating its absence
+ */
 function getTargetOsString() {
   try {
     return !util.isUndefined(global.installProperties.osIndex)
       ? global.installConfig.operating_systems[global.installProperties.osIndex]
           .name
-      : "Not yet set";
+      : "(target os not yet set)";
   } catch (e) {
     return "unknown";
   }
 }
 
+/**
+ * Get settings string
+ * @returns {String} install settings string or a string indicating its absence
+ */
 function getSettingsString() {
   try {
-    `%60${JSON.stringify(global.installProperties.settings || {})}%60`;
+    `\`${JSON.stringify(global.installProperties.settings || {})}\``;
   } catch (e) {
     return "unknown";
   }
 }
 
+/**
+ * Get package string
+ * @returns {String} snap, deb, AppImage, exe, dmg, source, or unknown
+ */
 function getPackageString() {
   try {
-    return `%60${
-      process.env.SNAP_NAME ? "snap" : global.packageInfo.package || "source"
-    }%60`;
+    return process.env.SNAP_NAME
+      ? "snap"
+      : global.packageInfo.package || "source";
   } catch (e) {
     return "unknown";
   }
 }
 
-function getOsString(hostOs) {
-  return [
-    hostOs.distro,
-    hostOs.release,
-    hostOs.codename,
-    hostOs.platform,
-    hostOs.kernel,
-    hostOs.arch,
-    hostOs.build,
-    hostOs.servicepack
-  ]
-    .filter(i => i)
-    .join(" ");
+/**
+ * Get information about the os the installer is running on
+ * @async
+ * @returns {String} environment information
+ */
+async function getHostOsString() {
+  return new Promise(function(resolve, reject) {
+    try {
+      osInfo(hostOs =>
+        resolve(
+          [
+            hostOs.distro,
+            hostOs.release,
+            hostOs.codename,
+            hostOs.platform,
+            hostOs.kernel,
+            hostOs.arch,
+            hostOs.build,
+            hostOs.servicepack
+          ]
+            .filter(i => i)
+            .join(" ")
+        )
+      );
+    } catch (error) {
+      return process.platform;
+    }
+  });
 }
 
-function getDebugInfo(reason, logurl, runurl, hostOs) {
-  return `UBports Installer: %60${global.packageInfo.version}%60 %0D%0A
-Device: ${getDeviceString()} %0D%0A
-OS to install: ${getTargetOsString()} %0D%0A
-Settings: ${getSettingsString()} %0D%0A
-Package: ${getPackageString()} %0D%0A
-Operating System: ${getOsString(hostOs)} %0D%0A
-NodeJS version: %60${process.version}%60 %0D%0A
-OPEN-CUTS run: ${runurl || "*failed to post run*"} %0D%0A
-Error log: ${logurl || "*failed to post log*"} %0D%0A
-%60%60%60 %0D%0A
-${reason} %0D%0A
-%60%60%60 %0D%0A%0D%0A
-<!-- please add any info that might be useful to reproduce this issue -->`;
+/**
+ * Generate a URL-encoded string to create a GitHub issue
+ * @async
+ * @param {Error} reason - pass an error for an error report, a falsy value for a user-requested report
+ * @param {String} logUrl - Ubuntu pastebin URL
+ * @param {String} runUrl - OPEN-CUTS run URL
+ * @returns {String} url-encoded string to create a GitHub issue
+ */
+async function getDebugInfo(reason, logUrl, runUrl) {
+  return encodeURIComponent(
+    [
+      `**UBports Installer \`${
+        global.packageInfo.version
+      }\` (${getPackageString()})**`,
+      `Environment: \`${await getHostOsString()}\` with Node.js \`${
+        process.version
+      }\``,
+      `Device: ${getDeviceString()}`,
+      `Target OS: ${getTargetOsString()}`,
+      `Settings: \`${getSettingsString()}\``,
+      `OPEN-CUTS run: ${runUrl}`,
+      `Log: ${logUrl}`,
+      "\n",
+      ...(reason
+        ? ["**Error:**", "```", reason, "```"]
+        : ["<!-- please describe how to reproduce this issue -->\n"])
+    ]
+      .filter(i => i)
+      .join("\n")
+  );
 }
 
 /**
@@ -156,67 +203,40 @@ async function paste(
     });
 }
 
-// setTimeout(async () => {
-//   console.log(await sendBugReport());
-// }, 5000);
+/**
+ * Ensure a usable issue title
+ * @param {String} reason - error message or falsy value
+ * @returns {String} issue title
+ */
+function getIssueTitle(reason) {
+  if (!reason) {
+    return encodeURIComponent("please describe the problem in a few words");
+  } else if (reason.length > 200) {
+    return encodeURIComponent(
+      `${reason.slice(0, 75)} [...] ${reason.slice(reason.length - 100)}`
+    );
+  } else {
+    return encodeURIComponent(reason);
+  }
+}
 
+/**
+ * Open a new GitHub issue in the default browser
+ * @async
+ * @param {String} reason - error message or falsy value
+ */
 async function sendBugReport(reason) {
   const log = await getLog();
   const [pasteUrl, runUrl] = await Promise.all([
-    // paste(log),
-    Promise.resolve("TODO uncomment for paste url"),
-    sendOpenCutsRun("FAIL", log)
+    paste(log),
+    sendOpenCutsRun(reason ? "FAIL" : "WONKY", log)
   ]);
-  return { pasteUrl, runUrl };
-}
-
-function createBugReport(title, callback) {
-  var options = {
-    limit: 400,
-    start: 0,
-    order: "desc"
-  };
-
-  global.logger.query(options, function(err, results) {
-    if (err) {
-      throw err;
-    }
-
-    var errorLog = "";
-    results.file.forEach(err => {
-      errorLog += err.level + ": ";
-      errorLog += err.message + "\n";
-    });
-
-    const form = new FormData();
-    form.append("poster", "UBports Installer");
-    form.append("syntax", "text");
-    form.append("expiration", "year");
-    form.append("content", `Title: ${title}\n\n${errorLog}`);
-
-    Promise.all([
-      axios
-        .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
-        .then(r => `https://paste.ubuntu.com/${r.request.path}`)
-        .catch(() => false),
-      createOpenCutsRun("FAIL", errorLog).catch(() => false)
-    ])
-      .then(res =>
-        osInfo(hostOs => callback(getDebugInfo(title, res[0], res[1], hostOs)))
-      )
-      .catch(() => callback(false));
-  });
-}
-
-function getOpenCutsComment(hostOs) {
-  return (
-    "This run was automatically posted by the UBports Installer." +
-    (global.installProperties.device
-      ? ` Device: ${global.installProperties.device}`
-      : "") +
-    ` OS to install: ${getTargetOsString()}` +
-    ` NodeJS version: ${process.version}`
+  shell.openExternal(
+    `https://github.com/ubports/ubports-installer/issues/new?title=${getIssueTitle(
+      reason
+    )}&body=${await getDebugInfo(reason, pasteUrl, runUrl)}`
   );
+  return;
 }
 
 /**
@@ -230,19 +250,23 @@ const OPENCUTS_OS = {
 
 /**
  * Send an OPEN-CUTS run
+ * @async
  * @param {String} result - PASS WONKY FAIL
  * @param {String} [log] - log file contents
  * @returns {String} run url
  * @throws if sending run failed
  */
 async function sendOpenCutsRun(result = "PASS", log) {
-  const openCutsApi = new GraphQLClient("http://localhost:4001/graphql", {
-    headers: process.env.OPENCUTS_API_KEY
-      ? {
-          authorization: process.env.OPENCUTS_API_KEY
-        }
-      : {}
-  });
+  const openCutsApi = new GraphQLClient(
+    "https://ubports.open-cuts.org/graphql",
+    {
+      headers: process.env.OPENCUTS_API_KEY
+        ? {
+            authorization: process.env.OPENCUTS_API_KEY
+          }
+        : {}
+    }
+  );
   return openCutsApi
     .request(
       gql`
@@ -263,7 +287,7 @@ async function sendOpenCutsRun(result = "PASS", log) {
         tag: global.packageInfo.version,
         run: {
           result: result,
-          comment: "this is a comment",
+          comment: `Installed ${getTargetOsString()} on ${getDeviceString()} from a computer running ${await getHostOsString()}.`,
           combination: [
             {
               variable: "Environment",
@@ -283,13 +307,13 @@ async function sendOpenCutsRun(result = "PASS", log) {
         }
       }
     )
-    .then(({ smartRun }) => `http://localhost:8080/run/${smartRun.id}`)
+    .then(({ smartRun }) => `https://ubports.open-cuts.org/run/${smartRun.id}`)
     .catch(error => {
       throw new Error(`Failed to create run: ${error}`);
     });
 }
 
 module.exports = {
-  createBugReport,
+  sendBugReport,
   sendOpenCutsRun
 };
