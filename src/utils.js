@@ -24,7 +24,7 @@ const path = require("path");
 const cp = require("child_process");
 const psTree = require("ps-tree");
 const util = require("util");
-const { createBugReport } = require("./bugreport.js");
+const { createBugReport } = require("./report.js");
 global.packageInfo = require("../package.json");
 
 fs.ensureDir(getUbuntuTouchDir());

@@ -40,7 +40,7 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
-const { createOpenCutsRun } = require("./bugreport.js");
+const { createOpenCutsRun } = require("./report.js");
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
