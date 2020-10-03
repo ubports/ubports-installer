@@ -40,7 +40,7 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
-const { createOpenCutsRun } = require("./report.js");
+const { sendOpenCutsRun } = require("./report.js");
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
@@ -325,9 +325,13 @@ mainEvent.on("user:write:done", () => {
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
   if (process.env.OPENCUTS_API_KEY) {
-    createOpenCutsRun().then(url =>
-      utils.log.info(`Thank you for reporting! You can view run here: ${url}`)
-    );
+    sendOpenCutsRun()
+      .then(url =>
+        utils.log.info(
+          `Thank you for reporting! You can view your run here: ${url}`
+        )
+      )
+      .catch(utils.log.error);
   }
 });
 

@@ -18,6 +18,8 @@
 const axios = require("axios");
 const util = require("util");
 const { osInfo } = require("systeminformation");
+const { GraphQLClient, gql } = require("graphql-request");
+require('cross-fetch/polyfill');
 
 const FormData = require("form-data");
 
@@ -91,6 +93,83 @@ ${reason} %0D%0A
 <!-- please add any info that might be useful to reproduce this issue -->`;
 }
 
+/**
+ * Get log file contents
+ * @async
+ * @returns {String} log file contents
+ * @throws if reading or parsing the file failed
+ */
+async function getLog() {
+  return new Promise(function(resolve, reject) {
+    global.logger.query(
+      {
+        limit: 400,
+        start: 0,
+        order: "asc"
+      },
+      (err, results) => {
+        try {
+          if (err) {
+            reject(new Error(`Failed to read log: ${err}`));
+          } else {
+            resolve(
+              results.file
+                .map(({ level, message }) => `${level}: ${message}`)
+                .join("\n")
+            );
+          }
+        } catch (err) {
+          reject(new Error(`Failed to read log: ${err}`));
+        }
+      }
+    );
+  });
+}
+
+/**
+ * Paste content to paste.ubuntu.com
+ * @async
+ * @param {String} content - content to paste
+ * @param {String} [poster] - user name
+ * @param {String} [syntax] - syntax for highlighting
+ * @param {String} [expiration] - how long to store the log
+ * @returns {String} paste url
+ * @throws if paste failed
+ */
+async function paste(
+  content,
+  poster = "UBports Installer",
+  syntax = "text",
+  expiration = "year"
+) {
+  const form = new FormData();
+  form.append("poster", poster);
+  form.append("syntax", syntax);
+  form.append("expiration", expiration);
+  form.append("content", content);
+
+  return axios
+    .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
+    .then(r => `https://paste.ubuntu.com/${r.request.path}`)
+    .catch(error => {
+      throw new Error(`Failed to paste: ${error}`);
+    });
+}
+
+// setTimeout(async () => {
+//   console.log(await sendBugReport());
+// }, 5000);
+
+async function sendBugReport(reason) {
+  const log = await getLog();
+  const [pasteUrl, runUrl] = await Promise.all([
+    // paste(log),
+    Promise.resolve("TODO uncomment for paste url"),
+    sendOpenCutsRun("FAIL", log)
+  ]);
+  return { pasteUrl, runUrl };
+}
+
 function createBugReport(title, callback) {
   var options = {
     limit: 400,
@@ -140,52 +219,77 @@ function getOpenCutsComment(hostOs) {
   );
 }
 
-const openCutsOs = {
+/**
+ * OPEN-CUTS operating system mapping
+ */
+const OPENCUTS_OS = {
   darwin: "macOS",
   linux: "Linux",
   win32: "Windows"
 };
-const openCutsAuth = process.env.OPENCUTS_API_KEY
-  ? {
-      headers: {
-        authorization: process.env.OPENCUTS_API_KEY
-      }
-    }
-  : {};
-function createOpenCutsRun(result = "PASS", errorLog) {
-  return axios({
-    url: `https://ubports.open-cuts.org/graphql`,
-    method: "post",
-    ...openCutsAuth,
-    data: {
-      query: `mutation {
-          smartRun(
-            testId: "5e9d75406346e112514cfeca"
-            systemId: "5e9d746c6346e112514cfec7"
-            tag: "${global.packageInfo.version}"
-            run: {
-              result: ${result},
-              comment: "${getOpenCutsComment()}",
-              combination: [
-                { variable: "Environment", value: "${
-                  openCutsOs[process.platform]
-                }" },
-                { variable: "Package", value: "${global.packageInfo.package ||
-                  "source"}" }
-              ]
-              logs: [{name: "ubports-installer.log", content: "log will go here"}]
+
+/**
+ * Send an OPEN-CUTS run
+ * @param {String} result - PASS WONKY FAIL
+ * @param {String} [log] - log file contents
+ * @returns {String} run url
+ * @throws if sending run failed
+ */
+async function sendOpenCutsRun(result = "PASS", log) {
+  const openCutsApi = new GraphQLClient("http://localhost:4001/graphql", {
+    headers: process.env.OPENCUTS_API_KEY
+      ? {
+          authorization: process.env.OPENCUTS_API_KEY
+        }
+      : {}
+  });
+  return openCutsApi
+    .request(
+      gql`
+        mutation smartRun(
+          $testId: ID!
+          $systemId: ID!
+          $tag: String!
+          $run: RunInput!
+        ) {
+          smartRun(testId: $testId, systemId: $systemId, tag: $tag, run: $run) {
+            id
+          }
+        }
+      `,
+      {
+        testId: "5e9d75406346e112514cfeca",
+        systemId: "5e9d746c6346e112514cfec7",
+        tag: global.packageInfo.version,
+        run: {
+          result: result,
+          comment: "this is a comment",
+          combination: [
+            {
+              variable: "Environment",
+              value: OPENCUTS_OS[process.platform]
+            },
+            {
+              variable: "Package",
+              value: global.packageInfo.package || "source"
             }
-          ) { id }
-        }`
-    }
-  })
-    .then(
-      ({ data }) => `https://ubports.open-cuts.org/run/${data.data.smartRun.id}`
+          ],
+          logs: [
+            {
+              name: "ubports-installer.log",
+              content: log || (await getLog())
+            }
+          ]
+        }
+      }
     )
-    .catch(error => global.logger.log("error", error));
+    .then(({ smartRun }) => `http://localhost:8080/run/${smartRun.id}`)
+    .catch(error => {
+      throw new Error(`Failed to create run: ${error}`);
+    });
 }
 
 module.exports = {
   createBugReport,
-  createOpenCutsRun
+  sendOpenCutsRun
 };
