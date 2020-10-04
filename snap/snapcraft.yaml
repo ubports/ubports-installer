@@ -59,7 +59,7 @@ parts:
       echo "Running override-build script"
       npm install npm@latest -g
       npx npm install
-      ./build.js -o 'linux' -p 'dir'
+      ./build.js -o 'linux' -p 'dir' --snapcraft-hack
       mkdir -p $SNAPCRAFT_PART_INSTALL/app
       rm -rf $SNAPCRAFT_PART_INSTALL/app/*
       mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app

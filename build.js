@@ -19,12 +19,16 @@ const { download } = require("progressive-downloader");
 const unpack = util.promisify(require("7zip-min").unpack);
 
 const platformToolsPath = "./platform-tools";
+// FIXME as soon as snappy sorts out it's dns bullshit, remove the hack
 const adbFastbootUrl = () =>
-  `https://dl.google.com/android/repository/platform-tools-latest-${
-    cli.os === "mac" ? "darwin" : cli.os === "win" ? "windows" : cli.os
-  }.zip`;
+  cli.snapcraftHack
+    ? "http://people.ubuntu.com/~neothethird/adb-fastboot.zip"
+    : `https://dl.google.com/android/repository/platform-tools-latest-${
+        cli.os === "mac" ? "darwin" : cli.os === "win" ? "windows" : cli.os
+      }.zip`;
+// FIXME maybe move back to https://heimdall.free-droid.com
 const heimdallUrl = () =>
-  `https://heimdall.free-droid.com/heimdall-${cli.os}.zip`;
+  `http://people.ubuntu.com/~neothethird/heimdall-${cli.os}.zip`;
 
 var targetOs;
 var buildConfig = require("./buildconfig-generic.json");
@@ -47,6 +51,10 @@ cli
   )
   .option("-b, --no-build", "Only download platform tools")
   .option("-d, --no-download", "Skip platform tools download")
+  .option(
+    "-s, --snapcraft-hack",
+    "HACK: Download platform tools from another source, because launchpad's snap builder is fucking stupid"
+  )
   .parse(process.argv);
 
 // Validate and configure operating system
