@@ -40,7 +40,8 @@ parts:
       - npm
       - nodejs
       - libgconf-2-4
-      - unzip
+      - unzip # todo remove
+      - wget # todo remove
     stage-packages:
       - libusb-1.0-0
       - libnotify4
