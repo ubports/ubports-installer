@@ -64,10 +64,10 @@ parts:
       cd $SNAPCRAFT_PROJECT_DIR
       rm -rf platform-tools
       mkdir -p platform-tools/linux
-      wget http://people.ubuntu.com/~neothethird/adb-fastboot.zip -O platform-tools/adb-fastboot.zip
+      wget https://dl.google.com/android/repository/platform-tools-latest-linux.zip -O platform-tools/adb-fastboot.zip
       unzip platform-tools/adb-fastboot.zip -d platform-tools/linux_tmp
       mv platform-tools/linux_tmp/platform-tools/* platform-tools/linux
-      wget http://people.ubuntu.com/~neothethird/heimdall-linux.zip -O platform-tools/heimdall.zip
+      wget https://heimdall.free-droid.com/heimdall-linux.zip -O platform-tools/heimdall.zip
       unzip platform-tools/heimdall.zip -d platform-tools/linux
       ./build.js -o 'linux' -p 'dir' -d
       mkdir -p $SNAPCRAFT_PART_INSTALL/app
