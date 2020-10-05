@@ -23,25 +23,28 @@
   "main": "src/main.js",
   "bin": "./src/main.js",
   "scripts": {
-    "start": "electron .",
-    "dist:mac": "node ./build.js -o 'mac' -p 'dmg'",
-    "dist:win": "node ./build.js -o \"win\" -p \"exe\"",
-    "dist:linux": "node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft snap",
-    "dist:linux:appimage": "node ./build.js -o 'linux' -p 'AppImage'",
-    "dist:linux:deb": "node ./build.js -o 'linux' -p 'deb'",
+    "start": "npm run prerender && electron .",
+    "prerender": "npx gulp pug",
+    "dist:mac": "npm run prerender && node ./build.js -o 'mac' -p 'dmg'",
+    "dist:win": "npm run prerender && node ./build.js -o \"win\" -p \"exe\"",
+    "dist:linux": "npm run prerender && node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft snap",
+    "dist:linux:appimage": "npm run prerender && node ./build.js -o 'linux' -p 'AppImage'",
+    "dist:linux:deb": "npm run prerender && node ./build.js -o 'linux' -p 'deb'",
     "dist:linux:snap": "snapcraft snap",
     "lint": "npx eslint *.js \"src/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },
   "devDependencies": {
-    "electron": "^5.0.13",
+    "electron": "^10.1.3",
     "electron-builder": "^20.36.2",
     "electron-packager": "^15.1.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.12.0",
     "eslint-plugin-prettier": "^3.1.4",
     "prettier": "^1.19.1",
-    "sinon": "^7.5.0"
+    "sinon": "^7.5.0",
+    "gulp": "^4.0.2",
+    "gulp-pug": "^4.0.1"
   },
   "dependencies": {
     "7zip-min": "^1.1.3",
@@ -50,8 +53,6 @@
     "checksum": "^0.1.1",
     "commander": "^2.9.0",
     "electron-open-link-in-browser": "^1.0.2",
-    "electron-prompt": "^1.6.0",
-    "electron-pug": "^2.0.0",
     "form-data": "^3.0.0",
     "fs-extra": "^2.0.0",
     "jquery": "^3.5.0",
@@ -62,7 +63,7 @@
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.1.0",
-    "systeminformation": "^4.27.6",
+    "systeminformation": "^4.27.7",
     "ubports-api-node-module": "^3.0.2",
     "winston": "^3.3.3"
   }

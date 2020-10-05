@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2019 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 const cli = require("commander");
 const electron = require("electron");
-const electronPug = require("electron-pug");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -43,6 +42,7 @@ global.mainEvent = mainEvent;
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
+const { shell } = require("electron");
 const api = new Api({
   timeout: 7500,
   cachetime: 60000
@@ -221,6 +221,15 @@ ipcMain.on("option", (event, targetVar, value) => {
 
 // The user requested udev rules to be set
 ipcMain.on("udev", utils.setUdevRules);
+
+// The user requested an update
+ipcMain.on("update", () => {
+  shell.openExternal(
+    `https://devices.ubuntu-touch.io/installer/${
+      global.packageInfo.package ? "?package=" + global.packageInfo.package : ""
+    }`
+  );
+});
 
 //==============================================================================
 // RENDERER COMMUNICATION
@@ -427,7 +436,6 @@ mainEvent.on("user:no-network", () => {
 //==============================================================================
 
 async function createWindow() {
-  let pug = await electronPug({ pretty: true });
   utils.log.info(
     "Welcome to the UBports Installer version " +
       global.packageInfo.version +
@@ -442,7 +450,8 @@ async function createWindow() {
     kiosk: false,
     fullscreen: false,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      enableRemoteModule: true
     }
   });
 
@@ -487,7 +496,7 @@ async function createWindow() {
       .catch(() => {}); // Ignore errors, since this is non-essential
   });
 
-  mainWindow.loadURL(`file://${__dirname}/html/index.pug`);
+  mainWindow.loadURL(`file://${__dirname}/html/index.html`);
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
