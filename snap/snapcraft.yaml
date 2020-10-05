@@ -61,8 +61,7 @@ parts:
       echo "Running override-build script"
       npm install npm@latest -g
       npx npm install
-      cd $SNAPCRAFT_PROJECT_DIR
-      rm -rf platform-tools
+      rm -rf platform-tools || true
       mkdir -p platform-tools/linux
       wget https://dl.google.com/android/repository/platform-tools-latest-linux.zip -O platform-tools/adb-fastboot.zip
       unzip platform-tools/adb-fastboot.zip -d platform-tools/linux_tmp
