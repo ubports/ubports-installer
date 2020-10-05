@@ -19,13 +19,10 @@ const { download } = require("progressive-downloader");
 const unpack = util.promisify(require("7zip-min").unpack);
 
 const platformToolsPath = "./platform-tools";
-// FIXME as soon as snappy sorts out it's dns bullshit, remove the hack
 const adbFastbootUrl = () =>
-  cli.snapcraftHack
-    ? "http://people.ubuntu.com/~neothethird/adb-fastboot.zip"
-    : `https://dl.google.com/android/repository/platform-tools-latest-${
-        cli.os === "mac" ? "darwin" : cli.os === "win" ? "windows" : cli.os
-      }.zip`;
+  `https://dl.google.com/android/repository/platform-tools-latest-${
+    cli.os === "mac" ? "darwin" : cli.os === "win" ? "windows" : cli.os
+  }.zip`;
 // FIXME maybe move back to https://heimdall.free-droid.com
 const heimdallUrl = () =>
   `http://people.ubuntu.com/~neothethird/heimdall-${cli.os}.zip`;
