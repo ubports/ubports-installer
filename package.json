@@ -54,7 +54,7 @@
     "commander": "^2.9.0",
     "electron-open-link-in-browser": "^1.0.2",
     "form-data": "^3.0.0",
-    "fs-extra": "^2.0.0",
+    "fs-extra": "^9.0.1",
     "graphql": "^15.3.0",
     "graphql-request": "^3.1.0",
     "jquery": "^3.5.0",
@@ -64,7 +64,7 @@
     "promise-android-tools": "^2.1.0",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
-    "system-image-node-module": "^1.1.0",
+    "system-image-node-module": "^1.1.1",
     "systeminformation": "^4.27.7",
     "ubports-api-node-module": "^3.0.2",
     "winston": "^3.3.3"
