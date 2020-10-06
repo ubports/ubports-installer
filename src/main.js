@@ -30,7 +30,6 @@ const Api = require("ubports-api-node-module").Installer;
 
 var winston = require("winston");
 const path = require("path");
-const url = require("url");
 const events = require("events");
 class event extends events {}
 
@@ -40,6 +39,7 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
+const { sendOpenCutsRun, sendBugReport } = require("./report.js");
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
@@ -179,8 +179,8 @@ ipcMain.on("install", () => {
 });
 
 // Submit a bug-report
-ipcMain.on("createBugReport", (event, title) => {
-  utils.sendBugReport(title);
+ipcMain.on("createBugReport", (event, error) => {
+  sendBugReport(error);
 });
 
 // The user selected a device
@@ -243,7 +243,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
             else mainEvent.emit("restart");
             break;
           case "bugreport":
-            utils.sendBugReport(error);
+            sendBugReport(error);
             break;
           default:
             break;
@@ -323,6 +323,16 @@ mainEvent.on("user:write:done", () => {
   utils.log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
+  if (process.env.OPENCUTS_API_KEY || process.env.OPENCUTS) {
+    sendOpenCutsRun()
+      .then(url => {
+        utils.log.info(
+          `Thank you for reporting! You can view your run here: ${url}`
+        );
+        electron.shell.openExternal(url);
+      })
+      .catch(utils.log.error);
+  }
 });
 
 // Show working animation
@@ -622,7 +632,7 @@ app.on("ready", function() {
         },
         {
           label: "Report a bug",
-          click: () => utils.sendBugReport("user-requested bug-report")
+          click: () => sendBugReport()
         },
         {
           label: "Clean cached files",
@@ -635,7 +645,7 @@ app.on("ready", function() {
       submenu: [
         {
           label: "Report a bug",
-          click: () => utils.sendBugReport("user-requested bug-report")
+          click: () => sendBugReport()
         },
         {
           label: "View issues",
