@@ -18,7 +18,7 @@ version: '{build}'
 clone_depth: 1
 test_script:
   - npm run lint
-  - ./build.js -o win32 -p portable -a x64
+  - node build.js -o win32 -p portable -a x64
 artifacts:
   - path: dist\ubports-installer*.exe
     name: Releases
