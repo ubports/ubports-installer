@@ -14,7 +14,7 @@
         button#btn-update-installer.btn.btn-primary(type='button', onclick=`ipcRenderer.send("update")`) Download
   script.
     ipcRenderer.on("user:update-available", () => {
-      if (global.packageInfo.isSnap) {
+      if (global.packageInfo.package === "snap") {
         $("#snap-update-instructions").show();
         $("#btn-update-installer").hide();
       } else {

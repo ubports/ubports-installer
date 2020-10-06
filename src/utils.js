@@ -17,21 +17,17 @@
 
 const axios = require("axios");
 const sudo = require("sudo-prompt");
-const os = require("os");
 const fs = require("fs-extra");
 const path = require("path");
 const cp = require("child_process");
 const psTree = require("ps-tree");
+const { getAndroidToolPath, getAndroidToolBaseDir } = require(asarLibPathHack(
+  "android-tools-bin"
+));
 const util = require("util");
 global.packageInfo = require("../package.json");
 
 fs.ensureDir(getUbuntuTouchDir());
-
-const platforms = {
-  linux: "linux",
-  darwin: "mac",
-  win32: "win"
-};
 
 var log = {
   error: l => {
@@ -118,17 +114,10 @@ function die(e) {
   process.exit(-1);
 }
 
-const toolpath = global.packageInfo.package
-  ? path.join(
-      __dirname,
-      "../../app.asar.unpacked/platform-tools",
-      platforms[os.platform()]
-    )
-  : path.join(__dirname, "..", "platform-tools", platforms[os.platform()]);
 let processes = [];
 function execTool(tool, args, callback) {
   let pid = cp.exec(
-    [path.join(toolpath, tool)].concat(args).join(" "),
+    [getAndroidToolPath(tool), ...args].join(" "),
     {
       maxBuffer: 1024 * 1024 * 2
     },
@@ -166,10 +155,6 @@ function killSubprocesses() {
   }
 }
 
-function isSnap() {
-  return process.env.SNAP_NAME || false;
-}
-
 function errorToUser(error, errorLocation, restart, ignore) {
   var errorString =
     "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
@@ -180,18 +165,18 @@ function errorToUser(error, errorLocation, restart, ignore) {
 }
 
 // HACK: Oh my fucking god. This is stupid. This is, in fact, so stupid, that i almost cannot believe that i will have to commit this as-is. But here goes: We've long known that executing binaries in the asar package is not possible, so the binaries need to be unpacked. We can not, however, require the unpacked lib, hence we do a stupid hack to get the normal binary from node_modules when running from source and the unpacked one otherwise. I hate everything about this, but it works. If someone knows a better way, i'll be forever grateful.
-const asarLibPathHack = lib =>
-  global.packageInfo.package || isSnap()
+function asarLibPathHack(lib) {
+  return global.packageInfo.package
     ? path.join(__dirname, "../../app.asar.unpacked/node_modules/", lib)
     : lib;
+}
 
 module.exports = {
+  asarLibPathHack,
   cleanInstallerCache,
   errorToUser,
   log,
-  isSnap,
   execTool,
-  toolpath,
   killSubprocesses,
   getUbuntuTouchDir,
   setUdevRules,

@@ -11,11 +11,10 @@
     "src/screens/*",
     "src/html/index.html",
     "node_modules/**/*",
-    "platform-tools/${os}/**/*",
     "build/icons/icon.*"
   ],
   "asarUnpack": [
-    "platform-tools/${os}/**/*",
-    "node_modules/7zip-min/*"
+    "node_modules/7zip-min/*",
+    "node_modules/@babel/runtime/**/*"
   ]
 }

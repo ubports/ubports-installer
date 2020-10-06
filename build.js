@@ -3,29 +3,24 @@
 "use strict";
 
 /*
-
-This file is a part of ubports-installer
-
-Author: Marius Gripsgard <mariogrip@ubports.com>
-
-*/
+ * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 const builder = require("electron-builder");
 const cli = require("commander");
-const path = require("path");
-const fs = require("fs-extra");
-const util = require("util");
-const { download } = require("progressive-downloader");
-const unpack = util.promisify(require("7zip-min").unpack);
-
-const platformToolsPath = "./platform-tools";
-const adbFastbootUrl = () =>
-  `https://dl.google.com/android/repository/platform-tools-latest-${
-    cli.os === "mac" ? "darwin" : cli.os === "win" ? "windows" : cli.os
-  }.zip`;
-// FIXME maybe move back to https://heimdall.free-droid.com
-const heimdallUrl = () =>
-  `http://people.ubuntu.com/~neothethird/heimdall-${cli.os}.zip`;
 
 var targetOs;
 var buildConfig = require("./buildconfig-generic.json");
@@ -45,12 +40,6 @@ cli
     "extra data for package.json",
     JSON.parse,
     ""
-  )
-  .option("-b, --no-build", "Only download platform tools")
-  .option("-d, --no-download", "Skip platform tools download")
-  .option(
-    "-s, --snapcraft-hack",
-    "HACK: Download platform tools from another source, because launchpad's snap builder is fucking stupid"
   )
   .parse(process.argv);
 
@@ -105,102 +94,56 @@ switch (cli.os) {
 }
 
 // Configure package
-if (cli.build) {
-  switch (cli.package) {
-    case "AppImage":
-    case "deb":
-      if (cli.os != "linux") {
-        console.log(cli.package + " can only be built for Linux!");
-        process.exit(1);
-      }
-      break;
-    case "dmg":
-      if (cli.os != "mac") {
-        console.log(cli.package + " can only be built for macOS!");
-        process.exit(1);
-      }
-      break;
-    case "exe":
-      if (cli.os != "win") {
-        console.log(cli.package + " can only be built for Windows!");
-        process.exit(1);
-      }
-      break;
-    case "dir":
-      break;
-    default:
-      console.log("Building " + cli.package + " is not configured!");
+switch (cli.package) {
+  case "AppImage":
+  case "deb":
+    if (cli.os != "linux") {
+      console.log(cli.package + " can only be built for Linux!");
       process.exit(1);
-  }
+    }
+    break;
+  case "dmg":
+    if (cli.os != "mac") {
+      console.log(cli.package + " can only be built for macOS!");
+      process.exit(1);
+    }
+    break;
+  case "exe":
+    if (cli.os != "win") {
+      console.log(cli.package + " can only be built for Windows!");
+      process.exit(1);
+    }
+    break;
+  case "dir":
+    break;
+  default:
+    console.log("Building " + cli.package + " is not configured!");
+    process.exit(1);
 }
 
 const build = () =>
-  cli.build
-    ? builder
-        .build({
-          targets: builder.createTargets([targetOs]),
-          config: Object.assign(buildConfig, {
-            extraMetadata: cli.package
-              ? Object.assign(cli.extraMetadata, { package: cli.package })
-              : cli.extraMetadata
-          })
-        })
-        .then(() => console.log("build complete"))
-        .catch(e => {
-          if (
-            e.message.indexOf("GitHub Personal Access Token is not set") !== -1
-          ) {
-            console.log("build complete");
-          } else {
-            throw new Error(`Build error: ${e}`);
-          }
-        })
-    : Promise.resolve().then(() => console.log("build skipped"));
-
-const downloadPlatformTools = () =>
-  cli.download
-    ? Promise.resolve(fs.emptyDirSync(platformToolsPath)) // HACK fs.emptyDir does not seem to return a promise
-        .then(() =>
-          download([
-            {
-              url: heimdallUrl(),
-              path: path.join(platformToolsPath, `${cli.os}.zip`)
-            },
-            {
-              url: adbFastbootUrl(),
-              path: path.join(platformToolsPath, "adb-fastboot.zip")
-            }
-          ])
-        )
-        .then(archives =>
-          Promise.all(
-            archives.map(a => unpack(a.path, a.path.replace(".zip", "")))
-          )
-        )
-        .then(() =>
-          fs.copy(
-            path.join(platformToolsPath, "adb-fastboot/platform-tools"),
-            path.join(platformToolsPath, cli.os)
-          )
-        )
-        .then(() =>
-          cli.os !== "win"
-            ? Promise.all(
-                ["fastboot", "adb", "mke2fs", "heimdall"].map(executable =>
-                  fs.chmod(
-                    path.join(platformToolsPath, cli.os, executable),
-                    0o755
-                  )
-                )
-              )
-            : Promise.resolve()
-        )
-        .then(() => console.log("download complete"))
-    : Promise.resolve().then(() => console.log("download skipped"));
+  builder
+    .build({
+      targets: builder.createTargets([targetOs]),
+      config: Object.assign(buildConfig, {
+        extraMetadata: {
+          package: cli.package,
+          ...cli.extraMetadata
+        }
+      })
+    })
+    .then(() => console.log("build complete"))
+    .catch(e => {
+      if (e.message.indexOf("GitHub Personal Access Token is not set") !== -1) {
+        console.log("build complete");
+      } else {
+        throw new Error(`Build error: ${e}`);
+      }
+    });
 
 // actual work happens here
-downloadPlatformTools()
-  .then(() => build())
+console.log("let's go!");
+build()
   .then(() => console.log("all done!"))
   .catch(e => {
     console.error(e);
