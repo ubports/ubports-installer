@@ -80,7 +80,7 @@ var buildConfig = {
   asarUnpack: [
     // Unpack dependencies of pakcages containing binaries
     "node_modules/7zip-min/*", // for 7zip-bin
-    "node_modules/@babel/runtime/**/*", // for android-tools-bin
+    "node_modules/@babel/runtime/**/*" // for android-tools-bin
   ],
   extraMetadata: {
     package: cli.package,
