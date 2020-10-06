@@ -25,9 +25,11 @@ install:
 - npm prune
 script:
 - npm run lint
-- '[ "$TRAVIS_OS_NAME" == "linux" ] || npm run dist:mac'
-- '[ "$TRAVIS_OS_NAME" == "osx" ] || npm run dist:linux:deb'
-- '[ "$TRAVIS_OS_NAME" == "osx" ] || npm run dist:linux:appimage'
+- '[ "$TRAVIS_OS_NAME" == "linux" ] || ./build.js -o darwin -p dmg -a x64'
+- '[ "$TRAVIS_OS_NAME" == "osx" ] || ./build.js -o linux -p deb -a arm64'
+- '[ "$TRAVIS_OS_NAME" == "osx" ] || ./build.js -o linux -p AppImage -a arm64'
+- '[ "$TRAVIS_OS_NAME" == "osx" ] || ./build.js -o linux -p deb -a x64'
+- '[ "$TRAVIS_OS_NAME" == "osx" ] || ./build.js -o linux -p AppImage -a x64'
 deploy:
   provider: releases
   api_key:

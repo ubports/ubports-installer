@@ -23,11 +23,13 @@ const builder = require("electron-builder");
 const cli = require("commander");
 
 const PLATFORMS = ["darwin", "win32", "linux"];
-const PACKAGES = ["deb", "snap", "AppImage", "dmg", "exe", "dir"];
+const PACKAGES = ["deb", "snap", "AppImage", "dmg", "portable", "dir"];
+const ARCH = ["armv7l", "x64", "ia32", "arm64"];
 
 cli
   .version(require("./package.json").version)
-  .usage("./build.js -o <os> -p <package> [options]")
+  .name("./build.js")
+  .usage("-o <os> -p <package> -a <arch> [options]") // remember the cant
   .option(
     "-o, --os <os>",
     `Target operating system (${PLATFORMS.join(", ")})`,
@@ -35,10 +37,16 @@ cli
     process.platform
   )
   .option(
-    "-p, --package [package]",
+    "-p, --package <package>",
     `Target package (${PACKAGES.join(", ")})`,
     p => (PACKAGES.includes(p) ? p : "dir"),
     "dir"
+  )
+  .option(
+    "-a, --arch <architecture>",
+    `Target architecture (${ARCH.join(", ")})`,
+    a => (ARCH.includes(a) ? a : "x64"),
+    "x64"
   )
   .option(
     "-e, --extra-metadata [JSON]",
@@ -53,23 +61,36 @@ var buildConfig = {
   appId: "com.ubports.installer",
   productName: "ubports-installer",
   copyright: "Copyright © 2017-2020 UBports Foundation",
+  artifactName: "${name}_${version}_${os}_${arch}.${ext}",
   publish: [],
   files: [
     "src/**/*",
     "!src/pug/*",
     "node_modules/**/*",
     "build/icons/icon.*",
-    ...PLATFORMS.filter(p => p !== cli.os).map(p => `!**/${p}/**`)
+    // exclude binaries for other operating systems
+    ...PLATFORMS.filter(p => p !== cli.os).map(
+      p => `!node_modules/android-tools-bin/dist/${p}`
+    ),
+    // exclude binaries for other architectures
+    `!node_modules/android-tools-bin/dist/**/${
+      cli.arch.includes("arm") ? "x86" : "arm"
+    }/**`
   ],
   asarUnpack: [
     // Unpack dependencies of pakcages containing binaries
     "node_modules/7zip-min/*", // for 7zip-bin
-    "node_modules/@babel/runtime/**/*" // for android-tools-bin
+    "node_modules/@babel/runtime/**/*", // for android-tools-bin
   ],
   extraMetadata: {
     package: cli.package,
     ...cli.extraMetadata
   }
+};
+
+const target = {
+  target: cli.package,
+  arch: cli.arch
 };
 
 // Validate and configure operating system
@@ -78,7 +99,7 @@ switch (cli.os) {
     targetOs = builder.Platform.LINUX;
     buildConfig = Object.assign(buildConfig, {
       linux: {
-        target: cli.package,
+        target,
         icon: "build/icons",
         synopsis: "Install Ubuntu Touch on UBports devices",
         category: "Utility"
@@ -103,7 +124,7 @@ switch (cli.os) {
     targetOs = builder.Platform.WINDOWS;
     buildConfig = Object.assign(buildConfig, {
       win: {
-        target: ["portable"],
+        target,
         icon: "build/icons/icon.ico"
       }
     });
@@ -112,7 +133,7 @@ switch (cli.os) {
     targetOs = builder.Platform.MAC;
     buildConfig = Object.assign(buildConfig, {
       mac: {
-        target: "dmg",
+        target,
         icon: "build/icons/icon.icns",
         category: "public.app-category.utilities"
       }

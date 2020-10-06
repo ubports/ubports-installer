@@ -4,7 +4,11 @@ adopt-info: ubports-installer
 summary: The easy way to install Ubuntu Touch on UBports devices.
 description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
 icon: build/icons/icon.png
-architectures: [amd64]
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: arm64
+    run-on: arm64
 license: GPL-3.0
 
 grade: stable
@@ -63,10 +67,12 @@ parts:
       npm install npm@latest -g
       npx npm install
       npm run prerender
-      ./build.js -o 'linux' -p 'dir' --extra-metadata='{"package": "snap"}'
+      [ `uname -m` == "arm64" ] && ARCH=arm64 || ARCH=x64
+      [ `uname -m` == "arm64" ] && DISTDIR=linux-arm64-unpacked || DISTDIR=linux-unpacked
+      ./build.js -o 'linux' -p 'dir' -a $ARCH -e '{"package": "snap"}'
       mkdir -p $SNAPCRAFT_PART_INSTALL/app
       rm -rf $SNAPCRAFT_PART_INSTALL/app/*
-      mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
+      mv dist/$DISTDIR/* $SNAPCRAFT_PART_INSTALL/app
     prime:
       - -node_modules
       - -lib/node_modules

@@ -49,11 +49,14 @@ Before filing a PR, please make sure you follow our coding style. Just run `npm 
 ### Build packages
 
 ```
-$ npm run-script dist:linux # builds an AppImage, a deb, and a snap
-$ npm run-script dist:mac # builds a dmg
-$ npm run-script dist:win # builds an exe
+$ ./build.js --help
+Usage: ./build.js -o <os> -p <package> -a <arch> [options]
 
-# or
-
-$ ./build.js -o <os> -p <package> [options] # see ./build.js --help
+Options:
+  -V, --version                output the version number
+  -o, --os <os>                Target operating system (darwin, win32, linux) (default: "linux")
+  -p, --package <package>      Target package (deb, snap, AppImage, dmg, portable, dir) (default: "dir")
+  -a, --arch <architecture>    Target architecture (armv7l, x64, ia32, arm64) (default: "x64")
+  -e, --extra-metadata [JSON]  extra data for package.json (default: "{}")
+  -h, --help                   output usage information
 ```

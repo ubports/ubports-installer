@@ -18,7 +18,7 @@ version: '{build}'
 clone_depth: 1
 test_script:
   - npm run lint
-  - npm run dist:win
+  - ./build.js -o win32 -p portable -a x64
 artifacts:
   - path: dist\ubports-installer*.exe
     name: Releases
@@ -26,7 +26,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: kuVj7rmTfk7fuOFpF9H/G7Toqj3A27+5h2PjbYEGkuX3U4X34O/rYGUR52kvF+im
-  artifact: /ubports-installer.*\.exe/
+  artifact: /ubports-installer*\.exe/
   draft: false
   prerelease: true
   on:
