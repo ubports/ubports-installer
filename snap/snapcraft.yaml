@@ -54,6 +54,9 @@ parts:
       - libasound2
       - libgtk-3-0
       - libx11-xcb-dev
+      - libdrm-common
+      - libgbm1
+      - libxcb-dri3-0
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
@@ -68,6 +71,7 @@ parts:
       mv platform-tools/linux_tmp/platform-tools/* platform-tools/linux
       wget https://heimdall.free-droid.com/heimdall-linux.zip -O platform-tools/heimdall.zip
       unzip platform-tools/heimdall.zip -d platform-tools/linux
+      npm run prerender
       ./build.js -o 'linux' -p 'dir' -d
       mkdir -p $SNAPCRAFT_PART_INSTALL/app
       rm -rf $SNAPCRAFT_PART_INSTALL/app/*

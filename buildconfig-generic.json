@@ -4,7 +4,12 @@
   "copyright": "Copyright © 2017-2020 UBports Foundation",
   "publish": [],
   "files": [
-    "src/**/*",
+    "src/**/*.js",
+    "src/fonts/*",
+    "src/img/*",
+    "src/img/*/*",
+    "src/screens/*",
+    "src/html/index.html",
     "node_modules/**/*",
     "platform-tools/${os}/**/*",
     "build/icons/icon.*"

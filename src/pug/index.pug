@@ -1,12 +1,15 @@
 doctype html
 html
   head
-    link(rel='stylesheet', href='../../node_modules/bootstrap/dist/css/bootstrap.min.css')
-    link(rel='stylesheet', href='../css/style.css')
+    style
+      include ../../node_modules/bootstrap/dist/css/bootstrap.min.css
+    style
+      include ../css/style.css
   body
-    script(src="scripts/root.js")
+    script
+      include scripts/root.js
     .header.is-over
-      h3#header-text.text-muted.installer UBports Installer (#{global.packageInfo.version})
+      h3#header-text.text-muted.installer UBports Installer (#{installerVersion})
     button#help.help-button.btn.btn-primary Report a bug
     button#donate.donate-button.btn.btn-primary Donate
     #particles-background.vertical-centered-box
@@ -50,9 +53,11 @@ html
     include modals/error
   // --- Scripts ---
   // Animated loading screen
-  script(src="scripts/particleground.js")
-  script(src="scripts/start.js")
+  script
+    include scripts/particleground.js
   // UI-related event management
-  script(src="scripts/ui.js")
+  script
+    include scripts/ui.js
   // Functionality-related event management
-  script(src="scripts/dots.js")
+  script
+    include scripts/dots.js
