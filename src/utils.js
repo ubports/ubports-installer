@@ -16,7 +16,6 @@
  */
 
 const axios = require("axios");
-const shell = require("electron").shell;
 const sudo = require("sudo-prompt");
 const os = require("os");
 const fs = require("fs-extra");
@@ -24,7 +23,6 @@ const path = require("path");
 const cp = require("child_process");
 const psTree = require("ps-tree");
 const util = require("util");
-const { createBugReport } = require("./bugreport.js");
 global.packageInfo = require("../package.json");
 
 fs.ensureDir(getUbuntuTouchDir());
@@ -49,14 +47,6 @@ var log = {
     global.logger.log("debug", l);
   }
 };
-
-function sendBugReport(title) {
-  createBugReport(title, body => {
-    shell.openExternal(
-      `https://github.com/ubports/ubports-installer/issues/new?title=${title}&body=${body}`
-    );
-  });
-}
 
 function getLatestInstallerVersion() {
   return axios
@@ -128,7 +118,7 @@ function die(e) {
   process.exit(-1);
 }
 
-let toolpath = global.packageInfo.package
+const toolpath = global.packageInfo.package
   ? path.join(
       __dirname,
       "../../app.asar.unpacked/platform-tools",
@@ -201,9 +191,9 @@ module.exports = {
   log,
   isSnap,
   execTool,
+  toolpath,
   killSubprocesses,
   getUbuntuTouchDir,
-  sendBugReport,
   setUdevRules,
   getUpdateAvailable,
   die,
