@@ -22,26 +22,55 @@
 const builder = require("electron-builder");
 const cli = require("commander");
 
-var targetOs;
-var buildConfig = require("./buildconfig-generic.json");
+const PLATFORMS = ["darwin", "win32", "linux"];
+const PACKAGES = ["deb", "snap", "AppImage", "dmg", "exe", "dir"];
 
 cli
   .version(require("./package.json").version)
   .usage("./build.js -o <os> -p <package> [options]")
   .option(
     "-o, --os <os>",
-    "Target operating system",
-    p => (["mac", "win", "linux"].includes(p) ? p : process.platform),
+    `Target operating system (${PLATFORMS.join(", ")})`,
+    p => (PLATFORMS.includes(p) ? p : process.platform),
     process.platform
   )
-  .option("-p, --package [package]", "Target package", "dir")
+  .option(
+    "-p, --package [package]",
+    `Target package (${PACKAGES.join(", ")})`,
+    p => (PACKAGES.includes(p) ? p : "dir"),
+    "dir"
+  )
   .option(
     "-e, --extra-metadata [JSON]",
     "extra data for package.json",
     JSON.parse,
-    ""
+    "{}"
   )
   .parse(process.argv);
+
+var targetOs;
+var buildConfig = {
+  appId: "com.ubports.installer",
+  productName: "ubports-installer",
+  copyright: "Copyright © 2017-2020 UBports Foundation",
+  publish: [],
+  files: [
+    "src/**/*",
+    "!src/pug/*",
+    "node_modules/**/*",
+    "build/icons/icon.*",
+    ...PLATFORMS.filter(p => p !== cli.os).map(p => `!**/${p}/**`)
+  ],
+  asarUnpack: [
+    // Unpack dependencies of pakcages containing binaries
+    "node_modules/7zip-min/*", // for 7zip-bin
+    "node_modules/@babel/runtime/**/*" // for android-tools-bin
+  ],
+  extraMetadata: {
+    package: cli.package,
+    ...cli.extraMetadata
+  }
+};
 
 // Validate and configure operating system
 switch (cli.os) {
@@ -63,13 +92,14 @@ switch (cli.os) {
           "libxtst6",
           "libnss3",
           "android-tools-adb",
-          "android-tools-fastboot"
+          "android-tools-fastboot",
+          "heimdall-flash"
         ]
       },
       afterPack: "./afterPack.js"
     });
     break;
-  case "win":
+  case "win32":
     targetOs = builder.Platform.WINDOWS;
     buildConfig = Object.assign(buildConfig, {
       win: {
@@ -78,7 +108,7 @@ switch (cli.os) {
       }
     });
     break;
-  case "mac":
+  case "darwin":
     targetOs = builder.Platform.MAC;
     buildConfig = Object.assign(buildConfig, {
       mac: {
@@ -89,48 +119,14 @@ switch (cli.os) {
     });
     break;
   default:
-    console.log("Please specify a target operating system!");
-    process.exit(1);
-}
-
-// Configure package
-switch (cli.package) {
-  case "AppImage":
-  case "deb":
-    if (cli.os != "linux") {
-      console.log(cli.package + " can only be built for Linux!");
-      process.exit(1);
-    }
     break;
-  case "dmg":
-    if (cli.os != "mac") {
-      console.log(cli.package + " can only be built for macOS!");
-      process.exit(1);
-    }
-    break;
-  case "exe":
-    if (cli.os != "win") {
-      console.log(cli.package + " can only be built for Windows!");
-      process.exit(1);
-    }
-    break;
-  case "dir":
-    break;
-  default:
-    console.log("Building " + cli.package + " is not configured!");
-    process.exit(1);
 }
 
 const build = () =>
   builder
     .build({
       targets: builder.createTargets([targetOs]),
-      config: Object.assign(buildConfig, {
-        extraMetadata: {
-          package: cli.package,
-          ...cli.extraMetadata
-        }
-      })
+      config: buildConfig
     })
     .then(() => console.log("build complete"))
     .catch(e => {
@@ -142,7 +138,7 @@ const build = () =>
     });
 
 // actual work happens here
-console.log("let's go!");
+console.log("building...");
 build()
   .then(() => console.log("all done!"))
   .catch(e => {
