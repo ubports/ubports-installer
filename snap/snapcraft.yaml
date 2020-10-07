@@ -62,15 +62,13 @@ parts:
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
-    build-environment:
-      - ELECTRON_GET_USE_PROXY: "1"
     override-build: |
       echo "Running override-build script"
-      GLOBAL_AGENT_HTTPS_PROXY=$https_proxy
-      GLOBAL_AGENT_HTTP_PROXY=$http_proxy
-      npm install npm@latest -g
-      npx npm install
-      npm run prerender
+      echo "https_proxy: " $https_proxy
+      echo "http_proxy: " $http_proxy
+      echo "updating npm" && npm install npm@latest -g
+      echo "installing dependencies" && npx cross-env ELECTRON_GET_USE_PROXY=true GLOBAL_AGENT_HTTPS_PROXY=$https_proxy npm install
+      echo "prerendering" && npm run prerender
       [ `uname -m` == "arm64" ] && UBPORTS_ARCH=arm64 || UBPORTS_ARCH=x64
       [ `uname -m` == "arm64" ] && UBPORTS_DISTDIR=linux-arm64-unpacked || UBPORTS_DISTDIR=linux-unpacked
       ./build.js -o 'linux' -p 'dir' -a $UBPORTS_ARCH -e '{"package": "snap"}'
