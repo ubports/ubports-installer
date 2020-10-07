@@ -108,11 +108,6 @@ global.installProperties = {
   settings: cli.settings ? JSON.parse(cli.settings) : {}
 };
 
-if (utils.isSnap()) {
-  global.packageInfo.isSnap = utils.isSnap();
-  global.packageInfo.package = "snap";
-}
-
 //==============================================================================
 // WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
 //==============================================================================
@@ -633,7 +628,9 @@ app.on("ready", function() {
         {
           label: "Set udev rules",
           click: utils.setUdevRules,
-          visible: !utils.isSnap() && process.platform === "linux"
+          visible:
+            global.packageInfo.package !== "snap" &&
+            process.platform === "linux"
         },
         {
           label: "Developer tools",

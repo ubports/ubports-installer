@@ -1,3 +1,5 @@
+"use strict";
+
 /*
  * Copyright (C) 2020 UBports Foundation <info@ubports.com>
  *
@@ -20,8 +22,9 @@ const axios = require("axios");
 const FormData = require("form-data");
 const util = require("util");
 const { osInfo } = require("systeminformation");
+const { getAndroidToolBaseDir } = require("android-tools-bin");
 const { GraphQLClient, gql } = require("graphql-request");
-const { toolpath, getUbuntuTouchDir } = require("./utils");
+const { getUbuntuTouchDir } = require("./utils");
 require("cross-fetch/polyfill");
 
 /**
@@ -210,12 +213,13 @@ async function paste(
  * @returns {String} issue title
  */
 function getIssueTitle(reason) {
-  const _reason = reason
-    .replace(`${toolpath}/`, "")
-    .replace(`${getUbuntuTouchDir()}/`, "");
-  if (!_reason) {
+  if (!reason) {
     return encodeURIComponent("please describe the problem in a few words");
-  } else if (_reason.length > 200) {
+  }
+  const _reason = reason
+    .replaceAll(getAndroidToolBaseDir(), "$PKG")
+    .replaceAll(getUbuntuTouchDir(), "$CACHE");
+  if (_reason.length > 200) {
     return encodeURIComponent(
       `${_reason.slice(0, 75)} [...] ${_reason.slice(_reason.length - 100)}`
     );
@@ -232,8 +236,8 @@ function getIssueTitle(reason) {
 async function sendBugReport(reason) {
   const log = await getLog();
   const [pasteUrl, runUrl] = await Promise.all([
-    paste(log),
-    sendOpenCutsRun(reason ? "FAIL" : "WONKY", log)
+    paste(log).catch(() => "*N/A*"),
+    sendOpenCutsRun(reason ? "FAIL" : "WONKY", log).catch(() => "*N/A*")
   ]);
   shell.openExternal(
     `https://github.com/ubports/ubports-installer/issues/new?title=${getIssueTitle(
