@@ -159,7 +159,7 @@ const build = () =>
     });
 
 // actual work happens here
-console.log("building...");
+console.log("build", cli.package, "for", cli.arch, cli.os, "or die trying");
 build()
   .then(() => console.log("all done!"))
   .catch(e => {
