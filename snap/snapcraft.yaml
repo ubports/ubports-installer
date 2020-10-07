@@ -62,6 +62,8 @@ parts:
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
+    build-environment:
+      - ELECTRON_GET_USE_PROXY: "1"
     override-build: |
       echo "Running override-build script"
       npm install npm@latest -g
