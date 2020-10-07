@@ -66,6 +66,8 @@ parts:
       - ELECTRON_GET_USE_PROXY: "1"
     override-build: |
       echo "Running override-build script"
+      GLOBAL_AGENT_HTTPS_PROXY=$https_proxy
+      GLOBAL_AGENT_HTTP_PROXY=$http_proxy
       npm install npm@latest -g
       npx npm install
       npm run prerender
