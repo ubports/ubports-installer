@@ -83,7 +83,7 @@ var buildConfig = {
     "node_modules/@babel/runtime/**/*" // for android-tools-bin
   ],
   extraMetadata: {
-    package: cli.package,
+    package: cli.package === "portable" ? "exe" : cli.package,
     ...cli.extraMetadata
   }
 };
