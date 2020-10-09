@@ -3,7 +3,7 @@
 Fear not! Installing [UBports](https://ubports.com) [Ubuntu Touch](https://ubuntu-touch.io) on your [device](https://devices.ubuntu-touch.io) is easy! Just download the UBports Installer package for your operating system and sit back and relax while your computer does all the rest. Installing third-party operating systems has never been so easy!
 
 | ![linux logo](https://i.ibb.co/CPq1pL9/linux.png) &nbsp; Linux | ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png) &nbsp; macOS | ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png) &nbsp; Windows |
-|---|---|---|
+|:---:|:---:|:---:|
 |[snap](https://snapcraft.io/ubports-installer), [AppImage](https://devices.ubuntu-touch.io/installer?package=appimage), [deb](https://devices.ubuntu-touch.io/installer?package=deb) | [dmg](https://devices.ubuntu-touch.io/installer?package=dmg) | [exe](https://devices.ubuntu-touch.io/installer?package=exe) |
 
 ## Troubleshooting
