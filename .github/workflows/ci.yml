@@ -49,7 +49,7 @@ jobs:
         npm run prerender
 
     - name: build linux
-      if: ${{ runner.os == Linux }}
+      if: contains(runner.os, "Linux")
       run: |
         node ./build.js -o linux -p deb -a arm64
         node ./build.js -o linux -p AppImage -a arm64
