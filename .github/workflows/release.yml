@@ -1,0 +1,28 @@
+on:
+  push:
+    tags: ['*']
+
+name: Publish a new release
+
+jobs:
+  build:
+    name: Publish a new release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish a new release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: UBports Installer ${{ github.ref }}
+          draft: true
+          prerelease: true
+          body: |
+            A pre-release of the [UBports Installer](https://devices.ubuntu-touch.io/installer/). Choose a package to download below or run `snap install ubports-installer --beta` to install the [snap package](https://snapcraft.io/ubports-installer) on any Linux distribution.
+
+            You can help us test this release on [UBports OPEN-CUTS](https://ubports.open-cuts.org/report?system=5e9d746c6346e112514cfec7).
+
+            ## Changelog
+
+            - *pending*
