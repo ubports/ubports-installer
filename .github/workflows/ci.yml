@@ -49,7 +49,7 @@ jobs:
         npm run prerender
 
     - name: build linux
-      if: matrix.os == "ubuntu-latest"
+      if: ${{ matrix.os == "ubuntu-latest" }}
       run: |
         node ./build.js -o linux -p deb -a arm64
         node ./build.js -o linux -p AppImage -a arm64
@@ -57,18 +57,18 @@ jobs:
         node ./build.js -o linux -p AppImage -a x64
 
     - name: build macOS
-      if: matrix.os == "macOS-latest"
+      if: ${{ matrix.os == "macOS-latest" }}
       run: |
         node ./build.js -o darwin -p dmg -a x64
 
     - name: build windows
-      if: matrix.os == "windows-latest"
+      if: ${{ matrix.os == "windows-latest" }}
       run: |
         node ./build.js -o win32 -p portable -a x64
 
     - name: archive artifacts
       uses: actions/upload-artifact@v2
-      if: matrix.node_version == "14"
+      if: ${{ matrix.node_version == "14" }}
       with:
         name: ubports-installer
         path: |
