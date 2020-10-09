@@ -1,0 +1,80 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  prerequisites:
+    name: Prerequisites
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 14
+      uses: actions/setup-node@v1
+      with:
+        node-version: "14"
+
+    - name: npm install
+      run: |
+        npm install
+    - name: npm audit
+      run: |
+        npm audit --production
+    - name: npm run lint
+      run: |
+        npm run lint
+    - name: npm run prerender
+        npm run prerender
+
+
+  build:
+    name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node_version: ['12', '14']
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node_version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node_version }}
+
+    - name: prepare build
+      run: |
+        npm install
+        npm run prerender
+
+    - name: build linux
+      if: matrix.os == "ubuntu-latest"
+      run: |
+        node ./build.js -o linux -p deb -a arm64
+        node ./build.js -o linux -p AppImage -a arm64
+        node ./build.js -o linux -p deb -a x64
+        node ./build.js -o linux -p AppImage -a x64
+
+    - name: build macOS
+      if: matrix.os == "macOS-latest"
+      run: |
+        node ./build.js -o darwin -p dmg -a x64
+
+    - name: build windows
+      if: matrix.os == "windows-latest"
+      run: |
+        node ./build.js -o win32 -p portable -a x64
+
+    - uses: actions/upload-artifact@v2
+      if: matrix.node_version == "14"
+      with:
+        name: ubports-installer
+        path: |
+          dist/*.deb
+          dist/*.AppImage
+          dist/*.dmg
+          dist/*.exe
