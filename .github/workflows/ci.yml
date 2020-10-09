@@ -5,6 +5,9 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  release:
+    types:
+      - created
 
 jobs:
   prerequisites:
@@ -98,3 +101,31 @@ jobs:
           dist/*.AppImage
           dist/*.dmg
           dist/*.exe
+
+    - name: upload release assets
+      if: github.event_name == 'release'
+      uses: actions/github-script@v2
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const { repo: { owner, repo }, ref: tag } = context;
+          console.log("trying to upload to", owner, repo, tag);
+
+          github.repos.getReleaseByTag({
+            owner,
+            repo,
+            tag
+          }).then(({data: {id: release_id}}) =>
+            Promise.all(
+              fs.readdirSync('./dist/').filter(f => f.match(/ubports-installer_*.*/))
+                .map(file =>
+                  github.repos.uploadReleaseAsset({
+                    owner, repo,
+                    release_id,
+                    name: file,
+                    data: fs.readFileSync(`./dist/${file}`)
+                  }).then(() => console.log("uploaded", file))
+                )
+            )
+          )
