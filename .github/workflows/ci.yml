@@ -57,12 +57,12 @@ jobs:
         node ./build.js -o linux -p AppImage -a x64
 
     - name: build macOS
-      if: contains(runner.os, 'macOS'))
+      if: contains(runner.os, 'macOS')
       run: |
         node ./build.js -o darwin -p dmg -a x64
 
     - name: build windows
-      if: contains(runner.os, 'Windows'))
+      if: contains(runner.os, 'Windows')
       run: |
         node ./build.js -o win32 -p portable -a x64
 
