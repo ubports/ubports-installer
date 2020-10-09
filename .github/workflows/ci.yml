@@ -126,7 +126,11 @@ jobs:
           github.repos.getReleaseByTag({ owner, repo, tag })
             .then(({data: {id: release_id}}) =>
               Promise.all(
-                fs.readdirSync('./dist/').filter(f => f.match(/ubports-installer_*.*/))
+                fs.readdirSync('./dist/').filter(f =>
+                    f.match(/ubports-installer_*.*/) &&
+                    !f.includes("snap") &&
+                    !f.includes("blockmap")
+                  )
                   .map(file =>
                     github.repos.uploadReleaseAsset({
                       owner, repo, release_id,
