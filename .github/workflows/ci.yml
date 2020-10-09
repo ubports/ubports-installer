@@ -19,16 +19,13 @@ jobs:
         node-version: "14"
 
     - name: npm install
-      run: |
-        npm install
+      run: npm install
     - name: npm audit
-      run: |
-        npm audit --production
+      run: npm audit --production
     - name: npm run lint
-      run: |
-        npm run lint
+      run: npm run lint
     - name: npm run prerender
-        npm run prerender
+      run: npm run prerender
 
 
   build:
@@ -69,7 +66,8 @@ jobs:
       run: |
         node ./build.js -o win32 -p portable -a x64
 
-    - uses: actions/upload-artifact@v2
+    - name: archive artifacts
+      uses: actions/upload-artifact@v2
       if: matrix.node_version == "14"
       with:
         name: ubports-installer
