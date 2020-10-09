@@ -113,20 +113,34 @@ jobs:
           const tag = context.ref.replace("refs/tags/", "");
           console.log("trying to upload to", owner, repo, tag);
 
-          github.repos.getReleaseByTag({
-            owner,
-            repo,
-            tag
-          }).then(({data: {id: release_id}}) =>
-            Promise.all(
-              fs.readdirSync('./dist/').filter(f => f.match(/ubports-installer_*.*/))
-                .map(file =>
-                  github.repos.uploadReleaseAsset({
-                    owner, repo,
-                    release_id,
-                    name: file,
-                    data: fs.readFileSync(`./dist/${file}`)
-                  }).then(() => console.log("uploaded", file))
-                )
+          const crypto = require('crypto');
+          const sha256sum = path => new Promise((resolve, reject) => {
+            const hash = crypto.createHash('sha256');
+            const stream = fs.createReadStream(path);
+            stream.on('error', reject);
+            stream.on('data', chunk => hash.update(chunk));
+            stream.on('end', () => resolve(hash.digest('hex')));
+          });
+
+          github.repos.getReleaseByTag({ owner, repo, tag })
+            .then(({data: {id: release_id}}) =>
+              Promise.all(
+                fs.readdirSync('./dist/').filter(f => f.match(/ubports-installer_*.*/))
+                  .map(file =>
+                    github.repos.uploadReleaseAsset({
+                      owner, repo, release_id,
+                      name: file,
+                      data: fs.readFileSync(`./dist/${file}`)
+                    })
+                    .then(() => console.log("uploaded", file))
+                    .then(() => sha256sum(`./dist/${file}`))
+                    .then(data =>
+                      github.repos.uploadReleaseAsset({
+                        owner, repo, release_id, data,
+                        name: `${file}.sha256`
+                      })
+                    )
+                    .then(() => console.log("uploaded checksum for", file))
+                  )
+              )
             )
-          )
