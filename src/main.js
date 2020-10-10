@@ -29,6 +29,7 @@ const Api = require("ubports-api-node-module").Installer;
 
 var winston = require("winston");
 const path = require("path");
+const url = require("url");
 const events = require("events");
 class event extends events {}
 
@@ -501,7 +502,13 @@ async function createWindow() {
       .catch(() => {}); // Ignore errors, since this is non-essential
   });
 
-  mainWindow.loadURL(`file://${__dirname}/html/index.html`);
+  mainWindow.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "html/index.html"),
+      protocol: "file",
+      slashes: true
+    })
+  );
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
