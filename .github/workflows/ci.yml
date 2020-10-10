@@ -78,8 +78,6 @@ jobs:
     - name: build linux
       if: contains(runner.os, 'Linux')
       run: |
-        node ./build.js -o linux -p deb -a arm64
-        node ./build.js -o linux -p AppImage -a arm64
         node ./build.js -o linux -p deb -a x64
         node ./build.js -o linux -p AppImage -a x64
 
