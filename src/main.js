@@ -47,8 +47,12 @@ mainEvent.on("restart", () => {
 });
 
 async function createWindow() {
-  log.info(
-    "Welcome to the UBports Installer version " + packageInfo.version + "!"
+  const mode = process.env.NODE_ENV;
+
+  utils.log.info(
+    "Welcome to the UBports Installer version " +
+      global.packageInfo.version +
+      "!"
   );
   mainWindow = new BrowserWindow({
     width: cli.debug ? 1600 : 800,
@@ -63,6 +67,15 @@ async function createWindow() {
     }
   });
 
+  // Watch bundle.js for changes
+  let watcher;
+  if (process.env.NODE_ENV === 'development') {
+          watcher = require('chokidar').watch(path.join(__dirname, '../public/build'), { ignoreInitial: true });
+          watcher.on('change', () => {
+              mainWindow.reload();
+          });
+  }
+
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => core.prepare(cli.file));
 
@@ -76,13 +89,8 @@ async function createWindow() {
       .catch(e => log.debug(e)); // Ignore errors, since this is non-essential
   });
 
-  mainWindow.loadURL(
-    url.format({
-      pathname: path.join(__dirname, "html/index.html"),
-      protocol: "file",
-      slashes: true
-    })
-  );
+  //mainWindow.loadURL(`file://${__dirname}/html/index.html`);
+  mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
