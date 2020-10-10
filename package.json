@@ -59,7 +59,7 @@
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.1.1",
-    "systeminformation": "^4.27.7",
+    "systeminformation": "^4.27.8",
     "ubports-api-node-module": "^3.0.2",
     "winston": "^3.3.3"
   }
