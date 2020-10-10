@@ -4,7 +4,7 @@ Fear not! Installing [UBports](https://ubports.com) [Ubuntu Touch](https://ubunt
 
 | ![linux logo](https://i.ibb.co/CPq1pL9/linux.png) &nbsp; Linux | ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png) &nbsp; macOS | ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png) &nbsp; Windows |
 |:---:|:---:|:---:|
-|[snap](https://snapcraft.io/ubports-installer), [AppImage](https://devices.ubuntu-touch.io/installer?package=appimage), [deb](https://devices.ubuntu-touch.io/installer?package=deb) | [dmg](https://devices.ubuntu-touch.io/installer?package=dmg) | [exe](https://devices.ubuntu-touch.io/installer?package=exe) |
+| [snap](https://snapcraft.io/ubports-installer) <br> `snap install ubports-installer` <br> [AppImage](https://devices.ubuntu-touch.io/installer?package=appimage) <br> [deb](https://devices.ubuntu-touch.io/installer?package=deb) | [dmg](https://devices.ubuntu-touch.io/installer?package=dmg) | [exe](https://devices.ubuntu-touch.io/installer?package=exe) |
 
 ## Troubleshooting
 
