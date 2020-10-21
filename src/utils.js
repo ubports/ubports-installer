@@ -117,7 +117,7 @@ function die(e) {
 let processes = [];
 function execTool(tool, args, callback) {
   let pid = cp.exec(
-    [getAndroidToolPath(tool), ...args].join(" "),
+    [`"${getAndroidToolPath(tool)}"`, ...args].join(" "),
     {
       maxBuffer: 1024 * 1024 * 2
     },
