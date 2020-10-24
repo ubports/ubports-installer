@@ -29,6 +29,7 @@ const Api = require("ubports-api-node-module").Installer;
 
 var winston = require("winston");
 const path = require("path");
+const fs = require("fs-extra");
 const url = require("url");
 const events = require("events");
 class event extends events {}
@@ -101,7 +102,13 @@ cli
   .parse(process.argv);
 
 if (cli.file) {
-  global.installConfig = require(path.join(process.cwd(), cli.file));
+  try {
+    global.installConfig = fs.readJsonSync(
+      path.isAbsolute(cli.file) ? cli.file : path.join(process.cwd(), cli.file)
+    );
+  } catch (error) {
+    throw new Error(`failed to read config file ${cli.file}: ${error}`);
+  }
 }
 
 global.installProperties = {
