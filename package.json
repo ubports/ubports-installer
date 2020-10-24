@@ -29,7 +29,7 @@
     "lint-fix": "npm run lint -- --fix"
   },
   "devDependencies": {
-    "electron": "^10.1.4",
+    "electron": "^10.1.5",
     "electron-builder": "^22.9.1",
     "electron-packager": "^15.1.0",
     "eslint": "^6.7.2",
@@ -55,7 +55,7 @@
     "jquery-i18next": "^1.2.0",
     "popper.js": "^1.16.0",
     "progressive-downloader": "^1.0.5",
-    "promise-android-tools": "2.0.10",
+    "promise-android-tools": "^3.0.0",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.1.1",
