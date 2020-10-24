@@ -528,13 +528,11 @@ app.on("window-all-closed", function() {
     .killServer()
     .then(utils.killSubprocesses)
     .catch(utils.killSubprocesses);
-  if (process.platform !== "darwin") {
-    utils.log.info("Good bye!");
-    setTimeout(() => {
-      app.quit();
-      process.exit(0);
-    }, 2000);
-  }
+  utils.log.info("Good bye!");
+  setTimeout(() => {
+    app.quit();
+    process.exit(0);
+  }, 2000);
 });
 
 app.on("activate", function() {
@@ -608,6 +606,11 @@ app.on("ready", function() {
         {
           label: "Close",
           accelerator: "CmdOrCtrl+W",
+          role: "close"
+        },
+        {
+          label: "Quit",
+          accelerator: "CmdOrCtrl+Q",
           role: "close"
         },
         {
