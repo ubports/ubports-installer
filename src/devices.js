@@ -33,7 +33,7 @@ function addPathToFiles(files, device) {
         files[i].file
       ),
       partition: files[i].partition,
-      force: files[i].force,
+      flags: files[i].flags,
       raw: files[i].raw
     });
   }
