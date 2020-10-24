@@ -20,7 +20,8 @@
 const systemImage = require("./system-image");
 const utils = require("./utils");
 const path = require("path");
-const { download } = require("progressive-downloader");
+const fs = require("fs-extra");
+const { download, checkFile } = require("progressive-downloader");
 
 function addPathToFiles(files, device) {
   var ret = [];
@@ -113,6 +114,79 @@ function installStep(step) {
             utils.log.error("download error: " + error);
             mainEvent.emit("user:no-network");
           });
+      };
+    case "manual_download":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Manual download");
+        global.mainEvent.emit(
+          "user:write:under",
+          `Checking ${step.group} files...`
+        );
+        return checkFile(
+          {
+            checksum: step.file.checksum,
+            path: path.join(
+              utils.getUbuntuTouchDir(),
+              global.installProperties.device,
+              step.group,
+              step.file.name
+            )
+          },
+          false
+        ).then(ok => {
+          if (!ok) {
+            return new Promise(function(resolve, reject) {
+              global.mainEvent.emit(
+                "user:manual_download",
+                step.file,
+                step.group,
+                downloadedFilePath => {
+                  fs.ensureDir(
+                    path.join(
+                      utils.getUbuntuTouchDir(),
+                      global.installProperties.device,
+                      step.group
+                    )
+                  )
+                    .then(() =>
+                      fs.copyFile(
+                        downloadedFilePath,
+                        path.join(
+                          utils.getUbuntuTouchDir(),
+                          global.installProperties.device,
+                          step.group,
+                          step.file.name
+                        )
+                      )
+                    )
+                    .then(() =>
+                      checkFile(
+                        {
+                          checksum: step.file.checksum,
+                          path: path.join(
+                            utils.getUbuntuTouchDir(),
+                            global.installProperties.device,
+                            step.group,
+                            step.file.name
+                          )
+                        },
+                        true
+                      )
+                    )
+                    .then(ok =>
+                      ok ? resolve() : reject(new Error("checksum mismatch"))
+                    )
+                    .catch(reject);
+                }
+              );
+              global.mainEvent.emit(
+                "user:write:under",
+                `Manual download required!`
+              );
+            });
+          }
+        });
       };
     case "unpack":
       return () => {
