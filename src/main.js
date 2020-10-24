@@ -323,6 +323,14 @@ mainEvent.on("user:action", (action, callback) => {
   }
 });
 
+// Request user_action
+mainEvent.on("user:manual_download", (file, group, callback) => {
+  if (mainWindow) {
+    mainWindow.webContents.send("user:manual_download", file, group);
+    ipcMain.once("manual_download:completed", (e, path) => callback(path));
+  }
+});
+
 // Control the progress bar
 mainEvent.on("user:write:progress", progress => {
   if (mainWindow) mainWindow.webContents.send("user:write:progress", progress);

@@ -1,0 +1,31 @@
+#views-manual-download.main.container.views(hidden='hidden')
+  .row
+    .col-xs-6
+      img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
+    .col-xs-6
+      h4(style='font-weight: bold;') Manual Download
+      p The #[b#manual-download-group] file #[b#manual-download-filename-1] needs to be manually downloaded due to licensing restrictions. Sorry for the inconvenience!
+      p Please download the file #[b#manual-download-filename-2] from #[a#manual-download-link]. Once you have it, select it in the file picker and click the button below to continue.
+      .input-group(style="margin-bottom: 1em;")
+        .custom-file
+          input#manual-download-input.custom-file-input(type="file")
+      button#manual-download-button.btn.btn-primary(hidden="false", type='button', style='width: 100%;') Continue
+  script.
+    ipcRenderer.on("user:manual_download", (event, file, group) => {
+      views.show("manual-download");
+      shell.openExternal(file.url);
+      $("#manual-download-group").text(group);
+      $("#manual-download-filename-1").text(file.name);
+      $("#manual-download-filename-2").text(file.name);
+      $("#manual-download-link").text(file.url)
+      $("#manual-download-link").one("click", () => {
+        shell.openExternal(file.url);
+      })
+
+      $("#manual-download-button").one("click", () => {
+        event.sender.send(
+          "manual_download:completed",
+          $("#manual-download-input")[0].files[0].path
+        );
+      });
+    });
