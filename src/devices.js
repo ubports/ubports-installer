@@ -358,7 +358,14 @@ function installStep(step) {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Continuing boot", true);
         global.mainEvent.emit("user:write:under", "Resuming boot");
-        fastboot.continue();
+        return fastboot.continue();
+      };
+    case "fastboot:set_active":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Continuing boot", true);
+        global.mainEvent.emit("user:write:under", "Resuming boot");
+        return fastboot.setActive(step.slot);
       };
     case "heimdall:flash":
       return () => {
