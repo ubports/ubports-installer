@@ -53,7 +53,7 @@ var installLatestVersion = options => {
       }),
     adb
       .waitForDevice()
-      .then(() => adb.shell("mount -a || true"))
+      .then(() => adb.shell("'mount -a || true'"))
       .then(() => utils.log.debug("adb mounted all partitions"))
       .then(() => adb.wipeCache())
       .then(() => utils.log.debug("adb wiped cache"))
