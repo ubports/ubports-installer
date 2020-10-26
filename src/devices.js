@@ -266,9 +266,13 @@ function installStep(step) {
           "user:write:under",
           "Flashing firmware partitions using fastboot"
         );
-        return fastboot.flashArray(
-          addPathToFiles(step.flash, global.installProperties.device)
-        );
+        return fastboot
+          .waitForDevice()
+          .then(() =>
+            fastboot.flashArray(
+              addPathToFiles(step.flash, global.installProperties.device)
+            )
+          );
       };
     case "fastboot:erase":
       return () => {
