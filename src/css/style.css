@@ -7,7 +7,6 @@ body {
   overflow:hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  -webkit-user-select: none;
   image-rendering: crisp-edges;
 }
 body .vertical-centered-box {
