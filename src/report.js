@@ -74,9 +74,7 @@ function getSettingsString() {
  */
 function getPackageString() {
   try {
-    return process.env.SNAP_NAME
-      ? "snap"
-      : global.packageInfo.package || "source";
+    return global.packageInfo.package || "source";
   } catch (e) {
     return "unknown";
   }
@@ -180,7 +178,7 @@ async function getLog() {
 /**
  * Paste content to paste.ubuntu.com
  * @async
- * @param {String} content - content to paste
+ * @param {Promise<String>} content - content to paste
  * @param {String} [poster] - user name
  * @param {String} [syntax] - syntax for highlighting
  * @param {String} [expiration] - how long to store the log
@@ -188,7 +186,7 @@ async function getLog() {
  * @throws if paste failed
  */
 async function paste(
-  content,
+  content = getLog(),
   poster = "UBports Installer",
   syntax = "text",
   expiration = "year"
@@ -197,11 +195,20 @@ async function paste(
   form.append("poster", poster);
   form.append("syntax", syntax);
   form.append("expiration", expiration);
-  form.append("content", content);
+  form.append("content", await content);
 
   return axios
     .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
-    .then(r => `https://paste.ubuntu.com/${r.request.path}`)
+    .then(r => {
+      if (r.request.path && r.request.path.length >= 2) {
+        return r.request.path;
+      } else {
+        throw new Error(
+          `Failed to paste: Invalid path response: ${r.request.path}`
+        );
+      }
+    })
+    .then(pasteId => `https://paste.ubuntu.com${pasteId}`)
     .catch(error => {
       throw new Error(`Failed to paste: ${error}`);
     });
@@ -232,17 +239,20 @@ function getIssueTitle(reason) {
  * Open a new GitHub issue in the default browser
  * @async
  * @param {String} reason - error message or falsy value
+ * @param {String} opencutsToken - OPEN-CUTS API token
  */
-async function sendBugReport(reason) {
-  const log = await getLog();
-  const [pasteUrl, runUrl] = await Promise.all([
-    paste(log).catch(() => "*N/A*"),
-    sendOpenCutsRun(reason ? "FAIL" : "WONKY", log).catch(() => "*N/A*")
-  ]);
+async function sendBugReport(reason, opencutsToken) {
+  const log = getLog();
+  const pasteUrl = paste(log).catch(() => "*N/A*");
+  const runUrl = sendOpenCutsRun(
+    opencutsToken,
+    reason ? "FAIL" : "WONKY",
+    log
+  ).catch(() => "*N/A*");
   shell.openExternal(
     `https://github.com/ubports/ubports-installer/issues/new?title=${getIssueTitle(
       reason
-    )}&body=${await getDebugInfo(reason, pasteUrl, runUrl)}`
+    )}&body=${await getDebugInfo(reason, await pasteUrl, await runUrl)}`
   );
   return;
 }
@@ -259,21 +269,16 @@ const OPENCUTS_OS = {
 /**
  * Send an OPEN-CUTS run
  * @async
- * @param {String} result - PASS WONKY FAIL
- * @param {String} [log] - log file contents
+ * @param {String} [token] - OPEN-CUTS API token
+ * @param {String} [result] - PASS WONKY FAIL
+ * @param {Promise<String>} [log] - log file contents
  * @returns {String} run url
  * @throws if sending run failed
  */
-async function sendOpenCutsRun(result = "PASS", log) {
+async function sendOpenCutsRun(token, result = "PASS", log = getLog()) {
   const openCutsApi = new GraphQLClient(
     "https://ubports.open-cuts.org/graphql",
-    {
-      headers: process.env.OPENCUTS_API_KEY
-        ? {
-            authorization: process.env.OPENCUTS_API_KEY
-          }
-        : {}
-    }
+    { headers: token ? { authorization: token } : {} }
   );
   return openCutsApi
     .request(
@@ -309,7 +314,7 @@ async function sendOpenCutsRun(result = "PASS", log) {
           logs: [
             {
               name: "ubports-installer.log",
-              content: log || (await getLog())
+              content: await log
             }
           ]
         }
