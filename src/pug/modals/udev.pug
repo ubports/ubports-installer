@@ -12,9 +12,19 @@
           | Alternatively, you can choose to do this #[a(onclick="shell.openExternal('https://docs.ubports.com/en/latest/userguide/install.html#missing-udev-rules')") manually] through the command-line.
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
-        button.btn.btn-default(type='button', data-dismiss='modal', onclick="localStorage.setItem('neverAskForUdevRules', 'true');") Don't ask me again
-        button.btn.btn-primary(type='button', data-dismiss='modal', onclick="localStorage.setItem('neverAskForUdevRules', 'true'); ipcRenderer.send('udev');") Set up rules automatically.
+        button.btn.btn-default(type='button', data-dismiss='modal', onclick='dismissUdev(false)') Don't ask me again
+        button.btn.btn-primary(type='button', data-dismiss='modal', onclick='dismissUdev(true)') Set up rules automatically.
   script.
-    if (process.platform === "linux" && !process.env.SNAP && !localStorage.getItem('neverAskForUdevRules')) {
-      setTimeout(() => modals.show('udev'), 1000);
+    function dismissUdev(set) {
+      ipcRenderer.invoke("setSettingsValue", "never.udev", true);
+      if (set) {
+        ipcRenderer.send("udev");
+      }
+    }
+    if (process.platform === "linux" && !process.env.SNAP) {
+      ipcRenderer.invoke("getSettingsValue", "never.udev")
+        .then(never =>
+          never ? null :
+          setTimeout(() => modals.show('udev'), 1000)
+        )
     }

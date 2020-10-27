@@ -26,6 +26,7 @@ global.packageInfo = require("../package.json");
 
 const { Adb, Fastboot, Heimdall } = require("promise-android-tools");
 const Api = require("ubports-api-node-module").Installer;
+const Store = require("electron-store");
 
 var winston = require("winston");
 const path = require("path");
@@ -71,6 +72,32 @@ var heimdall = new Heimdall({
   log: utils.log.debug
 });
 global.heimdall = heimdall;
+
+const settings = new Store({
+  schema: {
+    animations: {
+      type: "boolean",
+      default: true
+    },
+    opencuts_token: {
+      type: "string"
+    },
+    never: {
+      opencuts: {
+        type: "boolean",
+        default: false
+      },
+      udev: {
+        type: "boolean",
+        default: false
+      },
+      windowsDrivers: {
+        type: "boolean",
+        default: false
+      }
+    }
+  }
+});
 
 //==============================================================================
 // PARSE COMMAND-LINE ARGUMENTS
@@ -234,6 +261,16 @@ ipcMain.on("update", () => {
   );
 });
 
+// Get settings value
+ipcMain.handle("getSettingsValue", (event, key) => {
+  return settings.get(key);
+});
+
+// Set settings value
+ipcMain.handle("setSettingsValue", (event, key, value) => {
+  return settings.set(key, value);
+});
+
 //==============================================================================
 // RENDERER COMMUNICATION
 //==============================================================================
@@ -343,8 +380,8 @@ mainEvent.on("user:write:done", () => {
   utils.log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
-  if (process.env.OPENCUTS_API_KEY || process.env.OPENCUTS) {
-    sendOpenCutsRun()
+  if (!settings.get("never.opencuts")) {
+    sendOpenCutsRun(settings.get("opencuts_token"))
       .then(url => {
         utils.log.info(
           `Thank you for reporting! You can view your run here: ${url}`
@@ -442,12 +479,7 @@ mainEvent.on("device:detected", device => {
   mainEvent.emit("device", device);
 });
 
-// Set localstorage item
-mainEvent.on("localstorage:set", (item, value) => {
-  if (mainWindow) mainWindow.webContents.send("localstorage:set", item, value);
-});
-
-// Set localstorage item
+// No internet connection
 mainEvent.on("user:no-network", () => {
   if (mainWindow) mainWindow.webContents.send("user:no-network");
 });
@@ -627,23 +659,6 @@ app.on("ready", function() {
           label: "Quit",
           accelerator: "CmdOrCtrl+Q",
           role: "close"
-        },
-        {
-          label: "Animations",
-          submenu: [
-            {
-              label: "Enable",
-              click: () =>
-                mainEvent.emit("localstorage:set", "animationsDisabled", false)
-            },
-            {
-              label: "Disable",
-              click: () => {
-                mainWindow.webContents.send("animations:hide");
-                mainEvent.emit("localstorage:set", "animationsDisabled", true);
-              }
-            }
-          ]
         }
       ]
     },
@@ -668,6 +683,62 @@ app.on("ready", function() {
         {
           label: "Clean cached files",
           click: utils.cleanInstallerCache
+        },
+        {
+          label: "Open settings config file",
+          click: () => {
+            settings.openInEditor();
+          },
+          visible: settings.size
+        },
+        {
+          label: "Reset settings",
+          click: () => {
+            settings.clear();
+          },
+          visible: settings.size
+        }
+      ]
+    },
+    {
+      label: "Settings",
+      submenu: [
+        {
+          label: "Animations",
+          checked: settings.get("animations"),
+          type: "checkbox",
+          click: () => {
+            settings.set("animations", !settings.get("animations"));
+            if (settings.get("animations"))
+              mainWindow.webContents.send("animations:hide");
+          }
+        },
+        {
+          label: "Never ask for udev rules",
+          checked: settings.get("never.udev"),
+          visible:
+            global.packageInfo.package !== "snap" &&
+            process.platform === "linux",
+          type: "checkbox",
+          click: () => settings.set("never.udev", !settings.get("never.udev"))
+        },
+        {
+          label: "Never ask for windows drivers",
+          checked: settings.get("never.windowsDrivers"),
+          visible: process.platform === "win32",
+          type: "checkbox",
+          click: () =>
+            settings.set(
+              "never.windowsDrivers",
+              !settings.get("never.windowsDrivers")
+            )
+        },
+        {
+          label: "Never ask for OPEN-CUTS automatic reporting",
+          checked: settings.get("never.opencuts"),
+          type: "checkbox",
+          click: () =>
+            settings.set("never.opencuts", !settings.get("never.opencuts"))
         }
       ]
     },
@@ -679,14 +750,14 @@ app.on("ready", function() {
           click: () => sendBugReport()
         },
         {
-          label: "View issues",
+          label: "Bug tracker",
           click: () =>
             electron.shell.openExternal(
               "https://github.com/ubports/ubports-installer/issues"
             )
         },
         {
-          label: "Troubleshooting guide",
+          label: "Troubleshooting",
           click: () =>
             electron.shell.openExternal(
               "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
@@ -695,6 +766,17 @@ app.on("ready", function() {
         {
           label: "UBports Forums",
           click: () => electron.shell.openExternal("https://forums.ubports.com")
+        },
+        {
+          label: "AskUbuntu",
+          click: () =>
+            electron.shell.openExternal(
+              "https://askubuntu.com/questions/tagged/ubuntu-touch"
+            )
+        },
+        {
+          label: "Telegram",
+          click: () => electron.shell.openExternal("https://t.me/WelcomePlus")
         }
       ]
     }

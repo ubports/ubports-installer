@@ -15,8 +15,15 @@
           | As a last resort, we also have #[a(onclick="shell.openExternal('https://devices.ubuntu-touch.io')") manual installation instructions for every device], that you can follow if you want to install without using the UBports Installer.
       .modal-footer
         button.btn.btn-default(type='button', data-dismiss='modal') Dismiss
-        button#btn-driver-never-ask.btn.btn-primary(type='button', data-dismiss='modal', onclick="localStorage.setItem('neverAskForWindowsDrivers', 'true');") Don't ask me again
+        button#btn-driver-never-ask.btn.btn-primary(type='button', data-dismiss='modal', onclick="dismissDrivers()") Don't ask me again
   script.
-    if (process.platform === "win32" && !localStorage.getItem('neverAskForWindowsDrivers')) {
-      setTimeout(() => modals.show('windows-drivers'), 1000);
+    function dismissDrivers() {
+      ipcRenderer.invoke("setSettingsValue", "never.windowsDrivers", true);
+    }
+    if (process.platform === "win32") {
+      ipcRenderer.invoke("getSettingsValue", "never.windowsDrivers")
+        .then(never =>
+          never ? null :
+          setTimeout(() => modals.show('windows-drivers'), 1000)
+        )
     }
