@@ -215,10 +215,22 @@ ipcMain.on("install", () => {
 });
 
 // Submit a user-requested bug-report
-ipcMain.on("createBugReport", async (event, error) => {
-  prompt(await prepareErrorReport("WONKY", error), mainWindow).then(data => {
-    sendBugReport(data, settings.get("opencuts_token"));
-  });
+ipcMain.on("reportResult", async (event, result, error) => {
+  if (result !== "PASS") {
+    prompt(await prepareErrorReport(result, error), mainWindow).then(data => {
+      sendBugReport(data, settings.get("opencuts_token"));
+    });
+  } else {
+    prompt(await prepareSuccessReport(), mainWindow)
+      .then(data => sendOpenCutsRun(settings.get("opencuts_token"), data))
+      .then(url => {
+        utils.log.info(
+          `Thank you for reporting! You can view your run here: ${url}`
+        );
+        electron.shell.openExternal(url);
+      })
+      .catch(utils.log.error);
+  }
 });
 
 // The user selected a device
@@ -288,7 +300,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
   try {
     if (mainWindow) {
       mainWindow.webContents.send("user:error", error);
-      ipcMain.once("user:error:reply", async (e, reply) => {
+      ipcMain.once("user:error:reply", (e, reply) => {
         switch (reply) {
           case "ignore":
             utils.log.warn("error ignored");
@@ -300,12 +312,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
             else mainEvent.emit("restart");
             return;
           case "bugreport":
-            return prompt(
-              await prepareErrorReport("FAIL", error),
-              mainWindow
-            ).then(data => {
-              sendBugReport(data, settings.get("opencuts_token"));
-            });
+            return mainWindow.webContents.send("user:report");
           default:
             break;
         }
@@ -386,24 +393,16 @@ mainEvent.on("user:write:progress", progress => {
 });
 
 // Installation successfull
-mainEvent.on("user:write:done", async () => {
+mainEvent.on("user:write:done", () => {
   if (mainWindow) mainWindow.webContents.send("user:write:done");
   if (mainWindow) mainWindow.webContents.send("user:write:speed");
   utils.log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
   if (!settings.get("never.opencuts")) {
-    prompt(await prepareSuccessReport(), mainWindow)
-      .then(data => {
-        sendOpenCutsRun(settings.get("opencuts_token"), data);
-      })
-      .then(url => {
-        utils.log.info(
-          `Thank you for reporting! You can view your run here: ${url}`
-        );
-        electron.shell.openExternal(url);
-      })
-      .catch(utils.log.error);
+    setTimeout(() => {
+      mainWindow.webContents.send("user:report");
+    }, 1500);
   }
 });
 
@@ -688,6 +687,10 @@ app.on("ready", function() {
             process.platform === "linux"
         },
         {
+          label: "Report a bug",
+          click: () => mainWindow.webContents.send("user:report")
+        },
+        {
           label: "Developer tools",
           click: () => mainWindow.webContents.openDevTools()
         },
@@ -795,6 +798,10 @@ app.on("ready", function() {
             electron.shell.openExternal(
               "https://github.com/ubports/ubports-installer/issues"
             )
+        },
+        {
+          label: "Report a bug",
+          click: () => mainWindow.webContents.send("user:report")
         },
         {
           label: "Troubleshooting",

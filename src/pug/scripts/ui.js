@@ -130,7 +130,7 @@ const modals = {
 };
 
 $("#help").click(() => {
-  ipcRenderer.send("createBugReport");
+  modals.show("result");
 });
 
 $("#donate").click(() => {
