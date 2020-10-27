@@ -85,7 +85,7 @@ function getPackageString() {
  * @async
  * @returns {String} environment information
  */
-async function getHostOsString() {
+async function getEnvironment() {
   return new Promise(function(resolve, reject) {
     try {
       osInfo(hostOs =>
@@ -98,7 +98,8 @@ async function getHostOsString() {
             hostOs.kernel,
             hostOs.arch,
             hostOs.build,
-            hostOs.servicepack
+            hostOs.servicepack,
+            `NodeJS ${process.version}`
           ]
             .filter(i => i)
             .join(" ")
@@ -113,29 +114,26 @@ async function getHostOsString() {
 /**
  * Generate a URL-encoded string to create a GitHub issue
  * @async
- * @param {Error} reason - pass an error for an error report, a falsy value for a user-requested report
+ * @param {Object} data - form data
  * @param {String} logUrl - Ubuntu pastebin URL
  * @param {String} runUrl - OPEN-CUTS run URL
  * @returns {String} url-encoded string to create a GitHub issue
  */
-async function getDebugInfo(reason, logUrl, runUrl) {
+async function getDebugInfo(data, logUrl, runUrl) {
   return encodeURIComponent(
     [
-      `**UBports Installer \`${
-        global.packageInfo.version
-      }\` (${getPackageString()})**`,
-      `Environment: \`${await getHostOsString()}\` with Node.js \`${
-        process.version
-      }\``,
-      `Device: ${getDeviceString()}`,
+      `**UBports Installer \`${global.packageInfo.version}\` (${data.package})**`,
+      `Environment: \`${data.environment}\``,
+      `Device: ${data.device}`,
       `Target OS: ${getTargetOsString()}`,
       `Settings: \`${getSettingsString()}\``,
       `OPEN-CUTS run: ${runUrl}`,
       `Log: ${logUrl}`,
       "\n",
-      ...(reason
-        ? ["**Error:**", "```", reason, "```"]
-        : ["<!-- please describe how to reproduce this issue -->\n"])
+      data.comment,
+      "\n",
+      ...(data.error ? ["**Error:**", "```", data.error, "```"] : []),
+      "<!-- thank you for reporting! -->\n"
     ]
       .filter(i => i)
       .join("\n")
@@ -216,43 +214,31 @@ async function paste(
 
 /**
  * Ensure a usable issue title
- * @param {String} reason - error message or falsy value
+ * @param {String} error - error message or falsy value
  * @returns {String} issue title
  */
-function getIssueTitle(reason) {
-  if (!reason) {
-    return encodeURIComponent("please describe the problem in a few words");
-  }
-  const _reason = reason
-    .replaceAll(getAndroidToolBaseDir(), "$PKG")
-    .replaceAll(getUbuntuTouchDir(), "$CACHE");
-  if (_reason.length > 200) {
-    return encodeURIComponent(
-      `${_reason.slice(0, 75)} [...] ${_reason.slice(_reason.length - 100)}`
-    );
-  } else {
-    return encodeURIComponent(_reason);
-  }
+function getIssueTitle(error) {
+  if (!error) return "";
+  else
+    return error
+      .replaceAll(getAndroidToolBaseDir(), "$PKG")
+      .replaceAll(getUbuntuTouchDir(), "$CACHE");
 }
 
 /**
  * Open a new GitHub issue in the default browser
  * @async
- * @param {String} reason - error message or falsy value
+ * @param {String} data - form data
  * @param {String} opencutsToken - OPEN-CUTS API token
  */
-async function sendBugReport(reason, opencutsToken) {
+async function sendBugReport(data, opencutsToken) {
   const log = getLog();
   const pasteUrl = paste(log).catch(() => "*N/A*");
-  const runUrl = sendOpenCutsRun(
-    opencutsToken,
-    reason ? "FAIL" : "WONKY",
-    log
-  ).catch(() => "*N/A*");
+  const runUrl = sendOpenCutsRun(opencutsToken, data, log).catch(() => "*N/A*");
   shell.openExternal(
-    `https://github.com/ubports/ubports-installer/issues/new?title=${getIssueTitle(
-      reason
-    )}&body=${await getDebugInfo(reason, await pasteUrl, await runUrl)}`
+    `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
+      data.title
+    )}&body=${await getDebugInfo(data, await pasteUrl, await runUrl)}`
   );
   return;
 }
@@ -270,12 +256,12 @@ const OPENCUTS_OS = {
  * Send an OPEN-CUTS run
  * @async
  * @param {String} [token] - OPEN-CUTS API token
- * @param {String} [result] - PASS WONKY FAIL
+ * @param {Object} data - form data
  * @param {Promise<String>} [log] - log file contents
  * @returns {String} run url
  * @throws if sending run failed
  */
-async function sendOpenCutsRun(token, result = "PASS", log = getLog()) {
+async function sendOpenCutsRun(token, data, log = getLog()) {
   const openCutsApi = new GraphQLClient(
     "https://ubports.open-cuts.org/graphql",
     { headers: token ? { authorization: token } : {} }
@@ -299,16 +285,16 @@ async function sendOpenCutsRun(token, result = "PASS", log = getLog()) {
         systemId: "5e9d746c6346e112514cfec7",
         tag: global.packageInfo.version,
         run: {
-          result: result,
-          comment: `Installed ${getTargetOsString()} on ${getDeviceString()} from a computer running ${await getHostOsString()}.`,
+          result: data.result,
+          comment: data.comment,
           combination: [
             {
               variable: "Environment",
-              value: OPENCUTS_OS[process.platform]
+              value: data.hostOs
             },
             {
               variable: "Package",
-              value: global.packageInfo.package || "source"
+              value: data.package
             }
           ],
           logs: [
@@ -326,7 +312,131 @@ async function sendOpenCutsRun(token, result = "PASS", log = getLog()) {
     });
 }
 
+function genericFormFields(result) {
+  return [
+    {
+      id: "device",
+      label: "Device",
+      type: "input",
+      attrs: {
+        placeholder: "Device codename",
+        value: global.installProperties.device || "N/A",
+        required: true
+      }
+    },
+    {
+      id: "package",
+      label: "Package",
+      type: "input",
+      attrs: {
+        placeholder: "What package of the Installer are you using?",
+        value: global.packageInfo.package || "source",
+        required: true
+      }
+    },
+    {
+      id: "hostOs",
+      label: "Host OS",
+      type: "input",
+      attrs: {
+        placeholder: "What operating system are you using?",
+        value: OPENCUTS_OS[process.platform],
+        required: true
+      }
+    },
+    {
+      id: "result",
+      label: "",
+      type: "input",
+      attrs: {
+        placeholder: "PASS, WONKY, FAIL",
+        value: result,
+        style: "display: none;"
+      }
+    }
+  ];
+}
+
+async function prepareErrorReport(result = "FAIL", errorMessage) {
+  return {
+    modal: false,
+    title: "Report an Error",
+    description: `Sorry to hear that the installer did not work for you. You can help the UBports community fix this issue by reporting your installation result. Edit the information below and click OK to submit. The installer will then automatically report a ${result} run to ubports.open-cuts.org and send a log to paste.ubuntu.com. After that, your webbrowser will open so you can create a bug report on GitHub.`,
+    resizable: true,
+    height: 720,
+    width: 650,
+    fields: [
+      {
+        id: "title",
+        label: "Title",
+        type: "input",
+        attrs: {
+          required: true,
+          placeholder: "Please summarize your experience in a few words",
+          value: getIssueTitle(errorMessage)
+        }
+      },
+      {
+        id: "error",
+        label: "",
+        type: "input",
+        attrs: {
+          placeholder: "Original error",
+          value: errorMessage
+        }
+      },
+      {
+        id: "comment",
+        label: "Comment",
+        type: "input",
+        attrs: {
+          placeholder: "How can we reproduce this issue?",
+          required: true
+        }
+      },
+      ...genericFormFields(result),
+      {
+        id: "environment",
+        label: "Environment",
+        type: "input",
+        attrs: {
+          placeholder: "Where are you running the installer?",
+          value: await getEnvironment(),
+          required: true
+        }
+      }
+    ]
+  };
+}
+
+async function prepareSuccessReport() {
+  return {
+    modal: false,
+    title: "Report Success",
+    description:
+      "You can help the UBports community improve the installer by reporting your installation result. Edit the information below and click OK to automatically submit a run with an attached log to ubports.open-cuts.org.",
+    resizable: true,
+    height: 720,
+    width: 650,
+    fields: [
+      {
+        id: "comment",
+        label: "Comment",
+        type: "input",
+        attrs: {
+          placeholder: "You can provide detailed information here...",
+          value: `Installed ${getTargetOsString()} on ${getDeviceString()} from a computer running ${await getEnvironment()}.`,
+          required: true
+        }
+      },
+      ...genericFormFields("PASS")
+    ]
+  };
+}
+
 module.exports = {
   sendBugReport,
-  sendOpenCutsRun
+  sendOpenCutsRun,
+  prepareSuccessReport,
+  prepareErrorReport
 };

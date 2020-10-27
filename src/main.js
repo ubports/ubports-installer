@@ -41,7 +41,12 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
-const { sendOpenCutsRun, sendBugReport } = require("./report.js");
+const {
+  sendOpenCutsRun,
+  sendBugReport,
+  prepareSuccessReport,
+  prepareErrorReport
+} = require("./report.js");
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
@@ -209,9 +214,11 @@ ipcMain.on("install", () => {
   );
 });
 
-// Submit a bug-report
-ipcMain.on("createBugReport", (event, error) => {
-  sendBugReport(error, settings.get("opencuts_token"));
+// Submit a user-requested bug-report
+ipcMain.on("createBugReport", async (event, error) => {
+  prompt(await prepareErrorReport("WONKY", error), mainWindow).then(data => {
+    sendBugReport(data, settings.get("opencuts_token"));
+  });
 });
 
 // The user selected a device
@@ -281,20 +288,24 @@ mainEvent.on("user:error", (error, restart, ignore) => {
   try {
     if (mainWindow) {
       mainWindow.webContents.send("user:error", error);
-      ipcMain.once("user:error:reply", (e, reply) => {
+      ipcMain.once("user:error:reply", async (e, reply) => {
         switch (reply) {
           case "ignore":
             utils.log.warn("error ignored");
             if (ignore) setTimeout(ignore, 500);
-            break;
+            return;
           case "restart":
             utils.log.warn("restart after error");
             if (restart) setTimeout(restart, 500);
             else mainEvent.emit("restart");
-            break;
+            return;
           case "bugreport":
-            sendBugReport(error, settings.get("opencuts_token"));
-            break;
+            return prompt(
+              await prepareErrorReport("FAIL", error),
+              mainWindow
+            ).then(data => {
+              sendBugReport(data, settings.get("opencuts_token"));
+            });
           default:
             break;
         }
@@ -375,14 +386,17 @@ mainEvent.on("user:write:progress", progress => {
 });
 
 // Installation successfull
-mainEvent.on("user:write:done", () => {
+mainEvent.on("user:write:done", async () => {
   if (mainWindow) mainWindow.webContents.send("user:write:done");
   if (mainWindow) mainWindow.webContents.send("user:write:speed");
   utils.log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
   if (!settings.get("never.opencuts")) {
-    sendOpenCutsRun(settings.get("opencuts_token"))
+    prompt(await prepareSuccessReport(), mainWindow)
+      .then(data => {
+        sendOpenCutsRun(settings.get("opencuts_token"), data);
+      })
       .then(url => {
         utils.log.info(
           `Thank you for reporting! You can view your run here: ${url}`
@@ -678,10 +692,6 @@ app.on("ready", function() {
           click: () => mainWindow.webContents.openDevTools()
         },
         {
-          label: "Report a bug",
-          click: () => sendBugReport(null, settings.get("opencuts_token"))
-        },
-        {
           label: "Clean cached files",
           click: utils.cleanInstallerCache
         },
@@ -757,6 +767,7 @@ app.on("ready", function() {
                     label: "Token",
                     type: "input",
                     attrs: {
+                      type: "password",
                       value: settings.get("opencuts_token"),
                       placeholder: "get your token on ubports.open-cuts.org",
                       required: true
@@ -778,10 +789,6 @@ app.on("ready", function() {
     {
       label: "Help",
       submenu: [
-        {
-          label: "Report a bug",
-          click: () => sendBugReport(null, settings.get("opencuts_token"))
-        },
         {
           label: "Bug tracker",
           click: () =>
