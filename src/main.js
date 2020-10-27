@@ -46,6 +46,7 @@ const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
 const { shell } = require("electron");
+const prompt = require("electron-dynamic-prompt");
 const api = new Api({
   timeout: 7500,
   cachetime: 60000
@@ -210,7 +211,7 @@ ipcMain.on("install", () => {
 
 // Submit a bug-report
 ipcMain.on("createBugReport", (event, error) => {
-  sendBugReport(error);
+  sendBugReport(error, settings.get("opencuts_token"));
 });
 
 // The user selected a device
@@ -292,7 +293,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
             else mainEvent.emit("restart");
             break;
           case "bugreport":
-            sendBugReport(error);
+            sendBugReport(error, settings.get("opencuts_token"));
             break;
           default:
             break;
@@ -678,7 +679,7 @@ app.on("ready", function() {
         },
         {
           label: "Report a bug",
-          click: () => sendBugReport()
+          click: () => sendBugReport(null, settings.get("opencuts_token"))
         },
         {
           label: "Clean cached files",
@@ -739,6 +740,38 @@ app.on("ready", function() {
           type: "checkbox",
           click: () =>
             settings.set("never.opencuts", !settings.get("never.opencuts"))
+        },
+        {
+          label: "OPEN-CUTS API Token",
+          click: () =>
+            prompt(
+              {
+                title: "OPEN-CUTS API Token",
+                height: 300,
+                resizable: true,
+                description:
+                  "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your OPEN-CUTS account.",
+                fields: [
+                  {
+                    id: "token",
+                    label: "Token",
+                    type: "input",
+                    attrs: {
+                      value: settings.get("opencuts_token"),
+                      placeholder: "get your token on ubports.open-cuts.org",
+                      required: true
+                    }
+                  }
+                ]
+              },
+              mainWindow
+            )
+              .then(({ token }) => {
+                if (token) {
+                  settings.set("opencuts_token", token.trim());
+                }
+              })
+              .catch(() => null)
         }
       ]
     },
@@ -747,7 +780,7 @@ app.on("ready", function() {
       submenu: [
         {
           label: "Report a bug",
-          click: () => sendBugReport()
+          click: () => sendBugReport(null, settings.get("opencuts_token"))
         },
         {
           label: "Bug tracker",
