@@ -26,6 +26,7 @@ global.packageInfo = require("../package.json");
 
 const { Adb, Fastboot, Heimdall } = require("promise-android-tools");
 const Api = require("ubports-api-node-module").Installer;
+const Store = require("electron-store");
 
 var winston = require("winston");
 const path = require("path");
@@ -40,11 +41,17 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
-const { sendOpenCutsRun, sendBugReport } = require("./report.js");
+const {
+  sendOpenCutsRun,
+  sendBugReport,
+  prepareSuccessReport,
+  prepareErrorReport
+} = require("./report.js");
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
 const { shell } = require("electron");
+const prompt = require("electron-dynamic-prompt");
 const api = new Api({
   timeout: 7500,
   cachetime: 60000
@@ -71,6 +78,32 @@ var heimdall = new Heimdall({
   log: utils.log.debug
 });
 global.heimdall = heimdall;
+
+const settings = new Store({
+  schema: {
+    animations: {
+      type: "boolean",
+      default: true
+    },
+    opencuts_token: {
+      type: "string"
+    },
+    never: {
+      opencuts: {
+        type: "boolean",
+        default: false
+      },
+      udev: {
+        type: "boolean",
+        default: false
+      },
+      windowsDrivers: {
+        type: "boolean",
+        default: false
+      }
+    }
+  }
+});
 
 //==============================================================================
 // PARSE COMMAND-LINE ARGUMENTS
@@ -181,9 +214,23 @@ ipcMain.on("install", () => {
   );
 });
 
-// Submit a bug-report
-ipcMain.on("createBugReport", (event, error) => {
-  sendBugReport(error);
+// Submit a user-requested bug-report
+ipcMain.on("reportResult", async (event, result, error) => {
+  if (result !== "PASS") {
+    prompt(await prepareErrorReport(result, error), mainWindow).then(data => {
+      sendBugReport(data, settings.get("opencuts_token"));
+    });
+  } else {
+    prompt(await prepareSuccessReport(), mainWindow)
+      .then(data => sendOpenCutsRun(settings.get("opencuts_token"), data))
+      .then(url => {
+        utils.log.info(
+          `Thank you for reporting! You can view your run here: ${url}`
+        );
+        electron.shell.openExternal(url);
+      })
+      .catch(utils.log.error);
+  }
 });
 
 // The user selected a device
@@ -234,6 +281,16 @@ ipcMain.on("update", () => {
   );
 });
 
+// Get settings value
+ipcMain.handle("getSettingsValue", (event, key) => {
+  return settings.get(key);
+});
+
+// Set settings value
+ipcMain.handle("setSettingsValue", (event, key, value) => {
+  return settings.set(key, value);
+});
+
 //==============================================================================
 // RENDERER COMMUNICATION
 //==============================================================================
@@ -248,15 +305,14 @@ mainEvent.on("user:error", (error, restart, ignore) => {
           case "ignore":
             utils.log.warn("error ignored");
             if (ignore) setTimeout(ignore, 500);
-            break;
+            return;
           case "restart":
             utils.log.warn("restart after error");
             if (restart) setTimeout(restart, 500);
             else mainEvent.emit("restart");
-            break;
+            return;
           case "bugreport":
-            sendBugReport(error);
-            break;
+            return mainWindow.webContents.send("user:report");
           default:
             break;
         }
@@ -343,15 +399,10 @@ mainEvent.on("user:write:done", () => {
   utils.log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
-  if (process.env.OPENCUTS_API_KEY || process.env.OPENCUTS) {
-    sendOpenCutsRun()
-      .then(url => {
-        utils.log.info(
-          `Thank you for reporting! You can view your run here: ${url}`
-        );
-        electron.shell.openExternal(url);
-      })
-      .catch(utils.log.error);
+  if (!settings.get("never.opencuts")) {
+    setTimeout(() => {
+      mainWindow.webContents.send("user:report");
+    }, 1500);
   }
 });
 
@@ -442,12 +493,7 @@ mainEvent.on("device:detected", device => {
   mainEvent.emit("device", device);
 });
 
-// Set localstorage item
-mainEvent.on("localstorage:set", (item, value) => {
-  if (mainWindow) mainWindow.webContents.send("localstorage:set", item, value);
-});
-
-// Set localstorage item
+// No internet connection
 mainEvent.on("user:no-network", () => {
   if (mainWindow) mainWindow.webContents.send("user:no-network");
 });
@@ -627,23 +673,6 @@ app.on("ready", function() {
           label: "Quit",
           accelerator: "CmdOrCtrl+Q",
           role: "close"
-        },
-        {
-          label: "Animations",
-          submenu: [
-            {
-              label: "Enable",
-              click: () =>
-                mainEvent.emit("localstorage:set", "animationsDisabled", false)
-            },
-            {
-              label: "Disable",
-              click: () => {
-                mainWindow.webContents.send("animations:hide");
-                mainEvent.emit("localstorage:set", "animationsDisabled", true);
-              }
-            }
-          ]
         }
       ]
     },
@@ -658,16 +687,106 @@ app.on("ready", function() {
             process.platform === "linux"
         },
         {
+          label: "Report a bug",
+          click: () => mainWindow.webContents.send("user:report")
+        },
+        {
           label: "Developer tools",
           click: () => mainWindow.webContents.openDevTools()
         },
         {
-          label: "Report a bug",
-          click: () => sendBugReport()
-        },
-        {
           label: "Clean cached files",
           click: utils.cleanInstallerCache
+        },
+        {
+          label: "Open settings config file",
+          click: () => {
+            settings.openInEditor();
+          },
+          visible: settings.size
+        },
+        {
+          label: "Reset settings",
+          click: () => {
+            settings.clear();
+          },
+          visible: settings.size
+        }
+      ]
+    },
+    {
+      label: "Settings",
+      submenu: [
+        {
+          label: "Animations",
+          checked: settings.get("animations"),
+          type: "checkbox",
+          click: () => {
+            if (settings.get("animations")) {
+              mainWindow.webContents.send("animations:hide");
+            }
+            settings.set("animations", !settings.get("animations"));
+          }
+        },
+        {
+          label: "Never ask for udev rules",
+          checked: settings.get("never.udev"),
+          visible:
+            global.packageInfo.package !== "snap" &&
+            process.platform === "linux",
+          type: "checkbox",
+          click: () => settings.set("never.udev", !settings.get("never.udev"))
+        },
+        {
+          label: "Never ask for windows drivers",
+          checked: settings.get("never.windowsDrivers"),
+          visible: process.platform === "win32",
+          type: "checkbox",
+          click: () =>
+            settings.set(
+              "never.windowsDrivers",
+              !settings.get("never.windowsDrivers")
+            )
+        },
+        {
+          label: "Never ask for OPEN-CUTS automatic reporting",
+          checked: settings.get("never.opencuts"),
+          type: "checkbox",
+          click: () =>
+            settings.set("never.opencuts", !settings.get("never.opencuts"))
+        },
+        {
+          label: "OPEN-CUTS API Token",
+          click: () =>
+            prompt(
+              {
+                title: "OPEN-CUTS API Token",
+                height: 300,
+                resizable: true,
+                description:
+                  "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your OPEN-CUTS account.",
+                fields: [
+                  {
+                    id: "token",
+                    label: "Token",
+                    type: "input",
+                    attrs: {
+                      type: "password",
+                      value: settings.get("opencuts_token"),
+                      placeholder: "get your token on ubports.open-cuts.org",
+                      required: true
+                    }
+                  }
+                ]
+              },
+              mainWindow
+            )
+              .then(({ token }) => {
+                if (token) {
+                  settings.set("opencuts_token", token.trim());
+                }
+              })
+              .catch(() => null)
         }
       ]
     },
@@ -675,18 +794,18 @@ app.on("ready", function() {
       label: "Help",
       submenu: [
         {
-          label: "Report a bug",
-          click: () => sendBugReport()
-        },
-        {
-          label: "View issues",
+          label: "Bug tracker",
           click: () =>
             electron.shell.openExternal(
               "https://github.com/ubports/ubports-installer/issues"
             )
         },
         {
-          label: "Troubleshooting guide",
+          label: "Report a bug",
+          click: () => mainWindow.webContents.send("user:report")
+        },
+        {
+          label: "Troubleshooting",
           click: () =>
             electron.shell.openExternal(
               "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
@@ -695,6 +814,17 @@ app.on("ready", function() {
         {
           label: "UBports Forums",
           click: () => electron.shell.openExternal("https://forums.ubports.com")
+        },
+        {
+          label: "AskUbuntu",
+          click: () =>
+            electron.shell.openExternal(
+              "https://askubuntu.com/questions/tagged/ubuntu-touch"
+            )
+        },
+        {
+          label: "Telegram",
+          click: () => electron.shell.openExternal("https://t.me/WelcomePlus")
         }
       ]
     }
