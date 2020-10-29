@@ -722,9 +722,10 @@ app.on("ready", function() {
           checked: settings.get("animations"),
           type: "checkbox",
           click: () => {
-            settings.set("animations", !settings.get("animations"));
-            if (settings.get("animations"))
+            if (settings.get("animations")) {
               mainWindow.webContents.send("animations:hide");
+            }
+            settings.set("animations", !settings.get("animations"));
           }
         },
         {
