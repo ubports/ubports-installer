@@ -19,11 +19,6 @@ const axios = require("axios");
 const sudo = require("sudo-prompt");
 const fs = require("fs-extra");
 const path = require("path");
-const cp = require("child_process");
-const psTree = require("ps-tree");
-const { getAndroidToolPath, getAndroidToolBaseDir } = require(asarLibPathHack(
-  "android-tools-bin"
-));
 const util = require("util");
 global.packageInfo = require("../package.json");
 
@@ -114,47 +109,6 @@ function die(e) {
   process.exit(-1);
 }
 
-let processes = [];
-function execTool(tool, args, callback) {
-  let pid = cp.exec(
-    [`"${getAndroidToolPath(tool)}"`, ...args].join(" "),
-    {
-      maxBuffer: 1024 * 1024 * 2
-    },
-    (error, stdout, stderr) => {
-      global.logger.log(
-        "command",
-        tool +
-          ": " +
-          JSON.stringify({
-            args: args,
-            error: error,
-            stdout: stdout,
-            stderr: stderr
-          })
-      );
-      callback(error, stdout, stderr);
-    }
-  );
-  processes.push(pid);
-  pid.on("exit", () => {
-    processes.splice(processes.indexOf(pid), 1);
-  });
-}
-
-// Since child_process.exec spins up a shell on posix, simply killing the process itself will orphan its children, who then will be adopted by pid 1 and continue running as zombie processes until the end of time.
-function killSubprocesses() {
-  if (process.platform === "win32") {
-    processes.forEach(child => child.kill());
-  } else {
-    processes.forEach(pid => {
-      psTree(pid.pid, function(err, children) {
-        cp.spawn("kill", ["-9"].concat(children.map(p => p.PID)));
-      });
-    });
-  }
-}
-
 function errorToUser(error, errorLocation, restart, ignore) {
   var errorString =
     "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
@@ -176,8 +130,6 @@ module.exports = {
   cleanInstallerCache,
   errorToUser,
   log,
-  execTool,
-  killSubprocesses,
   getUbuntuTouchDir,
   setUdevRules,
   getUpdateAvailable,

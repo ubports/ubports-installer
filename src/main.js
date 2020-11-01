@@ -24,7 +24,11 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require("../package.json");
 
-const { Adb, Fastboot, Heimdall } = require("promise-android-tools");
+const {
+  Adb,
+  Fastboot,
+  Heimdall
+} = require("../../promise-android-tools/src/module.js");
 const Api = require("ubports-api-node-module").Installer;
 const Store = require("electron-store");
 
@@ -57,27 +61,19 @@ const api = new Api({
   cachetime: 60000
 });
 global.api = api;
-var adb = new Adb({
-  exec: (args, callback) => {
-    utils.execTool("adb", args, callback);
-  },
-  log: utils.log.debug
-});
+const adb = new Adb();
 global.adb = adb;
-var fastboot = new Fastboot({
-  exec: (args, callback) => {
-    utils.execTool("fastboot", args, callback);
-  },
-  log: utils.log.debug
-});
+const fastboot = new Fastboot();
 global.fastboot = fastboot;
-var heimdall = new Heimdall({
-  exec: (args, callback) => {
-    utils.execTool("heimdall", args, callback);
-  },
-  log: utils.log.debug
-});
+const heimdall = new Heimdall();
 global.heimdall = heimdall;
+
+[adb, fastboot, heimdall].forEach(t => {
+  t.on("exec", r => global.logger.log("command", t.tool, r));
+  t.on("spawn:start", r => global.logger.log("command", t.tool, r));
+  t.on("spawn:exit", r => global.logger.log("command", t.tool, r));
+  t.on("spawn:error", r => global.logger.log("command", t.tool, r));
+});
 
 const settings = new Store({
   schema: {
@@ -235,7 +231,6 @@ ipcMain.on("reportResult", async (event, result, error) => {
 
 // The user selected a device
 ipcMain.on("device:selected", (event, device) => {
-  adb.stopWaiting();
   mainEvent.emit("device", device);
 });
 

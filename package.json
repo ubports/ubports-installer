@@ -44,7 +44,6 @@
   },
   "dependencies": {
     "7zip-min": "^1.2.0",
-    "android-tools-bin": "^1.0.4",
     "axios": "^0.20.0",
     "bootstrap": "^3.3.7",
     "commander": "^2.9.0",

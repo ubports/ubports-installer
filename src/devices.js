@@ -225,7 +225,7 @@ function installStep(step) {
           "user:write:under",
           "Formatting " + step.partition
         );
-        return adb.waitForDevice().then(() => adb.format(step.partition));
+        return adb.wait().then(() => adb.format(step.partition));
       };
     case "adb:sideload":
       return () => {
@@ -267,7 +267,7 @@ function installStep(step) {
           "Flashing firmware partitions using fastboot"
         );
         return fastboot
-          .waitForDevice()
+          .wait()
           .then(() =>
             fastboot.flashArray(
               addPathToFiles(step.flash, global.installProperties.device)
@@ -575,7 +575,7 @@ function install(steps) {
 module.exports = {
   waitForDevice: () => {
     adb
-      .waitForDevice()
+      .wait()
       .then(() => {
         adb
           .getDeviceName()

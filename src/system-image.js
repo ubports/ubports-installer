@@ -52,7 +52,7 @@ var installLatestVersion = options => {
         return files;
       }),
     adb
-      .waitForDevice()
+      .wait()
       .then(() => adb.shell("'mount -a || true'"))
       .then(() => utils.log.debug("adb mounted all partitions"))
       .then(() => adb.wipeCache())
@@ -76,9 +76,13 @@ var installLatestVersion = options => {
       return ret[0]; // files from download promise
     })
     .then(files =>
-      adb.pushArray(files, progress => {
-        global.mainEvent.emit("user:write:progress", progress * 100);
-      })
+      adb.push(
+        files.map(f => f.src),
+        files[0].dest,
+        progress => {
+          global.mainEvent.emit("user:write:progress", progress * 100);
+        }
+      )
     )
     .catch(e => {
       throw new Error(e);
