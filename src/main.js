@@ -510,7 +510,10 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    devices.waitForDevice();
+    if (!global.installProperties.device) {
+      const wait = devices.waitForDevice();
+      ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+    }
     api
       .getDeviceSelects()
       .then(out => {

@@ -237,16 +237,19 @@ function installStep(step) {
         );
         global.mainEvent.emit(
           "user:write:under",
-          "Sideloading might take up to ten minutes..."
+          "Your new operating system is being installed..."
         );
-        return adb.sideload(
-          path.join(
-            downloadPath,
-            global.installProperties.device,
-            step.group,
-            step.file
+        return global.adb
+          .sideload(
+            path.join(
+              utils.getUbuntuTouchDir(),
+              global.installProperties.device,
+              step.group,
+              step.file
+            ),
+            p => global.mainEvent.emit("user:write:progress", p * 100)
           )
-        );
+          .then(() => global.mainEvent.emit("user:write:progress", 0));
       };
     case "adb:reboot":
       return () => {
@@ -269,11 +272,12 @@ function installStep(step) {
         return fastboot
           .wait()
           .then(() =>
-            fastboot.flashArray(
+            fastboot.flash(
               addPathToFiles(step.flash, global.installProperties.device),
               p => global.mainEvent.emit("user:write:progress", p * 100)
             )
-          );
+          )
+          .then(() => global.mainEvent.emit("user:write:progress", 0));
       };
     case "fastboot:erase":
       return () => {
@@ -380,7 +384,7 @@ function installStep(step) {
           "user:write:under",
           "Flashing firmware partitions using heimdall"
         );
-        return heimdall.flashArray(
+        return heimdall.flash(
           addPathToFiles(step.flash, global.installProperties.device)
         );
       };
@@ -574,7 +578,7 @@ function install(steps) {
 }
 
 module.exports = {
-  waitForDevice: () => {
+  waitForDevice: () =>
     deviceTools
       .wait()
       .then(() => deviceTools.getDeviceName())
@@ -584,8 +588,7 @@ module.exports = {
       )
       .catch(error => {
         utils.errorToUser(error, "get device name");
-      });
-  },
+      }),
   getOsSelects: osArray => {
     // Can't be moved to support custom config files
     var osSelects = [];
