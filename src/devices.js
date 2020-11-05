@@ -582,12 +582,18 @@ module.exports = {
     deviceTools
       .wait()
       .then(() => deviceTools.getDeviceName())
-      .then(device => global.api.resolveAlias(device))
+      .then(device =>
+        global.api.resolveAlias(device).catch(e => {
+          utils.log.debug(`failed to resolve device name: ${e}`);
+          mainEvent.emit("user:no-network");
+        })
+      )
       .then(resolvedDevice =>
         global.mainEvent.emit("device:detected", resolvedDevice)
       )
       .catch(error => {
-        utils.errorToUser(error, "get device name");
+        if (!error.message.includes("no device"))
+          utils.errorToUser(error, "get device name");
       }),
   getOsSelects: osArray => {
     // Can't be moved to support custom config files
