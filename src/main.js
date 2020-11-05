@@ -294,6 +294,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
             return;
           case "restart":
             utils.log.warn("restart after error");
+            deviceTools.kill();
             if (restart) setTimeout(restart, 500);
             else mainEvent.emit("restart");
             return;

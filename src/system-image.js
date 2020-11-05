@@ -53,10 +53,8 @@ var installLatestVersion = options => {
       }),
     adb
       .wait()
-      .then(() => adb.shell("'mount -a || true'"))
-      .then(() => utils.log.debug("adb mounted all partitions"))
-      .then(() => adb.wipeCache())
-      .then(() => utils.log.debug("adb wiped cache"))
+      .then(() => adb.shell("mount -a").catch(() => null))
+      .then(() => adb.wipeCache().catch(() => null))
       .then(() => adb.shell("mkdir -p /cache/recovery"))
       .then(() => {
         utils.log.debug("adb created /cache/recovery directory");
