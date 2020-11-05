@@ -24,7 +24,7 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require("../package.json");
 
-const { DeviceTools } = require("../../promise-android-tools/src/module.js");
+const { DeviceTools } = require("promise-android-tools");
 const Api = require("ubports-api-node-module").Installer;
 const Store = require("electron-store");
 
