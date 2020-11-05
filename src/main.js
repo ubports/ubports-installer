@@ -24,11 +24,7 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require("../package.json");
 
-const {
-  Adb,
-  Fastboot,
-  Heimdall
-} = require("../../promise-android-tools/src/module.js");
+const { DeviceTools } = require("../../promise-android-tools/src/module.js");
 const Api = require("ubports-api-node-module").Installer;
 const Store = require("electron-store");
 
@@ -61,19 +57,14 @@ const api = new Api({
   cachetime: 60000
 });
 global.api = api;
-const adb = new Adb();
-global.adb = adb;
-const fastboot = new Fastboot();
-global.fastboot = fastboot;
-const heimdall = new Heimdall();
-global.heimdall = heimdall;
-
-[adb, fastboot, heimdall].forEach(t => {
-  t.on("exec", r => global.logger.log("command", t.tool, r));
-  t.on("spawn:start", r => global.logger.log("command", t.tool, r));
-  t.on("spawn:exit", r => global.logger.log("command", t.tool, r));
-  t.on("spawn:error", r => global.logger.log("command", t.tool, r));
-});
+const deviceTools = new DeviceTools();
+global.deviceTools = deviceTools;
+global.adb = deviceTools.adb;
+global.fastboot = deviceTools.fastboot;
+global.heimdall = deviceTools.heimdall;
+["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
+  deviceTools.on(event, r => global.logger.log("command", event, r))
+);
 
 const settings = new Store({
   schema: {
@@ -353,7 +344,7 @@ mainEvent.on("user:oem-lock", callback => {
       "user:write:under",
       "You might see a confirmation dialog on your device."
     );
-    fastboot
+    deviceTools.fastboot
       .oemUnlock()
       .then(() => {
         callback(true);
@@ -519,17 +510,7 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    adb
-      .startServer()
-      .then(() => {
-        if (!global.installProperties.device) {
-          devices.waitForDevice();
-        }
-      })
-      .catch(e => {
-        if (!e.message.includes("Killed"))
-          utils.errorToUser(e, "Failed to start adb server");
-      });
+    devices.waitForDevice();
     api
       .getDeviceSelects()
       .then(out => {
@@ -580,10 +561,7 @@ async function createWindow() {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
-  adb
-    .killServer()
-    .then(utils.killSubprocesses)
-    .catch(utils.killSubprocesses);
+  deviceTools.kill();
   utils.log.info("Good bye!");
   setTimeout(() => {
     app.quit();

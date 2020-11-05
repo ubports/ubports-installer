@@ -270,7 +270,8 @@ function installStep(step) {
           .wait()
           .then(() =>
             fastboot.flashArray(
-              addPathToFiles(step.flash, global.installProperties.device)
+              addPathToFiles(step.flash, global.installProperties.device),
+              p => global.mainEvent.emit("user:write:progress", p * 100)
             )
           );
       };
@@ -530,7 +531,7 @@ function assembleInstallSteps(steps) {
                     "user:connection-lost",
                     step.resumable ? runStep : restartInstall
                   );
-                } else if (error.message.includes("Killed")) {
+                } else if (error.message.includes("killed")) {
                   reject(); // Used for exiting the installer
                 } else {
                   utils.errorToUser(error, step.type, restartInstall, runStep);
@@ -574,27 +575,16 @@ function install(steps) {
 
 module.exports = {
   waitForDevice: () => {
-    adb
+    deviceTools
       .wait()
-      .then(() => {
-        adb
-          .getDeviceName()
-          .then(device => {
-            global.api
-              .resolveAlias(device)
-              .then(resolvedDevice => {
-                global.mainEvent.emit("device:detected", resolvedDevice);
-              })
-              .catch(error => {
-                utils.log.error("getDeviceName error: " + error);
-                mainEvent.emit("user:no-network");
-              });
-          })
-          .catch(error => {
-            utils.errorToUser(error, "get device name");
-          });
-      })
-      .catch(e => utils.log.debug("no device detected: " + e));
+      .then(() => deviceTools.getDeviceName())
+      .then(device => global.api.resolveAlias(device))
+      .then(resolvedDevice =>
+        global.mainEvent.emit("device:detected", resolvedDevice)
+      )
+      .catch(error => {
+        utils.errorToUser(error, "get device name");
+      });
   },
   getOsSelects: osArray => {
     // Can't be moved to support custom config files
