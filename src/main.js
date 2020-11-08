@@ -151,7 +151,6 @@ winston.addColors({
 
 global.logger = winston.createLogger({
   format: winston.format.json(),
-  defaultMeta: { service: "user-service" },
   levels: {
     error: 0,
     warn: 1,
