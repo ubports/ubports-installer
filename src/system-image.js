@@ -46,6 +46,7 @@ var installLatestVersion = options => {
       )
       .then(files => {
         mainEvent.emit("user:write:progress", 0);
+        mainEvent.emit("user:write:speed", 0);
         mainEvent.emit("user:write:working", "particles");
         mainEvent.emit("user:write:status", "Preparing", true);
         mainEvent.emit("user:write:under", "Preparing system-image");
