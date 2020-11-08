@@ -387,7 +387,7 @@ mainEvent.on("user:write:done", () => {
   );
   if (!settings.get("never.opencuts")) {
     setTimeout(() => {
-      mainWindow.webContents.send("user:report");
+      mainWindow.webContents.send("user:report", true);
     }, 1500);
   }
 });
