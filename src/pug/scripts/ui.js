@@ -129,10 +129,6 @@ const modals = {
   }
 };
 
-$("#help").click(() => {
-  modals.show("result");
-});
-
 $("#donate").click(() => {
   shell.openExternal("https://ubports.com/donate");
 });

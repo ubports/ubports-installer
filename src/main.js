@@ -24,7 +24,7 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require("../package.json");
 
-const { Adb, Fastboot, Heimdall } = require("promise-android-tools");
+const { DeviceTools } = require("promise-android-tools");
 const Api = require("ubports-api-node-module").Installer;
 const Store = require("electron-store");
 
@@ -57,27 +57,14 @@ const api = new Api({
   cachetime: 60000
 });
 global.api = api;
-var adb = new Adb({
-  exec: (args, callback) => {
-    utils.execTool("adb", args, callback);
-  },
-  log: utils.log.debug
-});
-global.adb = adb;
-var fastboot = new Fastboot({
-  exec: (args, callback) => {
-    utils.execTool("fastboot", args, callback);
-  },
-  log: utils.log.debug
-});
-global.fastboot = fastboot;
-var heimdall = new Heimdall({
-  exec: (args, callback) => {
-    utils.execTool("heimdall", args, callback);
-  },
-  log: utils.log.debug
-});
-global.heimdall = heimdall;
+const deviceTools = new DeviceTools();
+global.deviceTools = deviceTools;
+global.adb = deviceTools.adb;
+global.fastboot = deviceTools.fastboot;
+global.heimdall = deviceTools.heimdall;
+["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
+  deviceTools.on(event, r => global.logger.log("command", event, r))
+);
 
 const settings = new Store({
   schema: {
@@ -164,7 +151,6 @@ winston.addColors({
 
 global.logger = winston.createLogger({
   format: winston.format.json(),
-  defaultMeta: { service: "user-service" },
   levels: {
     error: 0,
     warn: 1,
@@ -235,7 +221,6 @@ ipcMain.on("reportResult", async (event, result, error) => {
 
 // The user selected a device
 ipcMain.on("device:selected", (event, device) => {
-  adb.stopWaiting();
   mainEvent.emit("device", device);
 });
 
@@ -308,6 +293,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
             return;
           case "restart":
             utils.log.warn("restart after error");
+            deviceTools.kill();
             if (restart) setTimeout(restart, 500);
             else mainEvent.emit("restart");
             return;
@@ -358,7 +344,7 @@ mainEvent.on("user:oem-lock", callback => {
       "user:write:under",
       "You might see a confirmation dialog on your device."
     );
-    fastboot
+    deviceTools.fastboot
       .oemUnlock()
       .then(() => {
         callback(true);
@@ -401,7 +387,7 @@ mainEvent.on("user:write:done", () => {
   );
   if (!settings.get("never.opencuts")) {
     setTimeout(() => {
-      mainWindow.webContents.send("user:report");
+      mainWindow.webContents.send("user:report", true);
     }, 1500);
   }
 });
@@ -524,17 +510,10 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    adb
-      .startServer()
-      .then(() => {
-        if (!global.installProperties.device) {
-          devices.waitForDevice();
-        }
-      })
-      .catch(e => {
-        if (!e.message.includes("Killed"))
-          utils.errorToUser(e, "Failed to start adb server");
-      });
+    if (!global.installProperties.device) {
+      const wait = devices.waitForDevice();
+      ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+    }
     api
       .getDeviceSelects()
       .then(out => {
@@ -585,10 +564,7 @@ async function createWindow() {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
-  adb
-    .killServer()
-    .then(utils.killSubprocesses)
-    .catch(utils.killSubprocesses);
+  deviceTools.kill();
   utils.log.info("Good bye!");
   setTimeout(() => {
     app.quit();

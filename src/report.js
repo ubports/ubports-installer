@@ -22,7 +22,6 @@ const axios = require("axios");
 const FormData = require("form-data");
 const util = require("util");
 const { osInfo } = require("systeminformation");
-const { getAndroidToolBaseDir } = require("android-tools-bin");
 const { GraphQLClient, gql } = require("graphql-request");
 const { getUbuntuTouchDir } = require("./utils");
 require("cross-fetch/polyfill");
@@ -219,10 +218,7 @@ async function paste(
  */
 function getIssueTitle(error) {
   if (!error) return "";
-  else
-    return error
-      .replaceAll(getAndroidToolBaseDir(), "$PKG")
-      .replaceAll(getUbuntuTouchDir(), "$CACHE");
+  else return error.replaceAll(getUbuntuTouchDir(), "$CACHE");
 }
 
 /**

@@ -11,7 +11,8 @@
         p Select a result from the buttons below. You will see another window where you can explain your experience in more detail and modify all the data before submitting.
         p Select the #[b PASS] option if everything worked as expected. If you experienced minor issues or annoyances, but finally succeeded in installing your device, select the #[b WONKY] result. The #[b FAIL] result indicates a more severe problem.
       .modal-footer
-        button.btn.btn-default(type='button', data-dismiss='modal', onclick='ipcRenderer.invoke("setSettingsValue", "never.opencuts", true)') No, don't ask me again
+        button.btn.btn-default#resultDoNotAskAgain(type='button', data-dismiss='modal', onclick='ipcRenderer.invoke("setSettingsValue", "never.opencuts", true)') No, don't ask me again
+        button.btn.btn-secondary(type='button', data-dismiss='modal') Dismiss
         button.btn.btn-success(type='button', data-dismiss='modal', onclick="report('PASS');") PASS
         button.btn.btn-warning(type='button', data-dismiss='modal', onclick="report('WONKY');") WONKY
         button.btn.btn-danger(type='button', data-dismiss='modal', onclick="report('FAIL');") FAIL
@@ -20,6 +21,13 @@
       ipcRenderer.send("reportResult", result);
     }
 
-    ipcRenderer.on("user:report", () => {
+    function requestReport(done = false) {
+      if (done) {
+        $('#resultDoNotAskAgain').show();
+      } else {
+        $('#resultDoNotAskAgain').hide();
+      }
       modals.show('result');
-    });
+    }
+
+    ipcRenderer.on("user:report", (_, done) => requestReport(done));

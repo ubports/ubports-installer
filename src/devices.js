@@ -225,7 +225,7 @@ function installStep(step) {
           "user:write:under",
           "Formatting " + step.partition
         );
-        return adb.waitForDevice().then(() => adb.format(step.partition));
+        return adb.wait().then(() => adb.format(step.partition));
       };
     case "adb:sideload":
       return () => {
@@ -237,16 +237,19 @@ function installStep(step) {
         );
         global.mainEvent.emit(
           "user:write:under",
-          "Sideloading might take up to ten minutes..."
+          "Your new operating system is being installed..."
         );
-        return adb.sideload(
-          path.join(
-            downloadPath,
-            global.installProperties.device,
-            step.group,
-            step.file
+        return global.adb
+          .sideload(
+            path.join(
+              utils.getUbuntuTouchDir(),
+              global.installProperties.device,
+              step.group,
+              step.file
+            ),
+            p => global.mainEvent.emit("user:write:progress", p * 100)
           )
-        );
+          .then(() => global.mainEvent.emit("user:write:progress", 0));
       };
     case "adb:reboot":
       return () => {
@@ -267,12 +270,14 @@ function installStep(step) {
           "Flashing firmware partitions using fastboot"
         );
         return fastboot
-          .waitForDevice()
+          .wait()
           .then(() =>
-            fastboot.flashArray(
-              addPathToFiles(step.flash, global.installProperties.device)
+            fastboot.flash(
+              addPathToFiles(step.flash, global.installProperties.device),
+              p => global.mainEvent.emit("user:write:progress", p * 100)
             )
-          );
+          )
+          .then(() => global.mainEvent.emit("user:write:progress", 0));
       };
     case "fastboot:erase":
       return () => {
@@ -379,7 +384,7 @@ function installStep(step) {
           "user:write:under",
           "Flashing firmware partitions using heimdall"
         );
-        return heimdall.flashArray(
+        return heimdall.flash(
           addPathToFiles(step.flash, global.installProperties.device)
         );
       };
@@ -530,7 +535,7 @@ function assembleInstallSteps(steps) {
                     "user:connection-lost",
                     step.resumable ? runStep : restartInstall
                   );
-                } else if (error.message.includes("Killed")) {
+                } else if (error.message.includes("killed")) {
                   reject(); // Used for exiting the installer
                 } else {
                   utils.errorToUser(error, step.type, restartInstall, runStep);
@@ -573,29 +578,23 @@ function install(steps) {
 }
 
 module.exports = {
-  waitForDevice: () => {
-    adb
-      .waitForDevice()
-      .then(() => {
-        adb
-          .getDeviceName()
-          .then(device => {
-            global.api
-              .resolveAlias(device)
-              .then(resolvedDevice => {
-                global.mainEvent.emit("device:detected", resolvedDevice);
-              })
-              .catch(error => {
-                utils.log.error("getDeviceName error: " + error);
-                mainEvent.emit("user:no-network");
-              });
-          })
-          .catch(error => {
-            utils.errorToUser(error, "get device name");
-          });
-      })
-      .catch(e => utils.log.debug("no device detected: " + e));
-  },
+  waitForDevice: () =>
+    deviceTools
+      .wait()
+      .then(() => deviceTools.getDeviceName())
+      .then(device =>
+        global.api.resolveAlias(device).catch(e => {
+          utils.log.debug(`failed to resolve device name: ${e}`);
+          mainEvent.emit("user:no-network");
+        })
+      )
+      .then(resolvedDevice =>
+        global.mainEvent.emit("device:detected", resolvedDevice)
+      )
+      .catch(error => {
+        if (!error.message.includes("no device"))
+          utils.errorToUser(error, "get device name");
+      }),
   getOsSelects: osArray => {
     // Can't be moved to support custom config files
     var osSelects = [];
