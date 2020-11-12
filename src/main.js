@@ -63,7 +63,9 @@ global.adb = deviceTools.adb;
 global.fastboot = deviceTools.fastboot;
 global.heimdall = deviceTools.heimdall;
 ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
-  deviceTools.on(event, r => global.logger.log("command", event, r))
+  deviceTools.on(event, r =>
+    global.logger.log("command", `${event}: ${JSON.stringify(r)}`)
+  )
 );
 
 const settings = new Store({
