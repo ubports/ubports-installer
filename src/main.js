@@ -512,6 +512,9 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
+    ["adb", "fastboot", "heimdall"].forEach(tool =>
+      utils.log.debug(`using ${tool}: ${deviceTools[tool].executable}`)
+    );
     if (!global.installProperties.device) {
       const wait = devices.waitForDevice();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
