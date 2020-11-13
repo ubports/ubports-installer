@@ -80,6 +80,13 @@ var buildConfig = {
   asarUnpack: [
     // Unpack dependencies of pakcages containing binaries
     "node_modules/7zip-min/*", // for 7zip-bin
+    "node_modules/jsonfile/**/*", // for fs-extra
+    "node_modules/at-least-node/**/*", // for fs-extra
+    "node_modules/graceful-fs/**/*", // for fs-extra
+    "node_modules/universalify/**/*", // for fs-extra
+    "node_modules/fs-extra/**/*", // for promise-android-tools
+    "node_modules/cancelable-promise/**/*", // for promise-android-tools
+    "node_modules/promise-android-tools/**/*", // for android-tools-bin
     "node_modules/@babel/runtime/**/*" // for android-tools-bin
   ],
   extraMetadata: {
