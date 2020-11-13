@@ -206,7 +206,9 @@ ipcMain.on("install", () => {
 ipcMain.on("reportResult", async (event, result, error) => {
   if (result !== "PASS") {
     prompt(await prepareErrorReport(result, error), mainWindow).then(data => {
-      sendBugReport(data, settings.get("opencuts_token"));
+      if (data) {
+        sendBugReport(data, settings.get("opencuts_token"));
+      }
     });
   } else {
     prompt(await prepareSuccessReport(), mainWindow)
