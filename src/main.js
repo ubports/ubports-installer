@@ -24,7 +24,6 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require("../package.json");
 
-const { DeviceTools } = require("promise-android-tools");
 const Api = require("ubports-api-node-module").Installer;
 const Store = require("electron-store");
 
@@ -57,6 +56,7 @@ const api = new Api({
   cachetime: 60000
 });
 global.api = api;
+const { DeviceTools } = require(utils.asarLibPathHack("promise-android-tools"));
 const deviceTools = new DeviceTools();
 global.deviceTools = deviceTools;
 global.adb = deviceTools.adb;
