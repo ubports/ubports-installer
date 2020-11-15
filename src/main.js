@@ -337,8 +337,8 @@ mainEvent.on("restart", () => {
 });
 
 // The device's bootloader is locked, prompt the user to unlock it
-mainEvent.on("user:oem-lock", callback => {
-  mainWindow.webContents.send("user:oem-lock");
+mainEvent.on("user:oem-lock", (resume, enable = false) => {
+  mainWindow.webContents.send("user:oem-lock", enable);
   ipcMain.once("user:oem-lock:ok", () => {
     mainEvent.emit("user:write:working", "particles");
     mainEvent.emit("user:write:status", "Unlocking", true);
@@ -348,11 +348,13 @@ mainEvent.on("user:oem-lock", callback => {
     );
     deviceTools.fastboot
       .oemUnlock()
-      .then(() => {
-        callback(true);
-      })
+      .then(() => resume())
       .catch(err => {
-        mainEvent.emit("user:error", err);
+        if (err.message.includes("enable unlocking")) {
+          mainWindow.webContents.send("user:oem-lock", true);
+        } else {
+          mainEvent.emit("user:error", err);
+        }
       });
   });
 });
