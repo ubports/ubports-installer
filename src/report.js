@@ -140,39 +140,6 @@ async function getDebugInfo(data, logUrl, runUrl) {
 }
 
 /**
- * Get log file contents
- * @async
- * @returns {String} log file contents
- * @throws if reading or parsing the file failed
- */
-async function getLog() {
-  return new Promise(function(resolve, reject) {
-    global.logger.query(
-      {
-        limit: 400,
-        start: 0,
-        order: "asc"
-      },
-      (err, results) => {
-        try {
-          if (err) {
-            reject(new Error(`Failed to read log: ${err}`));
-          } else {
-            resolve(
-              results.file
-                .map(({ level, message }) => `${level}: ${message}`)
-                .join("\n")
-            );
-          }
-        } catch (err) {
-          reject(new Error(`Failed to read log: ${err}`));
-        }
-      }
-    );
-  });
-}
-
-/**
  * Paste content to paste.ubuntu.com
  * @async
  * @param {Promise<String>} content - content to paste
@@ -183,7 +150,7 @@ async function getLog() {
  * @throws if paste failed
  */
 async function paste(
-  content = getLog(),
+  content = log.get(),
   poster = "UBports Installer",
   syntax = "text",
   expiration = "year"
@@ -228,7 +195,7 @@ function getIssueTitle(error) {
  * @param {String} opencutsToken - OPEN-CUTS API token
  */
 async function sendBugReport(data, opencutsToken) {
-  const log = getLog();
+  const log = log.get();
   const pasteUrl = paste(log).catch(() => "*N/A*");
   const runUrl = sendOpenCutsRun(opencutsToken, data, log).catch(() => "*N/A*");
   shell.openExternal(
@@ -257,7 +224,7 @@ const OPENCUTS_OS = {
  * @returns {String} run url
  * @throws if sending run failed
  */
-async function sendOpenCutsRun(token, data, log = getLog()) {
+async function sendOpenCutsRun(token, data, log = log.get()) {
   const openCutsApi = new GraphQLClient(
     "https://ubports.open-cuts.org/graphql",
     { headers: token ? { authorization: token } : {} }

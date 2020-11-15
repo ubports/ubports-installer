@@ -39,7 +39,7 @@ var installLatestVersion = options => {
         },
         (current, total) => {
           if (current != total)
-            utils.log.debug(
+            log.debug(
               "Downloading system-image file " + (current + 1) + " of " + total
             );
         }
@@ -58,14 +58,14 @@ var installLatestVersion = options => {
       .then(() => adb.wipeCache().catch(() => null))
       .then(() => adb.shell("mkdir -p /cache/recovery"))
       .then(() => {
-        utils.log.debug("adb created /cache/recovery directory");
+        log.debug("adb created /cache/recovery directory");
         adb
           .verifyPartitionType("data", "ext4")
           .then(isExt4 => {
-            if (isExt4) utils.log.debug("ext4 data partition ok");
-            else utils.log.warning("no ext4 data partition");
+            if (isExt4) log.debug("ext4 data partition ok");
+            else log.warning("no ext4 data partition");
           })
-          .catch(e => utils.log.warn(e));
+          .catch(e => log.warn(e));
       })
   ])
     .then(ret => {

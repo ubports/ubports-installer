@@ -26,8 +26,8 @@ global.packageInfo = require("../package.json");
 
 const Api = require("ubports-api-node-module").Installer;
 const Store = require("electron-store");
+const Logger = require("./lib/Logger.js");
 
-var winston = require("winston");
 const path = require("path");
 const fs = require("fs-extra");
 const url = require("url");
@@ -63,9 +63,7 @@ global.adb = deviceTools.adb;
 global.fastboot = deviceTools.fastboot;
 global.heimdall = deviceTools.heimdall;
 ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
-  deviceTools.on(event, r =>
-    global.logger.log("command", `${event}: ${JSON.stringify(r)}`)
-  )
+  deviceTools.on(event, r => log.command(`${event}: ${JSON.stringify(r)}`))
 );
 
 const settings = new Store({
@@ -133,49 +131,15 @@ if (cli.file) {
   }
 }
 
+const log = new Logger(
+  path.join(utils.getUbuntuTouchDir(), "ubports-installer.log"),
+  cli.veryVerbose ? "command" : cli.verbose ? "debug" : "info"
+);
+
 global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
   settings: cli.settings ? JSON.parse(cli.settings) : {}
 };
-
-//==============================================================================
-// WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
-//==============================================================================
-
-winston.addColors({
-  error: "red",
-  warn: "yellow",
-  info: "green",
-  verbose: "blue",
-  debug: "white",
-  command: "grey"
-});
-
-global.logger = winston.createLogger({
-  format: winston.format.json(),
-  levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    verbose: 3,
-    debug: 4,
-    command: 5
-  },
-  transports: [
-    new winston.transports.File({
-      filename: path.join(utils.getUbuntuTouchDir(), "ubports-installer.log"),
-      options: { flags: "w" },
-      level: "command"
-    }),
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-      level: cli.veryVerbose ? "command" : cli.verbose ? "debug" : "info"
-    })
-  ]
-});
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING
@@ -193,9 +157,7 @@ ipcMain.on("restart", () => {
 
 // Begin install process
 ipcMain.on("install", () => {
-  utils.log.debug(
-    "settings: " + JSON.stringify(global.installProperties.settings)
-  );
+  log.debug("settings: " + JSON.stringify(global.installProperties.settings));
   devices.install(
     global.installConfig.operating_systems[global.installProperties.osIndex]
       .steps
@@ -212,12 +174,10 @@ ipcMain.on("reportResult", async (event, result, error) => {
     prompt(await prepareSuccessReport(), mainWindow)
       .then(data => sendOpenCutsRun(settings.get("opencuts_token"), data))
       .then(url => {
-        utils.log.info(
-          `Thank you for reporting! You can view your run here: ${url}`
-        );
+        log.info(`Thank you for reporting! You can view your run here: ${url}`);
         electron.shell.openExternal(url);
       })
-      .catch(utils.log.error);
+      .catch(log.error);
   }
 });
 
@@ -234,7 +194,7 @@ ipcMain.on("renderer:error", (event, error) => {
 // The user selected an os
 ipcMain.on("os:selected", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
-  utils.log.debug(
+  log.debug(
     "os config: " +
       JSON.stringify(global.installConfig.operating_systems[osIndex])
   );
@@ -290,11 +250,11 @@ mainEvent.on("user:error", (error, restart, ignore) => {
       ipcMain.once("user:error:reply", (e, reply) => {
         switch (reply) {
           case "ignore":
-            utils.log.warn("error ignored");
+            log.warn("error ignored");
             if (ignore) setTimeout(ignore, 500);
             return;
           case "restart":
-            utils.log.warn("restart after error");
+            log.warn("restart after error");
             deviceTools.kill();
             if (restart) setTimeout(restart, 500);
             else mainEvent.emit("restart");
@@ -315,7 +275,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
-  utils.log.warn("lost connection to device");
+  log.warn("lost connection to device");
   if (mainWindow) mainWindow.webContents.send("user:connection-lost");
   ipcMain.once("reconnect", () => {
     if (reconnect) setTimeout(reconnect, 500);
@@ -332,7 +292,7 @@ mainEvent.on("user:low-power", () => {
 mainEvent.on("restart", () => {
   global.installProperties = { settings: {} };
   global.installConfig = {};
-  utils.log.debug("WINDOW RELOADED");
+  log.debug("WINDOW RELOADED");
   mainWindow.reload();
 });
 
@@ -384,7 +344,7 @@ mainEvent.on("user:write:progress", progress => {
 mainEvent.on("user:write:done", () => {
   if (mainWindow) mainWindow.webContents.send("user:write:done");
   if (mainWindow) mainWindow.webContents.send("user:write:speed");
-  utils.log.info(
+  log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
   if (!settings.get("never.opencuts")) {
@@ -417,7 +377,7 @@ mainEvent.on("user:write:under", status => {
 
 // Device is unsupported
 mainEvent.on("user:device-unsupported", device => {
-  utils.log.warn("The device " + device + " is not supported!");
+  log.warn("The device " + device + " is not supported!");
   if (mainWindow)
     mainWindow.webContents.send("user:device-unsupported", device);
 });
@@ -477,7 +437,7 @@ mainEvent.on("device", device => {
 
 // The user selected a device
 mainEvent.on("device:detected", device => {
-  utils.log.info("device detected: " + device);
+  log.info("device detected: " + device);
   mainEvent.emit("device", device);
 });
 
@@ -491,7 +451,7 @@ mainEvent.on("user:no-network", () => {
 //==============================================================================
 
 async function createWindow() {
-  utils.log.info(
+  log.info(
     "Welcome to the UBports Installer version " +
       global.packageInfo.version +
       "!"
@@ -513,7 +473,7 @@ async function createWindow() {
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
     ["adb", "fastboot", "heimdall"].forEach(tool =>
-      utils.log.debug(`using ${tool}: ${deviceTools[tool].executable}`)
+      log.debug(`using ${tool}: ${deviceTools[tool].executable}`)
     );
     if (!global.installProperties.device) {
       const wait = devices.waitForDevice();
@@ -526,7 +486,7 @@ async function createWindow() {
           mainWindow.webContents.send("device:wait:device-selects-ready", out);
       })
       .catch(e => {
-        utils.log.error("getDeviceSelects error: " + e);
+        log.error("getDeviceSelects error: " + e);
         mainWindow.webContents.send("user:no-network");
       });
   });
@@ -536,7 +496,7 @@ async function createWindow() {
     utils
       .getUpdateAvailable()
       .then(() => {
-        utils.log.info(
+        log.info(
           "This is not the latest version of the UBports Installer! Please update: https://devices.ubuntu-touch.io/installer/" +
             (global.packageInfo.package
               ? "?package=" + global.packageInfo.package
@@ -570,7 +530,7 @@ app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
   deviceTools.kill();
-  utils.log.info("Good bye!");
+  log.info("Good bye!");
   setTimeout(() => {
     app.quit();
     process.exit(0);

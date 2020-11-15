@@ -24,21 +24,6 @@ global.packageInfo = require("../package.json");
 
 fs.ensureDir(getUbuntuTouchDir());
 
-var log = {
-  error: l => {
-    global.logger.log("error", l);
-  },
-  warn: l => {
-    global.logger.log("warn", l);
-  },
-  info: l => {
-    global.logger.log("info", l);
-  },
-  debug: l => {
-    global.logger.log("debug", l);
-  }
-};
-
 function getLatestInstallerVersion() {
   return axios
     .get(
@@ -105,14 +90,15 @@ function cleanInstallerCache() {
 }
 
 function die(e) {
-  log.error(e);
+  console.log(e); // FIXME
   process.exit(-1);
 }
 
 function errorToUser(error, errorLocation, restart, ignore) {
   var errorString =
     "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
-  utils.log.error(
+  console.log(
+    //FIXME
     errorString + (error.stack ? "\nstack trace: " + error.stack : "")
   );
   global.mainEvent.emit("user:error", errorString, restart, ignore);
@@ -129,7 +115,6 @@ module.exports = {
   asarLibPathHack,
   cleanInstallerCache,
   errorToUser,
-  log,
   getUbuntuTouchDir,
   setUdevRules,
   getUpdateAvailable,

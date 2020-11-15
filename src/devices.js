@@ -72,7 +72,7 @@ function installStep(step) {
             global.mainEvent.emit("user:write:under", "Downloading");
           },
           (current, total) => {
-            utils.log.info(`Downloaded file ${current} of ${total}`);
+            log.info(`Downloaded file ${current} of ${total}`);
             global.mainEvent.emit(
               "user:write:status",
               `${current} of ${total} files downloaded and verified`,
@@ -80,16 +80,14 @@ function installStep(step) {
             );
           },
           activity => {
-            utils.log.info(activity);
+            log.info(activity);
             switch (activity) {
               case "downloading":
-                utils.log.info(`downloading ${step.group} files`);
+                log.info(`downloading ${step.group} files`);
                 global.mainEvent.emit("user:write:working", "download");
                 break;
               case "preparing":
-                utils.log.info(
-                  `checking previously downloaded ${step.group} files`
-                );
+                log.info(`checking previously downloaded ${step.group} files`);
                 global.mainEvent.emit("user:write:working", "particles");
                 global.mainEvent.emit(
                   "user:write:status",
@@ -111,7 +109,7 @@ function installStep(step) {
             global.mainEvent.emit("user:write:speed", 0);
           })
           .catch(error => {
-            utils.log.error("download error: " + error);
+            log.error("download error: " + error);
             mainEvent.emit("user:no-network");
           });
       };
@@ -416,7 +414,7 @@ function installStep(step) {
                         else mainEvent.emit("user:connection-lost", adbWait);
                       })
                       .catch(e => {
-                        utils.log.warn(e);
+                        log.warn(e);
                         resolve();
                       });
                   }
@@ -441,7 +439,7 @@ function installStep(step) {
                           mainEvent.emit("user:connection-lost", fastbootWait);
                       })
                       .catch(e => {
-                        utils.log.warn(e);
+                        log.warn(e);
                         resolve();
                       });
                   }
@@ -466,7 +464,7 @@ function installStep(step) {
                           mainEvent.emit("user:connection-lost", heimdallWait);
                       })
                       .catch(e => {
-                        utils.log.warn(e);
+                        log.warn(e);
                         resolve();
                       });
                   }
@@ -495,10 +493,10 @@ function assembleInstallSteps(steps) {
             step.condition.value
         ) {
           // If the condition is not met, no need to do anything
-          utils.log.debug("skipping step: " + JSON.stringify(step));
+          log.debug("skipping step: " + JSON.stringify(step));
           resolve();
         } else {
-          utils.log.debug("running step: " + JSON.stringify(step));
+          log.debug("running step: " + JSON.stringify(step));
           function restartInstall() {
             install(steps);
           }
@@ -506,7 +504,7 @@ function assembleInstallSteps(steps) {
             installStep(step)()
               .then(() => {
                 resolve();
-                utils.log.debug(step.type + " done");
+                log.debug(step.type + " done");
               })
               .catch(error => {
                 if (step.optional) {
@@ -584,7 +582,7 @@ module.exports = {
       .then(() => deviceTools.getDeviceName())
       .then(device =>
         global.api.resolveAlias(device).catch(e => {
-          utils.log.debug(`failed to resolve device name: ${e}`);
+          log.debug(`failed to resolve device name: ${e}`);
           mainEvent.emit("user:no-network");
         })
       )
