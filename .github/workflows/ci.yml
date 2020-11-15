@@ -40,6 +40,8 @@ jobs:
       run: npm audit --production
     - name: npm run lint
       run: npm run lint
+    - name: npm run docs
+      run: npm run docs
     - name: npm run prerender
       run: npm run prerender
 
