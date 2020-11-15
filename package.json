@@ -27,11 +27,15 @@
   "scripts": {
     "start": "npm run prerender && electron .",
     "prerender": "npx gulp pug",
-    "lint": "npx eslint *.js \"src/**/*.js\"",
+    "lint": "npx eslint *.js \"src/**/*.js\" \"tests/**/*.js\"",
     "lint-fix": "npm run lint -- --fix",
-    "docs": "npx jsdoc -c jsdoc-config.json"
+    "docs": "npx jsdoc -c jsdoc-config.json",
+    "test": "npx coverage -r lcov -r html npm run test-nocover",
+    "test-nocover": "npx mocha -- -R spec './tests/unit-tests/**/*.js'"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
+    "coverage": "^0.4.1",
     "electron": "^10.1.5",
     "electron-builder": "^22.9.1",
     "electron-packager": "^15.1.0",
@@ -41,8 +45,10 @@
     "gulp": "^4.0.2",
     "gulp-pug": "^4.0.1",
     "jsdoc": "^3.6.6",
+    "mocha": "^8.2.1",
     "prettier": "^1.19.1",
-    "sinon": "^7.5.0"
+    "sinon": "^7.5.0",
+    "sinon-chai": "^3.5.0"
   },
   "dependencies": {
     "7zip-min": "^1.2.0",
