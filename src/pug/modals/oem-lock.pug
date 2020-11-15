@@ -4,23 +4,28 @@
       .modal-header
         button.close(type='button', data-dismiss='modal', aria-label='Close')
           span(aria-hidden='true') ×
-        h4#myModalLabel.modal-title Device locked
-      .modal-body
-        p
-          | Your device is oem locked, that means installation of third party operating systems like Ubuntu Touch is disabled.
-        b
-          | Removing the OEM-lock might void your device's warranty. If you want to be sure, please ask your manufacturer or vendor if they allow this. UBports is not responsible and won't replace devices in case of warranty loss. You are responsible for your own actions.
-        p
-          | Do you want to unlock your device now?
-        p
-          | You might see a confirmation dialog on your device next.
+        h4#oem-lock-label.modal-title Device locked
+      .modal-body#oem-lock-default
+        p Your device is oem locked, that means installation of third party operating systems like Ubuntu Touch is disabled.
+        b Removing the OEM-lock might void your device's warranty. If you want to be sure, please ask your manufacturer or vendor if they allow this. UBports is not responsible and won't replace devices in case of warranty loss. You are responsible for your own actions.
+        p Do you want to unlock your device now?
+        p You might see a confirmation dialog on your device next.
+      .modal-body#oem-lock-enable
+        p Your device could not be unlocked. Please make sure OEM unlocking is enabled in the devices' #[a(onclick="modals.show('developer-mode-info');") developer options]. After that, you can select the button below to continue the installation.
       .modal-footer
         button#btn-exit.btn.btn-default(type='button', data-dismiss='modal') Abort
         button#btn-unlock.btn.btn-primary(type='button') Unlock
         i#unlock-prog.fa.fa-cog.fa-spin.fa-2x.fa-fw.hidden(hidden='hidden')
   script.
-    ipcRenderer.on("user:oem-lock", (event) => {
+    ipcRenderer.on("user:oem-lock", (event, enable = false) => {
       modals.show('oem-lock');
+      if (enable) {
+        $("#oem-lock-default").hide();
+        $("#oem-lock-enable").show();
+      } else {
+        $("#oem-lock-default").show();
+        $("#oem-lock-enable").hide();
+      }
     });
 
     $("#btn-unlock").click(() => {
