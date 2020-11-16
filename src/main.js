@@ -29,6 +29,10 @@ const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
+const reload = require('electron-reload')(__dirname,
+  {electron: require(`../node_modules/electron`)});
+const events = require("events");
+class event extends events {}
 
 let mainWindow;
 
@@ -47,8 +51,6 @@ mainEvent.on("restart", () => {
 });
 
 async function createWindow() {
-  const mode = process.env.NODE_ENV;
-
   utils.log.info(
     "Welcome to the UBports Installer version " +
       global.packageInfo.version +
@@ -66,15 +68,6 @@ async function createWindow() {
       enableRemoteModule: true
     }
   });
-
-  // Watch bundle.js for changes
-  let watcher;
-  if (process.env.NODE_ENV === 'development') {
-          watcher = require('chokidar').watch(path.join(__dirname, '../public/build'), { ignoreInitial: true });
-          watcher.on('change', () => {
-              mainWindow.reload();
-          });
-  }
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => core.prepare(cli.file));
@@ -94,8 +87,8 @@ async function createWindow() {
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
-  mainWindow.on("closed", function() {
-    mainWindow = null;
+  mainWindow.on("closed", function() {  
+    mainWindow = null;  
   });
 }
 
