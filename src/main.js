@@ -19,8 +19,12 @@
 
 const electron = require("electron");
 const path = require("path");
+const fs = require("fs-extra");
 const cache = require("./lib/cache.js");
+cache.ensure();
+const cli = require("./lib/cli.js");
 const log = require("./lib/log.js");
+log.setLevel(cli.verbose);
 const updater = require("./lib/updater.js");
 const udev = require("./lib/udev.js");
 const packageInfo = require("../package.json");
@@ -52,6 +56,21 @@ const { shell } = require("electron");
 const prompt = require("electron-dynamic-prompt");
 const deviceTools = require("./lib/deviceTools.js");
 const api = require("./lib/api.js");
+
+if (cli.file) {
+  try {
+    global.installConfig = fs.readJsonSync(
+      path.isAbsolute(cli.file) ? cli.file : path.join(process.cwd(), cli.file)
+    );
+  } catch (error) {
+    throw new Error(`failed to read config file ${cli.file}: ${error}`);
+  }
+}
+
+global.installProperties = {
+  device: global.installConfig ? global.installConfig.codename : cli.device,
+  settings: cli.settings ? JSON.parse(cli.settings) : {}
+};
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING
@@ -388,9 +407,6 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    ["adb", "fastboot", "heimdall"].forEach(tool =>
-      log.debug(`using ${tool}: ${deviceTools[tool].executable}`)
-    );
     if (!global.installProperties.device) {
       const wait = deviceTools.wait();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));

@@ -20,9 +20,9 @@
   "repository": "https://github.com/ubports/ubports-installer",
   "author": "UBports Foundation <info@ubports.com>",
   "license": "GPL-3.0",
-  "main": "src/start.js",
+  "main": "src/main.js",
   "bin": {
-    "ubports-installer": "src/start.js"
+    "ubports-installer": "src/main.js"
   },
   "scripts": {
     "start": "npm run prerender && electron .",

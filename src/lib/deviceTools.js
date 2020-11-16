@@ -32,6 +32,9 @@ class DeviceToolsWithListeners extends DeviceTools {
     ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
       this.on(event, r => log.command(`${event}: ${JSON.stringify(r)}`))
     );
+    ["adb", "fastboot", "heimdall"].forEach(tool =>
+      log.debug(`using ${tool}: ${this[tool].executable}`)
+    );
   }
 
   /**
