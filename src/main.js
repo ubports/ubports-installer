@@ -24,6 +24,7 @@ const log = require("./lib/log.js");
 const updater = require("./lib/updater.js");
 const udev = require("./lib/udev.js");
 const packageInfo = require("../package.json");
+global.packageInfo = packageInfo;
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -47,8 +48,7 @@ const {
   prepareSuccessReport,
   prepareErrorReport
 } = require("./report.js");
-const utils = require("./utils.js");
-global.utils = utils;
+const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
 const { shell } = require("electron");
 const prompt = require("electron-dynamic-prompt");
@@ -314,7 +314,7 @@ mainEvent.on("user:configure", osInstructs => {
         .then(osInstructs => {
           mainWindow.webContents.send("user:configure", osInstructs);
         })
-        .catch(e => utils.errorToUser(e, "configure"));
+        .catch(e => errors.toUser(e, "configure"));
     }
   } else {
     // If there's nothing to configure, don't configure anything
@@ -462,17 +462,17 @@ app.on("activate", function() {
 
 process.on("unhandledRejection", (reason, promise) => {
   if (mainWindow) {
-    utils.errorToUser(reason, "unhandled rejection at " + promise);
+    errors.toUser(reason, "unhandled rejection at " + promise);
   } else {
-    utils.die(reason);
+    errors.die(reason);
   }
 });
 
 process.on("uncaughtException", (error, origin) => {
   if (mainWindow) {
-    utils.errorToUser(error, "uncaught exception at " + origin);
+    errors.toUser(error, "uncaught exception at " + origin);
   } else {
-    utils.die(error);
+    errors.die(error);
   }
 });
 

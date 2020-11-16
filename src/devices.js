@@ -19,7 +19,7 @@
 
 const { unpack } = require("./lib/asarLibs.js");
 const systemImage = require("./system-image");
-const utils = require("./utils");
+const errors = require("./lib/errors.js");
 const path = require("path");
 const fs = require("fs-extra");
 const { download, checkFile } = require("progressive-downloader");
@@ -534,19 +534,15 @@ function assembleInstallSteps(steps) {
                     adb
                       .reconnect()
                       .then(() => {
-                        utils.log.warn(
-                          `automatic reconnection ${++reconnections}`
-                        );
+                        log.warn(`automatic reconnection ${++reconnections}`);
                         runStep();
                       })
                       .catch(error => {
-                        utils.log.warn(
-                          `failed to reconnect automatically: ${error}`
-                        );
+                        log.warn(`failed to reconnect automatically: ${error}`);
                         mainEvent.emit("user:connection-lost", smartRestart);
                       });
                   } else {
-                    utils.log.warn(
+                    log.warn(
                       "maximum automatic reconnection attempts exceeded"
                     );
                     mainEvent.emit("user:connection-lost", smartRestart);
@@ -554,7 +550,7 @@ function assembleInstallSteps(steps) {
                 } else if (error.message.includes("killed")) {
                   reject(); // Used for exiting the installer
                 } else {
-                  utils.errorToUser(error, step.type, restartInstall, runStep);
+                  errors.toUser(error, step.type, restartInstall, runStep);
                 }
               });
           }
@@ -609,7 +605,7 @@ module.exports = {
       )
       .catch(error => {
         if (!error.message.includes("no device"))
-          utils.errorToUser(error, "get device name");
+          errors.toUser(error, "get device name");
       }),
   getOsSelects: osArray => {
     // Can't be moved to support custom config files
