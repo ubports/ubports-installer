@@ -18,6 +18,8 @@
  */
 
 const { DeviceTools } = require("./asarLibs.js");
+const errors = require("./errors.js");
+const api = require("./api.js");
 const log = require("./log.js");
 
 /**
@@ -30,6 +32,27 @@ class DeviceToolsWithListeners extends DeviceTools {
     ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
       this.on(event, r => log.command(`${event}: ${JSON.stringify(r)}`))
     );
+  }
+
+  /**
+   * Resolves device name and resolves aliases
+   * @returns {Promise<String>} canonical device codename
+   */
+  wait() {
+    return super
+      .wait()
+      .then(() => super.getDeviceName())
+      .then(device =>
+        api.resolveAlias(device).catch(e => {
+          log.debug(`failed to resolve device name: ${e}`);
+          mainEvent.emit("user:no-network");
+        })
+      )
+      .then(resolvedDevice => mainEvent.emit("device:detected", resolvedDevice))
+      .catch(error => {
+        if (!error.message.includes("no device"))
+          errors.toUser(error, "get device name");
+      });
   }
 }
 

@@ -392,7 +392,7 @@ async function createWindow() {
       log.debug(`using ${tool}: ${deviceTools[tool].executable}`)
     );
     if (!global.installProperties.device) {
-      const wait = devices.waitForDevice();
+      const wait = deviceTools.wait();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
     }
     api

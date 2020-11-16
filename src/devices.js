@@ -19,14 +19,12 @@
 
 const { unpack } = require("./lib/asarLibs.js");
 const systemImage = require("./system-image");
-const errors = require("./lib/errors.js");
 const path = require("path");
 const fs = require("fs-extra");
 const { download, checkFile } = require("progressive-downloader");
 const { path: cachePath } = require("./lib/cache.js");
 const deviceTools = require("./lib/deviceTools.js");
 const { adb, fastboot, heimdall } = deviceTools;
-const api = require("./lib/api.js");
 
 /**
  * Transform path array
@@ -604,23 +602,6 @@ function install(steps) {
 }
 
 module.exports = {
-  waitForDevice: () =>
-    deviceTools
-      .wait()
-      .then(() => deviceTools.getDeviceName())
-      .then(device =>
-        api.resolveAlias(device).catch(e => {
-          log.debug(`failed to resolve device name: ${e}`);
-          mainEvent.emit("user:no-network");
-        })
-      )
-      .then(resolvedDevice =>
-        global.mainEvent.emit("device:detected", resolvedDevice)
-      )
-      .catch(error => {
-        if (!error.message.includes("no device"))
-          errors.toUser(error, "get device name");
-      }),
   install,
   setRemoteValues: osInstructs => {
     return Promise.all(
