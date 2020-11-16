@@ -601,47 +601,53 @@ function install(steps) {
     .catch(() => {}); // errors can be ignored here, since this is exclusively used for killing the promise chain
 }
 
-module.exports = {
-  install,
-  setRemoteValues: osInstructs => {
-    return Promise.all(
-      osInstructs.options.map(option => {
-        return new Promise(function(resolve, reject) {
-          if (!option.remote_values) {
-            resolve(option); // no remote values, nothing to do
-          } else {
-            switch (option.remote_values.type) {
-              case "systemimagechannels":
-                systemImage
-                  .getDeviceChannels(global.installConfig.codename)
-                  .then(channels => {
-                    option.values = channels
-                      .map(channel => {
-                        return {
-                          value: channel,
-                          label: channel.replace("ubports-touch/", "")
-                        };
-                      })
-                      .reverse();
-                    resolve(option);
-                  })
-                  .catch(e =>
-                    reject(
-                      new Error("fetching system image channels failed: " + e)
-                    )
-                  );
-                break;
-              default:
-                reject(
-                  new Error(
-                    "unknown remote_values provider: " +
-                      option.remote_values.type
+/**
+ * configure remote values
+ * @param {any} osInstructs instructions
+ * @returns {Promise}
+ */
+function setRemoteValues(osInstructs) {
+  return Promise.all(
+    osInstructs.options.map(option => {
+      return new Promise(function(resolve, reject) {
+        if (!option.remote_values) {
+          resolve(option); // no remote values, nothing to do
+        } else {
+          switch (option.remote_values.type) {
+            case "systemimagechannels":
+              systemImage
+                .getDeviceChannels(global.installConfig.codename)
+                .then(channels => {
+                  option.values = channels
+                    .map(channel => {
+                      return {
+                        value: channel,
+                        label: channel.replace("ubports-touch/", "")
+                      };
+                    })
+                    .reverse();
+                  resolve(option);
+                })
+                .catch(e =>
+                  reject(
+                    new Error("fetching system image channels failed: " + e)
                   )
                 );
-            }
+              break;
+            default:
+              reject(
+                new Error(
+                  "unknown remote_values provider: " + option.remote_values.type
+                )
+              );
           }
-        });
-      })
-    );
-  }
+        }
+      });
+    })
+  );
+}
+
+module.exports = {
+  install,
+  setRemoteValues
 };
