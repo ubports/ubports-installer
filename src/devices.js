@@ -621,16 +621,6 @@ module.exports = {
         if (!error.message.includes("no device"))
           errors.toUser(error, "get device name");
       }),
-  getOsSelects: osArray => {
-    // Can't be moved to support custom config files
-    var osSelects = [];
-    for (var i = 0; i < osArray.length; i++) {
-      osSelects.push(
-        '<option name="' + i + '">' + osArray[i].name + "</option>"
-      );
-    }
-    return osSelects;
-  },
   install,
   setRemoteValues: osInstructs => {
     return Promise.all(
