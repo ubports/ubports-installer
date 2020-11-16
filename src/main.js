@@ -29,8 +29,6 @@ global.packageInfo = packageInfo;
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 
-const Api = require("ubports-api-node-module").Installer;
-
 const settings = require("./lib/settings.js");
 const url = require("url");
 const events = require("events");
@@ -52,12 +50,8 @@ const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
 const { shell } = require("electron");
 const prompt = require("electron-dynamic-prompt");
-const api = new Api({
-  timeout: 7500,
-  cachetime: 60000
-});
-global.api = api;
 const deviceTools = require("./lib/deviceTools.js");
+const api = require("./lib/api.js");
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING

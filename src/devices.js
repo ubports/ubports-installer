@@ -26,6 +26,7 @@ const { download, checkFile } = require("progressive-downloader");
 const { path: cachePath } = require("./lib/cache.js");
 const deviceTools = require("./lib/deviceTools.js");
 const { adb, fastboot, heimdall } = deviceTools;
+const api = require("./lib/api.js");
 
 /**
  * Transform path array
@@ -608,7 +609,7 @@ module.exports = {
       .wait()
       .then(() => deviceTools.getDeviceName())
       .then(device =>
-        global.api.resolveAlias(device).catch(e => {
+        api.resolveAlias(device).catch(e => {
           log.debug(`failed to resolve device name: ${e}`);
           mainEvent.emit("user:no-network");
         })
