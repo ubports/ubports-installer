@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const electron = require("electron");
+const { app, BrowserWindow, ipcMain, shell, Menu } = require("electron");
 const path = require("path");
 const fs = require("fs-extra");
 const cache = require("./lib/cache.js");
@@ -30,15 +30,11 @@ const udev = require("./lib/udev.js");
 const packageInfo = require("../package.json");
 global.packageInfo = packageInfo;
 
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
-
 const settings = require("./lib/settings.js");
 const url = require("url");
 const events = require("events");
 class event extends events {}
 
-const ipcMain = electron.ipcMain;
 let mainWindow;
 
 const mainEvent = new event();
@@ -52,7 +48,6 @@ const {
 } = require("./report.js");
 const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
-const { shell } = require("electron");
 const prompt = require("electron-dynamic-prompt");
 const deviceTools = require("./lib/deviceTools.js");
 const api = require("./lib/api.js");
@@ -108,7 +103,7 @@ ipcMain.on("reportResult", async (event, result, error) => {
       .then(data => sendOpenCutsRun(settings.get("opencuts_token"), data))
       .then(url => {
         log.info(`Thank you for reporting! You can view your run here: ${url}`);
-        electron.shell.openExternal(url);
+        shell.openExternal(url);
       })
       .catch(e => log.error(e));
   }
@@ -496,20 +491,20 @@ app.on("ready", function() {
       submenu: [
         {
           label: "About the UBports Foundation...",
-          click: () => electron.shell.openExternal("https://ubports.com")
+          click: () => shell.openExternal("https://ubports.com")
         },
         {
           label: "About Ubuntu Touch...",
-          click: () => electron.shell.openExternal("https://ubuntu-touch.io")
+          click: () => shell.openExternal("https://ubuntu-touch.io")
         },
         {
           label: "Donate",
-          click: () => electron.shell.openExternal("https://ubports.com/donate")
+          click: () => shell.openExternal("https://ubports.com/donate")
         },
         {
           label: "Source",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://github.com/ubports/ubports-installer/tree/" +
                 packageInfo.version
             )
@@ -517,7 +512,7 @@ app.on("ready", function() {
         {
           label: "License",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://github.com/ubports/ubports-installer/blob/" +
                 packageInfo.version +
                 "/LICENSE"
@@ -664,7 +659,7 @@ app.on("ready", function() {
         {
           label: "Bug tracker",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://github.com/ubports/ubports-installer/issues"
             )
         },
@@ -675,29 +670,29 @@ app.on("ready", function() {
         {
           label: "Troubleshooting",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
             )
         },
         {
           label: "UBports Forums",
-          click: () => electron.shell.openExternal("https://forums.ubports.com")
+          click: () => shell.openExternal("https://forums.ubports.com")
         },
         {
           label: "AskUbuntu",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://askubuntu.com/questions/tagged/ubuntu-touch"
             )
         },
         {
           label: "Telegram",
-          click: () => electron.shell.openExternal("https://t.me/WelcomePlus")
+          click: () => shell.openExternal("https://t.me/WelcomePlus")
         }
       ]
     }
   ];
 
-  const menu = electron.Menu.buildFromTemplate(menuTemplate);
-  electron.Menu.setApplicationMenu(menu);
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
 });
