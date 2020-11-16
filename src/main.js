@@ -17,19 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const cli = require("commander");
 const electron = require("electron");
+const path = require("path");
+const cache = require("./lib/cache.js");
+const log = require("./lib/log.js");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
-global.packageInfo = require("../package.json");
 
 const Api = require("ubports-api-node-module").Installer;
-const Store = require("electron-store");
-const Logger = require("./lib/Logger.js");
 
-const path = require("path");
-const fs = require("fs-extra");
+const settings = require("./lib/settings.js");
 const url = require("url");
 const events = require("events");
 class event extends events {}
@@ -65,81 +63,6 @@ global.heimdall = deviceTools.heimdall;
 ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
   deviceTools.on(event, r => log.command(`${event}: ${JSON.stringify(r)}`))
 );
-
-const settings = new Store({
-  schema: {
-    animations: {
-      type: "boolean",
-      default: true
-    },
-    opencuts_token: {
-      type: "string"
-    },
-    never: {
-      opencuts: {
-        type: "boolean",
-        default: false
-      },
-      udev: {
-        type: "boolean",
-        default: false
-      },
-      windowsDrivers: {
-        type: "boolean",
-        default: false
-      }
-    }
-  }
-});
-
-//==============================================================================
-// PARSE COMMAND-LINE ARGUMENTS
-//==============================================================================
-
-cli
-  .name(global.packageInfo.name)
-  .description(
-    global.packageInfo.description +
-      "\nVersion: " +
-      global.packageInfo.version +
-      "\nPackage: " +
-      (global.packageInfo.package || "source")
-  )
-  .option(
-    "-d, --device <device>",
-    "[experimental] Override detected device-id (codename)"
-  )
-  .option("-o, --operating-system <os>", "[experimental] what os to install")
-  .option(
-    '-s, --settings "<setting>: <value>[, ...]"',
-    "Override install settings"
-  )
-  .option("-f, --file <file>", "Override the config by loading a file")
-  .option("-c, --cli", "[experimental] Run without GUI", undefined, "false")
-  .option("-v, --verbose", "Enable verbose logging", undefined, "false")
-  .option("-V, --veryVerbose", "Log *everything*", undefined, "false")
-  .option("-D, --debug", "Enable debugging tools", undefined, "false")
-  .parse(process.argv);
-
-if (cli.file) {
-  try {
-    global.installConfig = fs.readJsonSync(
-      path.isAbsolute(cli.file) ? cli.file : path.join(process.cwd(), cli.file)
-    );
-  } catch (error) {
-    throw new Error(`failed to read config file ${cli.file}: ${error}`);
-  }
-}
-
-const log = new Logger(
-  path.join(utils.getUbuntuTouchDir(), "ubports-installer.log"),
-  cli.veryVerbose ? "command" : cli.verbose ? "debug" : "info"
-);
-
-global.installProperties = {
-  device: global.installConfig ? global.installConfig.codename : cli.device,
-  settings: cli.settings ? JSON.parse(cli.settings) : {}
-};
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING
@@ -637,7 +560,7 @@ app.on("ready", function() {
         },
         {
           label: "Clean cached files",
-          click: utils.cleanInstallerCache
+          click: cache.clean()
         },
         {
           label: "Open settings config file",

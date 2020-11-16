@@ -18,6 +18,8 @@
  */
 
 const winston = require("winston");
+const path = require("path");
+const { path: cachePath } = require("./cache.js");
 
 const levels = {
   error: 0,
@@ -34,17 +36,8 @@ const levels = {
 class Logger {
   /**
    * @constructs Logger
-   * @param {String} filename log file path
-   * @param {String} [level] logging level
    */
-  constructor(filename, level = "info") {
-    // singleton
-    const instance = this.constructor.instance;
-    if (instance) {
-      return instance;
-    }
-    this.constructor.instance = this;
-
+  constructor() {
     winston.addColors({
       error: "red",
       warn: "yellow",
@@ -55,7 +48,7 @@ class Logger {
     });
 
     this.logfile = new winston.transports.File({
-      filename,
+      filename: path.join(cachePath, "ubports-installer.log"),
       options: { flags: "w" },
       level: "command"
     });
@@ -64,7 +57,7 @@ class Logger {
         winston.format.colorize(),
         winston.format.simple()
       ),
-      level
+      level: "info"
     });
     this.winston = winston.createLogger({
       format: winston.format.json(),
@@ -107,10 +100,20 @@ class Logger {
 
   /**
    * update stdout logging level
-   * @param {String} [level] logging level
+   * @param {Number} [level] logging level
    */
-  setLevel(level = "info") {
-    this.stdout.level = level;
+  setLevel(level = 0) {
+    switch (level) {
+      case 1:
+        this.stdout.level = "debug";
+        break;
+      case 2:
+        this.stdout.level = "command";
+        break;
+      default:
+        this.stdout.level = "info";
+        break;
+    }
   }
 
   /**
@@ -154,4 +157,4 @@ class Logger {
   }
 }
 
-module.exports = Logger;
+module.exports = new Logger();

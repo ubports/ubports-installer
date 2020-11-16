@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const utils = require("./utils");
+const { path: cachePath } = require("./lib/cache.js");
 const systemImageClient = require("system-image-node-module").Client;
 
-const systemImage = new systemImageClient({ path: utils.getUbuntuTouchDir() });
+const systemImage = new systemImageClient({ path: cachePath });
 
 const getDeviceChannels = device => {
   return systemImage.getDeviceChannels(device);

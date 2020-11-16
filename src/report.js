@@ -23,7 +23,7 @@ const FormData = require("form-data");
 const util = require("util");
 const { osInfo } = require("systeminformation");
 const { GraphQLClient, gql } = require("graphql-request");
-const { getUbuntuTouchDir } = require("./utils");
+const { path: cachePath } = require("./lib/cache.js");
 require("cross-fetch/polyfill");
 
 /**
@@ -185,7 +185,7 @@ async function paste(
  */
 function getIssueTitle(error) {
   if (!error) return "";
-  else return error.replaceAll(getUbuntuTouchDir(), "$CACHE");
+  else return error.replaceAll(cachePath, "$CACHE");
 }
 
 /**

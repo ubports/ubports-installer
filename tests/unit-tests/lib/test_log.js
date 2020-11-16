@@ -24,9 +24,9 @@ const expect = chai.expect;
 chai.use(sinonChai);
 
 const winston = require("winston");
-const Logger = require("../../../src/lib/Logger.js");
-
 const levels = ["error", "warn", "info", "debug", "command"];
+
+global.cache = "/tmp";
 
 describe("Logger module", function() {
   describe("constructor()", function() {
@@ -37,14 +37,17 @@ describe("Logger module", function() {
       });
       sinon.stub(winston, "createLogger").returns();
       sinon.stub(winston, "addColors");
-      expect(new Logger() === new Logger());
+      expect(
+        require("../../../src/lib/log.js") ===
+          require("../../../src/lib/log.js")
+      );
       expect(winston.addColors).to.have.been.calledOnce;
       expect(winston.addColors).to.not.have.been.calledTwice;
     });
   });
   describe("get()", function() {
     it("should resolve log file contents", function() {
-      const log = new Logger();
+      const log = require("../../../src/lib/log.js");
       log.winston = {
         query: sinon.fake((opts, cb) =>
           cb(null, {
@@ -58,7 +61,7 @@ describe("Logger module", function() {
       });
     });
     it("should reject on query error", function(done) {
-      const log = new Logger();
+      const log = require("../../../src/lib/log.js");
       log.winston = {
         query: sinon.fake((opts, cb) => cb(1))
       };
@@ -68,7 +71,7 @@ describe("Logger module", function() {
       });
     });
     it("should reject on parsing error", function(done) {
-      const log = new Logger();
+      const log = require("../../../src/lib/log.js");
       log.winston = {
         query: sinon.fake((opts, cb) => cb())
       };
@@ -82,21 +85,24 @@ describe("Logger module", function() {
   });
   describe("setLevel()", function() {
     it("should update level", function() {
+      const log = require("../../../src/lib/log.js");
       sinon.stub(winston, "transports").value({
         File: class {},
         Console: class {}
       });
       sinon.stub(winston, "createLogger").returns();
-      const log = new Logger();
-      log.stdout.level = "info";
-      log.setLevel("debug");
+      log.setLevel(1);
       expect(log.stdout.level).to.eql("debug");
+      log.setLevel(2);
+      expect(log.stdout.level).to.eql("command");
+      log.setLevel(1337);
+      expect(log.stdout.level).to.eql("info");
     });
   });
   levels.forEach(level => {
     describe(`${level}()`, function() {
       it(`should log ${level}`, function() {
-        const log = new Logger();
+        const log = require("../../../src/lib/log.js");
         log.winston = {
           log: sinon.spy()
         };

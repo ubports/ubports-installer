@@ -22,8 +22,6 @@ const path = require("path");
 const util = require("util");
 global.packageInfo = require("../package.json");
 
-fs.ensureDir(getUbuntuTouchDir());
-
 function getLatestInstallerVersion() {
   return axios
     .get(
@@ -67,28 +65,6 @@ function getUpdateAvailable() {
   });
 }
 
-function getUbuntuTouchDir() {
-  var osCacheDir;
-  switch (process.platform) {
-    case "linux":
-      osCacheDir = path.join(process.env.HOME, ".cache");
-      break;
-    case "darwin":
-      osCacheDir = path.join(process.env.HOME, "Library/Caches");
-      break;
-    case "win32":
-      osCacheDir = process.env.APPDATA;
-      break;
-    default:
-      throw Error("Unknown platform " + process.platform);
-  }
-  return path.join(osCacheDir, "ubports");
-}
-
-function cleanInstallerCache() {
-  fs.emptyDir(getUbuntuTouchDir());
-}
-
 function die(e) {
   console.log(e); // FIXME
   process.exit(-1);
@@ -113,9 +89,7 @@ function asarLibPathHack(lib) {
 
 module.exports = {
   asarLibPathHack,
-  cleanInstallerCache,
   errorToUser,
-  getUbuntuTouchDir,
   setUdevRules,
   getUpdateAvailable,
   die,

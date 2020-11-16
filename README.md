@@ -31,15 +31,19 @@ cd ubports-installer
 
 ```
 $ npm start -- -h
-Usage: ubports-installer [options]
+Usage: ubports-installer [-f <file>] [-v[v[v[v]]]] [-D]
+
+UBports Installer (0.7.2-beta) source for linux
+GPL-3.0 UBports Foundation <info@ubports.com>
+The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
+https://devices.ubuntu-touch.io
 
 Options:
-  -V, --version                               output the version number
-  -s, --settings "<setting>: <value>[, ...]"  [experimental] Override install settings
-  -f, --file <file>                           [experimental] Override the config by loading a file
-  -v, --verbose                               Enable verbose logging
-  -D, --debug                                 Enable debugging tools and verbose logging
-  -h, --help                                  output usage information
+  -V, --version          output the version number
+  -f, --file <file>      Override the official config by loading a file
+  -v, --verbose          Print debugging information. Multiple -v options increase the verbosity.
+  -D, --debugging-tools  Enable electron's debugging tools
+  -h, --help             output usage information
 ```
 
 ### Lint

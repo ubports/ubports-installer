@@ -22,17 +22,13 @@ const utils = require("./utils");
 const path = require("path");
 const fs = require("fs-extra");
 const { download, checkFile } = require("progressive-downloader");
+const { path: cachePath } = require("./lib/cache.js");
 
 function addPathToFiles(files, device) {
   var ret = [];
   for (var i = 0; i < files.length; i++) {
     ret.push({
-      file: path.join(
-        utils.getUbuntuTouchDir(),
-        device,
-        files[i].group,
-        files[i].file
-      ),
+      file: path.join(cachePath, device, files[i].group, files[i].file),
       partition: files[i].partition,
       flags: files[i].flags,
       raw: files[i].raw
@@ -56,7 +52,7 @@ function installStep(step) {
                 : null,
             partition: file.type,
             path: path.join(
-              utils.getUbuntuTouchDir(),
+              cachePath,
               global.installProperties.device,
               step.group,
               path.basename(file.url)
@@ -125,7 +121,7 @@ function installStep(step) {
           {
             checksum: step.file.checksum,
             path: path.join(
-              utils.getUbuntuTouchDir(),
+              cachePath,
               global.installProperties.device,
               step.group,
               step.file.name
@@ -142,7 +138,7 @@ function installStep(step) {
                 downloadedFilePath => {
                   fs.ensureDir(
                     path.join(
-                      utils.getUbuntuTouchDir(),
+                      cachePath,
                       global.installProperties.device,
                       step.group
                     )
@@ -151,7 +147,7 @@ function installStep(step) {
                       fs.copyFile(
                         downloadedFilePath,
                         path.join(
-                          utils.getUbuntuTouchDir(),
+                          cachePath,
                           global.installProperties.device,
                           step.group,
                           step.file.name
@@ -163,7 +159,7 @@ function installStep(step) {
                         {
                           checksum: step.file.checksum,
                           path: path.join(
-                            utils.getUbuntuTouchDir(),
+                            cachePath,
                             global.installProperties.device,
                             step.group,
                             step.file.name
@@ -196,7 +192,7 @@ function installStep(step) {
         );
         global.mainEvent.emit("user:write:under", `Unpacking...`);
         let basepath = path.join(
-          utils.getUbuntuTouchDir(),
+          cachePath,
           global.installProperties.device,
           step.group
         );
@@ -240,7 +236,7 @@ function installStep(step) {
         return global.adb
           .sideload(
             path.join(
-              utils.getUbuntuTouchDir(),
+              cachePath,
               global.installProperties.device,
               step.group,
               step.file
@@ -307,7 +303,7 @@ function installStep(step) {
         );
         return fastboot.boot(
           path.join(
-            utils.getUbuntuTouchDir(),
+            cachePath,
             global.installProperties.device,
             step.group,
             step.file
@@ -338,7 +334,7 @@ function installStep(step) {
         );
         return fastboot.update(
           path.join(
-            utils.getUbuntuTouchDir(),
+            cachePath,
             global.installProperties.device,
             step.group,
             step.file
