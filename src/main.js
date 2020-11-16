@@ -21,6 +21,7 @@ const electron = require("electron");
 const path = require("path");
 const cache = require("./lib/cache.js");
 const log = require("./lib/log.js");
+const updater = require("./lib/updater.js");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -102,7 +103,7 @@ ipcMain.on("reportResult", async (event, result, error) => {
         log.info(`Thank you for reporting! You can view your run here: ${url}`);
         electron.shell.openExternal(url);
       })
-      .catch(log.error);
+      .catch(e => log.error(e));
   }
 });
 
@@ -420,18 +421,15 @@ async function createWindow() {
 
   // Task we need only on the first start
   mainWindow.webContents.once("did-finish-load", () => {
-    utils
-      .getUpdateAvailable()
-      .then(() => {
-        log.info(
-          "This is not the latest version of the UBports Installer! Please update: https://devices.ubuntu-touch.io/installer/" +
-            (global.packageInfo.package
-              ? "?package=" + global.packageInfo.package
-              : "")
-        );
-        mainWindow.webContents.send("user:update-available");
+    updater
+      .isOutdated()
+      .then(updateUrl => {
+        if (updateUrl) {
+          log.warn(`Please update: ${updateUrl}`);
+          mainWindow.webContents.send("user:update-available");
+        }
       })
-      .catch(() => {}); // Ignore errors, since this is non-essential
+      .catch(e => log.debug(e)); // Ignore errors, since this is non-essential
   });
 
   mainWindow.loadURL(

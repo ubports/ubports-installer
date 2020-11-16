@@ -15,25 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const axios = require("axios");
 const sudo = require("sudo-prompt");
 const path = require("path");
 const log = require("./lib/log.js");
 const util = require("util");
 global.packageInfo = require("../package.json");
-
-function getLatestInstallerVersion() {
-  return axios
-    .get(
-      "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
-      {
-        json: true,
-        headers: { "User-Agent": "axios" }
-      }
-    )
-    .then(r => r.data.tag_name)
-    .catch(log.error);
-}
 
 function setUdevRules() {
   sudo.exec(
@@ -52,17 +38,6 @@ function setUdevRules() {
       else log.debug("udev rules set");
     }
   );
-}
-
-function getUpdateAvailable() {
-  return new Promise((resolve, reject) => {
-    getLatestInstallerVersion()
-      .then(latestVersion => {
-        if (latestVersion != global.packageInfo.version) resolve();
-        else reject();
-      })
-      .catch(resolve);
-  });
 }
 
 function die(e) {
@@ -87,7 +62,6 @@ module.exports = {
   asarLibPathHack,
   errorToUser,
   setUdevRules,
-  getUpdateAvailable,
   die,
   unpack: util.promisify(require(asarLibPathHack("7zip-min")).unpack)
 };
