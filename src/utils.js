@@ -17,8 +17,8 @@
 
 const axios = require("axios");
 const sudo = require("sudo-prompt");
-const fs = require("fs-extra");
 const path = require("path");
+const log = require("./lib/log.js");
 const util = require("util");
 global.packageInfo = require("../package.json");
 
@@ -48,7 +48,7 @@ function setUdevRules() {
       icns: path.join(__dirname, "../build/icons/icon.icns")
     },
     error => {
-      if (error) log.warn("setting udev rules failed");
+      if (error) log.warn(`setting udev rules failed: ${error}`);
       else log.debug("udev rules set");
     }
   );
@@ -66,17 +66,13 @@ function getUpdateAvailable() {
 }
 
 function die(e) {
-  console.log(e); // FIXME
+  log.error(e);
   process.exit(-1);
 }
 
 function errorToUser(error, errorLocation, restart, ignore) {
-  var errorString =
-    "Error: " + (errorLocation ? errorLocation : "Unknown") + ": " + error;
-  console.log(
-    //FIXME
-    errorString + (error.stack ? "\nstack trace: " + error.stack : "")
-  );
+  const errorString = `Error: ${errorLocation || "Unknown"}: ${error}`;
+  log.error(errorString + (error.stack ? "\nstack trace: " + error.stack : ""));
   global.mainEvent.emit("user:error", errorString, restart, ignore);
 }
 
