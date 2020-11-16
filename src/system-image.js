@@ -23,11 +23,19 @@ const { adb } = require("./lib/deviceTools.js");
 const systemImageClient = require("system-image-node-module").Client;
 const systemImage = new systemImageClient({ path: cachePath });
 
+/**
+ * resolve channels for a device
+ * @param {String} device codename
+ */
 const getDeviceChannels = device => {
   return systemImage.getDeviceChannels(device);
 };
 
-var installLatestVersion = options => {
+/**
+ * system image install
+ * @param {Object} options system image options
+ */
+const installLatestVersion = options => {
   return Promise.all([
     systemImage
       .downloadLatestVersion(
@@ -90,6 +98,6 @@ var installLatestVersion = options => {
 };
 
 module.exports = {
-  getDeviceChannels: getDeviceChannels,
-  installLatestVersion: installLatestVersion
+  getDeviceChannels,
+  installLatestVersion
 };
