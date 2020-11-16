@@ -22,6 +22,8 @@ const path = require("path");
 const cache = require("./lib/cache.js");
 const log = require("./lib/log.js");
 const updater = require("./lib/updater.js");
+const udev = require("./lib/udev.js");
+const packageInfo = require("../package.json");
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -135,13 +137,13 @@ ipcMain.on("option", (event, targetVar, value) => {
 });
 
 // The user requested udev rules to be set
-ipcMain.on("udev", utils.setUdevRules);
+ipcMain.on("udev", udev.set);
 
 // The user requested an update
 ipcMain.on("update", () => {
   shell.openExternal(
     `https://devices.ubuntu-touch.io/installer/${
-      global.packageInfo.package ? "?package=" + global.packageInfo.package : ""
+      packageInfo.package ? "?package=" + packageInfo.package : ""
     }`
   );
 });
@@ -372,16 +374,14 @@ mainEvent.on("user:no-network", () => {
 
 async function createWindow() {
   log.info(
-    "Welcome to the UBports Installer version " +
-      global.packageInfo.version +
-      "!"
+    "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
   mainWindow = new BrowserWindow({
     width: cli.cli ? 0 : cli.debug ? 1600 : 800,
     height: cli.cli ? 0 : 600,
     show: !cli.cli,
     icon: path.join(__dirname, "../build/icons/icon.png"),
-    title: "UBports Installer (" + global.packageInfo.version + ")",
+    title: "UBports Installer (" + packageInfo.version + ")",
     kiosk: false,
     fullscreen: false,
     webPreferences: {
@@ -499,7 +499,7 @@ app.on("ready", function() {
           click: () =>
             electron.shell.openExternal(
               "https://github.com/ubports/ubports-installer/tree/" +
-                global.packageInfo.version
+                packageInfo.version
             )
         },
         {
@@ -507,7 +507,7 @@ app.on("ready", function() {
           click: () =>
             electron.shell.openExternal(
               "https://github.com/ubports/ubports-installer/blob/" +
-                global.packageInfo.version +
+                packageInfo.version +
                 "/LICENSE"
             )
         }
@@ -539,10 +539,9 @@ app.on("ready", function() {
       submenu: [
         {
           label: "Set udev rules",
-          click: utils.setUdevRules,
+          click: udev.set,
           visible:
-            global.packageInfo.package !== "snap" &&
-            process.platform === "linux"
+            packageInfo.package !== "snap" && process.platform === "linux"
         },
         {
           label: "Report a bug",
@@ -590,8 +589,7 @@ app.on("ready", function() {
           label: "Never ask for udev rules",
           checked: settings.get("never.udev"),
           visible:
-            global.packageInfo.package !== "snap" &&
-            process.platform === "linux",
+            packageInfo.package !== "snap" && process.platform === "linux",
           type: "checkbox",
           click: () => settings.set("never.udev", !settings.get("never.udev"))
         },

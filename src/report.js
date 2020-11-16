@@ -21,6 +21,7 @@ const { shell } = require("electron");
 const axios = require("axios");
 const FormData = require("form-data");
 const util = require("util");
+const packageInfo = require("../package.json");
 const { osInfo } = require("systeminformation");
 const { GraphQLClient, gql } = require("graphql-request");
 const { path: cachePath } = require("./lib/cache.js");
@@ -68,18 +69,6 @@ function getSettingsString() {
 }
 
 /**
- * Get package string
- * @returns {String} snap, deb, AppImage, exe, dmg, source, or unknown
- */
-function getPackageString() {
-  try {
-    return global.packageInfo.package || "source";
-  } catch (e) {
-    return "unknown";
-  }
-}
-
-/**
  * Get information about the os the installer is running on
  * @async
  * @returns {String} environment information
@@ -121,7 +110,7 @@ async function getEnvironment() {
 async function getDebugInfo(data, logUrl, runUrl) {
   return encodeURIComponent(
     [
-      `**UBports Installer \`${global.packageInfo.version}\` (${data.package})**`,
+      `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
       `Environment: \`${data.environment}\``,
       `Device: ${data.device}`,
       `Target OS: ${getTargetOsString()}`,
@@ -246,7 +235,7 @@ async function sendOpenCutsRun(token, data, log = log.get()) {
       {
         testId: "5e9d75406346e112514cfeca",
         systemId: "5e9d746c6346e112514cfec7",
-        tag: global.packageInfo.version,
+        tag: packageInfo.version,
         run: {
           result: data.result,
           comment: data.comment,
@@ -293,7 +282,7 @@ function genericFormFields(result) {
       type: "input",
       attrs: {
         placeholder: "What package of the Installer are you using?",
-        value: global.packageInfo.package || "source",
+        value: packageInfo.package || "source",
         required: true
       }
     },

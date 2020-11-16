@@ -15,29 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const sudo = require("sudo-prompt");
-const path = require("path");
 const log = require("./lib/log.js");
 global.packageInfo = require("../package.json");
-
-function setUdevRules() {
-  sudo.exec(
-    "cp " +
-      path.join(__dirname, "../build/10-ubports.rules") +
-      " /etc/udev/rules.d/ && " +
-      '(udevadm control --reload-rules || echo "") && ' +
-      '(udevadm trigger || echo "") && ' +
-      '(service udev restart || echo "")',
-    {
-      name: "UBports Installer",
-      icns: path.join(__dirname, "../build/icons/icon.icns")
-    },
-    error => {
-      if (error) log.warn(`setting udev rules failed: ${error}`);
-      else log.debug("udev rules set");
-    }
-  );
-}
 
 function die(e) {
   log.error(e);
@@ -52,6 +31,5 @@ function errorToUser(error, errorLocation, restart, ignore) {
 
 module.exports = {
   errorToUser,
-  setUdevRules,
   die
 };
