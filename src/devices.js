@@ -24,6 +24,8 @@ const path = require("path");
 const fs = require("fs-extra");
 const { download, checkFile } = require("progressive-downloader");
 const { path: cachePath } = require("./lib/cache.js");
+const deviceTools = require("./lib/deviceTools.js");
+const { adb, fastboot, heimdall } = deviceTools;
 
 function addPathToFiles(files, device) {
   var ret = [];
@@ -234,7 +236,7 @@ function installStep(step) {
           "user:write:under",
           "Your new operating system is being installed..."
         );
-        return global.adb
+        return adb
           .sideload(
             path.join(
               cachePath,

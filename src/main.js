@@ -56,13 +56,6 @@ const api = new Api({
 });
 global.api = api;
 const deviceTools = require("./lib/deviceTools.js");
-global.deviceTools = deviceTools;
-global.adb = deviceTools.adb;
-global.fastboot = deviceTools.fastboot;
-global.heimdall = deviceTools.heimdall;
-["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
-  deviceTools.on(event, r => log.command(`${event}: ${JSON.stringify(r)}`))
-);
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING

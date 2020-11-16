@@ -18,8 +18,9 @@
  */
 
 const { path: cachePath } = require("./lib/cache.js");
-const systemImageClient = require("system-image-node-module").Client;
+const { adb } = require("./lib/deviceTools.js");
 
+const systemImageClient = require("system-image-node-module").Client;
 const systemImage = new systemImageClient({ path: cachePath });
 
 const getDeviceChannels = device => {
