@@ -197,6 +197,7 @@ async function sendBugReport(data, opencutsToken) {
 
 /**
  * OPEN-CUTS operating system mapping
+ * @private
  */
 const OPENCUTS_OS = {
   darwin: "macOS",

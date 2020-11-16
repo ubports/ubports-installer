@@ -25,19 +25,20 @@ const cache = require("./lib/cache.js");
 const log = require("./lib/log.js");
 const packageInfo = require("../package.json");
 
+const description = `UBports Installer (${
+  packageInfo.version
+}) ${packageInfo.package || "source"} for ${process.platform}
+${packageInfo.license} ${packageInfo.author}
+${packageInfo.description}
+${packageInfo.homepage}`;
+
 cache.ensure();
 
 cli
   .version(packageInfo.version)
-  .name(packageInfo.name)
-  .usage("[-f <file>] [-v[v] [-D]")
-  .description(
-    `UBports Installer (${packageInfo.version}) ${packageInfo.package ||
-      "source"} for ${process.platform}
-${packageInfo.license} ${packageInfo.author}
-${packageInfo.description}
-${packageInfo.homepage}`
-  )
+  .name(packageInfo.package ? packageInfo.name : "npm start --")
+  .usage("[-f <file>] [-v[v] [-d]")
+  .description(description)
   .option("-f, --file <file>", "Override the official config by loading a file")
   .option(
     "-v, --verbose",
@@ -45,7 +46,7 @@ ${packageInfo.homepage}`
     (_, prev) => prev + 1,
     0
   )
-  .option("-D, --debugging-tools", "Enable electron's debugging tools")
+  .option("-d, --debug", "Enable electron's debugging tools")
   .parse(process.argv);
 global.cli = cli;
 

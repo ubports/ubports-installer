@@ -31,7 +31,7 @@ cd ubports-installer
 
 ```
 $ npm start -- -h
-Usage: ubports-installer [-f <file>] [-v[v[v[v]]]] [-D]
+Usage: npm start -- [-f <file>] [-v[v] [-d]
 
 UBports Installer (0.7.2-beta) source for linux
 GPL-3.0 UBports Foundation <info@ubports.com>
@@ -39,11 +39,11 @@ The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platfo
 https://devices.ubuntu-touch.io
 
 Options:
-  -V, --version          output the version number
-  -f, --file <file>      Override the official config by loading a file
-  -v, --verbose          Print debugging information. Multiple -v options increase the verbosity.
-  -D, --debugging-tools  Enable electron's debugging tools
-  -h, --help             output usage information
+  -V, --version      output the version number
+  -f, --file <file>  Override the official config by loading a file
+  -v, --verbose      Print debugging information. Multiple -v options increase the verbosity.
+  -d, --debug        Enable electron's debugging tools
+  -h, --help         output usage information
 ```
 
 ### Lint
