@@ -18,7 +18,6 @@
 const sudo = require("sudo-prompt");
 const path = require("path");
 const log = require("./lib/log.js");
-const util = require("util");
 global.packageInfo = require("../package.json");
 
 function setUdevRules() {
@@ -51,17 +50,8 @@ function errorToUser(error, errorLocation, restart, ignore) {
   global.mainEvent.emit("user:error", errorString, restart, ignore);
 }
 
-// HACK: Oh my fucking god. This is stupid. This is, in fact, so stupid, that i almost cannot believe that i will have to commit this as-is. But here goes: We've long known that executing binaries in the asar package is not possible, so the binaries need to be unpacked. We can not, however, require the unpacked lib, hence we do a stupid hack to get the normal binary from node_modules when running from source and the unpacked one otherwise. I hate everything about this, but it works. If someone knows a better way, i'll be forever grateful.
-function asarLibPathHack(lib) {
-  return global.packageInfo.package
-    ? path.join(__dirname, "../../app.asar.unpacked/node_modules/", lib)
-    : lib;
-}
-
 module.exports = {
-  asarLibPathHack,
   errorToUser,
   setUdevRules,
-  die,
-  unpack: util.promisify(require(asarLibPathHack("7zip-min")).unpack)
+  die
 };

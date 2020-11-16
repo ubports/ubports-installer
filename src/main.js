@@ -55,8 +55,7 @@ const api = new Api({
   cachetime: 60000
 });
 global.api = api;
-const { DeviceTools } = require(utils.asarLibPathHack("promise-android-tools"));
-const deviceTools = new DeviceTools();
+const deviceTools = require("./lib/deviceTools.js");
 global.deviceTools = deviceTools;
 global.adb = deviceTools.adb;
 global.fastboot = deviceTools.fastboot;

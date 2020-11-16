@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { unpack } = require("./lib/asarLibs.js");
 const systemImage = require("./system-image");
 const utils = require("./utils");
 const path = require("path");
@@ -198,7 +199,7 @@ function installStep(step) {
         );
         return Promise.all(
           step.files.map(file =>
-            utils.unpack(
+            unpack(
               path.join(basepath, file.archive),
               path.join(basepath, file.dir)
             )
