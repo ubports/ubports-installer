@@ -27,6 +27,11 @@ const { path: cachePath } = require("./lib/cache.js");
 const deviceTools = require("./lib/deviceTools.js");
 const { adb, fastboot, heimdall } = deviceTools;
 
+/**
+ * Transform path array
+ * @param {Array} files files
+ * @param {String} device codename
+ */
 function addPathToFiles(files, device) {
   var ret = [];
   for (var i = 0; i < files.length; i++) {
@@ -40,6 +45,10 @@ function addPathToFiles(files, device) {
   return ret;
 }
 
+/**
+ * turn a step into a promise
+ * @param {Object} step installation step
+ */
 function installStep(step) {
   switch (step.type) {
     case "download":
@@ -481,6 +490,11 @@ function installStep(step) {
   }
 }
 
+/**
+ * Turn steps into a promise chain
+ * @param {Array<Object>} steps installation steps
+ * @param {Array<Function>}
+ */
 function assembleInstallSteps(steps) {
   var installPromises = [];
   steps.forEach(step => {
@@ -578,14 +592,13 @@ function assembleInstallSteps(steps) {
   return installPromises;
 }
 
+/**
+ * run a chain of installation steps
+ * @param {Array} steps installation steps
+ */
 function install(steps) {
-  var installPromises = assembleInstallSteps(steps);
-  // Actually run the steps
-  installPromises
-    .reduce(
-      (promiseChain, currentFunction) => promiseChain.then(currentFunction),
-      Promise.resolve()
-    )
+  assembleInstallSteps(steps)
+    .reduce((chain, next) => chain.then(next), Promise.resolve())
     .catch(() => {}); // errors can be ignored here, since this is exclusively used for killing the promise chain
 }
 
@@ -617,7 +630,7 @@ module.exports = {
     }
     return osSelects;
   },
-  install: install,
+  install,
   setRemoteValues: osInstructs => {
     return Promise.all(
       osInstructs.options.map(option => {
