@@ -18,7 +18,7 @@
  */
 
 const { unpack } = require("./lib/asarLibs.js");
-const systemImage = require("./system-image");
+const systemImage = require("./lib/system-image.js");
 const path = require("path");
 const fs = require("fs-extra");
 const { download, checkFile } = require("progressive-downloader");
