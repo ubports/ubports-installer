@@ -4,7 +4,11 @@ adopt-info: ubports-installer
 summary: The easy way to install Ubuntu Touch on UBports devices.
 description: A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
 icon: build/icons/icon.png
-architectures: [amd64]
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: arm64
+    run-on: arm64
 license: GPL-3.0
 
 grade: stable
@@ -40,8 +44,6 @@ parts:
       - npm
       - nodejs
       - libgconf-2-4
-      - unzip # todo remove
-      - wget # todo remove
     stage-packages:
       - libusb-1.0-0
       - libnotify4
@@ -62,20 +64,19 @@ parts:
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
     override-build: |
       echo "Running override-build script"
-      npm install npm@latest -g
-      npx npm install
-      rm -rf platform-tools || true
-      mkdir -p platform-tools/linux
-      wget https://dl.google.com/android/repository/platform-tools-latest-linux.zip -O platform-tools/adb-fastboot.zip
-      unzip platform-tools/adb-fastboot.zip -d platform-tools/linux_tmp
-      mv platform-tools/linux_tmp/platform-tools/* platform-tools/linux
-      wget https://heimdall.free-droid.com/heimdall-linux.zip -O platform-tools/heimdall.zip
-      unzip platform-tools/heimdall.zip -d platform-tools/linux
-      npm run prerender
-      ./build.js -o 'linux' -p 'dir' -d
+      echo "https_proxy: " $https_proxy
+      echo "http_proxy: " $http_proxy
+      echo "updating npm" && npm install npm@latest -g
+      echo "installing dependencies" && npx cross-env ELECTRON_GET_USE_PROXY=true GLOBAL_AGENT_HTTPS_PROXY=$https_proxy npm install
+      echo "prerendering" && npm run prerender
+      [ `uname -m` == "aarch64" ] && UBPORTS_ARCH=arm64 || UBPORTS_ARCH=x64
+      [ `uname -m` == "aarch64" ] && UBPORTS_DISTDIR=linux-arm64-unpacked || UBPORTS_DISTDIR=linux-unpacked
+      ELECTRON_GET_USE_PROXY=true
+      GLOBAL_AGENT_HTTPS_PROXY=$https_proxy
+      ./build.js -o 'linux' -p 'dir' -a $UBPORTS_ARCH -e '{"package": "snap"}'
       mkdir -p $SNAPCRAFT_PART_INSTALL/app
       rm -rf $SNAPCRAFT_PART_INSTALL/app/*
-      mv dist/linux-unpacked/* $SNAPCRAFT_PART_INSTALL/app
+      mv dist/$UBPORTS_DISTDIR/* $SNAPCRAFT_PART_INSTALL/app
     prime:
       - -node_modules
       - -lib/node_modules

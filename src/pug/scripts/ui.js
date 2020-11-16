@@ -27,8 +27,8 @@ const animations = {
     $("#push-animation").hide();
     $("#download-animation").hide();
   },
-  particles: () => {
-    if (!localStorage.getItem("animationsDisabled")) {
+  particles: async () => {
+    if (await ipcRenderer.invoke("getSettingsValue", "animations")) {
       $("#particles-foreground").show();
       $("#particles-background").show();
       $("#push-animation").hide();
@@ -37,8 +37,8 @@ const animations = {
       animations.hideAll();
     }
   },
-  download: () => {
-    if (!localStorage.getItem("animationsDisabled")) {
+  download: async () => {
+    if (await ipcRenderer.invoke("getSettingsValue", "animations")) {
       $("#download-animation").show();
       $("#push-animation").hide();
       $("#particles-foreground").hide();
@@ -47,8 +47,8 @@ const animations = {
       animations.hideAll();
     }
   },
-  push: () => {
-    if (!localStorage.getItem("animationsDisabled")) {
+  push: async () => {
+    if (await ipcRenderer.invoke("getSettingsValue", "animations")) {
       $("#push-animation").show();
       $("#download-animation").hide();
       $("#particles-foreground").hide();
@@ -129,10 +129,6 @@ const modals = {
   }
 };
 
-$("#help").click(() => {
-  ipcRenderer.send("createBugReport");
-});
-
 $("#donate").click(() => {
   shell.openExternal("https://ubports.com/donate");
 });
@@ -158,10 +154,5 @@ ipcRenderer.on("user:write:speed", (e, speed) => {
 });
 
 ipcRenderer.on("animations:hide", animations.hideAll);
-
-ipcRenderer.on("localstorage:set", (e, item, value) => {
-  if (value) localStorage.setItem(item, value);
-  else localStorage.removeItem(item);
-});
 
 views.show("working", "particles");

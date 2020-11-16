@@ -1,0 +1,33 @@
+#result-modal.modal.fade(tabindex='-1', role='dialog')
+  .modal-dialog(role='document')
+    .modal-content
+      .modal-header
+        button.close(type='button', data-dismiss='modal', aria-label='Close')
+          span(aria-hidden='true') ×
+        h4.modal-title Report your result
+      .modal-body
+        p To fix issues in the UBports Installer, it is vital that the developers recieve detailed feedback. To make this easier, the installer automates the reporting process. If you're interested in helping us make the UBports Installer better, keep reading! If not, click the button below and we will not bother you again.
+        p The UBports Community uses #[a(onclick="shell.openExternal('https://ubports.open-cuts.org/system/5e9d746c6346e112514cfec7')") OPEN-CUTS, the open crowdsourced user testing suite] to manage manual testing and #[a(onclick="shell.openExternal('https://github.com/ubports/ubports-installer/issues')") GitHub] to track bugs and feature requests for the UBports Installer. Since the installer developers rarely have access to all the devices the installer supports, it is vital for them to also recieve reports about what works.
+        p Select a result from the buttons below. You will see another window where you can explain your experience in more detail and modify all the data before submitting.
+        p Select the #[b PASS] option if everything worked as expected. If you experienced minor issues or annoyances, but finally succeeded in installing your device, select the #[b WONKY] result. The #[b FAIL] result indicates a more severe problem.
+      .modal-footer
+        button.btn.btn-default#resultDoNotAskAgain(type='button', data-dismiss='modal', onclick='ipcRenderer.invoke("setSettingsValue", "never.opencuts", true)') No, don't ask me again
+        button.btn.btn-secondary(type='button', data-dismiss='modal') Dismiss
+        button.btn.btn-success(type='button', data-dismiss='modal', onclick="report('PASS');") PASS
+        button.btn.btn-warning(type='button', data-dismiss='modal', onclick="report('WONKY');") WONKY
+        button.btn.btn-danger(type='button', data-dismiss='modal', onclick="report('FAIL');") FAIL
+  script.
+    function report(result) {
+      ipcRenderer.send("reportResult", result);
+    }
+
+    function requestReport(done = false) {
+      if (done) {
+        $('#resultDoNotAskAgain').show();
+      } else {
+        $('#resultDoNotAskAgain').hide();
+      }
+      modals.show('result');
+    }
+
+    ipcRenderer.on("user:report", (_, done) => requestReport(done));

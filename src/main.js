@@ -24,13 +24,15 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 global.packageInfo = require("../package.json");
 
-const { Adb, Fastboot, Heimdall } = require("promise-android-tools");
 const Api = require("ubports-api-node-module").Installer;
+const Store = require("electron-store");
 
 var winston = require("winston");
 const path = require("path");
 const reload = require('electron-reload')(__dirname,
   {electron: require(`../node_modules/electron`)});
+const fs = require("fs-extra");
+const url = require("url");
 const events = require("events");
 class event extends events {}
 
@@ -40,37 +42,59 @@ let mainWindow;
 const mainEvent = new event();
 global.mainEvent = mainEvent;
 
-const { sendOpenCutsRun, sendBugReport } = require("./report.js");
+const {
+  sendOpenCutsRun,
+  sendBugReport,
+  prepareSuccessReport,
+  prepareErrorReport
+} = require("./report.js");
 const utils = require("./utils.js");
 global.utils = utils;
 const devices = require("./devices.js");
 const { shell } = require("electron");
+const prompt = require("electron-dynamic-prompt");
 const api = new Api({
   timeout: 7500,
   cachetime: 60000
 });
 global.api = api;
-var adb = new Adb({
-  exec: (args, callback) => {
-    utils.execTool("adb", args, callback);
-  },
-  log: utils.log.debug
+const { DeviceTools } = require(utils.asarLibPathHack("promise-android-tools"));
+const deviceTools = new DeviceTools();
+global.deviceTools = deviceTools;
+global.adb = deviceTools.adb;
+global.fastboot = deviceTools.fastboot;
+global.heimdall = deviceTools.heimdall;
+["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
+  deviceTools.on(event, r =>
+    global.logger.log("command", `${event}: ${JSON.stringify(r)}`)
+  )
+);
+
+const settings = new Store({
+  schema: {
+    animations: {
+      type: "boolean",
+      default: true
+    },
+    opencuts_token: {
+      type: "string"
+    },
+    never: {
+      opencuts: {
+        type: "boolean",
+        default: false
+      },
+      udev: {
+        type: "boolean",
+        default: false
+      },
+      windowsDrivers: {
+        type: "boolean",
+        default: false
+      }
+    }
+  }
 });
-global.adb = adb;
-var fastboot = new Fastboot({
-  exec: (args, callback) => {
-    utils.execTool("fastboot", args, callback);
-  },
-  log: utils.log.debug
-});
-global.fastboot = fastboot;
-var heimdall = new Heimdall({
-  exec: (args, callback) => {
-    utils.execTool("heimdall", args, callback);
-  },
-  log: utils.log.debug
-});
-global.heimdall = heimdall;
 
 //==============================================================================
 // PARSE COMMAND-LINE ARGUMENTS
@@ -102,18 +126,19 @@ cli
   .parse(process.argv);
 
 if (cli.file) {
-  global.installConfig = require(path.join(process.cwd(), cli.file));
+  try {
+    global.installConfig = fs.readJsonSync(
+      path.isAbsolute(cli.file) ? cli.file : path.join(process.cwd(), cli.file)
+    );
+  } catch (error) {
+    throw new Error(`failed to read config file ${cli.file}: ${error}`);
+  }
 }
 
 global.installProperties = {
   device: global.installConfig ? global.installConfig.codename : cli.device,
   settings: cli.settings ? JSON.parse(cli.settings) : {}
 };
-
-if (utils.isSnap()) {
-  global.packageInfo.isSnap = utils.isSnap();
-  global.packageInfo.package = "snap";
-}
 
 //==============================================================================
 // WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
@@ -130,7 +155,6 @@ winston.addColors({
 
 global.logger = winston.createLogger({
   format: winston.format.json(),
-  defaultMeta: { service: "user-service" },
   levels: {
     error: 0,
     warn: 1,
@@ -180,14 +204,29 @@ ipcMain.on("install", () => {
   );
 });
 
-// Submit a bug-report
-ipcMain.on("createBugReport", (event, error) => {
-  sendBugReport(error);
+// Submit a user-requested bug-report
+ipcMain.on("reportResult", async (event, result, error) => {
+  if (result !== "PASS") {
+    prompt(await prepareErrorReport(result, error), mainWindow).then(data => {
+      if (data) {
+        sendBugReport(data, settings.get("opencuts_token"));
+      }
+    });
+  } else {
+    prompt(await prepareSuccessReport(), mainWindow)
+      .then(data => sendOpenCutsRun(settings.get("opencuts_token"), data))
+      .then(url => {
+        utils.log.info(
+          `Thank you for reporting! You can view your run here: ${url}`
+        );
+        electron.shell.openExternal(url);
+      })
+      .catch(utils.log.error);
+  }
 });
 
 // The user selected a device
 ipcMain.on("device:selected", (event, device) => {
-  adb.stopWaiting();
   mainEvent.emit("device", device);
 });
 
@@ -233,6 +272,16 @@ ipcMain.on("update", () => {
   );
 });
 
+// Get settings value
+ipcMain.handle("getSettingsValue", (event, key) => {
+  return settings.get(key);
+});
+
+// Set settings value
+ipcMain.handle("setSettingsValue", (event, key, value) => {
+  return settings.set(key, value);
+});
+
 //==============================================================================
 // RENDERER COMMUNICATION
 //==============================================================================
@@ -247,15 +296,15 @@ mainEvent.on("user:error", (error, restart, ignore) => {
           case "ignore":
             utils.log.warn("error ignored");
             if (ignore) setTimeout(ignore, 500);
-            break;
+            return;
           case "restart":
             utils.log.warn("restart after error");
+            deviceTools.kill();
             if (restart) setTimeout(restart, 500);
             else mainEvent.emit("restart");
-            break;
+            return;
           case "bugreport":
-            sendBugReport(error);
-            break;
+            return mainWindow.webContents.send("user:report");
           default:
             break;
         }
@@ -270,7 +319,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
-  utils.log.warn("connectiion to device lost");
+  utils.log.warn("lost connection to device");
   if (mainWindow) mainWindow.webContents.send("user:connection-lost");
   ipcMain.once("reconnect", () => {
     if (reconnect) setTimeout(reconnect, 500);
@@ -292,8 +341,8 @@ mainEvent.on("restart", () => {
 });
 
 // The device's bootloader is locked, prompt the user to unlock it
-mainEvent.on("user:oem-lock", callback => {
-  mainWindow.webContents.send("user:oem-lock");
+mainEvent.on("user:oem-lock", (resume, enable = false) => {
+  mainWindow.webContents.send("user:oem-lock", enable);
   ipcMain.once("user:oem-lock:ok", () => {
     mainEvent.emit("user:write:working", "particles");
     mainEvent.emit("user:write:status", "Unlocking", true);
@@ -301,13 +350,15 @@ mainEvent.on("user:oem-lock", callback => {
       "user:write:under",
       "You might see a confirmation dialog on your device."
     );
-    fastboot
+    deviceTools.fastboot
       .oemUnlock()
-      .then(() => {
-        callback(true);
-      })
+      .then(() => resume())
       .catch(err => {
-        mainEvent.emit("user:error", err);
+        if (err.message.includes("enable unlocking")) {
+          mainWindow.webContents.send("user:oem-lock", true);
+        } else {
+          mainEvent.emit("user:error", err);
+        }
       });
   });
 });
@@ -319,6 +370,14 @@ mainEvent.on("user:action", (action, callback) => {
     if (action.button) {
       ipcMain.once("action:completed", callback);
     }
+  }
+});
+
+// Request user_action
+mainEvent.on("user:manual_download", (file, group, callback) => {
+  if (mainWindow) {
+    mainWindow.webContents.send("user:manual_download", file, group);
+    ipcMain.once("manual_download:completed", (e, path) => callback(path));
   }
 });
 
@@ -334,15 +393,10 @@ mainEvent.on("user:write:done", () => {
   utils.log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
-  if (process.env.OPENCUTS_API_KEY || process.env.OPENCUTS) {
-    sendOpenCutsRun()
-      .then(url => {
-        utils.log.info(
-          `Thank you for reporting! You can view your run here: ${url}`
-        );
-        electron.shell.openExternal(url);
-      })
-      .catch(utils.log.error);
+  if (!settings.get("never.opencuts")) {
+    setTimeout(() => {
+      mainWindow.webContents.send("user:report", true);
+    }, 1500);
   }
 });
 
@@ -433,12 +487,7 @@ mainEvent.on("device:detected", device => {
   mainEvent.emit("device", device);
 });
 
-// Set localstorage item
-mainEvent.on("localstorage:set", (item, value) => {
-  if (mainWindow) mainWindow.webContents.send("localstorage:set", item, value);
-});
-
-// Set localstorage item
+// No internet connection
 mainEvent.on("user:no-network", () => {
   if (mainWindow) mainWindow.webContents.send("user:no-network");
 });
@@ -469,17 +518,13 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    adb
-      .startServer()
-      .then(() => {
-        if (!global.installProperties.device) {
-          devices.waitForDevice();
-        }
-      })
-      .catch(e => {
-        if (!e.message.includes("Killed"))
-          utils.errorToUser(e, "Failed to start adb server");
-      });
+    ["adb", "fastboot", "heimdall"].forEach(tool =>
+      utils.log.debug(`using ${tool}: ${deviceTools[tool].executable}`)
+    );
+    if (!global.installProperties.device) {
+      const wait = devices.waitForDevice();
+      ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+    }
     api
       .getDeviceSelects()
       .then(out => {
@@ -508,8 +553,20 @@ async function createWindow() {
       .catch(() => {}); // Ignore errors, since this is non-essential
   });
 
-  //mainWindow.loadURL(`file://${__dirname}/html/index.html`);
-  mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
+  // mainWindow.loadURL(
+  //   url.format({
+  //     pathname: path.join(__dirname, "html/index.html"),
+  //     protocol: "file",
+  //     slashes: true
+  //   })
+  // );
+  mainWindow.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "../public/index.html"),
+      protocol: "file",
+      slashes: true
+    })
+  );
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
@@ -525,17 +582,12 @@ async function createWindow() {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
-  adb
-    .killServer()
-    .then(utils.killSubprocesses)
-    .catch(utils.killSubprocesses);
-  if (process.platform !== "darwin") {
-    utils.log.info("Good bye!");
-    setTimeout(() => {
-      app.quit();
-      process.exit(0);
-    }, 2000);
-  }
+  deviceTools.kill();
+  utils.log.info("Good bye!");
+  setTimeout(() => {
+    app.quit();
+    process.exit(0);
+  }, 2000);
 });
 
 app.on("activate", function() {
@@ -612,21 +664,9 @@ app.on("ready", function() {
           role: "close"
         },
         {
-          label: "Animations",
-          submenu: [
-            {
-              label: "Enable",
-              click: () =>
-                mainEvent.emit("localstorage:set", "animationsDisabled", false)
-            },
-            {
-              label: "Disable",
-              click: () => {
-                mainWindow.webContents.send("animations:hide");
-                mainEvent.emit("localstorage:set", "animationsDisabled", true);
-              }
-            }
-          ]
+          label: "Quit",
+          accelerator: "CmdOrCtrl+Q",
+          role: "close"
         }
       ]
     },
@@ -636,19 +676,111 @@ app.on("ready", function() {
         {
           label: "Set udev rules",
           click: utils.setUdevRules,
-          visible: !utils.isSnap() && process.platform === "linux"
+          visible:
+            global.packageInfo.package !== "snap" &&
+            process.platform === "linux"
+        },
+        {
+          label: "Report a bug",
+          click: () => mainWindow.webContents.send("user:report")
         },
         {
           label: "Developer tools",
           click: () => mainWindow.webContents.openDevTools()
         },
         {
-          label: "Report a bug",
-          click: () => sendBugReport()
-        },
-        {
           label: "Clean cached files",
           click: utils.cleanInstallerCache
+        },
+        {
+          label: "Open settings config file",
+          click: () => {
+            settings.openInEditor();
+          },
+          visible: settings.size
+        },
+        {
+          label: "Reset settings",
+          click: () => {
+            settings.clear();
+          },
+          visible: settings.size
+        }
+      ]
+    },
+    {
+      label: "Settings",
+      submenu: [
+        {
+          label: "Animations",
+          checked: settings.get("animations"),
+          type: "checkbox",
+          click: () => {
+            if (settings.get("animations")) {
+              mainWindow.webContents.send("animations:hide");
+            }
+            settings.set("animations", !settings.get("animations"));
+          }
+        },
+        {
+          label: "Never ask for udev rules",
+          checked: settings.get("never.udev"),
+          visible:
+            global.packageInfo.package !== "snap" &&
+            process.platform === "linux",
+          type: "checkbox",
+          click: () => settings.set("never.udev", !settings.get("never.udev"))
+        },
+        {
+          label: "Never ask for windows drivers",
+          checked: settings.get("never.windowsDrivers"),
+          visible: process.platform === "win32",
+          type: "checkbox",
+          click: () =>
+            settings.set(
+              "never.windowsDrivers",
+              !settings.get("never.windowsDrivers")
+            )
+        },
+        {
+          label: "Never ask for OPEN-CUTS automatic reporting",
+          checked: settings.get("never.opencuts"),
+          type: "checkbox",
+          click: () =>
+            settings.set("never.opencuts", !settings.get("never.opencuts"))
+        },
+        {
+          label: "OPEN-CUTS API Token",
+          click: () =>
+            prompt(
+              {
+                title: "OPEN-CUTS API Token",
+                height: 300,
+                resizable: true,
+                description:
+                  "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your OPEN-CUTS account.",
+                fields: [
+                  {
+                    id: "token",
+                    label: "Token",
+                    type: "input",
+                    attrs: {
+                      type: "password",
+                      value: settings.get("opencuts_token"),
+                      placeholder: "get your token on ubports.open-cuts.org",
+                      required: true
+                    }
+                  }
+                ]
+              },
+              mainWindow
+            )
+              .then(({ token }) => {
+                if (token) {
+                  settings.set("opencuts_token", token.trim());
+                }
+              })
+              .catch(() => null)
         }
       ]
     },
@@ -656,18 +788,18 @@ app.on("ready", function() {
       label: "Help",
       submenu: [
         {
-          label: "Report a bug",
-          click: () => sendBugReport()
-        },
-        {
-          label: "View issues",
+          label: "Bug tracker",
           click: () =>
             electron.shell.openExternal(
               "https://github.com/ubports/ubports-installer/issues"
             )
         },
         {
-          label: "Troubleshooting guide",
+          label: "Report a bug",
+          click: () => mainWindow.webContents.send("user:report")
+        },
+        {
+          label: "Troubleshooting",
           click: () =>
             electron.shell.openExternal(
               "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
@@ -676,6 +808,17 @@ app.on("ready", function() {
         {
           label: "UBports Forums",
           click: () => electron.shell.openExternal("https://forums.ubports.com")
+        },
+        {
+          label: "AskUbuntu",
+          click: () =>
+            electron.shell.openExternal(
+              "https://askubuntu.com/questions/tagged/ubuntu-touch"
+            )
+        },
+        {
+          label: "Telegram",
+          click: () => electron.shell.openExternal("https://t.me/WelcomePlus")
         }
       ]
     }

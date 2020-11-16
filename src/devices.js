@@ -20,7 +20,8 @@
 const systemImage = require("./system-image");
 const utils = require("./utils");
 const path = require("path");
-const { download } = require("progressive-downloader");
+const fs = require("fs-extra");
+const { download, checkFile } = require("progressive-downloader");
 
 function addPathToFiles(files, device) {
   var ret = [];
@@ -33,7 +34,7 @@ function addPathToFiles(files, device) {
         files[i].file
       ),
       partition: files[i].partition,
-      force: files[i].force,
+      flags: files[i].flags,
       raw: files[i].raw
     });
   }
@@ -114,6 +115,79 @@ function installStep(step) {
             mainEvent.emit("user:no-network");
           });
       };
+    case "manual_download":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Manual download");
+        global.mainEvent.emit(
+          "user:write:under",
+          `Checking ${step.group} files...`
+        );
+        return checkFile(
+          {
+            checksum: step.file.checksum,
+            path: path.join(
+              utils.getUbuntuTouchDir(),
+              global.installProperties.device,
+              step.group,
+              step.file.name
+            )
+          },
+          false
+        ).then(ok => {
+          if (!ok) {
+            return new Promise(function(resolve, reject) {
+              global.mainEvent.emit(
+                "user:manual_download",
+                step.file,
+                step.group,
+                downloadedFilePath => {
+                  fs.ensureDir(
+                    path.join(
+                      utils.getUbuntuTouchDir(),
+                      global.installProperties.device,
+                      step.group
+                    )
+                  )
+                    .then(() =>
+                      fs.copyFile(
+                        downloadedFilePath,
+                        path.join(
+                          utils.getUbuntuTouchDir(),
+                          global.installProperties.device,
+                          step.group,
+                          step.file.name
+                        )
+                      )
+                    )
+                    .then(() =>
+                      checkFile(
+                        {
+                          checksum: step.file.checksum,
+                          path: path.join(
+                            utils.getUbuntuTouchDir(),
+                            global.installProperties.device,
+                            step.group,
+                            step.file.name
+                          )
+                        },
+                        true
+                      )
+                    )
+                    .then(ok =>
+                      ok ? resolve() : reject(new Error("checksum mismatch"))
+                    )
+                    .catch(reject);
+                }
+              );
+              global.mainEvent.emit(
+                "user:write:under",
+                `Manual download required!`
+              );
+            });
+          }
+        });
+      };
     case "unpack":
       return () => {
         global.mainEvent.emit("user:write:working", "particles");
@@ -151,7 +225,7 @@ function installStep(step) {
           "user:write:under",
           "Formatting " + step.partition
         );
-        return adb.waitForDevice().then(() => adb.format(step.partition));
+        return adb.wait().then(() => adb.format(step.partition));
       };
     case "adb:sideload":
       return () => {
@@ -163,16 +237,19 @@ function installStep(step) {
         );
         global.mainEvent.emit(
           "user:write:under",
-          "Sideloading might take up to ten minutes..."
+          "Your new operating system is being installed..."
         );
-        return adb.sideload(
-          path.join(
-            downloadPath,
-            global.installProperties.device,
-            step.group,
-            step.file
+        return global.adb
+          .sideload(
+            path.join(
+              utils.getUbuntuTouchDir(),
+              global.installProperties.device,
+              step.group,
+              step.file
+            ),
+            p => global.mainEvent.emit("user:write:progress", p * 100)
           )
-        );
+          .then(() => global.mainEvent.emit("user:write:progress", 0));
       };
     case "adb:reboot":
       return () => {
@@ -192,9 +269,15 @@ function installStep(step) {
           "user:write:under",
           "Flashing firmware partitions using fastboot"
         );
-        return fastboot.flashArray(
-          addPathToFiles(step.flash, global.installProperties.device)
-        );
+        return fastboot
+          .wait()
+          .then(() =>
+            fastboot.flash(
+              addPathToFiles(step.flash, global.installProperties.device),
+              p => global.mainEvent.emit("user:write:progress", p * 100)
+            )
+          )
+          .then(() => global.mainEvent.emit("user:write:progress", 0));
       };
     case "fastboot:erase":
       return () => {
@@ -284,7 +367,14 @@ function installStep(step) {
         global.mainEvent.emit("user:write:working", "particles");
         global.mainEvent.emit("user:write:status", "Continuing boot", true);
         global.mainEvent.emit("user:write:under", "Resuming boot");
-        fastboot.continue();
+        return fastboot.continue();
+      };
+    case "fastboot:set_active":
+      return () => {
+        global.mainEvent.emit("user:write:working", "particles");
+        global.mainEvent.emit("user:write:status", "Continuing boot", true);
+        global.mainEvent.emit("user:write:under", "Resuming boot");
+        return fastboot.setActive(step.slot);
       };
     case "heimdall:flash":
       return () => {
@@ -294,7 +384,7 @@ function installStep(step) {
           "user:write:under",
           "Flashing firmware partitions using heimdall"
         );
-        return heimdall.flashArray(
+        return heimdall.flash(
           addPathToFiles(step.flash, global.installProperties.device)
         );
       };
@@ -412,6 +502,8 @@ function assembleInstallSteps(steps) {
           function restartInstall() {
             install(steps);
           }
+          const smartRestart = step.resumable ? runStep : restartInstall;
+          let reconnections = 0;
           function runStep() {
             installStep(step)()
               .then(() => {
@@ -428,24 +520,41 @@ function assembleInstallSteps(steps) {
                   })()
                     .then(resolve)
                     .catch(reject);
-                } else if (
-                  step.type.includes("fastboot") &&
-                  error.message.includes("bootloader is locked")
-                ) {
-                  global.mainEvent.emit("user:oem-lock", runStep);
-                } else if (error.message.includes("low power")) {
+                } else if (error.message.includes("low battery")) {
                   global.mainEvent.emit("user:low-power");
                 } else if (
-                  error.message.includes("no device") ||
-                  error.message.includes("device offline") ||
-                  error.message.includes("No such device") ||
-                  error.message.includes("connection lost")
+                  error.message.includes("bootloader locked") ||
+                  error.message.includes("enable unlocking")
                 ) {
-                  mainEvent.emit(
-                    "user:connection-lost",
-                    step.resumable ? runStep : restartInstall
-                  );
-                } else if (error.message.includes("Killed")) {
+                  global.mainEvent.emit("user:oem-lock", runStep);
+                } else if (error.message.includes("no device")) {
+                  mainEvent.emit("user:connection-lost", smartRestart);
+                } else if (
+                  error.message.includes("device offline") ||
+                  error.message.includes("unauthorized")
+                ) {
+                  if (reconnections < 3) {
+                    adb
+                      .reconnect()
+                      .then(() => {
+                        utils.log.warn(
+                          `automatic reconnection ${++reconnections}`
+                        );
+                        runStep();
+                      })
+                      .catch(error => {
+                        utils.log.warn(
+                          `failed to reconnect automatically: ${error}`
+                        );
+                        mainEvent.emit("user:connection-lost", smartRestart);
+                      });
+                  } else {
+                    utils.log.warn(
+                      "maximum automatic reconnection attempts exceeded"
+                    );
+                    mainEvent.emit("user:connection-lost", smartRestart);
+                  }
+                } else if (error.message.includes("killed")) {
                   reject(); // Used for exiting the installer
                 } else {
                   utils.errorToUser(error, step.type, restartInstall, runStep);
@@ -488,29 +597,23 @@ function install(steps) {
 }
 
 module.exports = {
-  waitForDevice: () => {
-    adb
-      .waitForDevice()
-      .then(() => {
-        adb
-          .getDeviceName()
-          .then(device => {
-            global.api
-              .resolveAlias(device)
-              .then(resolvedDevice => {
-                global.mainEvent.emit("device:detected", resolvedDevice);
-              })
-              .catch(error => {
-                utils.log.error("getDeviceName error: " + error);
-                mainEvent.emit("user:no-network");
-              });
-          })
-          .catch(error => {
-            utils.errorToUser(error, "get device name");
-          });
-      })
-      .catch(e => utils.log.debug("no device detected: " + e));
-  },
+  waitForDevice: () =>
+    deviceTools
+      .wait()
+      .then(() => deviceTools.getDeviceName())
+      .then(device =>
+        global.api.resolveAlias(device).catch(e => {
+          utils.log.debug(`failed to resolve device name: ${e}`);
+          mainEvent.emit("user:no-network");
+        })
+      )
+      .then(resolvedDevice =>
+        global.mainEvent.emit("device:detected", resolvedDevice)
+      )
+      .catch(error => {
+        if (!error.message.includes("no device"))
+          utils.errorToUser(error, "get device name");
+      }),
   getOsSelects: osArray => {
     // Can't be moved to support custom config files
     var osSelects = [];

@@ -1,10 +1,10 @@
-# UBports Installer [![Build Status](https://travis-ci.org/ubports/ubports-installer.svg?branch=master)](https://travis-ci.org/ubports/ubports-installer) [![Build status](https://ci.appveyor.com/api/projects/status/cjcqxleyfeuvv28s?svg=true)](https://ci.appveyor.com/project/mariogrip/ubports-installer) [![snap](https://snapcraft.io//ubports-installer/badge.svg)](https://snapcraft.io/ubports-installer)
+# UBports Installer ![Continuous Integration](https://github.com/ubports/ubports-installer/workflows/Continuous%20Integration/badge.svg) [![snap](https://snapcraft.io//ubports-installer/badge.svg)](https://snapcraft.io/ubports-installer)
 
 Fear not! Installing [UBports](https://ubports.com) [Ubuntu Touch](https://ubuntu-touch.io) on your [device](https://devices.ubuntu-touch.io) is easy! Just download the UBports Installer package for your operating system and sit back and relax while your computer does all the rest. Installing third-party operating systems has never been so easy!
 
 | ![linux logo](https://i.ibb.co/CPq1pL9/linux.png) &nbsp; Linux | ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png) &nbsp; macOS | ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png) &nbsp; Windows |
-|---|---|---|
-|[snap](https://snapcraft.io/ubports-installer), [AppImage](https://devices.ubuntu-touch.io/installer?package=appimage), [deb](https://devices.ubuntu-touch.io/installer?package=deb) | [dmg](https://devices.ubuntu-touch.io/installer?package=dmg) | [exe](https://devices.ubuntu-touch.io/installer?package=exe) |
+|:---:|:---:|:---:|
+| [snap](https://snapcraft.io/ubports-installer) <br> `snap install ubports-installer` <br> [AppImage](https://devices.ubuntu-touch.io/installer?package=appimage) <br> [deb](https://devices.ubuntu-touch.io/installer?package=deb) | [dmg](https://devices.ubuntu-touch.io/installer?package=dmg) | [exe](https://devices.ubuntu-touch.io/installer?package=exe) |
 
 ## Troubleshooting
 
@@ -49,11 +49,24 @@ Before filing a PR, please make sure you follow our coding style. Just run `npm 
 ### Build packages
 
 ```
-$ npm run-script dist:linux # builds an AppImage, a deb, and a snap
-$ npm run-script dist:mac # builds a dmg
-$ npm run-script dist:win # builds an exe
+$ ./build.js --help
+Usage: ./build.js -o <os> -p <package> -a <arch> [options]
 
-# or
-
-$ ./build.js -o <os> -p <package> [options] # see ./build.js --help
+Options:
+  -V, --version                output the version number
+  -o, --os <os>                Target operating system (darwin, win32, linux) (default: "linux")
+  -p, --package <package>      Target package (deb, snap, AppImage, dmg, portable, dir) (default: "dir")
+  -a, --arch <architecture>    Target architecture (armv7l, x64, ia32, arm64) (default: "x64")
+  -e, --extra-metadata [JSON]  extra data for package.json (default: "{}")
+  -h, --help                   output usage information
 ```
+
+## License
+
+Original development by [Marius Gripsgård](http://mariogrip.com/) and [Jan Sprinz](https://spri.nz). Copyright (C) 2017-2020 [UBports Foundation](https://ubports.com).
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.

@@ -1,0 +1,149 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types:
+      - created
+      - published
+
+jobs:
+  prerequisites:
+    name: Prerequisites
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 14
+      uses: actions/setup-node@v1
+      with:
+        node-version: "14"
+
+    - name: Cache node modules
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-node-modules
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: npm install
+      run: npm install
+    - name: npm audit
+      run: npm audit --production
+    - name: npm run lint
+      run: npm run lint
+    - name: npm run prerender
+      run: npm run prerender
+
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 14
+      uses: actions/setup-node@v1
+      with:
+        node-version: "14"
+
+    - name: Cache node modules
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-node-modules
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: prepare build
+      run: |
+        npm install
+        npm run prerender
+
+    - name: build linux
+      if: contains(runner.os, 'Linux')
+      run: |
+        node ./build.js -o linux -p deb -a x64
+        node ./build.js -o linux -p AppImage -a x64
+
+    - name: build macOS
+      if: contains(runner.os, 'macOS')
+      run: |
+        node ./build.js -o darwin -p dmg -a x64
+
+    - name: build windows
+      if: contains(runner.os, 'Windows')
+      run: |
+        node ./build.js -o win32 -p portable -a x64
+
+    - name: archive artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ubports-installer
+        path: |
+          dist/*.deb
+          dist/*.AppImage
+          dist/*.dmg
+          dist/*.exe
+
+    - name: upload release assets
+      if: github.event_name == 'release'
+      uses: actions/github-script@v2
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const { repo: { owner, repo }} = context;
+          const tag = context.ref.replace("refs/tags/", "");
+          console.log("trying to upload to", owner, repo, tag);
+
+          const crypto = require('crypto');
+          const sha256sum = path => new Promise((resolve, reject) => {
+            const hash = crypto.createHash('sha256');
+            const stream = fs.createReadStream(path);
+            stream.on('error', reject);
+            stream.on('data', chunk => hash.update(chunk));
+            stream.on('end', () => resolve(hash.digest('hex')));
+          });
+
+          github.repos.getReleaseByTag({ owner, repo, tag })
+            .then(({data: {id: release_id}}) =>
+              Promise.all(
+                fs.readdirSync('./dist/').filter(f =>
+                    f.match(/ubports-installer_*.*/) &&
+                    !f.includes("snap") &&
+                    !f.includes("blockmap")
+                  )
+                  .map(file =>
+                    github.repos.uploadReleaseAsset({
+                      owner, repo, release_id,
+                      name: file,
+                      data: fs.readFileSync(`./dist/${file}`)
+                    })
+                    .then(() => console.log("uploaded", file))
+                    .then(() => sha256sum(`./dist/${file}`))
+                    .then(data =>
+                      github.repos.uploadReleaseAsset({
+                        owner, repo, release_id, data,
+                        name: `${file}.sha256`
+                      })
+                    )
+                    .then(() => console.log("uploaded checksum for", file))
+                  )
+              )
+            )

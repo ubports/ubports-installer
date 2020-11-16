@@ -36,7 +36,4 @@ fi
 echo "Setting up node modules..."
 npm install
 
-echo "Downloading platform tools"
-node build.js --os=linux --no-build
-
 echo "Dev setup complete. Thank you for hacking on the UBports Installer!"

@@ -4,10 +4,9 @@
       img(style='height: 350px; margin: auto; display: block;', src='../screens/Screen6.jpg')
     .col-xs-6(style='height: 100%')
       h4.user-install-header#device-name(style='font-weight: bold;')
-      p
-        | #[a#device-page-link about this device] | #[a#device-config view config file]
-      p
-        | What operating system do you want to install?
+      p #[a#device-page-link about this device] | #[a#device-config view config file]
+      p Please make sure you enabled #[a(onclick="modals.show('developer-mode-info')") developer mode and OEM unlocking].
+      p What operating system do you want to install?
       form.form-horizontal
         .form-group
           .col-xs-3
