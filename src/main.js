@@ -29,6 +29,8 @@ const Api = require("ubports-api-node-module").Installer;
 
 var winston = require("winston");
 const path = require("path");
+const reload = require('electron-reload')(__dirname,
+  {electron: require(`../node_modules/electron`)});
 const events = require("events");
 class event extends events {}
 
@@ -446,8 +448,6 @@ mainEvent.on("user:no-network", () => {
 //==============================================================================
 
 async function createWindow() {
-  const mode = process.env.NODE_ENV;
-
   utils.log.info(
     "Welcome to the UBports Installer version " +
       global.packageInfo.version +
@@ -466,15 +466,6 @@ async function createWindow() {
       enableRemoteModule: true
     }
   });
-
-  // Watch bundle.js for changes
-  let watcher;
-  if (process.env.NODE_ENV === 'development') {
-          watcher = require('chokidar').watch(path.join(__dirname, '../public/build'), { ignoreInitial: true });
-          watcher.on('change', () => {
-              mainWindow.reload();
-          });
-  }
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
@@ -522,8 +513,8 @@ async function createWindow() {
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
-  mainWindow.on("closed", function() {
-    mainWindow = null;
+  mainWindow.on("closed", function() {  
+    mainWindow = null;  
   });
 }
 
