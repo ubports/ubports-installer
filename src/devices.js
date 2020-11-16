@@ -496,6 +496,8 @@ function assembleInstallSteps(steps) {
           function restartInstall() {
             install(steps);
           }
+          const smartRestart = step.resumable ? runStep : restartInstall;
+          let reconnections = 0;
           function runStep() {
             installStep(step)()
               .then(() => {
@@ -512,23 +514,40 @@ function assembleInstallSteps(steps) {
                   })()
                     .then(resolve)
                     .catch(reject);
-                } else if (
-                  step.type.includes("fastboot") &&
-                  error.message.includes("bootloader is locked")
-                ) {
-                  global.mainEvent.emit("user:oem-lock", runStep);
-                } else if (error.message.includes("low power")) {
+                } else if (error.message.includes("low battery")) {
                   global.mainEvent.emit("user:low-power");
                 } else if (
-                  error.message.includes("no device") ||
-                  error.message.includes("device offline") ||
-                  error.message.includes("No such device") ||
-                  error.message.includes("connection lost")
+                  error.message.includes("bootloader locked") ||
+                  error.message.includes("enable unlocking")
                 ) {
-                  mainEvent.emit(
-                    "user:connection-lost",
-                    step.resumable ? runStep : restartInstall
-                  );
+                  global.mainEvent.emit("user:oem-lock", runStep);
+                } else if (error.message.includes("no device")) {
+                  mainEvent.emit("user:connection-lost", smartRestart);
+                } else if (
+                  error.message.includes("device offline") ||
+                  error.message.includes("unauthorized")
+                ) {
+                  if (reconnections < 3) {
+                    adb
+                      .reconnect()
+                      .then(() => {
+                        utils.log.warn(
+                          `automatic reconnection ${++reconnections}`
+                        );
+                        runStep();
+                      })
+                      .catch(error => {
+                        utils.log.warn(
+                          `failed to reconnect automatically: ${error}`
+                        );
+                        mainEvent.emit("user:connection-lost", smartRestart);
+                      });
+                  } else {
+                    utils.log.warn(
+                      "maximum automatic reconnection attempts exceeded"
+                    );
+                    mainEvent.emit("user:connection-lost", smartRestart);
+                  }
                 } else if (error.message.includes("killed")) {
                   reject(); // Used for exiting the installer
                 } else {
