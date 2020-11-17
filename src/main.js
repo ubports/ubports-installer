@@ -63,8 +63,8 @@ if (cli.file) {
 }
 
 global.installProperties = {
-  device: global.installConfig ? global.installConfig.codename : cli.device,
-  settings: cli.settings ? JSON.parse(cli.settings) : {}
+  device: global.installConfig ? global.installConfig.codename : null,
+  settings: {}
 };
 
 //==============================================================================
@@ -100,7 +100,7 @@ ipcMain.on("reportResult", async (event, result, error) => {
         log.info(`Thank you for reporting! You can view your run here: ${url}`);
         shell.openExternal(url);
       })
-      .catch(e => log.error(e));
+      .catch(e => log.warn(`failed to report: ${e}`));
   }
 });
 
@@ -533,7 +533,7 @@ app.on("ready", function() {
         },
         {
           label: "Clean cached files",
-          click: cache.clean()
+          click: () => cache.clean()
         },
         {
           label: "Open settings config file",

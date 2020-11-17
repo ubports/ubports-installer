@@ -25,6 +25,7 @@ const packageInfo = require("../package.json");
 const { osInfo } = require("systeminformation");
 const { GraphQLClient, gql } = require("graphql-request");
 const { path: cachePath } = require("./lib/cache.js");
+const log = require("./lib/log.js");
 require("cross-fetch/polyfill");
 
 /**
@@ -181,12 +182,12 @@ function getIssueTitle(error) {
  * Open a new GitHub issue in the default browser
  * @async
  * @param {String} data - form data
- * @param {String} opencutsToken - OPEN-CUTS API token
+ * @param {String} token - OPEN-CUTS API token
  */
-async function sendBugReport(data, opencutsToken) {
-  const log = log.get();
-  const pasteUrl = paste(log).catch(() => "*N/A*");
-  const runUrl = sendOpenCutsRun(opencutsToken, data, log).catch(() => "*N/A*");
+async function sendBugReport(data, token) {
+  const logfile = log.get();
+  const pasteUrl = paste(logfile).catch(() => "*N/A*");
+  const runUrl = sendOpenCutsRun(token, data, logfile).catch(() => "*N/A*");
   shell.openExternal(
     `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
       data.title
@@ -210,11 +211,11 @@ const OPENCUTS_OS = {
  * @async
  * @param {String} [token] - OPEN-CUTS API token
  * @param {Object} data - form data
- * @param {Promise<String>} [log] - log file contents
+ * @param {Promise<String>} [logfile] - log file contents
  * @returns {String} run url
  * @throws if sending run failed
  */
-async function sendOpenCutsRun(token, data, log = log.get()) {
+async function sendOpenCutsRun(token, data, logfile = log.get()) {
   const openCutsApi = new GraphQLClient(
     "https://ubports.open-cuts.org/graphql",
     { headers: token ? { authorization: token } : {} }
@@ -253,7 +254,7 @@ async function sendOpenCutsRun(token, data, log = log.get()) {
           logs: [
             {
               name: "ubports-installer.log",
-              content: await log
+              content: await logfile
             }
           ]
         }
