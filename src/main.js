@@ -71,11 +71,6 @@ global.installProperties = {
 // RENDERER SIGNAL HANDLING
 //==============================================================================
 
-// Exit process with optional non-zero exit code
-ipcMain.on("die", exitCode => {
-  process.exit(exitCode);
-});
-
 // Restart the installer
 ipcMain.on("restart", () => {
   mainEvent.emit("restart");
@@ -139,31 +134,9 @@ ipcMain.on("os:selected", (event, osIndex) => {
   }
 });
 
-// The user selected an os
+// The user configured the installation
 ipcMain.on("option", (event, targetVar, value) => {
   global.installProperties.settings[targetVar] = value;
-});
-
-// The user requested udev rules to be set
-ipcMain.on("udev", udev.set);
-
-// The user requested an update
-ipcMain.on("update", () => {
-  shell.openExternal(
-    `https://devices.ubuntu-touch.io/installer/${
-      packageInfo.package ? "?package=" + packageInfo.package : ""
-    }`
-  );
-});
-
-// Get settings value
-ipcMain.handle("getSettingsValue", (event, key) => {
-  return settings.get(key);
-});
-
-// Set settings value
-ipcMain.handle("setSettingsValue", (event, key, value) => {
-  return settings.set(key, value);
 });
 
 //==============================================================================

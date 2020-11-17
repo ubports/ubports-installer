@@ -18,6 +18,7 @@
  */
 
 const { path: cachePath } = require("./cache.js");
+const log = require("./log.js");
 const { adb } = require("./deviceTools.js");
 
 const { Client } = require("system-image-node-module");

@@ -18,6 +18,7 @@
  */
 
 const log = require("./log.js");
+const { ipcMain } = require("electron");
 
 /**
  * error handling
@@ -29,7 +30,7 @@ class ErrorHandler {
    * @param {Number} code exit code
    */
   die(error, code = -1) {
-    log.error(error);
+    if (error) log.error(error);
     process.exit(code);
   }
 
@@ -49,4 +50,11 @@ class ErrorHandler {
   }
 }
 
-module.exports = new ErrorHandler();
+const errorHandler = new ErrorHandler();
+
+// Exit process with optional non-zero exit code
+ipcMain.on("die", exitCode => {
+  errorHandler.die(null, exitCode);
+});
+
+module.exports = errorHandler;

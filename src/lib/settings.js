@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { ipcMain } = require("electron");
 const Store = require("electron-store");
 
 /**
@@ -46,6 +47,16 @@ const settings = new Store({
       }
     }
   }
+});
+
+// Get settings value
+ipcMain.handle("getSettingsValue", (event, key) => {
+  return settings.get(key);
+});
+
+// Set settings value
+ipcMain.handle("setSettingsValue", (event, key, value) => {
+  return settings.set(key, value);
 });
 
 module.exports = settings;

@@ -23,6 +23,8 @@ const path = require("path");
 const fs = require("fs-extra");
 const { download, checkFile } = require("progressive-downloader");
 const { path: cachePath } = require("./lib/cache.js");
+const log = require("./lib/log.js");
+const errors = require("./lib/errors.js");
 const deviceTools = require("./lib/deviceTools.js");
 const { adb, fastboot, heimdall } = deviceTools;
 

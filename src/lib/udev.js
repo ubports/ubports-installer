@@ -20,6 +20,7 @@
 const sudo = require("sudo-prompt");
 const path = require("path");
 const log = require("./log.js");
+const { ipcMain } = require("electron");
 
 /**
  * manage udev rules
@@ -48,4 +49,9 @@ class Udev {
   }
 }
 
-module.exports = new Udev();
+const udev = new Udev();
+
+// The user requested udev rules to be set
+ipcMain.on("udev", udev.set);
+
+module.exports = udev;
