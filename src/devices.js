@@ -17,22 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const systemImage = require("./system-image");
-const utils = require("./utils");
+const { unpack } = require("./lib/asarLibs.js");
+const systemImage = require("./lib/system-image.js");
 const path = require("path");
 const fs = require("fs-extra");
 const { download, checkFile } = require("progressive-downloader");
+const { path: cachePath } = require("./lib/cache.js");
+const log = require("./lib/log.js");
+const errors = require("./lib/errors.js");
+const deviceTools = require("./lib/deviceTools.js");
+const { adb, fastboot, heimdall } = deviceTools;
 
+/**
+ * Transform path array
+ * @param {Array} files files
+ * @param {String} device codename
+ */
 function addPathToFiles(files, device) {
   var ret = [];
   for (var i = 0; i < files.length; i++) {
     ret.push({
-      file: path.join(
-        utils.getUbuntuTouchDir(),
-        device,
-        files[i].group,
-        files[i].file
-      ),
+      file: path.join(cachePath, device, files[i].group, files[i].file),
       partition: files[i].partition,
       flags: files[i].flags,
       raw: files[i].raw
@@ -41,6 +46,10 @@ function addPathToFiles(files, device) {
   return ret;
 }
 
+/**
+ * turn a step into a promise
+ * @param {Object} step installation step
+ */
 function installStep(step) {
   switch (step.type) {
     case "download":
@@ -56,7 +65,7 @@ function installStep(step) {
                 : null,
             partition: file.type,
             path: path.join(
-              utils.getUbuntuTouchDir(),
+              cachePath,
               global.installProperties.device,
               step.group,
               path.basename(file.url)
@@ -72,7 +81,7 @@ function installStep(step) {
             global.mainEvent.emit("user:write:under", "Downloading");
           },
           (current, total) => {
-            utils.log.info(`Downloaded file ${current} of ${total}`);
+            log.info(`Downloaded file ${current} of ${total}`);
             global.mainEvent.emit(
               "user:write:status",
               `${current} of ${total} files downloaded and verified`,
@@ -80,16 +89,14 @@ function installStep(step) {
             );
           },
           activity => {
-            utils.log.info(activity);
+            log.info(activity);
             switch (activity) {
               case "downloading":
-                utils.log.info(`downloading ${step.group} files`);
+                log.info(`downloading ${step.group} files`);
                 global.mainEvent.emit("user:write:working", "download");
                 break;
               case "preparing":
-                utils.log.info(
-                  `checking previously downloaded ${step.group} files`
-                );
+                log.info(`checking previously downloaded ${step.group} files`);
                 global.mainEvent.emit("user:write:working", "particles");
                 global.mainEvent.emit(
                   "user:write:status",
@@ -111,7 +118,7 @@ function installStep(step) {
             global.mainEvent.emit("user:write:speed", 0);
           })
           .catch(error => {
-            utils.log.error("download error: " + error);
+            log.error("download error: " + error);
             mainEvent.emit("user:no-network");
           });
       };
@@ -127,7 +134,7 @@ function installStep(step) {
           {
             checksum: step.file.checksum,
             path: path.join(
-              utils.getUbuntuTouchDir(),
+              cachePath,
               global.installProperties.device,
               step.group,
               step.file.name
@@ -144,7 +151,7 @@ function installStep(step) {
                 downloadedFilePath => {
                   fs.ensureDir(
                     path.join(
-                      utils.getUbuntuTouchDir(),
+                      cachePath,
                       global.installProperties.device,
                       step.group
                     )
@@ -153,7 +160,7 @@ function installStep(step) {
                       fs.copyFile(
                         downloadedFilePath,
                         path.join(
-                          utils.getUbuntuTouchDir(),
+                          cachePath,
                           global.installProperties.device,
                           step.group,
                           step.file.name
@@ -165,7 +172,7 @@ function installStep(step) {
                         {
                           checksum: step.file.checksum,
                           path: path.join(
-                            utils.getUbuntuTouchDir(),
+                            cachePath,
                             global.installProperties.device,
                             step.group,
                             step.file.name
@@ -198,13 +205,13 @@ function installStep(step) {
         );
         global.mainEvent.emit("user:write:under", `Unpacking...`);
         let basepath = path.join(
-          utils.getUbuntuTouchDir(),
+          cachePath,
           global.installProperties.device,
           step.group
         );
         return Promise.all(
           step.files.map(file =>
-            utils.unpack(
+            unpack(
               path.join(basepath, file.archive),
               path.join(basepath, file.dir)
             )
@@ -239,10 +246,10 @@ function installStep(step) {
           "user:write:under",
           "Your new operating system is being installed..."
         );
-        return global.adb
+        return adb
           .sideload(
             path.join(
-              utils.getUbuntuTouchDir(),
+              cachePath,
               global.installProperties.device,
               step.group,
               step.file
@@ -309,7 +316,7 @@ function installStep(step) {
         );
         return fastboot.boot(
           path.join(
-            utils.getUbuntuTouchDir(),
+            cachePath,
             global.installProperties.device,
             step.group,
             step.file
@@ -340,7 +347,7 @@ function installStep(step) {
         );
         return fastboot.update(
           path.join(
-            utils.getUbuntuTouchDir(),
+            cachePath,
             global.installProperties.device,
             step.group,
             step.file
@@ -416,7 +423,7 @@ function installStep(step) {
                         else mainEvent.emit("user:connection-lost", adbWait);
                       })
                       .catch(e => {
-                        utils.log.warn(e);
+                        log.warn(e);
                         resolve();
                       });
                   }
@@ -441,7 +448,7 @@ function installStep(step) {
                           mainEvent.emit("user:connection-lost", fastbootWait);
                       })
                       .catch(e => {
-                        utils.log.warn(e);
+                        log.warn(e);
                         resolve();
                       });
                   }
@@ -466,7 +473,7 @@ function installStep(step) {
                           mainEvent.emit("user:connection-lost", heimdallWait);
                       })
                       .catch(e => {
-                        utils.log.warn(e);
+                        log.warn(e);
                         resolve();
                       });
                   }
@@ -484,6 +491,11 @@ function installStep(step) {
   }
 }
 
+/**
+ * Turn steps into a promise chain
+ * @param {Array<Object>} steps installation steps
+ * @param {Array<Function>}
+ */
 function assembleInstallSteps(steps) {
   var installPromises = [];
   steps.forEach(step => {
@@ -495,10 +507,10 @@ function assembleInstallSteps(steps) {
             step.condition.value
         ) {
           // If the condition is not met, no need to do anything
-          utils.log.debug("skipping step: " + JSON.stringify(step));
+          log.debug("skipping step: " + JSON.stringify(step));
           resolve();
         } else {
-          utils.log.debug("running step: " + JSON.stringify(step));
+          log.debug("running step: " + JSON.stringify(step));
           function restartInstall() {
             install(steps);
           }
@@ -508,7 +520,7 @@ function assembleInstallSteps(steps) {
             installStep(step)()
               .then(() => {
                 resolve();
-                utils.log.debug(step.type + " done");
+                log.debug(step.type + " done");
               })
               .catch(error => {
                 if (step.optional) {
@@ -537,19 +549,15 @@ function assembleInstallSteps(steps) {
                     adb
                       .reconnect()
                       .then(() => {
-                        utils.log.warn(
-                          `automatic reconnection ${++reconnections}`
-                        );
+                        log.warn(`automatic reconnection ${++reconnections}`);
                         runStep();
                       })
                       .catch(error => {
-                        utils.log.warn(
-                          `failed to reconnect automatically: ${error}`
-                        );
+                        log.warn(`failed to reconnect automatically: ${error}`);
                         mainEvent.emit("user:connection-lost", smartRestart);
                       });
                   } else {
-                    utils.log.warn(
+                    log.warn(
                       "maximum automatic reconnection attempts exceeded"
                     );
                     mainEvent.emit("user:connection-lost", smartRestart);
@@ -557,7 +565,7 @@ function assembleInstallSteps(steps) {
                 } else if (error.message.includes("killed")) {
                   reject(); // Used for exiting the installer
                 } else {
-                  utils.errorToUser(error, step.type, restartInstall, runStep);
+                  errors.toUser(error, step.type, restartInstall, runStep);
                 }
               });
           }
@@ -585,85 +593,63 @@ function assembleInstallSteps(steps) {
   return installPromises;
 }
 
+/**
+ * run a chain of installation steps
+ * @param {Array} steps installation steps
+ */
 function install(steps) {
-  var installPromises = assembleInstallSteps(steps);
-  // Actually run the steps
-  installPromises
-    .reduce(
-      (promiseChain, currentFunction) => promiseChain.then(currentFunction),
-      Promise.resolve()
-    )
+  assembleInstallSteps(steps)
+    .reduce((chain, next) => chain.then(next), Promise.resolve())
     .catch(() => {}); // errors can be ignored here, since this is exclusively used for killing the promise chain
 }
 
-module.exports = {
-  waitForDevice: () =>
-    deviceTools
-      .wait()
-      .then(() => deviceTools.getDeviceName())
-      .then(device =>
-        global.api.resolveAlias(device).catch(e => {
-          utils.log.debug(`failed to resolve device name: ${e}`);
-          mainEvent.emit("user:no-network");
-        })
-      )
-      .then(resolvedDevice =>
-        global.mainEvent.emit("device:detected", resolvedDevice)
-      )
-      .catch(error => {
-        if (!error.message.includes("no device"))
-          utils.errorToUser(error, "get device name");
-      }),
-  getOsSelects: osArray => {
-    // Can't be moved to support custom config files
-    var osSelects = [];
-    for (var i = 0; i < osArray.length; i++) {
-      osSelects.push(
-        '<option name="' + i + '">' + osArray[i].name + "</option>"
-      );
-    }
-    return osSelects;
-  },
-  install: install,
-  setRemoteValues: osInstructs => {
-    return Promise.all(
-      osInstructs.options.map(option => {
-        return new Promise(function(resolve, reject) {
-          if (!option.remote_values) {
-            resolve(option); // no remote values, nothing to do
-          } else {
-            switch (option.remote_values.type) {
-              case "systemimagechannels":
-                systemImage
-                  .getDeviceChannels(global.installConfig.codename)
-                  .then(channels => {
-                    option.values = channels
-                      .map(channel => {
-                        return {
-                          value: channel,
-                          label: channel.replace("ubports-touch/", "")
-                        };
-                      })
-                      .reverse();
-                    resolve(option);
-                  })
-                  .catch(e =>
-                    reject(
-                      new Error("fetching system image channels failed: " + e)
-                    )
-                  );
-                break;
-              default:
-                reject(
-                  new Error(
-                    "unknown remote_values provider: " +
-                      option.remote_values.type
+/**
+ * configure remote values
+ * @param {any} osInstructs instructions
+ * @returns {Promise}
+ */
+function setRemoteValues(osInstructs) {
+  return Promise.all(
+    osInstructs.options.map(option => {
+      return new Promise(function(resolve, reject) {
+        if (!option.remote_values) {
+          resolve(option); // no remote values, nothing to do
+        } else {
+          switch (option.remote_values.type) {
+            case "systemimagechannels":
+              systemImage
+                .getDeviceChannels(global.installConfig.codename)
+                .then(channels => {
+                  option.values = channels
+                    .map(channel => {
+                      return {
+                        value: channel,
+                        label: channel.replace("ubports-touch/", "")
+                      };
+                    })
+                    .reverse();
+                  resolve(option);
+                })
+                .catch(e =>
+                  reject(
+                    new Error("fetching system image channels failed: " + e)
                   )
                 );
-            }
+              break;
+            default:
+              reject(
+                new Error(
+                  "unknown remote_values provider: " + option.remote_values.type
+                )
+              );
           }
-        });
-      })
-    );
-  }
+        }
+      });
+    })
+  );
+}
+
+module.exports = {
+  install,
+  setRemoteValues
 };

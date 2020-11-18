@@ -21,9 +21,11 @@ const { shell } = require("electron");
 const axios = require("axios");
 const FormData = require("form-data");
 const util = require("util");
+const packageInfo = require("../package.json");
 const { osInfo } = require("systeminformation");
 const { GraphQLClient, gql } = require("graphql-request");
-const { getUbuntuTouchDir } = require("./utils");
+const { path: cachePath } = require("./lib/cache.js");
+const log = require("./lib/log.js");
 require("cross-fetch/polyfill");
 
 /**
@@ -62,18 +64,6 @@ function getTargetOsString() {
 function getSettingsString() {
   try {
     `\`${JSON.stringify(global.installProperties.settings || {})}\``;
-  } catch (e) {
-    return "unknown";
-  }
-}
-
-/**
- * Get package string
- * @returns {String} snap, deb, AppImage, exe, dmg, source, or unknown
- */
-function getPackageString() {
-  try {
-    return global.packageInfo.package || "source";
   } catch (e) {
     return "unknown";
   }
@@ -121,7 +111,7 @@ async function getEnvironment() {
 async function getDebugInfo(data, logUrl, runUrl) {
   return encodeURIComponent(
     [
-      `**UBports Installer \`${global.packageInfo.version}\` (${data.package})**`,
+      `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
       `Environment: \`${data.environment}\``,
       `Device: ${data.device}`,
       `Target OS: ${getTargetOsString()}`,
@@ -140,39 +130,6 @@ async function getDebugInfo(data, logUrl, runUrl) {
 }
 
 /**
- * Get log file contents
- * @async
- * @returns {String} log file contents
- * @throws if reading or parsing the file failed
- */
-async function getLog() {
-  return new Promise(function(resolve, reject) {
-    global.logger.query(
-      {
-        limit: 400,
-        start: 0,
-        order: "asc"
-      },
-      (err, results) => {
-        try {
-          if (err) {
-            reject(new Error(`Failed to read log: ${err}`));
-          } else {
-            resolve(
-              results.file
-                .map(({ level, message }) => `${level}: ${message}`)
-                .join("\n")
-            );
-          }
-        } catch (err) {
-          reject(new Error(`Failed to read log: ${err}`));
-        }
-      }
-    );
-  });
-}
-
-/**
  * Paste content to paste.ubuntu.com
  * @async
  * @param {Promise<String>} content - content to paste
@@ -183,7 +140,7 @@ async function getLog() {
  * @throws if paste failed
  */
 async function paste(
-  content = getLog(),
+  content = log.get(),
   poster = "UBports Installer",
   syntax = "text",
   expiration = "year"
@@ -218,19 +175,19 @@ async function paste(
  */
 function getIssueTitle(error) {
   if (!error) return "";
-  else return error.replaceAll(getUbuntuTouchDir(), "$CACHE");
+  else return error.replaceAll(cachePath, "$CACHE");
 }
 
 /**
  * Open a new GitHub issue in the default browser
  * @async
  * @param {String} data - form data
- * @param {String} opencutsToken - OPEN-CUTS API token
+ * @param {String} token - OPEN-CUTS API token
  */
-async function sendBugReport(data, opencutsToken) {
-  const log = getLog();
-  const pasteUrl = paste(log).catch(() => "*N/A*");
-  const runUrl = sendOpenCutsRun(opencutsToken, data, log).catch(() => "*N/A*");
+async function sendBugReport(data, token) {
+  const logfile = log.get();
+  const pasteUrl = paste(logfile).catch(() => "*N/A*");
+  const runUrl = sendOpenCutsRun(token, data, logfile).catch(() => "*N/A*");
   shell.openExternal(
     `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
       data.title
@@ -241,6 +198,7 @@ async function sendBugReport(data, opencutsToken) {
 
 /**
  * OPEN-CUTS operating system mapping
+ * @private
  */
 const OPENCUTS_OS = {
   darwin: "macOS",
@@ -253,11 +211,11 @@ const OPENCUTS_OS = {
  * @async
  * @param {String} [token] - OPEN-CUTS API token
  * @param {Object} data - form data
- * @param {Promise<String>} [log] - log file contents
+ * @param {Promise<String>} [logfile] - log file contents
  * @returns {String} run url
  * @throws if sending run failed
  */
-async function sendOpenCutsRun(token, data, log = getLog()) {
+async function sendOpenCutsRun(token, data, logfile = log.get()) {
   const openCutsApi = new GraphQLClient(
     "https://ubports.open-cuts.org/graphql",
     { headers: token ? { authorization: token } : {} }
@@ -279,7 +237,7 @@ async function sendOpenCutsRun(token, data, log = getLog()) {
       {
         testId: "5e9d75406346e112514cfeca",
         systemId: "5e9d746c6346e112514cfec7",
-        tag: global.packageInfo.version,
+        tag: packageInfo.version,
         run: {
           result: data.result,
           comment: data.comment,
@@ -296,7 +254,7 @@ async function sendOpenCutsRun(token, data, log = getLog()) {
           logs: [
             {
               name: "ubports-installer.log",
-              content: await log
+              content: await logfile
             }
           ]
         }
@@ -326,7 +284,7 @@ function genericFormFields(result) {
       type: "input",
       attrs: {
         placeholder: "What package of the Installer are you using?",
-        value: global.packageInfo.package || "source",
+        value: packageInfo.package || "source",
         required: true
       }
     },

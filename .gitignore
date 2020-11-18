@@ -59,3 +59,6 @@ dist
 
 # gulp output
 src/html
+
+# jsdoc docs
+docs
