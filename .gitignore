@@ -62,3 +62,6 @@ src/html
 
 # jsdoc docs
 docs
+
+# rollup bundles
+public/build
