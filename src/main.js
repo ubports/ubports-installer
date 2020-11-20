@@ -17,26 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const cli = require("commander");
-const electron = require("electron");
-
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
-global.packageInfo = require("../package.json");
-
-const Api = require("ubports-api-node-module").Installer;
-const Store = require("electron-store");
-
-var winston = require("winston");
+const { app, BrowserWindow, ipcMain, shell, Menu } = require("electron");
 const path = require("path");
-const reload = require('electron-reload')(__dirname,
-  {electron: require(`../node_modules/electron`)});
 const fs = require("fs-extra");
+const cache = require("./lib/cache.js");
+cache.ensure();
+const cli = require("./lib/cli.js");
+const log = require("./lib/log.js");
+log.setLevel(cli.verbose);
+const updater = require("./lib/updater.js");
+const udev = require("./lib/udev.js");
+const packageInfo = require("../package.json");
+global.packageInfo = packageInfo;
+
+const settings = require("./lib/settings.js");
 const url = require("url");
 const events = require("events");
 class event extends events {}
 
-const ipcMain = electron.ipcMain;
 let mainWindow;
 
 const mainEvent = new event();
@@ -48,82 +46,11 @@ const {
   prepareSuccessReport,
   prepareErrorReport
 } = require("./report.js");
-const utils = require("./utils.js");
-global.utils = utils;
+const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
-const { shell } = require("electron");
 const prompt = require("electron-dynamic-prompt");
-const api = new Api({
-  timeout: 7500,
-  cachetime: 60000
-});
-global.api = api;
-const { DeviceTools } = require(utils.asarLibPathHack("promise-android-tools"));
-const deviceTools = new DeviceTools();
-global.deviceTools = deviceTools;
-global.adb = deviceTools.adb;
-global.fastboot = deviceTools.fastboot;
-global.heimdall = deviceTools.heimdall;
-["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
-  deviceTools.on(event, r =>
-    global.logger.log("command", `${event}: ${JSON.stringify(r)}`)
-  )
-);
-
-const settings = new Store({
-  schema: {
-    animations: {
-      type: "boolean",
-      default: true
-    },
-    opencuts_token: {
-      type: "string"
-    },
-    never: {
-      opencuts: {
-        type: "boolean",
-        default: false
-      },
-      udev: {
-        type: "boolean",
-        default: false
-      },
-      windowsDrivers: {
-        type: "boolean",
-        default: false
-      }
-    }
-  }
-});
-
-//==============================================================================
-// PARSE COMMAND-LINE ARGUMENTS
-//==============================================================================
-
-cli
-  .name(global.packageInfo.name)
-  .description(
-    global.packageInfo.description +
-      "\nVersion: " +
-      global.packageInfo.version +
-      "\nPackage: " +
-      (global.packageInfo.package || "source")
-  )
-  .option(
-    "-d, --device <device>",
-    "[experimental] Override detected device-id (codename)"
-  )
-  .option("-o, --operating-system <os>", "[experimental] what os to install")
-  .option(
-    '-s, --settings "<setting>: <value>[, ...]"',
-    "Override install settings"
-  )
-  .option("-f, --file <file>", "Override the config by loading a file")
-  .option("-c, --cli", "[experimental] Run without GUI", undefined, "false")
-  .option("-v, --verbose", "Enable verbose logging", undefined, "false")
-  .option("-V, --veryVerbose", "Log *everything*", undefined, "false")
-  .option("-D, --debug", "Enable debugging tools", undefined, "false")
-  .parse(process.argv);
+const deviceTools = require("./lib/deviceTools.js");
+const api = require("./lib/api.js");
 
 if (cli.file) {
   try {
@@ -136,57 +63,13 @@ if (cli.file) {
 }
 
 global.installProperties = {
-  device: global.installConfig ? global.installConfig.codename : cli.device,
-  settings: cli.settings ? JSON.parse(cli.settings) : {}
+  device: global.installConfig ? global.installConfig.codename : null,
+  settings: {}
 };
-
-//==============================================================================
-// WINSTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOON!
-//==============================================================================
-
-winston.addColors({
-  error: "red",
-  warn: "yellow",
-  info: "green",
-  verbose: "blue",
-  debug: "white",
-  command: "grey"
-});
-
-global.logger = winston.createLogger({
-  format: winston.format.json(),
-  levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    verbose: 3,
-    debug: 4,
-    command: 5
-  },
-  transports: [
-    new winston.transports.File({
-      filename: path.join(utils.getUbuntuTouchDir(), "ubports-installer.log"),
-      options: { flags: "w" },
-      level: "command"
-    }),
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-      level: cli.veryVerbose ? "command" : cli.verbose ? "debug" : "info"
-    })
-  ]
-});
 
 //==============================================================================
 // RENDERER SIGNAL HANDLING
 //==============================================================================
-
-// Exit process with optional non-zero exit code
-ipcMain.on("die", exitCode => {
-  process.exit(exitCode);
-});
 
 // Restart the installer
 ipcMain.on("restart", () => {
@@ -195,9 +78,7 @@ ipcMain.on("restart", () => {
 
 // Begin install process
 ipcMain.on("install", () => {
-  utils.log.debug(
-    "settings: " + JSON.stringify(global.installProperties.settings)
-  );
+  log.debug("settings: " + JSON.stringify(global.installProperties.settings));
   devices.install(
     global.installConfig.operating_systems[global.installProperties.osIndex]
       .steps
@@ -216,12 +97,10 @@ ipcMain.on("reportResult", async (event, result, error) => {
     prompt(await prepareSuccessReport(), mainWindow)
       .then(data => sendOpenCutsRun(settings.get("opencuts_token"), data))
       .then(url => {
-        utils.log.info(
-          `Thank you for reporting! You can view your run here: ${url}`
-        );
-        electron.shell.openExternal(url);
+        log.info(`Thank you for reporting! You can view your run here: ${url}`);
+        shell.openExternal(url);
       })
-      .catch(utils.log.error);
+      .catch(e => log.warn(`failed to report: ${e}`));
   }
 });
 
@@ -238,7 +117,7 @@ ipcMain.on("renderer:error", (event, error) => {
 // The user selected an os
 ipcMain.on("os:selected", (event, osIndex) => {
   global.installProperties.osIndex = osIndex;
-  utils.log.debug(
+  log.debug(
     "os config: " +
       JSON.stringify(global.installConfig.operating_systems[osIndex])
   );
@@ -255,31 +134,9 @@ ipcMain.on("os:selected", (event, osIndex) => {
   }
 });
 
-// The user selected an os
+// The user configured the installation
 ipcMain.on("option", (event, targetVar, value) => {
   global.installProperties.settings[targetVar] = value;
-});
-
-// The user requested udev rules to be set
-ipcMain.on("udev", utils.setUdevRules);
-
-// The user requested an update
-ipcMain.on("update", () => {
-  shell.openExternal(
-    `https://devices.ubuntu-touch.io/installer/${
-      global.packageInfo.package ? "?package=" + global.packageInfo.package : ""
-    }`
-  );
-});
-
-// Get settings value
-ipcMain.handle("getSettingsValue", (event, key) => {
-  return settings.get(key);
-});
-
-// Set settings value
-ipcMain.handle("setSettingsValue", (event, key, value) => {
-  return settings.set(key, value);
 });
 
 //==============================================================================
@@ -294,11 +151,11 @@ mainEvent.on("user:error", (error, restart, ignore) => {
       ipcMain.once("user:error:reply", (e, reply) => {
         switch (reply) {
           case "ignore":
-            utils.log.warn("error ignored");
+            log.warn("error ignored");
             if (ignore) setTimeout(ignore, 500);
             return;
           case "restart":
-            utils.log.warn("restart after error");
+            log.warn("restart after error");
             deviceTools.kill();
             if (restart) setTimeout(restart, 500);
             else mainEvent.emit("restart");
@@ -319,7 +176,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
-  utils.log.warn("lost connection to device");
+  log.warn("lost connection to device");
   if (mainWindow) mainWindow.webContents.send("user:connection-lost");
   ipcMain.once("reconnect", () => {
     if (reconnect) setTimeout(reconnect, 500);
@@ -336,7 +193,7 @@ mainEvent.on("user:low-power", () => {
 mainEvent.on("restart", () => {
   global.installProperties = { settings: {} };
   global.installConfig = {};
-  utils.log.debug("WINDOW RELOADED");
+  log.debug("WINDOW RELOADED");
   mainWindow.reload();
 });
 
@@ -390,7 +247,7 @@ mainEvent.on("user:write:progress", progress => {
 mainEvent.on("user:write:done", () => {
   if (mainWindow) mainWindow.webContents.send("user:write:done");
   if (mainWindow) mainWindow.webContents.send("user:write:speed");
-  utils.log.info(
+  log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
   if (!settings.get("never.opencuts")) {
@@ -423,7 +280,7 @@ mainEvent.on("user:write:under", status => {
 
 // Device is unsupported
 mainEvent.on("user:device-unsupported", device => {
-  utils.log.warn("The device " + device + " is not supported!");
+  log.warn("The device " + device + " is not supported!");
   if (mainWindow)
     mainWindow.webContents.send("user:device-unsupported", device);
 });
@@ -438,7 +295,7 @@ mainEvent.on("user:configure", osInstructs => {
         .then(osInstructs => {
           mainWindow.webContents.send("user:configure", osInstructs);
         })
-        .catch(e => utils.errorToUser(e, "configure"));
+        .catch(e => errors.toUser(e, "configure"));
     }
   } else {
     // If there's nothing to configure, don't configure anything
@@ -452,7 +309,9 @@ mainEvent.on("device", device => {
     mainWindow.webContents.send(
       "user:os",
       global.installConfig,
-      devices.getOsSelects(global.installConfig.operating_systems)
+      global.installConfig.operating_systems.map(
+        (os, i) => `<option name="${i}">${os.name}</option>`
+      )
     );
     if (global.installConfig.unlock.length) {
       mainWindow.webContents.send("user:unlock", global.installConfig);
@@ -483,7 +342,7 @@ mainEvent.on("device", device => {
 
 // The user selected a device
 mainEvent.on("device:detected", device => {
-  utils.log.info("device detected: " + device);
+  log.info("device detected: " + device);
   mainEvent.emit("device", device);
 });
 
@@ -497,17 +356,15 @@ mainEvent.on("user:no-network", () => {
 //==============================================================================
 
 async function createWindow() {
-  utils.log.info(
-    "Welcome to the UBports Installer version " +
-      global.packageInfo.version +
-      "!"
+  log.info(
+    "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
   mainWindow = new BrowserWindow({
     width: cli.cli ? 0 : cli.debug ? 1600 : 800,
     height: cli.cli ? 0 : 600,
     show: !cli.cli,
     icon: path.join(__dirname, "../build/icons/icon.png"),
-    title: "UBports Installer (" + global.packageInfo.version + ")",
+    title: "UBports Installer (" + packageInfo.version + ")",
     kiosk: false,
     fullscreen: false,
     webPreferences: {
@@ -518,11 +375,8 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    ["adb", "fastboot", "heimdall"].forEach(tool =>
-      utils.log.debug(`using ${tool}: ${deviceTools[tool].executable}`)
-    );
     if (!global.installProperties.device) {
-      const wait = devices.waitForDevice();
+      const wait = deviceTools.wait();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
     }
     api
@@ -532,34 +386,24 @@ async function createWindow() {
           mainWindow.webContents.send("device:wait:device-selects-ready", out);
       })
       .catch(e => {
-        utils.log.error("getDeviceSelects error: " + e);
+        log.error("getDeviceSelects error: " + e);
         mainWindow.webContents.send("user:no-network");
       });
   });
 
   // Task we need only on the first start
   mainWindow.webContents.once("did-finish-load", () => {
-    utils
-      .getUpdateAvailable()
-      .then(() => {
-        utils.log.info(
-          "This is not the latest version of the UBports Installer! Please update: https://devices.ubuntu-touch.io/installer/" +
-            (global.packageInfo.package
-              ? "?package=" + global.packageInfo.package
-              : "")
-        );
-        mainWindow.webContents.send("user:update-available");
+    updater
+      .isOutdated()
+      .then(updateUrl => {
+        if (updateUrl) {
+          log.warn(`Please update: ${updateUrl}`);
+          mainWindow.webContents.send("user:update-available");
+        }
       })
-      .catch(() => {}); // Ignore errors, since this is non-essential
+      .catch(e => log.debug(e)); // Ignore errors, since this is non-essential
   });
 
-  // mainWindow.loadURL(
-  //   url.format({
-  //     pathname: path.join(__dirname, "html/index.html"),
-  //     protocol: "file",
-  //     slashes: true
-  //   })
-  // );
   mainWindow.loadURL(
     url.format({
       pathname: path.join(__dirname, "../public/index.html"),
@@ -570,8 +414,8 @@ async function createWindow() {
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
-  mainWindow.on("closed", function() {  
-    mainWindow = null;  
+  mainWindow.on("closed", function() {
+    mainWindow = null;
   });
 }
 
@@ -583,7 +427,7 @@ app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
   deviceTools.kill();
-  utils.log.info("Good bye!");
+  log.info("Good bye!");
   setTimeout(() => {
     app.quit();
     process.exit(0);
@@ -598,17 +442,17 @@ app.on("activate", function() {
 
 process.on("unhandledRejection", (reason, promise) => {
   if (mainWindow) {
-    utils.errorToUser(reason, "unhandled rejection at " + promise);
+    errors.toUser(reason, "unhandled rejection at " + promise);
   } else {
-    utils.die(reason);
+    errors.die(reason);
   }
 });
 
 process.on("uncaughtException", (error, origin) => {
   if (mainWindow) {
-    utils.errorToUser(error, "uncaught exception at " + origin);
+    errors.toUser(error, "uncaught exception at " + origin);
   } else {
-    utils.die(error);
+    errors.die(error);
   }
 });
 
@@ -620,30 +464,30 @@ app.on("ready", function() {
       submenu: [
         {
           label: "About the UBports Foundation...",
-          click: () => electron.shell.openExternal("https://ubports.com")
+          click: () => shell.openExternal("https://ubports.com")
         },
         {
           label: "About Ubuntu Touch...",
-          click: () => electron.shell.openExternal("https://ubuntu-touch.io")
+          click: () => shell.openExternal("https://ubuntu-touch.io")
         },
         {
           label: "Donate",
-          click: () => electron.shell.openExternal("https://ubports.com/donate")
+          click: () => shell.openExternal("https://ubports.com/donate")
         },
         {
           label: "Source",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://github.com/ubports/ubports-installer/tree/" +
-                global.packageInfo.version
+                packageInfo.version
             )
         },
         {
           label: "License",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://github.com/ubports/ubports-installer/blob/" +
-                global.packageInfo.version +
+                packageInfo.version +
                 "/LICENSE"
             )
         }
@@ -675,10 +519,9 @@ app.on("ready", function() {
       submenu: [
         {
           label: "Set udev rules",
-          click: utils.setUdevRules,
+          click: udev.set,
           visible:
-            global.packageInfo.package !== "snap" &&
-            process.platform === "linux"
+            packageInfo.package !== "snap" && process.platform === "linux"
         },
         {
           label: "Report a bug",
@@ -690,7 +533,7 @@ app.on("ready", function() {
         },
         {
           label: "Clean cached files",
-          click: utils.cleanInstallerCache
+          click: () => cache.clean()
         },
         {
           label: "Open settings config file",
@@ -726,8 +569,7 @@ app.on("ready", function() {
           label: "Never ask for udev rules",
           checked: settings.get("never.udev"),
           visible:
-            global.packageInfo.package !== "snap" &&
-            process.platform === "linux",
+            packageInfo.package !== "snap" && process.platform === "linux",
           type: "checkbox",
           click: () => settings.set("never.udev", !settings.get("never.udev"))
         },
@@ -790,7 +632,7 @@ app.on("ready", function() {
         {
           label: "Bug tracker",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://github.com/ubports/ubports-installer/issues"
             )
         },
@@ -801,29 +643,29 @@ app.on("ready", function() {
         {
           label: "Troubleshooting",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
             )
         },
         {
           label: "UBports Forums",
-          click: () => electron.shell.openExternal("https://forums.ubports.com")
+          click: () => shell.openExternal("https://forums.ubports.com")
         },
         {
           label: "AskUbuntu",
           click: () =>
-            electron.shell.openExternal(
+            shell.openExternal(
               "https://askubuntu.com/questions/tagged/ubuntu-touch"
             )
         },
         {
           label: "Telegram",
-          click: () => electron.shell.openExternal("https://t.me/WelcomePlus")
+          click: () => shell.openExternal("https://t.me/WelcomePlus")
         }
       ]
     }
   ];
 
-  const menu = electron.Menu.buildFromTemplate(menuTemplate);
-  electron.Menu.setApplicationMenu(menu);
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
 });

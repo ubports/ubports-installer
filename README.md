@@ -1,4 +1,4 @@
-# UBports Installer ![Continuous Integration](https://github.com/ubports/ubports-installer/workflows/Continuous%20Integration/badge.svg) [![snap](https://snapcraft.io//ubports-installer/badge.svg)](https://snapcraft.io/ubports-installer)
+# UBports Installer ![Continuous Integration](https://github.com/ubports/ubports-installer/workflows/Continuous%20Integration/badge.svg) [![snap](https://snapcraft.io//ubports-installer/badge.svg)](https://snapcraft.io/ubports-installer) [![codecov](https://codecov.io/gh/ubports/ubports-installer/branch/master/graph/badge.svg?token=cEneFUUbgt)](https://codecov.io/gh/ubports/ubports-installer/)
 
 Fear not! Installing [UBports](https://ubports.com) [Ubuntu Touch](https://ubuntu-touch.io) on your [device](https://devices.ubuntu-touch.io) is easy! Just download the UBports Installer package for your operating system and sit back and relax while your computer does all the rest. Installing third-party operating systems has never been so easy!
 
@@ -31,15 +31,19 @@ cd ubports-installer
 
 ```
 $ npm start -- -h
-Usage: ubports-installer [options]
+Usage: npm start -- [-f <file>] [-v[v] [-d]
+
+UBports Installer (0.7.2-beta) source for linux
+GPL-3.0 UBports Foundation <info@ubports.com>
+The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.
+https://devices.ubuntu-touch.io
 
 Options:
-  -V, --version                               output the version number
-  -s, --settings "<setting>: <value>[, ...]"  [experimental] Override install settings
-  -f, --file <file>                           [experimental] Override the config by loading a file
-  -v, --verbose                               Enable verbose logging
-  -D, --debug                                 Enable debugging tools and verbose logging
-  -h, --help                                  output usage information
+  -V, --version      output the version number
+  -f, --file <file>  Override the official config by loading a local file
+  -v, --verbose      Print debugging information. Multiple -v options increase the verbosity
+  -d, --debug        Enable electron's web debugger to inspect the frontend
+  -h, --help         output usage information
 ```
 
 ### Lint
