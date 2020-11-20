@@ -45,7 +45,7 @@ const {
   sendBugReport,
   prepareSuccessReport,
   prepareErrorReport
-} = require("./report.js");
+} = require("./lib/report.js");
 const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
 const prompt = require("electron-dynamic-prompt");

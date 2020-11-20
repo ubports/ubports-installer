@@ -18,11 +18,10 @@
  */
 
 const { shell } = require("electron");
-const util = require("util");
-const packageInfo = require("../package.json");
+const packageInfo = require("../../package.json");
 const { osInfo } = require("systeminformation");
-const { path: cachePath } = require("./lib/cache.js");
-const log = require("./lib/log.js");
+const { path: cachePath } = require("./cache.js");
+const log = require("./log.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
 const { paste } = require("ubuntu-pastebin");
 
@@ -46,7 +45,7 @@ function getDeviceString() {
  */
 function getTargetOsString() {
   try {
-    return !util.isUndefined(global.installProperties.osIndex)
+    return global.installProperties.osIndex === undefined
       ? global.installConfig.operating_systems[global.installProperties.osIndex]
           .name
       : "(target os not yet set)";

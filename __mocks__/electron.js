@@ -9,7 +9,9 @@ const electron = {
     on: jest.fn(),
     handle: jest.fn()
   },
-  shell: jest.fn(),
+  shell: {
+    openExternal: jest.fn()
+  },
   Menu: jest.fn()
 };
 
