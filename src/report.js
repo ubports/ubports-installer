@@ -18,15 +18,13 @@
  */
 
 const { shell } = require("electron");
-const axios = require("axios");
-const FormData = require("form-data");
 const util = require("util");
 const packageInfo = require("../package.json");
 const { osInfo } = require("systeminformation");
-const { GraphQLClient, gql } = require("graphql-request");
 const { path: cachePath } = require("./lib/cache.js");
 const log = require("./lib/log.js");
-require("cross-fetch/polyfill");
+const { OpenCutsReporter } = require("open-cuts-reporter");
+const { paste } = require("ubuntu-pastebin");
 
 /**
  * Get device string
@@ -130,45 +128,6 @@ async function getDebugInfo(data, logUrl, runUrl) {
 }
 
 /**
- * Paste content to paste.ubuntu.com
- * @async
- * @param {Promise<String>} content - content to paste
- * @param {String} [poster] - user name
- * @param {String} [syntax] - syntax for highlighting
- * @param {String} [expiration] - how long to store the log
- * @returns {String} paste url
- * @throws if paste failed
- */
-async function paste(
-  content = log.get(),
-  poster = "UBports Installer",
-  syntax = "text",
-  expiration = "year"
-) {
-  const form = new FormData();
-  form.append("poster", poster);
-  form.append("syntax", syntax);
-  form.append("expiration", expiration);
-  form.append("content", await content);
-
-  return axios
-    .post("http://paste.ubuntu.com", form, { headers: form.getHeaders() })
-    .then(r => {
-      if (r.request.path && r.request.path.length >= 2) {
-        return r.request.path;
-      } else {
-        throw new Error(
-          `Failed to paste: Invalid path response: ${r.request.path}`
-        );
-      }
-    })
-    .then(pasteId => `https://paste.ubuntu.com${pasteId}`)
-    .catch(error => {
-      throw new Error(`Failed to paste: ${error}`);
-    });
-}
-
-/**
  * Ensure a usable issue title
  * @param {String} error - error message or falsy value
  * @returns {String} issue title
@@ -185,8 +144,10 @@ function getIssueTitle(error) {
  * @param {String} token - OPEN-CUTS API token
  */
 async function sendBugReport(data, token) {
-  const logfile = log.get();
-  const pasteUrl = paste(logfile).catch(() => "*N/A*");
+  const logfile = await log.get();
+  const pasteUrl = paste(logfile, "UBports Installer", "text", "year").catch(
+    () => "*N/A*"
+  );
   const runUrl = sendOpenCutsRun(token, data, logfile).catch(() => "*N/A*");
   shell.openExternal(
     `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
@@ -216,54 +177,35 @@ const OPENCUTS_OS = {
  * @throws if sending run failed
  */
 async function sendOpenCutsRun(token, data, logfile = log.get()) {
-  const openCutsApi = new GraphQLClient(
-    "https://ubports.open-cuts.org/graphql",
-    { headers: token ? { authorization: token } : {} }
+  const openCutsApi = new OpenCutsReporter({
+    url: "https://ubports.open-cuts.org",
+    token
+  });
+  return openCutsApi.smartRun(
+    "5e9d746c6346e112514cfec7",
+    "5e9d75406346e112514cfeca",
+    packageInfo.version,
+    {
+      result: data.result,
+      comment: data.comment,
+      combination: [
+        {
+          variable: "Environment",
+          value: data.hostOs
+        },
+        {
+          variable: "Package",
+          value: data.package
+        }
+      ],
+      logs: [
+        {
+          name: "ubports-installer.log",
+          content: await logfile
+        }
+      ]
+    }
   );
-  return openCutsApi
-    .request(
-      gql`
-        mutation smartRun(
-          $testId: ID!
-          $systemId: ID!
-          $tag: String!
-          $run: RunInput!
-        ) {
-          smartRun(testId: $testId, systemId: $systemId, tag: $tag, run: $run) {
-            id
-          }
-        }
-      `,
-      {
-        testId: "5e9d75406346e112514cfeca",
-        systemId: "5e9d746c6346e112514cfec7",
-        tag: packageInfo.version,
-        run: {
-          result: data.result,
-          comment: data.comment,
-          combination: [
-            {
-              variable: "Environment",
-              value: data.hostOs
-            },
-            {
-              variable: "Package",
-              value: data.package
-            }
-          ],
-          logs: [
-            {
-              name: "ubports-installer.log",
-              content: await logfile
-            }
-          ]
-        }
-      }
-    )
-    .then(({ smartRun }) => `https://ubports.open-cuts.org/run/${smartRun.id}`)
-    .catch(error => {
-      throw new Error(`Failed to create run: ${error}`);
-    });
 }
 
 function genericFormFields(result) {
