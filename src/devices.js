@@ -57,12 +57,6 @@ function installStep(step) {
         return download(
           step.files.map(file => ({
             ...file,
-            checksum:
-              file.checksum && file.checksum.sum && file.checksum.algorithm
-                ? file.checksum
-                : file.checksum
-                ? { sum: file.checksum, algorithm: "sha256" }
-                : null,
             partition: file.type,
             path: path.join(
               cachePath,
