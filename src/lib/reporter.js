@@ -24,6 +24,8 @@ const { path: cachePath } = require("./cache.js");
 const log = require("./log.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
 const { paste } = require("ubuntu-pastebin");
+const prompt = require("electron-dynamic-prompt");
+const settings = require("./settings.js");
 
 /**
  * OPEN-CUTS operating system mapping
@@ -45,7 +47,7 @@ class Reporter {
    */
   getDeviceString() {
     try {
-      return global.installProperties.device
+      return global.installProperties && global.installProperties.device
         ? `${global.installProperties.device}`
         : "(device not yet detected)";
     } catch (e) {
@@ -227,7 +229,7 @@ class Reporter {
         type: "input",
         attrs: {
           placeholder: "Device codename",
-          value: global.installProperties.device || "N/A",
+          value: this.getDeviceString(),
           required: true
         }
       },
@@ -349,6 +351,75 @@ class Reporter {
         ...this.genericFormFields("PASS")
       ]
     };
+  }
+
+  /**
+   * Prepare and send a report
+   * @param {String} result PASS, WONKY, FAIL
+   * @param {String} error error message or object
+   * @param {BrowserWindow} mainWindow electron window
+   */
+  async report(result, error, mainWindow) {
+    if (result !== "PASS") {
+      return prompt(await this.prepareErrorReport(result, error), mainWindow)
+        .then(data => {
+          if (data) {
+            this.sendBugReport(data, settings.get("opencuts_token"));
+          }
+        })
+        .catch(e => log.warn(`failed to report: ${e}`));
+    } else {
+      return prompt(await this.prepareSuccessReport(), mainWindow)
+        .then(data => {
+          if (data) {
+            this.sendOpenCutsRun(settings.get("opencuts_token"), data).then(
+              url => {
+                log.info(
+                  `Thank you for reporting! You can view your run here: ${url}`
+                );
+                shell.openExternal(url);
+              }
+            );
+          }
+        })
+        .catch(e => log.warn(`failed to report: ${e}`));
+    }
+  }
+
+  /**
+   * Open a dialog to set the token
+   * @param {BrowserWindow} mainWindow electron window
+   */
+  tokenDialog(mainWindow) {
+    return prompt(
+      {
+        title: "OPEN-CUTS API Token",
+        height: 300,
+        resizable: true,
+        description:
+          "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your OPEN-CUTS account.",
+        fields: [
+          {
+            id: "token",
+            label: "Token",
+            type: "input",
+            attrs: {
+              type: "password",
+              value: settings.get("opencuts_token"),
+              placeholder: "get your token on ubports.open-cuts.org",
+              required: true
+            }
+          }
+        ]
+      },
+      mainWindow
+    )
+      .then(({ token }) => {
+        if (token) {
+          settings.set("opencuts_token", token.trim());
+        }
+      })
+      .catch(() => null);
   }
 }
 
