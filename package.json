@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.7.2-beta",
+  "version": "0.8.0-beta",
   "description": "The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
   "keywords": [
     "Ubuntu",
@@ -25,17 +25,13 @@
     "ubports-installer": "src/main.js"
   },
   "scripts": {
-    "build": "rollup -c",
+    "build": "npx rollup -c",
     "dev": "rollup -c -w",
-    "start": "electron .",
-    "dist:mac": "npm run prerender && node ./build.js -o 'mac' -p 'dmg'",
-    "dist:win": "npm run prerender && node ./build.js -o \"win\" -p \"exe\"",
-    "dist:linux": "npm run prerender && node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft snap",
-    "dist:linux:appimage": "npm run prerender && node ./build.js -o 'linux' -p 'AppImage'",
-    "dist:linux:deb": "npm run prerender && node ./build.js -o 'linux' -p 'deb'",
-    "dist:linux:snap": "snapcraft snap",
-    "lint": "npx eslint *.js \"src/**/*.js\"",
-    "lint-fix": "npm run lint -- --fix"
+    "start": "npm run build && electron .",
+    "lint": "npx eslint *.js \"src/**/*.js\" \"__mocks__/**/*.js\"",
+    "lint-fix": "npm run lint -- --fix",
+    "docs": "npx jsdoc -c jsdoc-config.json",
+    "test": "npx jest --coverage"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^14.0.0",
@@ -47,8 +43,8 @@
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.14.0",
     "eslint-plugin-prettier": "^3.1.4",
-    "gulp": "^4.0.2",
-    "gulp-pug": "^4.0.1",
+    "jest": "^26.6.3",
+    "jsdoc": "^3.6.6",
     "prettier": "^1.19.1",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^2.1.0",
@@ -76,10 +72,10 @@
     "jquery-i18next": "^1.2.0",
     "popper.js": "^1.16.0",
     "progressive-downloader": "^1.0.5",
-    "promise-android-tools": "^4.0.2",
+    "promise-android-tools": "^4.0.3",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
-    "system-image-node-module": "^1.1.1",
+    "system-image-node-module": "^1.1.2",
     "systeminformation": "^4.27.11",
     "ubports-api-node-module": "^3.0.2",
     "winston": "^3.3.3"
