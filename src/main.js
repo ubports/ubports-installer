@@ -36,7 +36,6 @@ const url = require("url");
 let mainWindow;
 
 const mainEvent = require("./lib/mainEvent.js");
-global.mainEvent = mainEvent;
 
 const reporter = require("./lib/reporter.js");
 const errors = require("./lib/errors.js");
@@ -75,16 +74,6 @@ ipcMain.on("install", () => {
 // Submit a user-requested bug-report
 ipcMain.on("reportResult", async (event, result, error) => {
   reporter.report(result, error, mainWindow);
-});
-
-// The user selected a device
-ipcMain.on("device:selected", (event, device) => {
-  mainEvent.emit("device", device);
-});
-
-// Error from the renderer process
-ipcMain.on("renderer:error", (event, error) => {
-  mainEvent.emit("user:error", error);
 });
 
 // The user selected an os
@@ -295,12 +284,9 @@ mainEvent.on("device", device => {
     continueWithConfig();
   } else {
     // fetch remote config
-    global.mainEvent.emit("user:write:working", "particles");
-    global.mainEvent.emit("user:write:status", "Preparing installation", true);
-    global.mainEvent.emit(
-      "user:write:under",
-      "Fetching installation instructions"
-    );
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:status", "Preparing installation", true);
+    mainEvent.emit("user:write:under", "Fetching configuration");
     api
       .getDevice(device)
       .then(config => {
@@ -311,12 +297,6 @@ mainEvent.on("device", device => {
         mainEvent.emit("user:device-unsupported", device);
       });
   }
-});
-
-// The user selected a device
-mainEvent.on("device:detected", device => {
-  log.info("device detected: " + device);
-  mainEvent.emit("device", device);
 });
 
 // No internet connection

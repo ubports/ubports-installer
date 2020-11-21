@@ -27,6 +27,7 @@ const log = require("./lib/log.js");
 const errors = require("./lib/errors.js");
 const deviceTools = require("./lib/deviceTools.js");
 const { adb, fastboot, heimdall } = deviceTools;
+const mainEvent = require("./lib/mainEvent.js");
 
 /**
  * Transform path array
@@ -73,16 +74,13 @@ function installStep(step) {
             file: path.join(path.basename(file.url))
           })),
           (progress, speed) => {
-            global.mainEvent.emit("user:write:progress", progress * 100);
-            global.mainEvent.emit(
-              "user:write:speed",
-              Math.round(speed * 100) / 100
-            );
-            global.mainEvent.emit("user:write:under", "Downloading");
+            mainEvent.emit("user:write:progress", progress * 100);
+            mainEvent.emit("user:write:speed", Math.round(speed * 100) / 100);
+            mainEvent.emit("user:write:under", "Downloading");
           },
           (current, total) => {
             log.info(`Downloaded file ${current} of ${total}`);
-            global.mainEvent.emit(
+            mainEvent.emit(
               "user:write:status",
               `${current} of ${total} files downloaded and verified`,
               true
@@ -93,17 +91,13 @@ function installStep(step) {
             switch (activity) {
               case "downloading":
                 log.info(`downloading ${step.group} files`);
-                global.mainEvent.emit("user:write:working", "download");
+                mainEvent.emit("user:write:working", "download");
                 break;
               case "preparing":
                 log.info(`checking previously downloaded ${step.group} files`);
-                global.mainEvent.emit("user:write:working", "particles");
-                global.mainEvent.emit(
-                  "user:write:status",
-                  "Preparing download",
-                  true
-                );
-                global.mainEvent.emit(
+                mainEvent.emit("user:write:working", "particles");
+                mainEvent.emit("user:write:status", "Preparing download", true);
+                mainEvent.emit(
                   "user:write:under",
                   `Checking ${step.group} files...`
                 );
@@ -113,9 +107,9 @@ function installStep(step) {
           }
         )
           .then(() => {
-            global.mainEvent.emit("user:write:working", "particles");
-            global.mainEvent.emit("user:write:progress", 0);
-            global.mainEvent.emit("user:write:speed", 0);
+            mainEvent.emit("user:write:working", "particles");
+            mainEvent.emit("user:write:progress", 0);
+            mainEvent.emit("user:write:speed", 0);
           })
           .catch(error => {
             log.error("download error: " + error);
@@ -124,12 +118,9 @@ function installStep(step) {
       };
     case "manual_download":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Manual download");
-        global.mainEvent.emit(
-          "user:write:under",
-          `Checking ${step.group} files...`
-        );
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Manual download");
+        mainEvent.emit("user:write:under", `Checking ${step.group} files...`);
         return checkFile(
           {
             checksum: step.file.checksum,
@@ -144,7 +135,7 @@ function installStep(step) {
         ).then(ok => {
           if (!ok) {
             return new Promise(function(resolve, reject) {
-              global.mainEvent.emit(
+              mainEvent.emit(
                 "user:manual_download",
                 step.file,
                 step.group,
@@ -187,23 +178,16 @@ function installStep(step) {
                     .catch(reject);
                 }
               );
-              global.mainEvent.emit(
-                "user:write:under",
-                `Manual download required!`
-              );
+              mainEvent.emit("user:write:under", `Manual download required!`);
             });
           }
         });
       };
     case "unpack":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit(
-          "user:write:status",
-          `Unpacking ${step.group}`,
-          true
-        );
-        global.mainEvent.emit("user:write:under", `Unpacking...`);
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", `Unpacking ${step.group}`, true);
+        mainEvent.emit("user:write:under", `Unpacking...`);
         let basepath = path.join(
           cachePath,
           global.installProperties.device,
@@ -222,27 +206,20 @@ function installStep(step) {
       };
     case "adb:format":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit(
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit(
           "user:write:status",
           "Preparing system for installation",
           true
         );
-        global.mainEvent.emit(
-          "user:write:under",
-          "Formatting " + step.partition
-        );
+        mainEvent.emit("user:write:under", "Formatting " + step.partition);
         return adb.wait().then(() => adb.format(step.partition));
       };
     case "adb:sideload":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit(
-          "user:write:status",
-          `Sideloading ${step.group}`,
-          true
-        );
-        global.mainEvent.emit(
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", `Sideloading ${step.group}`, true);
+        mainEvent.emit(
           "user:write:under",
           "Your new operating system is being installed..."
         );
@@ -254,25 +231,22 @@ function installStep(step) {
               step.group,
               step.file
             ),
-            p => global.mainEvent.emit("user:write:progress", p * 100)
+            p => mainEvent.emit("user:write:progress", p * 100)
           )
-          .then(() => global.mainEvent.emit("user:write:progress", 0));
+          .then(() => mainEvent.emit("user:write:progress", 0));
       };
     case "adb:reboot":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Rebooting");
-        global.mainEvent.emit(
-          "user:write:under",
-          "Rebooting to " + step.to_state
-        );
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Rebooting");
+        mainEvent.emit("user:write:under", "Rebooting to " + step.to_state);
         return adb.reboot(step.to_state);
       };
     case "fastboot:flash":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Flashing firmware", true);
-        global.mainEvent.emit(
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Flashing firmware", true);
+        mainEvent.emit(
           "user:write:under",
           "Flashing firmware partitions using fastboot"
         );
@@ -281,16 +255,16 @@ function installStep(step) {
           .then(() =>
             fastboot.flash(
               addPathToFiles(step.flash, global.installProperties.device),
-              p => global.mainEvent.emit("user:write:progress", p * 100)
+              p => mainEvent.emit("user:write:progress", p * 100)
             )
           )
-          .then(() => global.mainEvent.emit("user:write:progress", 0));
+          .then(() => mainEvent.emit("user:write:progress", 0));
       };
     case "fastboot:erase":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Cleaning up", true);
-        global.mainEvent.emit(
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Cleaning up", true);
+        mainEvent.emit(
           "user:write:under",
           "Erasing " + step.partition + " partition"
         );
@@ -298,9 +272,9 @@ function installStep(step) {
       };
     case "fastboot:format":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Cleaning up", true);
-        global.mainEvent.emit(
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Cleaning up", true);
+        mainEvent.emit(
           "user:write:under",
           "Formatting " + step.partition + " partition"
         );
@@ -308,12 +282,9 @@ function installStep(step) {
       };
     case "fastboot:boot":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Rebooting");
-        global.mainEvent.emit(
-          "user:write:under",
-          "Your device is being rebooted..."
-        );
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Rebooting");
+        mainEvent.emit("user:write:under", "Your device is being rebooted...");
         return fastboot.boot(
           path.join(
             cachePath,
@@ -339,9 +310,9 @@ function installStep(step) {
       };
     case "fastboot:update":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Updating system", true);
-        global.mainEvent.emit(
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Updating system", true);
+        mainEvent.emit(
           "user:write:under",
           "Applying fastboot update zip. This may take a while..."
         );
@@ -357,37 +328,37 @@ function installStep(step) {
       };
     case "fastboot:reboot_bootloader":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Rebooting", true);
-        global.mainEvent.emit("user:write:under", "Rebooting to bootloader");
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Rebooting", true);
+        mainEvent.emit("user:write:under", "Rebooting to bootloader");
         return fastboot.rebootBootloader();
       };
     case "fastboot:reboot":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Rebooting", true);
-        global.mainEvent.emit("user:write:under", "Rebooting system");
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Rebooting", true);
+        mainEvent.emit("user:write:under", "Rebooting system");
         return fastboot.reboot();
       };
     case "fastboot:continue":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Continuing boot", true);
-        global.mainEvent.emit("user:write:under", "Resuming boot");
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Continuing boot", true);
+        mainEvent.emit("user:write:under", "Resuming boot");
         return fastboot.continue();
       };
     case "fastboot:set_active":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Continuing boot", true);
-        global.mainEvent.emit("user:write:under", "Resuming boot");
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Continuing boot", true);
+        mainEvent.emit("user:write:under", "Resuming boot");
         return fastboot.setActive(step.slot);
       };
     case "heimdall:flash":
       return () => {
-        global.mainEvent.emit("user:write:working", "particles");
-        global.mainEvent.emit("user:write:status", "Flashing firmware", true);
-        global.mainEvent.emit(
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Flashing firmware", true);
+        mainEvent.emit(
           "user:write:under",
           "Flashing firmware partitions using heimdall"
         );
@@ -398,20 +369,20 @@ function installStep(step) {
     case "user_action":
       return () => {
         return new Promise(function(resolve, reject) {
-          global.mainEvent.emit(
+          mainEvent.emit(
             "user:action",
             global.installConfig.user_actions[step.action],
             () => {
               switch (step.action) {
                 case "recovery":
                 case "system":
-                  global.mainEvent.emit("user:write:working", "particles");
-                  global.mainEvent.emit(
+                  mainEvent.emit("user:write:working", "particles");
+                  mainEvent.emit(
                     "user:write:status",
                     "Waiting for device",
                     true
                   );
-                  global.mainEvent.emit(
+                  mainEvent.emit(
                     "user:write:under",
                     "Adb is scanning for devices"
                   );
@@ -429,13 +400,13 @@ function installStep(step) {
                   }
                   return adbWait();
                 case "bootloader":
-                  global.mainEvent.emit("user:write:working", "particles");
-                  global.mainEvent.emit(
+                  mainEvent.emit("user:write:working", "particles");
+                  mainEvent.emit(
                     "user:write:status",
                     "Waiting for device",
                     true
                   );
-                  global.mainEvent.emit(
+                  mainEvent.emit(
                     "user:write:under",
                     "Fastboot is scanning for devices"
                   );
@@ -454,13 +425,13 @@ function installStep(step) {
                   }
                   return fastbootWait();
                 case "download":
-                  global.mainEvent.emit("user:write:working", "particles");
-                  global.mainEvent.emit(
+                  mainEvent.emit("user:write:working", "particles");
+                  mainEvent.emit(
                     "user:write:status",
                     "Waiting for device",
                     true
                   );
-                  global.mainEvent.emit(
+                  mainEvent.emit(
                     "user:write:under",
                     "Heimdall is scanning for devices"
                   );
@@ -533,12 +504,12 @@ function assembleInstallSteps(steps) {
                     .then(resolve)
                     .catch(reject);
                 } else if (error.message.includes("low battery")) {
-                  global.mainEvent.emit("user:low-power");
+                  mainEvent.emit("user:low-power");
                 } else if (
                   error.message.includes("bootloader locked") ||
                   error.message.includes("enable unlocking")
                 ) {
-                  global.mainEvent.emit("user:oem-lock", runStep);
+                  mainEvent.emit("user:oem-lock", runStep);
                 } else if (error.message.includes("no device")) {
                   mainEvent.emit("user:connection-lost", smartRestart);
                 } else if (
@@ -576,14 +547,14 @@ function assembleInstallSteps(steps) {
   });
 
   installPromises.push(() => {
-    global.mainEvent.emit("user:write:done");
-    global.mainEvent.emit(
+    mainEvent.emit("user:write:done");
+    mainEvent.emit(
       "user:write:status",
       global.installConfig.operating_systems[global.installProperties.osIndex]
         .name + " successfully installed!",
       false
     );
-    global.mainEvent.emit(
+    mainEvent.emit(
       "user:write:under",
       global.installConfig.operating_systems[global.installProperties.osIndex]
         .success_message || "All done! Enjoy exploring your new OS!"

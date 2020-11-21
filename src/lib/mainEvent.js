@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const log = require("./log.js");
 const { ipcMain } = require("electron");
 const EventEmitter = require("events");
 
@@ -25,6 +26,23 @@ const mainEvent = new EventEmitter();
 // Restart the installer
 ipcMain.on("restart", () => {
   mainEvent.emit("restart");
+});
+
+// The user selected a device
+ipcMain.on("device:selected", (event, device) => {
+  log.info("device selected: " + device);
+  mainEvent.emit("device", device);
+});
+
+// Error from the renderer process
+ipcMain.on("renderer:error", (event, error) => {
+  mainEvent.emit("user:error", error);
+});
+
+// The user selected a device
+mainEvent.on("device:detected", device => {
+  log.info("device detected: " + device);
+  mainEvent.emit("device", device);
 });
 
 module.exports = mainEvent;

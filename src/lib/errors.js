@@ -19,6 +19,7 @@
 
 const log = require("./log.js");
 const { ipcMain } = require("electron");
+const mainEvent = require("./mainEvent.js");
 
 /**
  * error handling
@@ -46,7 +47,7 @@ class ErrorHandler {
     log.error(
       errorString + (error.stack ? "\nstack trace: " + error.stack : "")
     );
-    global.mainEvent.emit("user:error", errorString, restart, ignore);
+    mainEvent.emit("user:error", errorString, restart, ignore);
   }
 }
 
