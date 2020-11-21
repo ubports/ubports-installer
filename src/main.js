@@ -29,8 +29,9 @@ const Store = require("electron-store");
 
 var winston = require("winston");
 const path = require("path");
-const reload = require('electron-reload')(__dirname,
-  {electron: require(`../node_modules/electron`)});
+const reload = require("electron-reload")(__dirname, {
+  electron: require(`../node_modules/electron`)
+});
 const fs = require("fs-extra");
 const url = require("url");
 const events = require("events");
@@ -570,8 +571,8 @@ async function createWindow() {
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
-  mainWindow.on("closed", function() {  
-    mainWindow = null;  
+  mainWindow.on("closed", function() {
+    mainWindow = null;
   });
 }
 

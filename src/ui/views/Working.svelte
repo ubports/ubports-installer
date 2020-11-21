@@ -1,3 +1,13 @@
+<script>
+    import { animationType } from '../../stores.js';
+        
+    let animation_value;
+
+	const unsubscribe = animationType.subscribe(value => {
+		animation_value = value;
+	});
+</script>
+
 <div class="content">
     <div class="loader-circle"></div>
     <div class="loader-line-mask">

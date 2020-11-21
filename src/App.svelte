@@ -1,5 +1,6 @@
 <script>
 	const { remote, ipcRenderer, shell } = require("electron");
+	import { animationType } from './stores.js';
 
 	global.installProperties = remote.getGlobal("installProperties");
 	global.packageInfo = remote.getGlobal("packageInfo");
@@ -36,6 +37,7 @@
 
 	//Messages	
 	ipcRenderer.on("user:write:working", (e, animation) => {
+		animationType.set(animation);
 		push('/working')
 	});
 
