@@ -29,8 +29,11 @@ const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
-const reload = require('electron-reload')(__dirname,
-  {electron: require(`../node_modules/electron`)});
+const reload = require("electron-reload")(__dirname, {
+  electron: require(`../node_modules/electron`)
+});
+const fs = require("fs-extra");
+const url = require("url");
 const events = require("events");
 class event extends events {}
 
@@ -87,8 +90,8 @@ async function createWindow() {
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
-  mainWindow.on("closed", function() {  
-    mainWindow = null;  
+  mainWindow.on("closed", function() {
+    mainWindow = null;
   });
 }
 
