@@ -41,7 +41,6 @@ global.mainEvent = mainEvent;
 const reporter = require("./lib/reporter.js");
 const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
-const prompt = require("electron-dynamic-prompt");
 const deviceTools = require("./lib/deviceTools.js");
 const api = require("./lib/api.js");
 
@@ -75,25 +74,7 @@ ipcMain.on("install", () => {
 
 // Submit a user-requested bug-report
 ipcMain.on("reportResult", async (event, result, error) => {
-  if (result !== "PASS") {
-    prompt(await reporter.prepareErrorReport(result, error), mainWindow).then(
-      data => {
-        if (data) {
-          reporter.sendBugReport(data, settings.get("opencuts_token"));
-        }
-      }
-    );
-  } else {
-    prompt(await reporter.prepareSuccessReport(), mainWindow)
-      .then(data =>
-        reporter.sendOpenCutsRun(settings.get("opencuts_token"), data)
-      )
-      .then(url => {
-        log.info(`Thank you for reporting! You can view your run here: ${url}`);
-        shell.openExternal(url);
-      })
-      .catch(e => log.warn(`failed to report: ${e}`));
-  }
+  reporter.report(result, error, mainWindow);
 });
 
 // The user selected a device
@@ -584,36 +565,7 @@ app.on("ready", function() {
         },
         {
           label: "OPEN-CUTS API Token",
-          click: () =>
-            prompt(
-              {
-                title: "OPEN-CUTS API Token",
-                height: 300,
-                resizable: true,
-                description:
-                  "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your OPEN-CUTS account.",
-                fields: [
-                  {
-                    id: "token",
-                    label: "Token",
-                    type: "input",
-                    attrs: {
-                      type: "password",
-                      value: settings.get("opencuts_token"),
-                      placeholder: "get your token on ubports.open-cuts.org",
-                      required: true
-                    }
-                  }
-                ]
-              },
-              mainWindow
-            )
-              .then(({ token }) => {
-                if (token) {
-                  settings.set("opencuts_token", token.trim());
-                }
-              })
-              .catch(() => null)
+          click: () => reporter.tokenDialog(mainWindow)
         }
       ]
     },
