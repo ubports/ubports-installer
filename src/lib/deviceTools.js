@@ -21,6 +21,7 @@ const { DeviceTools } = require("./asarLibs.js");
 const errors = require("./errors.js");
 const api = require("./api.js");
 const log = require("./log.js");
+const mainEvent = require("./mainEvent.js");
 
 /**
  * adb, fastboot, and heimdall

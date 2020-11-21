@@ -19,6 +19,7 @@
 
 const { path: cachePath } = require("./cache.js");
 const log = require("./log.js");
+const mainEvent = require("./mainEvent.js");
 const { adb } = require("./deviceTools.js");
 
 const { Client } = require("system-image-node-module");
@@ -92,7 +93,7 @@ class SystemImageClient extends Client {
           files.map(f => f.src),
           files[0].dest,
           progress => {
-            global.mainEvent.emit("user:write:progress", progress * 100);
+            mainEvent.emit("user:write:progress", progress * 100);
           }
         )
       );
