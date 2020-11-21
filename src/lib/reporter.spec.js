@@ -5,17 +5,16 @@ jest.mock("open-cuts-reporter");
 const { paste } = require("ubuntu-pastebin");
 jest.mock("ubuntu-pastebin");
 
-const {
-  sendOpenCutsRun,
-  sendBugReport,
-  prepareSuccessReport,
-  prepareErrorReport
-} = require("./report.js");
+const reporter = require("./reporter.js");
+
+it("should be a singleton", () => {
+  expect(require("./reporter.js")).toBe(require("./reporter.js"));
+});
 
 describe("prepareErrorReport()", () => {
   it("should return error report object", () => {
     global.installProperties = { device: undefined };
-    expect(prepareErrorReport()).resolves.toBeDefined();
+    expect(reporter.prepareErrorReport()).resolves.toBeDefined();
   });
 });
 
@@ -24,7 +23,7 @@ describe("prepareSuccessReport()", () => {
     global.installProperties = {
       device: "bacon"
     };
-    expect(prepareSuccessReport()).resolves.toBeDefined();
+    expect(reporter.prepareSuccessReport()).resolves.toBeDefined();
   });
 });
 
@@ -32,7 +31,7 @@ describe("sendBugReport()", () => {
   it("should send bug report", () => {
     log.get.mockResolvedValue("log content");
     expect(
-      sendBugReport({
+      reporter.sendBugReport({
         title: "wasd"
       })
     ).resolves.toEqual(undefined);
@@ -43,7 +42,7 @@ describe("sendOpenCutsRun()", () => {
   it("should send open-cuts run", () => {
     log.get.mockResolvedValue("log content");
     expect(
-      sendOpenCutsRun(null, {
+      reporter.sendOpenCutsRun(null, {
         result: "PASS"
       })
     ).resolves.toEqual(undefined);

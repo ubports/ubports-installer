@@ -32,20 +32,13 @@ global.packageInfo = packageInfo;
 
 const settings = require("./lib/settings.js");
 const url = require("url");
-const events = require("events");
-class event extends events {}
 
 let mainWindow;
 
-const mainEvent = new event();
+const mainEvent = require("./lib/mainEvent.js");
 global.mainEvent = mainEvent;
 
-const {
-  sendOpenCutsRun,
-  sendBugReport,
-  prepareSuccessReport,
-  prepareErrorReport
-} = require("./lib/report.js");
+const reporter = require("./lib/reporter.js");
 const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
 const prompt = require("electron-dynamic-prompt");
@@ -71,11 +64,6 @@ global.installProperties = {
 // RENDERER SIGNAL HANDLING
 //==============================================================================
 
-// Restart the installer
-ipcMain.on("restart", () => {
-  mainEvent.emit("restart");
-});
-
 // Begin install process
 ipcMain.on("install", () => {
   log.debug("settings: " + JSON.stringify(global.installProperties.settings));
@@ -88,14 +76,18 @@ ipcMain.on("install", () => {
 // Submit a user-requested bug-report
 ipcMain.on("reportResult", async (event, result, error) => {
   if (result !== "PASS") {
-    prompt(await prepareErrorReport(result, error), mainWindow).then(data => {
-      if (data) {
-        sendBugReport(data, settings.get("opencuts_token"));
+    prompt(await reporter.prepareErrorReport(result, error), mainWindow).then(
+      data => {
+        if (data) {
+          reporter.sendBugReport(data, settings.get("opencuts_token"));
+        }
       }
-    });
+    );
   } else {
-    prompt(await prepareSuccessReport(), mainWindow)
-      .then(data => sendOpenCutsRun(settings.get("opencuts_token"), data))
+    prompt(await reporter.prepareSuccessReport(), mainWindow)
+      .then(data =>
+        reporter.sendOpenCutsRun(settings.get("opencuts_token"), data)
+      )
       .then(url => {
         log.info(`Thank you for reporting! You can view your run here: ${url}`);
         shell.openExternal(url);
@@ -360,9 +352,8 @@ async function createWindow() {
     "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
   mainWindow = new BrowserWindow({
-    width: cli.cli ? 0 : cli.debug ? 1600 : 800,
-    height: cli.cli ? 0 : 600,
-    show: !cli.cli,
+    width: cli.debug ? 1600 : 800,
+    height: 600,
     icon: path.join(__dirname, "../build/icons/icon.png"),
     title: "UBports Installer (" + packageInfo.version + ")",
     kiosk: false,
