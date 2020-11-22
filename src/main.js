@@ -17,46 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { app, BrowserWindow, ipcMain, shell, Menu } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
+const packageInfo = require("../package.json");
+global.packageInfo = packageInfo;
 const path = require("path");
-const fs = require("fs-extra");
-const cache = require("./lib/cache.js");
-cache.ensure();
+const url = require("url");
 const cli = require("./lib/cli.js");
 const log = require("./lib/log.js");
 const window = require("./lib/window.js");
-log.setLevel(cli.verbose);
 const updater = require("./lib/updater.js");
-const udev = require("./lib/udev.js");
-const packageInfo = require("../package.json");
-global.packageInfo = packageInfo;
-
-const settings = require("./lib/settings.js");
-const url = require("url");
-
-let mainWindow;
-
 const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
 const errors = require("./lib/errors.js");
-const devices = require("./devices.js");
 const deviceTools = require("./lib/deviceTools.js");
+const menuManager = require("./lib/menuManager.js");
 const api = require("./lib/api.js");
+const devices = require("./devices.js");
 
-if (cli.file) {
-  try {
-    global.installConfig = fs.readJsonSync(
-      path.isAbsolute(cli.file) ? cli.file : path.join(process.cwd(), cli.file)
-    );
-  } catch (error) {
-    throw new Error(`failed to read config file ${cli.file}: ${error}`);
-  }
-}
-
-global.installProperties = {
-  device: global.installConfig ? global.installConfig.codename : null,
-  settings: {}
-};
+let mainWindow;
 
 // Begin install process
 // FIXME move after devices has been modularized
@@ -183,185 +161,5 @@ app.on("activate", function() {
 
 // Set application menu
 app.on("ready", function() {
-  const menuTemplate = [
-    {
-      label: "About",
-      submenu: [
-        {
-          label: "About the UBports Foundation...",
-          click: () => shell.openExternal("https://ubports.com")
-        },
-        {
-          label: "About Ubuntu Touch...",
-          click: () => shell.openExternal("https://ubuntu-touch.io")
-        },
-        {
-          label: "Donate",
-          click: () => shell.openExternal("https://ubports.com/donate")
-        },
-        {
-          label: "Source",
-          click: () =>
-            shell.openExternal(
-              "https://github.com/ubports/ubports-installer/tree/" +
-                packageInfo.version
-            )
-        },
-        {
-          label: "License",
-          click: () =>
-            shell.openExternal(
-              "https://github.com/ubports/ubports-installer/blob/" +
-                packageInfo.version +
-                "/LICENSE"
-            )
-        }
-      ]
-    },
-    {
-      label: "Window",
-      role: "window",
-      submenu: [
-        {
-          label: "Minimize",
-          accelerator: "CmdOrCtrl+M",
-          role: "minimize"
-        },
-        {
-          label: "Close",
-          accelerator: "CmdOrCtrl+W",
-          role: "close"
-        },
-        {
-          label: "Quit",
-          accelerator: "CmdOrCtrl+Q",
-          role: "close"
-        }
-      ]
-    },
-    {
-      label: "Tools",
-      submenu: [
-        {
-          label: "Set udev rules",
-          click: udev.set,
-          visible:
-            packageInfo.package !== "snap" && process.platform === "linux"
-        },
-        {
-          label: "Report a bug",
-          click: () => window.send("user:report")
-        },
-        {
-          label: "Developer tools",
-          click: () => mainWindow.webContents.openDevTools()
-        },
-        {
-          label: "Clean cached files",
-          click: () => cache.clean()
-        },
-        {
-          label: "Open settings config file",
-          click: () => {
-            settings.openInEditor();
-          },
-          visible: settings.size
-        },
-        {
-          label: "Reset settings",
-          click: () => {
-            settings.clear();
-          },
-          visible: settings.size
-        }
-      ]
-    },
-    {
-      label: "Settings",
-      submenu: [
-        {
-          label: "Animations",
-          checked: settings.get("animations"),
-          type: "checkbox",
-          click: () => {
-            if (settings.get("animations")) {
-              window.send("animations:hide");
-            }
-            settings.set("animations", !settings.get("animations"));
-          }
-        },
-        {
-          label: "Never ask for udev rules",
-          checked: settings.get("never.udev"),
-          visible:
-            packageInfo.package !== "snap" && process.platform === "linux",
-          type: "checkbox",
-          click: () => settings.set("never.udev", !settings.get("never.udev"))
-        },
-        {
-          label: "Never ask for windows drivers",
-          checked: settings.get("never.windowsDrivers"),
-          visible: process.platform === "win32",
-          type: "checkbox",
-          click: () =>
-            settings.set(
-              "never.windowsDrivers",
-              !settings.get("never.windowsDrivers")
-            )
-        },
-        {
-          label: "Never ask for OPEN-CUTS automatic reporting",
-          checked: settings.get("never.opencuts"),
-          type: "checkbox",
-          click: () =>
-            settings.set("never.opencuts", !settings.get("never.opencuts"))
-        },
-        {
-          label: "OPEN-CUTS API Token",
-          click: () => reporter.tokenDialog(mainWindow)
-        }
-      ]
-    },
-    {
-      label: "Help",
-      submenu: [
-        {
-          label: "Bug tracker",
-          click: () =>
-            shell.openExternal(
-              "https://github.com/ubports/ubports-installer/issues"
-            )
-        },
-        {
-          label: "Report a bug",
-          click: () => window.send("user:report")
-        },
-        {
-          label: "Troubleshooting",
-          click: () =>
-            shell.openExternal(
-              "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
-            )
-        },
-        {
-          label: "UBports Forums",
-          click: () => shell.openExternal("https://forums.ubports.com")
-        },
-        {
-          label: "AskUbuntu",
-          click: () =>
-            shell.openExternal(
-              "https://askubuntu.com/questions/tagged/ubuntu-touch"
-            )
-        },
-        {
-          label: "Telegram",
-          click: () => shell.openExternal("https://t.me/WelcomePlus")
-        }
-      ]
-    }
-  ];
-
-  const menu = Menu.buildFromTemplate(menuTemplate);
-  Menu.setApplicationMenu(menu);
+  menuManager.setMenu(mainWindow);
 });

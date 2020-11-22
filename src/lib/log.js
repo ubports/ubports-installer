@@ -19,6 +19,7 @@
 
 const winston = require("winston");
 const path = require("path");
+const cli = require("./cli.js");
 const { path: cachePath } = require("./cache.js");
 
 const levels = {
@@ -64,6 +65,7 @@ class Logger {
       levels,
       transports: [this.logfile, this.stdout]
     });
+    this.setLevel(cli.verbose);
   }
 
   /**

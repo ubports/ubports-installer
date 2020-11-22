@@ -36,6 +36,7 @@ class Cache {
       default:
         this.path = path.join(process.env.HOME, ".cache", "ubports");
     }
+    this.ensure();
   }
 
   /**

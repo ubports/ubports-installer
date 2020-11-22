@@ -18,6 +18,8 @@
  */
 
 const cli = require("commander");
+const path = require("path");
+const fs = require("fs-extra");
 const packageInfo = require("../../package.json");
 
 const description = `UBports Installer (${
@@ -27,7 +29,7 @@ ${packageInfo.license} ${packageInfo.author}
 ${packageInfo.description}
 ${packageInfo.homepage}`;
 
-module.exports = cli
+cli
   .version(packageInfo.version)
   .name(packageInfo.package ? packageInfo.name : "npm start --")
   .usage("[-f <file>] [-v[v] [-d]")
@@ -47,3 +49,21 @@ module.exports = cli
     "Enable electron's web debugger to inspect the frontend"
   )
   .parse(process.argv);
+
+if (cli.file) {
+  try {
+    global.installConfig = fs.readJsonSync(
+      path.isAbsolute(cli.file) ? cli.file : path.join(process.cwd(), cli.file)
+    );
+  } catch (error) {
+    console.error(`failed to read config file ${cli.file}: ${error}`);
+    process.exit(1);
+  }
+}
+
+global.installProperties = {
+  device: global.installConfig ? global.installConfig.codename : null,
+  settings: {}
+};
+
+module.exports = cli;
