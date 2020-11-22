@@ -29,7 +29,7 @@ const packageInfo = require("../../package.json");
  */
 function asarLibPathHack(lib) {
   return packageInfo.package
-    ? path.join(__dirname, "../../app.asar.unpacked/node_modules/", lib)
+    ? path.join(__dirname, "../../../app.asar.unpacked/node_modules/", lib)
     : lib;
 }
 
