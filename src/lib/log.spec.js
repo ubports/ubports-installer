@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const winston = require("winston");
 jest.mock("winston");
 
