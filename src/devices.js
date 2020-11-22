@@ -35,16 +35,10 @@ const mainEvent = require("./lib/mainEvent.js");
  * @param {String} device codename
  */
 function addPathToFiles(files, device) {
-  var ret = [];
-  for (var i = 0; i < files.length; i++) {
-    ret.push({
-      file: path.join(cachePath, device, files[i].group, files[i].file),
-      partition: files[i].partition,
-      flags: files[i].flags,
-      raw: files[i].raw
-    });
-  }
-  return ret;
+  return files.map(file => ({
+    ...file,
+    file: path.join(cachePath, device, file.group, file.file)
+  }));
 }
 
 /**
@@ -462,83 +456,76 @@ function installStep(step) {
  * @param {Array<Function>}
  */
 function assembleInstallSteps(steps) {
-  var installPromises = [];
-  steps.forEach(step => {
-    installPromises.push(() => {
-      return new Promise(function(resolve, reject) {
-        if (
-          step.condition &&
-          global.installProperties.settings[step.condition.var] !=
-            step.condition.value
-        ) {
-          // If the condition is not met, no need to do anything
-          log.debug("skipping step: " + JSON.stringify(step));
-          resolve();
-        } else {
-          log.debug("running step: " + JSON.stringify(step));
-          function restartInstall() {
-            install(steps);
-          }
-          const smartRestart = step.resumable ? runStep : restartInstall;
-          let reconnections = 0;
-          function runStep() {
-            installStep(step)()
-              .then(() => {
+  let installPromises = steps.map(step => () =>
+    new Promise(function(resolve, reject) {
+      if (
+        step.condition &&
+        global.installProperties.settings[step.condition.var] !=
+          step.condition.value
+      ) {
+        // If the condition is not met, no need to do anything
+        log.debug("skipping step: " + JSON.stringify(step));
+        resolve();
+      } else {
+        log.debug("running step: " + JSON.stringify(step));
+        const fullRestart = () => install(steps);
+        const smartRestart = step.resumable ? runStep : fullRestart;
+        let reconnections = 0;
+        function runStep() {
+          installStep(step)()
+            .then(() => {
+              resolve();
+              log.debug(step.type + " done");
+            })
+            .catch(error => {
+              if (step.optional) {
                 resolve();
-                log.debug(step.type + " done");
-              })
-              .catch(error => {
-                if (step.optional) {
-                  resolve();
-                } else if (step.fallback_user_action) {
-                  installStep({
-                    type: "user_action",
-                    action: step.fallback_user_action
-                  })()
-                    .then(resolve)
-                    .catch(reject);
-                } else if (error.message.includes("low battery")) {
-                  mainEvent.emit("user:low-power");
-                } else if (
-                  error.message.includes("bootloader locked") ||
-                  error.message.includes("enable unlocking")
-                ) {
-                  mainEvent.emit("user:oem-lock", runStep);
-                } else if (error.message.includes("no device")) {
-                  mainEvent.emit("user:connection-lost", smartRestart);
-                } else if (
-                  error.message.includes("device offline") ||
-                  error.message.includes("unauthorized")
-                ) {
-                  if (reconnections < 3) {
-                    adb
-                      .reconnect()
-                      .then(() => {
-                        log.warn(`automatic reconnection ${++reconnections}`);
-                        runStep();
-                      })
-                      .catch(error => {
-                        log.warn(`failed to reconnect automatically: ${error}`);
-                        mainEvent.emit("user:connection-lost", smartRestart);
-                      });
-                  } else {
-                    log.warn(
-                      "maximum automatic reconnection attempts exceeded"
-                    );
-                    mainEvent.emit("user:connection-lost", smartRestart);
-                  }
-                } else if (error.message.includes("killed")) {
-                  reject(); // Used for exiting the installer
+              } else if (step.fallback_user_action) {
+                installStep({
+                  type: "user_action",
+                  action: step.fallback_user_action
+                })()
+                  .then(resolve)
+                  .catch(reject);
+              } else if (error.message.includes("low battery")) {
+                mainEvent.emit("user:low-power");
+              } else if (
+                error.message.includes("bootloader locked") ||
+                error.message.includes("enable unlocking")
+              ) {
+                mainEvent.emit("user:oem-lock", runStep);
+              } else if (error.message.includes("no device")) {
+                mainEvent.emit("user:connection-lost", smartRestart);
+              } else if (
+                error.message.includes("device offline") ||
+                error.message.includes("unauthorized")
+              ) {
+                if (reconnections < 3) {
+                  adb
+                    .reconnect()
+                    .then(() => {
+                      log.warn(`automatic reconnection ${++reconnections}`);
+                      runStep();
+                    })
+                    .catch(error => {
+                      log.warn(`failed to reconnect automatically: ${error}`);
+                      mainEvent.emit("user:connection-lost", smartRestart);
+                    });
                 } else {
-                  errors.toUser(error, step.type, restartInstall, runStep);
+                  log.warn("maximum automatic reconnection attempts exceeded");
+                  mainEvent.emit("user:connection-lost", smartRestart);
                 }
-              });
-          }
-          runStep();
+              } else if (error.message.includes("killed")) {
+                reject(); // Used for exiting the installer
+              } else {
+                errors.toUser(error, step.type, fullRestart, runStep);
+              }
+            });
         }
-      });
-    });
-  });
+        runStep();
+      }
+    })
+  );
 
   installPromises.push(() => {
     mainEvent.emit("user:write:done");
