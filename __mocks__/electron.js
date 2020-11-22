@@ -12,7 +12,10 @@ const electron = {
   shell: {
     openExternal: jest.fn()
   },
-  Menu: jest.fn()
+  Menu: jest.fn(),
+  webContents: {
+    fromId: jest.fn()
+  }
 };
 
 module.exports = electron;
