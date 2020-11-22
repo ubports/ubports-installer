@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const { Menu, shell } = require("electron");
 jest.mock("electron");
 const menuManager = require("./menuManager.js");

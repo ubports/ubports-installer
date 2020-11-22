@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const fs = require("fs-extra");
 jest.mock("fs-extra");
 

@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const Api = require("ubports-api-node-module").Installer;
 jest.mock("ubports-api-node-module");
 
