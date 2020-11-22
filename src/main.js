@@ -24,6 +24,7 @@ const cache = require("./lib/cache.js");
 cache.ensure();
 const cli = require("./lib/cli.js");
 const log = require("./lib/log.js");
+const window = require("./lib/window.js");
 log.setLevel(cli.verbose);
 const updater = require("./lib/updater.js");
 const udev = require("./lib/udev.js");
@@ -88,11 +89,7 @@ ipcMain.on("os:selected", (event, osIndex) => {
     global.installConfig.operating_systems[osIndex]
   );
   if (global.installConfig.operating_systems[osIndex].prerequisites.length) {
-    mainWindow.webContents.send(
-      "user:prerequisites",
-      global.installConfig,
-      osIndex
-    );
+    window.send("user:prerequisites", global.installConfig, osIndex);
   }
 });
 
@@ -108,8 +105,8 @@ ipcMain.on("option", (event, targetVar, value) => {
 // Open the bugreporting tool
 mainEvent.on("user:error", (error, restart, ignore) => {
   try {
-    if (mainWindow) {
-      mainWindow.webContents.send("user:error", error);
+    if (window.getMain()) {
+      window.send("user:error", error);
       ipcMain.once("user:error:reply", (e, reply) => {
         switch (reply) {
           case "ignore":
@@ -123,7 +120,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
             else mainEvent.emit("restart");
             return;
           case "bugreport":
-            return mainWindow.webContents.send("user:report");
+            return window.send("user:report");
           default:
             break;
         }
@@ -139,7 +136,7 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
   log.warn("lost connection to device");
-  if (mainWindow) mainWindow.webContents.send("user:connection-lost");
+  window.send("user:connection-lost");
   ipcMain.once("reconnect", () => {
     if (reconnect) setTimeout(reconnect, 500);
     else mainEvent.emit("restart");
@@ -148,7 +145,7 @@ mainEvent.on("user:connection-lost", reconnect => {
 
 // The device battery is too low to install
 mainEvent.on("user:low-power", () => {
-  if (mainWindow) mainWindow.webContents.send("user:low-power");
+  window.send("user:low-power");
 });
 
 // Restart the installer
@@ -161,7 +158,7 @@ mainEvent.on("restart", () => {
 
 // The device's bootloader is locked, prompt the user to unlock it
 mainEvent.on("user:oem-lock", (resume, enable = false) => {
-  mainWindow.webContents.send("user:oem-lock", enable);
+  window.send("user:oem-lock", enable);
   ipcMain.once("user:oem-lock:ok", () => {
     mainEvent.emit("user:write:working", "particles");
     mainEvent.emit("user:write:status", "Unlocking", true);
@@ -174,7 +171,7 @@ mainEvent.on("user:oem-lock", (resume, enable = false) => {
       .then(() => resume())
       .catch(err => {
         if (err.message.includes("enable unlocking")) {
-          mainWindow.webContents.send("user:oem-lock", true);
+          window.send("user:oem-lock", true);
         } else {
           mainEvent.emit("user:error", err);
         }
@@ -184,81 +181,73 @@ mainEvent.on("user:oem-lock", (resume, enable = false) => {
 
 // Request user_action
 mainEvent.on("user:action", (action, callback) => {
-  if (mainWindow) {
-    mainWindow.webContents.send("user:action", action);
-    if (action.button) {
-      ipcMain.once("action:completed", callback);
-    }
+  window.send("user:action", action);
+  if (action.button) {
+    ipcMain.once("action:completed", callback);
   }
 });
 
 // Request user_action
 mainEvent.on("user:manual_download", (file, group, callback) => {
-  if (mainWindow) {
-    mainWindow.webContents.send("user:manual_download", file, group);
-    ipcMain.once("manual_download:completed", (e, path) => callback(path));
-  }
+  window.send("user:manual_download", file, group);
+  ipcMain.once("manual_download:completed", (e, path) => callback(path));
 });
 
 // Control the progress bar
 mainEvent.on("user:write:progress", progress => {
-  if (mainWindow) mainWindow.webContents.send("user:write:progress", progress);
+  window.send("user:write:progress", progress);
 });
 
 // Installation successfull
 mainEvent.on("user:write:done", () => {
-  if (mainWindow) mainWindow.webContents.send("user:write:done");
-  if (mainWindow) mainWindow.webContents.send("user:write:speed");
+  window.send("user:write:done");
+  window.send("user:write:speed");
   log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
   if (!settings.get("never.opencuts")) {
     setTimeout(() => {
-      mainWindow.webContents.send("user:report", true);
+      window.send("user:report", true);
     }, 1500);
   }
 });
 
 // Show working animation
 mainEvent.on("user:write:working", animation => {
-  if (mainWindow) mainWindow.webContents.send("user:write:working", animation);
+  window.send("user:write:working", animation);
 });
 
 // Set the top text in the footer
 mainEvent.on("user:write:status", (status, waitDots) => {
-  if (mainWindow)
-    mainWindow.webContents.send("user:write:status", status, waitDots);
+  window.send("user:write:status", status, waitDots);
 });
 
 // Set the speed part of the footer
 mainEvent.on("user:write:speed", speed => {
-  if (mainWindow) mainWindow.webContents.send("user:write:speed", speed);
+  window.send("user:write:speed", speed);
 });
 
 // Set the lower text in the footer
 mainEvent.on("user:write:under", status => {
-  if (mainWindow) mainWindow.webContents.send("user:write:under", status);
+  window.send("user:write:under", status);
 });
 
 // Device is unsupported
 mainEvent.on("user:device-unsupported", device => {
   log.warn("The device " + device + " is not supported!");
-  if (mainWindow)
-    mainWindow.webContents.send("user:device-unsupported", device);
+  window.send("user:device-unsupported", device);
 });
 
 // Set the install configuration data
 mainEvent.on("user:configure", osInstructs => {
   if (osInstructs.options) {
     // If there's something to configure, configure it!
-    if (mainWindow) {
-      devices
-        .setRemoteValues(osInstructs)
-        .then(osInstructs => {
-          mainWindow.webContents.send("user:configure", osInstructs);
-        })
-        .catch(e => errors.toUser(e, "configure"));
-    }
+    devices
+      .setRemoteValues(osInstructs)
+      .then(osInstructs => {
+        window.send("user:configure", osInstructs);
+      })
+      .catch(e => errors.toUser(e, "configure"));
   } else {
     // If there's nothing to configure, don't configure anything
     devices.install(osInstructs.steps);
@@ -268,7 +257,7 @@ mainEvent.on("user:configure", osInstructs => {
 mainEvent.on("device", device => {
   global.installProperties.device = device;
   function continueWithConfig() {
-    mainWindow.webContents.send(
+    window.send(
       "user:os",
       global.installConfig,
       global.installConfig.operating_systems.map(
@@ -276,7 +265,7 @@ mainEvent.on("device", device => {
       )
     );
     if (global.installConfig.unlock.length) {
-      mainWindow.webContents.send("user:unlock", global.installConfig);
+      window.send("user:unlock", global.installConfig);
     }
   }
   if (global.installConfig && global.installConfig.operating_systems) {
@@ -301,7 +290,7 @@ mainEvent.on("device", device => {
 
 // No internet connection
 mainEvent.on("user:no-network", () => {
-  if (mainWindow) mainWindow.webContents.send("user:no-network");
+  window.send("user:no-network");
 });
 
 //==============================================================================
@@ -334,12 +323,11 @@ async function createWindow() {
     api
       .getDeviceSelects()
       .then(out => {
-        if (mainWindow)
-          mainWindow.webContents.send("device:wait:device-selects-ready", out);
+        window.send("device:wait:device-selects-ready", out);
       })
       .catch(e => {
         log.error("getDeviceSelects error: " + e);
-        mainWindow.webContents.send("user:no-network");
+        window.send("user:no-network");
       });
   });
 
@@ -350,7 +338,7 @@ async function createWindow() {
       .then(updateUrl => {
         if (updateUrl) {
           log.warn(`Please update: ${updateUrl}`);
-          mainWindow.webContents.send("user:update-available");
+          window.send("user:update-available");
         }
       })
       .catch(e => log.debug(e)); // Ignore errors, since this is non-essential
@@ -393,7 +381,7 @@ app.on("activate", function() {
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  if (mainWindow) {
+  if (window.getMain()) {
     errors.toUser(reason, "unhandled rejection at " + promise);
   } else {
     errors.die(reason);
@@ -401,7 +389,7 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 process.on("uncaughtException", (error, origin) => {
-  if (mainWindow) {
+  if (window.getMain()) {
     errors.toUser(error, "uncaught exception at " + origin);
   } else {
     errors.die(error);
@@ -477,7 +465,7 @@ app.on("ready", function() {
         },
         {
           label: "Report a bug",
-          click: () => mainWindow.webContents.send("user:report")
+          click: () => window.send("user:report")
         },
         {
           label: "Developer tools",
@@ -512,7 +500,7 @@ app.on("ready", function() {
           type: "checkbox",
           click: () => {
             if (settings.get("animations")) {
-              mainWindow.webContents.send("animations:hide");
+              window.send("animations:hide");
             }
             settings.set("animations", !settings.get("animations"));
           }
@@ -561,7 +549,7 @@ app.on("ready", function() {
         },
         {
           label: "Report a bug",
-          click: () => mainWindow.webContents.send("user:report")
+          click: () => window.send("user:report")
         },
         {
           label: "Troubleshooting",
