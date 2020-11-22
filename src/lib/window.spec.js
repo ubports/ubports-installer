@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const { webContents } = require("electron");
 jest.mock("electron");
 const window = require("./window.js");

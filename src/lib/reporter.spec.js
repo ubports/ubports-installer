@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const log = require("./log.js");
 jest.mock("./log.js");
 const settings = require("./settings.js");
