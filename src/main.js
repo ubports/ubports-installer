@@ -37,7 +37,6 @@ const url = require("url");
 let mainWindow;
 
 const mainEvent = require("./lib/mainEvent.js");
-
 const reporter = require("./lib/reporter.js");
 const errors = require("./lib/errors.js");
 const devices = require("./devices.js");
@@ -59,11 +58,8 @@ global.installProperties = {
   settings: {}
 };
 
-//==============================================================================
-// RENDERER SIGNAL HANDLING
-//==============================================================================
-
 // Begin install process
+// FIXME move after devices has been modularized
 ipcMain.on("install", () => {
   log.debug("settings: " + JSON.stringify(global.installProperties.settings));
   devices.install(
@@ -73,172 +69,23 @@ ipcMain.on("install", () => {
 });
 
 // Submit a user-requested bug-report
+// FIXME move after a better way to access mainWindow has been found
 ipcMain.on("reportResult", async (event, result, error) => {
   reporter.report(result, error, mainWindow);
 });
 
-// The user selected an os
-ipcMain.on("os:selected", (event, osIndex) => {
-  global.installProperties.osIndex = osIndex;
-  log.debug(
-    "os config: " +
-      JSON.stringify(global.installConfig.operating_systems[osIndex])
-  );
-  mainEvent.emit(
-    "user:configure",
-    global.installConfig.operating_systems[osIndex]
-  );
-  if (global.installConfig.operating_systems[osIndex].prerequisites.length) {
-    window.send("user:prerequisites", global.installConfig, osIndex);
-  }
-});
-
-// The user configured the installation
-ipcMain.on("option", (event, targetVar, value) => {
-  global.installProperties.settings[targetVar] = value;
-});
-
-//==============================================================================
-// RENDERER COMMUNICATION
-//==============================================================================
-
-// Open the bugreporting tool
-mainEvent.on("user:error", (error, restart, ignore) => {
-  try {
-    if (window.getMain()) {
-      window.send("user:error", error);
-      ipcMain.once("user:error:reply", (e, reply) => {
-        switch (reply) {
-          case "ignore":
-            log.warn("error ignored");
-            if (ignore) setTimeout(ignore, 500);
-            return;
-          case "restart":
-            log.warn("restart after error");
-            deviceTools.kill();
-            if (restart) setTimeout(restart, 500);
-            else mainEvent.emit("restart");
-            return;
-          case "bugreport":
-            return window.send("user:report");
-          default:
-            break;
-        }
-      });
-    } else {
-      process.exit(1);
-    }
-  } catch (e) {
-    process.exit(1);
-  }
-});
-
-// Connection to the device was lost
-mainEvent.on("user:connection-lost", reconnect => {
-  log.warn("lost connection to device");
-  window.send("user:connection-lost");
-  ipcMain.once("reconnect", () => {
-    if (reconnect) setTimeout(reconnect, 500);
-    else mainEvent.emit("restart");
-  });
-});
-
-// The device battery is too low to install
-mainEvent.on("user:low-power", () => {
-  window.send("user:low-power");
-});
-
 // Restart the installer
+// FIXME move after a better way to access mainWindow has been found
 mainEvent.on("restart", () => {
+  deviceTools.kill();
   global.installProperties = { settings: {} };
   global.installConfig = {};
   log.debug("WINDOW RELOADED");
   mainWindow.reload();
 });
 
-// The device's bootloader is locked, prompt the user to unlock it
-mainEvent.on("user:oem-lock", (resume, enable = false) => {
-  window.send("user:oem-lock", enable);
-  ipcMain.once("user:oem-lock:ok", () => {
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit("user:write:status", "Unlocking", true);
-    mainEvent.emit(
-      "user:write:under",
-      "You might see a confirmation dialog on your device."
-    );
-    deviceTools.fastboot
-      .oemUnlock()
-      .then(() => resume())
-      .catch(err => {
-        if (err.message.includes("enable unlocking")) {
-          window.send("user:oem-lock", true);
-        } else {
-          mainEvent.emit("user:error", err);
-        }
-      });
-  });
-});
-
-// Request user_action
-mainEvent.on("user:action", (action, callback) => {
-  window.send("user:action", action);
-  if (action.button) {
-    ipcMain.once("action:completed", callback);
-  }
-});
-
-// Request user_action
-mainEvent.on("user:manual_download", (file, group, callback) => {
-  window.send("user:manual_download", file, group);
-  ipcMain.once("manual_download:completed", (e, path) => callback(path));
-});
-
-// Control the progress bar
-mainEvent.on("user:write:progress", progress => {
-  window.send("user:write:progress", progress);
-});
-
-// Installation successfull
-mainEvent.on("user:write:done", () => {
-  window.send("user:write:done");
-  window.send("user:write:speed");
-  log.info(
-    "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
-  );
-  if (!settings.get("never.opencuts")) {
-    setTimeout(() => {
-      window.send("user:report", true);
-    }, 1500);
-  }
-});
-
-// Show working animation
-mainEvent.on("user:write:working", animation => {
-  window.send("user:write:working", animation);
-});
-
-// Set the top text in the footer
-mainEvent.on("user:write:status", (status, waitDots) => {
-  window.send("user:write:status", status, waitDots);
-});
-
-// Set the speed part of the footer
-mainEvent.on("user:write:speed", speed => {
-  window.send("user:write:speed", speed);
-});
-
-// Set the lower text in the footer
-mainEvent.on("user:write:under", status => {
-  window.send("user:write:under", status);
-});
-
-// Device is unsupported
-mainEvent.on("user:device-unsupported", device => {
-  log.warn("The device " + device + " is not supported!");
-  window.send("user:device-unsupported", device);
-});
-
 // Set the install configuration data
+// FIXME move after devices has been modularized
 mainEvent.on("user:configure", osInstructs => {
   if (osInstructs.options) {
     // If there's something to configure, configure it!
@@ -253,49 +100,6 @@ mainEvent.on("user:configure", osInstructs => {
     devices.install(osInstructs.steps);
   }
 });
-
-mainEvent.on("device", device => {
-  global.installProperties.device = device;
-  function continueWithConfig() {
-    window.send(
-      "user:os",
-      global.installConfig,
-      global.installConfig.operating_systems.map(
-        (os, i) => `<option name="${i}">${os.name}</option>`
-      )
-    );
-    if (global.installConfig.unlock.length) {
-      window.send("user:unlock", global.installConfig);
-    }
-  }
-  if (global.installConfig && global.installConfig.operating_systems) {
-    // local config specified
-    continueWithConfig();
-  } else {
-    // fetch remote config
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit("user:write:status", "Preparing installation", true);
-    mainEvent.emit("user:write:under", "Fetching configuration");
-    api
-      .getDevice(device)
-      .then(config => {
-        global.installConfig = config;
-        continueWithConfig();
-      })
-      .catch(() => {
-        mainEvent.emit("user:device-unsupported", device);
-      });
-  }
-});
-
-// No internet connection
-mainEvent.on("user:no-network", () => {
-  window.send("user:no-network");
-});
-
-//==============================================================================
-// CREATE WINDOW
-//==============================================================================
 
 async function createWindow() {
   log.info(
@@ -320,6 +124,7 @@ async function createWindow() {
       const wait = deviceTools.wait();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
     }
+    // FIXME move or replace
     api
       .getDeviceSelects()
       .then(out => {
@@ -359,10 +164,6 @@ async function createWindow() {
   });
 }
 
-//==============================================================================
-// FUNCTIONAL EVENT HANDLING
-//==============================================================================
-
 app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
@@ -377,22 +178,6 @@ app.on("window-all-closed", function() {
 app.on("activate", function() {
   if (mainWindow === null) {
     createWindow();
-  }
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  if (window.getMain()) {
-    errors.toUser(reason, "unhandled rejection at " + promise);
-  } else {
-    errors.die(reason);
-  }
-});
-
-process.on("uncaughtException", (error, origin) => {
-  if (window.getMain()) {
-    errors.toUser(error, "uncaught exception at " + origin);
-  } else {
-    errors.die(error);
   }
 });
 

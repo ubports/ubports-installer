@@ -18,6 +18,7 @@
  */
 
 const log = require("./log.js");
+const window = require("./window.js");
 const { ipcMain } = require("electron");
 const mainEvent = require("./mainEvent.js");
 
@@ -47,7 +48,11 @@ class ErrorHandler {
     log.error(
       errorString + (error.stack ? "\nstack trace: " + error.stack : "")
     );
-    mainEvent.emit("user:error", errorString, restart, ignore);
+    if (window.getMain()) {
+      mainEvent.emit("user:error", errorString, restart, ignore);
+    } else {
+      errorHandler.die(error);
+    }
   }
 }
 
@@ -56,6 +61,14 @@ const errorHandler = new ErrorHandler();
 // Exit process with optional non-zero exit code
 ipcMain.on("die", exitCode => {
   errorHandler.die(null, exitCode);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  errorHandler.toUser(reason, "unhandled rejection at " + promise);
+});
+
+process.on("uncaughtException", (error, origin) => {
+  errorHandler.toUser(error, "uncaught exception at " + origin);
 });
 
 module.exports = errorHandler;
