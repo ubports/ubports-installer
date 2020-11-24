@@ -20,6 +20,7 @@
 const cli = require("commander");
 const path = require("path");
 const fs = require("fs-extra");
+const YAML = require("yaml");
 const packageInfo = require("../../package.json");
 
 const description = `UBports Installer (${
@@ -52,11 +53,17 @@ cli
 
 if (cli.file) {
   try {
-    global.installConfig = fs.readJsonSync(
-      path.isAbsolute(cli.file) ? cli.file : path.join(process.cwd(), cli.file)
+    global.installConfig = YAML.parse(
+      fs
+        .readFileSync(
+          path.isAbsolute(cli.file)
+            ? cli.file
+            : path.join(process.cwd(), cli.file)
+        )
+        .toString()
     );
   } catch (error) {
-    console.error(`failed to read config file ${cli.file}: ${error}`);
+    console.error(`failed to read ${cli.file}: ${error}`);
     process.exit(1);
   }
 }
