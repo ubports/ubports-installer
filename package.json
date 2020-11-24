@@ -26,7 +26,6 @@
   },
   "scripts": {
     "build": "npx rollup -c",
-    "dev": "rollup -c -w",
     "start": "npm run build && electron .",
     "lint": "npx eslint *.js \"src/**/*.js\" \"__mocks__/**/*.js\"",
     "lint-fix": "npm run lint -- --fix",

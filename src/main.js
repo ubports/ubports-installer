@@ -19,9 +19,6 @@
 
 const { app, BrowserWindow, ipcMain, shell, Menu } = require("electron");
 const path = require("path");
-const reload = require("electron-reload")(__dirname, {
-  electron: require(`../node_modules/electron`)
-});
 const fs = require("fs-extra");
 const cache = require("./lib/cache.js");
 cache.ensure();

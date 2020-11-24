@@ -1,6 +1,8 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 
+	export let showCloseButton = true;
+
 	const dispatch = createEventDispatcher();
 	const close = () => dispatch('close');
 </script>
@@ -15,7 +17,9 @@
 		<slot name="content"></slot>
 	</div>
 	<div class="svelte-modal-actions">
+		{#if showCloseButton}
 		<button class="btn btn-default" on:click={close}>Close</button>
+		{/if}
 		<slot name="actions"></slot>
 	</div>
 </div>
@@ -36,7 +40,7 @@
 		top: 50%;
 		width: calc(100vw - 4em);
 		max-width: 32em;
-		max-height: calc(100vh - 4em);
+		max-height: calc(100% - 4em);
 		overflow: auto;
 		transform: translate(-50%,-50%);
 		border-radius: 0.2em;
@@ -48,11 +52,12 @@
 	}
 
 	.svelte-modal-header {
-		border-bottom: 1px solid black;
+		border-bottom: 1px solid #e9ecef;
+		align-items: center;
 	}
 
 	.svelte-modal-actions {
-		border-top: 1px solid black;
+		border-top: 1px solid #e9ecef;
 		display: flex;
 		flex-direction: row;
 		justify-content: flex-end;

@@ -4,7 +4,7 @@
 
 <div class="row">
     <div class="col-xs-6">
-        <img src="../screens/Screen6.jpg" alt="Screen6" style='height: 350px; margin: auto; display: block;'>
+        <img src="./screens/Screen6.jpg" alt="Screen6" style='height: 350px; margin: auto; display: block;'>
     </div>
     <div class="col-xs-6" style='height: 100%'>
         <h4 style='font-weight: bold;'>Device</h4>

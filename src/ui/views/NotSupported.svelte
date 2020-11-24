@@ -1,5 +1,9 @@
 <script>
-const { shell } = require("electron");
+    import SelectDeviceModal from '../modals/SelectDeviceModal.svelte'
+
+    const { shell } = require("electron");
+
+    let showSelectDeviceModal = false;
 </script>
 
 <div class="row">
@@ -26,14 +30,6 @@ const { shell } = require("electron");
         <p>
             You can try selecting your device manually, but please only do so if you're sure that your exact model is actually supported! You might also want to <a href on:click|preventDefault={() => shell.openExternal('http://devices.ubuntu-touch.io')}>file a bug</a>.
         </p>
-        <button class="btn btn-default" style='width: 100%;' on:click|preventDefault={() => console.log('Open device select modal')}>Select device manually</button>
+        <button class="btn btn-default" style='width: 100%;'>Select device manually</button>
     </div>
 </div>
-
-
-    <!-- ipcRenderer.on("user:device-unsupported", (event, device) => {
-      footer.topText.set("Device not supported");
-      footer.underText.set("The device " + device + " is not supported");
-      $("[id=your-device]").text(device);
-      views.show("not-supported");
-    }); -->

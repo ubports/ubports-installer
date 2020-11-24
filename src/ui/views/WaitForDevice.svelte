@@ -1,31 +1,23 @@
 <script>
-    const { shell, ipcRenderer } = require("electron");
+    const { shell, ipcRenderer, remote } = require("electron");
 
     import SelectDeviceModal from '../modals/SelectDeviceModal.svelte'
+    import DeveloperModeModal from '../modals/DeveloperModeModal.svelte'
 
-    let showDeviceModal = false;
+    let showSelectDeviceModal = false;
+    let showDeveloperModeModal = false;
     let selectOptions;
 
     ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
     //   footer.topText.set("Waiting for device", true);
     //   footer.underText.set("Please connect your device with a USB cable");
-      //if (!remote.getGlobal("installProperties").device) {
+      if (!remote.getGlobal("installProperties").device) {
         selectOptions = deviceSelects;
-      //} else {
+      } else {
         // if the device is set, just return the device:selected event
-        // ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);
-      //}
+        ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);
+      }
     });
-
-    function openDeviceModal() {
-        showDeviceModal = true;
-        console.log(showDeviceModal);
-    }
-
-    function closeDeviceModal() {
-        showDeviceModal = false;
-        console.log(showDeviceModal);
-    }
 </script>
 
 <div class="row">
@@ -42,7 +34,7 @@
         <p>
             Connect your device to the computer and enable developer mode. After that, your device should be detected automatically.
         </p>
-        <button id="btn-modal-dev-mode" class="btn btn-primary">
+        <button class="btn btn-primary" on:click={() => showDeveloperModeModal = true}>
             How do I enable developer mode?
         </button>
         <p>
@@ -50,14 +42,17 @@
             <a href on:click|preventDefault={() => shell.openExternal('http://devices.ubuntu-touch.io')}>supported devices</a>.
             
         </p>
-        <button id="btn-modal-select-device" class="btn btn-outline-dark" on:click={openDeviceModal}>
+        <button id="btn-modal-select-device" class="btn btn-outline-dark" on:click={() => showSelectDeviceModal = true}>
             Select device manually
         </button>
     </div>
 </div>
 
-{#if showDeviceModal}
-	<SelectDeviceModal selectOptions={selectOptions} on:close={closeDeviceModal}/>
+{#if showSelectDeviceModal}
+	<SelectDeviceModal selectOptions={selectOptions} on:close={() => showSelectDeviceModal = false}/>
+{/if}
+{#if showDeveloperModeModal}
+	<DeveloperModeModal on:close={() => showDeveloperModeModal = false}/>
 {/if}
 
 <style>
