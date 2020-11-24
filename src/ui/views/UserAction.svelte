@@ -1,28 +1,26 @@
 <script>
-
-    let event;
-    let userActionTitle;
-    let userActionDescription;
-    let userActionButton;
+    // let userActionTitle = false;
+    // let userActionDescription = false;
+    // let userActionButton = false;
 
 </script>
 
 <div class="row">
     <div class="col-xs-6">
-        <img src="../screens/Screen6.jpg" alt="Screen6" style='height: 350px; margin: auto; display: block;'>
+        <img src="./screens/Screen6.jpg" alt="Screen6" style='height: 350px; margin: auto; display: block;'>
     </div>
     <div class="col-xs-6">
         <h4 style='font-weight: bold;'>
-            {userActionTitle}
+            <!-- {userActionTitle} -->
         </h4>
         <p>
-            {userActionDescription}
+            <!-- {userActionDescription} -->
         </p>
-        {#if userActionButton}
+        <!-- {#if userActionButton}
         <button class="btn btn-primary" style='width: 100%;' on:click|preventDefault={() => event.sender.send("action:completed")}>
             Continue
         </button>
-        {/if}
+        {/if} -->
     </div>
 </div>
 

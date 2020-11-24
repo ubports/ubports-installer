@@ -1,13 +1,32 @@
 <script>
 	const { remote, ipcRenderer, shell } = require("electron");
-	import { animationType } from './stores.js';
+	import { animationType } from './stores.mjs';
 
 	global.installProperties = remote.getGlobal("installProperties");
 	global.packageInfo = remote.getGlobal("packageInfo");
 
 	//Modals
+	import NewUpdateModal from './ui/modals/NewUpdateModal.svelte'
+	import UdevModal from './ui/modals/UdevModal.svelte'
+	import ConnectionLostModal from './ui/modals/ConnectionLostModal.svelte'
+
 	let showNewUpdateModal = false;
 	let showUdevModal = false;
+	let showConnectionLostModal = false;
+
+	console.log(process.platform, process.env)
+	if (process.platform === "linux" && !process.env.SNAP) {
+		ipcRenderer.invoke("getSettingsValue", "never.udev")
+			.then(never => {
+				if (never) {
+					setTimeout(() => showUdevModal = true, 1000)
+			}
+		})
+	}
+
+	ipcRenderer.on("user:connection-lost", () => {
+		showConnectionLostModal = true;
+  });
 
 	//Routing
 	import Router from 'svelte-spa-router'
@@ -47,12 +66,6 @@
 	});
 	  
 	ipcRenderer.on("user:update-available", () => {
-      if (global.packageInfo.isSnap) {
-        //$("#snap-update-instructions").show();
-        //$("#btn-update-installer").hide();
-      } else {
-        //$("#generic-update-instructions").show();
-      }
       showNewUpdateModal = true;
 	});
 	
@@ -81,19 +94,28 @@
 			UBports Installer {global.packageInfo.version}
 		</h3> 
 		<div class="header-buttons-wrapper">
-			<button id="help" class="help-button btn btn-primary" on:click|preventDefault={() => ipcRenderer.send("createBugReport")}>Report a bug</button>
+			<button id="help" class="help-button btn btn-primary" on:click={null}>Report a bug</button>
 			<button id="donate" class="donate-button btn btn-primary" on:click|preventDefault={() => shell.openExternal("https://ubports.com/donate")}>Donate</button>
 		</div>
 	</div>
 	<div class="view-container container">
 		<Router {routes}/>
+		{#if showNewUpdateModal}
+		<NewUpdateModal on:close={() => showNewUpdateModal = false}/>
+		{/if}
+		{#if showUdevModal}
+		<UdevModal on:close={() => showUdevModal = false}/>
+		{/if}
+		{#if showConnectionLostModal}
+		<ConnectionLostModal on:close={() => showConnectionLostModal = false}/>
+		{/if}
 	</div>
 	<footer class="footer">
 		<div class="container">
 			<h3 class="text-muted footer-top">
 				<span id="footer-top">
 					UBports Installer is starting up
-				</span> 
+				</span>
 				<span id="wait-dot"></span>
 			</h3>
 			<p>

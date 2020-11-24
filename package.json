@@ -25,17 +25,12 @@
     "ubports-installer": "src/main.js"
   },
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "start": "electron .",
-    "dist:mac": "npm run prerender && node ./build.js -o 'mac' -p 'dmg'",
-    "dist:win": "npm run prerender && node ./build.js -o \"win\" -p \"exe\"",
-    "dist:linux": "npm run prerender && node ./build.js -o 'linux' -p 'AppImage' && node ./build.js -o 'linux' -p 'deb' && snapcraft snap",
-    "dist:linux:appimage": "npm run prerender && node ./build.js -o 'linux' -p 'AppImage'",
-    "dist:linux:deb": "npm run prerender && node ./build.js -o 'linux' -p 'deb'",
-    "dist:linux:snap": "snapcraft snap",
-    "lint": "npx eslint *.js \"src/**/*.js\"",
-    "lint-fix": "npm run lint -- --fix"
+    "build": "npx rollup -c",
+    "start": "npm run build && electron .",
+    "lint": "npx eslint *.js \"src/**/*.js\" \"__mocks__/**/*.js\"",
+    "lint-fix": "npm run lint -- --fix",
+    "docs": "npx jsdoc -c jsdoc-config.json",
+    "test": "npx jest --coverage"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^14.0.0",
