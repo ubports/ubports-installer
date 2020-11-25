@@ -33,6 +33,7 @@ const deviceTools = require("./lib/deviceTools.js");
 const menuManager = require("./lib/menuManager.js");
 const api = require("./lib/api.js");
 const devices = require("./devices.js");
+const core = require("./core/core.js");
 
 let mainWindow;
 
@@ -40,9 +41,11 @@ let mainWindow;
 // FIXME move after devices has been modularized
 ipcMain.on("install", () => {
   log.debug("settings: " + JSON.stringify(global.installProperties.settings));
-  devices.install(
+  core.run(
     global.installConfig.operating_systems[global.installProperties.osIndex]
-      .steps
+      .steps,
+    global.installProperties.settings,
+    global.installConfig.handlers
   );
 });
 
