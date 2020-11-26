@@ -133,7 +133,8 @@ mainEvent.on("device", device => {
 });
 
 // The device's bootloader is locked, prompt the user to unlock it
-mainEvent.on("user:oem-lock", (enable = false, unlock) => {
+mainEvent.on("user:oem-lock", (enable = false, code_url, unlock) => {
+  if (code_url) throw new Error("unlock code url not implemented yet");
   window.send("user:oem-lock", enable);
   ipcMain.once("user:oem-lock:ok", () => {
     mainEvent.emit("user:write:working", "particles");

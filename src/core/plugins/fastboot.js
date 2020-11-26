@@ -17,10 +17,53 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const mainEvent = require("../../lib/mainEvent.js");
+const { fastboot } = require("../../lib/deviceTools.js");
+
 /**
  * fastboot plugin
  */
 class FastbootPlugin {
+  /**
+   * oem unlock
+   * @param {Object} step {code_url}
+   */
+  oem_unlock(step) {
+    const code_url = step ? step.code_url : null;
+    return new Promise((resolve, reject) =>
+      mainEvent.emit("user:oem-lock", false, code_url, code =>
+        fastboot
+          .oemUnlock(code)
+          .then(resolve)
+          .catch(err => {
+            if (err.message.includes("enable unlocking")) {
+              mainEvent.emit("user:oem-lock", true, code_url, code =>
+                fastboot
+                  .oemUnlock(code)
+                  .then(resolve)
+                  .catch(reject)
+              );
+            } else {
+              reject(err);
+            }
+          })
+      )
+    );
+  }
+
+  /**
+   * flashing unlock
+   */
+  flashing_unlock() {
+    return new Promise((resolve, reject) =>
+      mainEvent.emit("user:flashing-lock", () =>
+        fastboot
+          .flashingUnlock()
+          .then(resolve)
+          .catch(reject)
+      )
+    );
+  }
   /* required by core:user_action
   wait() {
     mainEvent.emit("user:write:working", "particles");

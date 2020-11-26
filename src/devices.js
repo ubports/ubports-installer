@@ -254,19 +254,7 @@ function assembleInstallSteps(steps) {
                 error.message.includes("bootloader locked") ||
                 error.message.includes("enable unlocking")
               ) {
-                function unlock() {
-                  fastboot
-                    .oemUnlock()
-                    .then(() => runStep())
-                    .catch(err => {
-                      if (err.message.includes("enable unlocking")) {
-                        mainEvent.emit("user:oem-lock", true, unlock);
-                      } else {
-                        mainEvent.emit("user:error", err);
-                      }
-                    });
-                }
-                mainEvent.emit("user:oem-lock", false, unlock);
+                // moved
               } else if (error.message.includes("no device")) {
                 mainEvent.emit("user:connection-lost", smartRestart);
               } else if (
