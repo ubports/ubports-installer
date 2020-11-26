@@ -17,12 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const mainEvent = require("../../lib/mainEvent.js");
+const fs = require("fs-extra");
+const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
+const mainEvent = require("../../lib/mainEvent.js");
 const { unpack } = require("../../lib/asarLibs.js");
 const log = require("../../lib/log.js");
 const { path: cachePath } = require("../../lib/cache.js");
-const path = require("path");
 
 /**
  * core plugin
@@ -151,6 +152,73 @@ class CorePlugin {
           )
         )
       );
+  }
+
+  manual_download({ group, file }) {
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Manual download");
+        mainEvent.emit("user:write:under", `Checking ${group} files...`);
+        return checkFile(
+          {
+            checksum: file.checksum,
+            path: path.join(
+              cachePath,
+              global.installProperties.device,
+              group,
+              file.name
+            )
+          },
+          false
+        );
+      })
+      .then(ok => {
+        if (!ok) {
+          return new Promise(function(resolve, reject) {
+            mainEvent.emit(
+              "user:manual_download",
+              file,
+              group,
+              downloadedFilePath => {
+                fs.ensureDir(
+                  path.join(cachePath, global.installProperties.device, group)
+                )
+                  .then(() =>
+                    fs.copyFile(
+                      downloadedFilePath,
+                      path.join(
+                        cachePath,
+                        global.installProperties.device,
+                        group,
+                        file.name
+                      )
+                    )
+                  )
+                  .then(() =>
+                    checkFile(
+                      {
+                        checksum: file.checksum,
+                        path: path.join(
+                          cachePath,
+                          global.installProperties.device,
+                          group,
+                          file.name
+                        )
+                      },
+                      true
+                    )
+                  )
+                  .then(ok =>
+                    ok ? resolve() : reject(new Error("checksum mismatch"))
+                  )
+                  .catch(reject);
+              }
+            );
+            mainEvent.emit("user:write:under", `Manual download required!`);
+          });
+        }
+      });
   }
 }
 

@@ -19,8 +19,6 @@
 
 const systemImage = require("./lib/system-image.js");
 const path = require("path");
-const fs = require("fs-extra");
-const { download, checkFile } = require("progressive-downloader");
 const { path: cachePath } = require("./lib/cache.js");
 const log = require("./lib/log.js");
 const errors = require("./lib/errors.js");
@@ -46,73 +44,6 @@ function addPathToFiles(files, device) {
  */
 function installStep(step) {
   switch (step.type) {
-    case "manual_download":
-      return () => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Manual download");
-        mainEvent.emit("user:write:under", `Checking ${step.group} files...`);
-        return checkFile(
-          {
-            checksum: step.file.checksum,
-            path: path.join(
-              cachePath,
-              global.installProperties.device,
-              step.group,
-              step.file.name
-            )
-          },
-          false
-        ).then(ok => {
-          if (!ok) {
-            return new Promise(function(resolve, reject) {
-              mainEvent.emit(
-                "user:manual_download",
-                step.file,
-                step.group,
-                downloadedFilePath => {
-                  fs.ensureDir(
-                    path.join(
-                      cachePath,
-                      global.installProperties.device,
-                      step.group
-                    )
-                  )
-                    .then(() =>
-                      fs.copyFile(
-                        downloadedFilePath,
-                        path.join(
-                          cachePath,
-                          global.installProperties.device,
-                          step.group,
-                          step.file.name
-                        )
-                      )
-                    )
-                    .then(() =>
-                      checkFile(
-                        {
-                          checksum: step.file.checksum,
-                          path: path.join(
-                            cachePath,
-                            global.installProperties.device,
-                            step.group,
-                            step.file.name
-                          )
-                        },
-                        true
-                      )
-                    )
-                    .then(ok =>
-                      ok ? resolve() : reject(new Error("checksum mismatch"))
-                    )
-                    .catch(reject);
-                }
-              );
-              mainEvent.emit("user:write:under", `Manual download required!`);
-            });
-          }
-        });
-      };
     case "adb:format":
       return () => {
         mainEvent.emit("user:write:working", "particles");

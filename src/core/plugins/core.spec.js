@@ -1,5 +1,5 @@
 const mainEvent = require("../../lib/mainEvent.js");
-const { download } = require("progressive-downloader");
+const { download, checkFile } = require("progressive-downloader");
 const core = require("./core.js");
 
 it("should be a singleton", () => expect(core).toEqual(require("./core.js")));
@@ -86,11 +86,96 @@ describe("core plugin", () => {
   describe("unpack()", () => {
     global.installProperties = { device: "bacon" };
     it("should unpack", () =>
-      core
-        .unpack({
+      core.unpack({
+        group: "firmware",
+        files: [{ archive: "a.zip", dir: "a" }]
+      })); // TODO add assertions
+  });
+
+  describe("manual_download()", () => {
+    global.installProperties = { device: "bacon" };
+    it("should resolve if checksum was verified", () => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      checkFile.mockResolvedValue(true);
+      return core
+        .manual_download({
           group: "firmware",
-          files: [{ archive: "a.zip", dir: "a" }]
+          file: { name: "a.zip" }
         })
-        .then(() => null));
+        .then(() => {
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:working",
+            "particles"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            "Manual download"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "Checking firmware files..."
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(3);
+          mainEvent.emit.mockRestore();
+        });
+    });
+    it("should instruct manual download", () => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      checkFile.mockResolvedValueOnce(false);
+      return core
+        .manual_download({
+          group: "firmware",
+          file: { name: "a.zip" }
+        })
+        .then(() => {
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:working",
+            "particles"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            "Manual download"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "Checking firmware files..."
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(5);
+          mainEvent.emit.mockRestore();
+        });
+    });
+    it("should reject on checksum mismatch", done => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      checkFile.mockResolvedValue(false);
+      core
+        .manual_download({
+          group: "firmware",
+          file: { name: "a.zip" }
+        })
+        .catch(e => {
+          expect(e.message).toEqual("checksum mismatch");
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:working",
+            "particles"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            "Manual download"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "Checking firmware files..."
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(5);
+          mainEvent.emit.mockRestore();
+          done();
+        });
+    });
   });
 });
