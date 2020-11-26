@@ -18,11 +18,20 @@
  */
 
 const log = require("../lib/log.js");
+const fs = require("fs-extra");
+const path = require("path");
 
 /**
- * UBports Installer core
+ * UBports Installer core. Parses config files to run actions from plugins.
  */
 class Core {
+  constructor() {
+    this.plugins = {};
+    fs.readdirSync(path.join(__dirname, "plugins")).forEach(plugin => {
+      this.plugins[plugin.replace(".js", "")] = require(`./plugins/${plugin}`);
+    });
+  }
+
   /**
    * run a chain of installation steps
    * @param {Array} steps installation steps
