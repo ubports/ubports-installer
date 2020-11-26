@@ -82,4 +82,15 @@ describe("core plugin", () => {
         });
     });
   });
+
+  describe("unpack()", () => {
+    global.installProperties = { device: "bacon" };
+    it("should unpack", () =>
+      core
+        .unpack({
+          group: "firmware",
+          files: [{ archive: "a.zip", dir: "a" }]
+        })
+        .then(() => null));
+  });
 });

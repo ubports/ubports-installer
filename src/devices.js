@@ -17,7 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { unpack } = require("./lib/asarLibs.js");
 const systemImage = require("./lib/system-image.js");
 const path = require("path");
 const fs = require("fs-extra");
@@ -112,27 +111,6 @@ function installStep(step) {
               mainEvent.emit("user:write:under", `Manual download required!`);
             });
           }
-        });
-      };
-    case "unpack":
-      return () => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", `Unpacking ${step.group}`, true);
-        mainEvent.emit("user:write:under", `Unpacking...`);
-        let basepath = path.join(
-          cachePath,
-          global.installProperties.device,
-          step.group
-        );
-        return Promise.all(
-          step.files.map(file =>
-            unpack(
-              path.join(basepath, file.archive),
-              path.join(basepath, file.dir)
-            )
-          )
-        ).catch(error => {
-          throw new Error(`Unpack error: ${error}`);
         });
       };
     case "adb:format":

@@ -19,6 +19,7 @@
 
 const mainEvent = require("../../lib/mainEvent.js");
 const { download, checkFile } = require("progressive-downloader");
+const { unpack } = require("../../lib/asarLibs.js");
 const log = require("../../lib/log.js");
 const { path: cachePath } = require("../../lib/cache.js");
 const path = require("path");
@@ -121,6 +122,35 @@ class CorePlugin {
         mainEvent.emit("user:no-network");
         throw new Error(`core:download ${error}`);
       });
+  }
+
+  /**
+   * core:unpack action
+   * @param {Object} param0 {group, files}
+   * @returns {Promise}
+   */
+  unpack({ group, files }) {
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", `Unpacking ${group}`, true);
+        mainEvent.emit("user:write:under", `Unpacking...`);
+        return path.join(
+          cachePath,
+          global.installProperties.device, // FIXME remove global
+          group
+        );
+      })
+      .then(basepath =>
+        Promise.all(
+          files.map(file =>
+            unpack(
+              path.join(basepath, file.archive),
+              path.join(basepath, file.dir)
+            )
+          )
+        )
+      );
   }
 }
 
