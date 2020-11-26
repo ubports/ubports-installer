@@ -89,7 +89,10 @@ class Core {
       .then(([plugin, func]) => {
         if (this.plugins[plugin] && this.plugins[plugin][func]) {
           log.verbose(`running ${plugin} action ${func}`);
-          return this.plugins[plugin][func](action, settings);
+          return this.plugins[plugin][func](
+            action[`${plugin}:${func}`],
+            settings
+          );
         } else {
           throw new Error(`Unknown action ${plugin}:${func}`);
         }

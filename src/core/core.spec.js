@@ -2,6 +2,8 @@ process.argv = [null, null, "-vv"];
 jest.useFakeTimers();
 
 const log = require("../lib/log.js");
+const fs = require("fs-extra");
+fs.readdirSync.mockReturnValue(["core.js"]);
 
 const core = require("./core.js");
 
@@ -168,7 +170,7 @@ describe("Core module", () => {
         .then(r => {
           expect(r).toEqual(null);
           expect(core.plugins.a.y).toHaveBeenCalledWith(
-            { "a:y": { foo: "bar" } },
+            { foo: "bar" },
             settings
           );
         });
@@ -181,7 +183,7 @@ describe("Core module", () => {
         .then(r => {
           expect(r).toEqual(undefined);
           expect(core.plugins.a.y).toHaveBeenCalledWith(
-            { "a:y": { foo: "bar" } },
+            { foo: "bar" },
             settings
           );
           expect(core.run).toHaveBeenCalledWith([{}], settings, handlers);
