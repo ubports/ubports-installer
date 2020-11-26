@@ -27,21 +27,26 @@ const path = require("path");
 class Core {
   constructor() {
     this.plugins = {};
-    fs.readdirSync(path.join(__dirname, "plugins")).forEach(plugin => {
-      this.plugins[plugin.replace(".js", "")] = require(`./plugins/${plugin}`);
-    });
+    fs.readdirSync(path.join(__dirname, "plugins"))
+      .filter(p => !p.includes("spec"))
+      .forEach(plugin => {
+        this.plugins[
+          plugin.replace(".js", "")
+        ] = require(`./plugins/${plugin}`);
+      });
   }
 
   /**
    * run a chain of installation steps
    * @param {Array} steps installation steps
    * @param {Object} settings settings object
+   * @param {Object} user_actions user_actions object
    * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  run(steps, settings, handlers) {
+  run(steps, settings, user_actions, handlers) {
     return steps
-      .map(step => () => this.step(step, settings, handlers))
+      .map(step => () => this.step(step, settings, user_actions, handlers))
       .reduce((chain, next) => chain.then(next), Promise.resolve())
       .catch(() => null); // errors can be ignored here, since this is exclusively used for killing the promise chain
   }
@@ -50,14 +55,17 @@ class Core {
    *run one installation step
    * @param {Object} step step object
    * @param {Object} settings settings object
+   * @param {Object} user_actions user_actions object
    * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  step(step, settings, handlers) {
+  step(step, settings, user_actions, handlers) {
     return this.evaluate(step.condition, settings)
       ? this.delay(1)
           .then(() => log.verbose(`running step ${JSON.stringify(step)}`))
-          .then(() => this.actions(step.actions, settings, handlers))
+          .then(() =>
+            this.actions(step.actions, settings, user_actions, handlers)
+          )
       : this.delay(1).then(() =>
           log.verbose(`skipping step ${JSON.stringify(step)}`)
         );
@@ -67,12 +75,14 @@ class Core {
    * Run multiple actions
    * @param {Array<Object>} actions array of actions
    * @param {Object} settings settings object
+   * @param {Object} user_actions user_actions object
    * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  actions(actions, settings, handlers) {
+  actions(actions, settings, user_actions, handlers) {
     return actions.reduce(
-      (prev, curr) => prev.then(() => this.action(curr, settings, handlers)),
+      (prev, curr) =>
+        prev.then(() => this.action(curr, settings, user_actions, handlers)),
       Promise.resolve()
     );
   }
@@ -81,24 +91,26 @@ class Core {
    * Run one action
    * @param {Object} action one action
    * @param {Object} settings settings object
+   * @param {Object} user_actions user_actions object
    * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  action(action, settings, handlers) {
+  action(action, settings, user_actions, handlers) {
     return Promise.resolve(Object.keys(action)[0].split(":"))
       .then(([plugin, func]) => {
         if (this.plugins[plugin] && this.plugins[plugin][func]) {
           log.verbose(`running ${plugin} action ${func}`);
           return this.plugins[plugin][func](
             action[`${plugin}:${func}`],
-            settings
+            settings,
+            user_actions
           );
         } else {
           throw new Error(`Unknown action ${plugin}:${func}`);
         }
       })
       .then(substeps =>
-        substeps ? this.run(substeps, settings, handlers) : null
+        substeps ? this.run(substeps, settings, user_actions, handlers) : null
       );
   }
 

@@ -20,6 +20,35 @@
 /**
  * heimdall plugin
  */
-class HeimdallPlugin {}
+class HeimdallPlugin {
+  /* required by core:user_action
+  wait() {
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit(
+      "user:write:status",
+      "Waiting for device",
+      true
+    );
+    mainEvent.emit(
+      "user:write:under",
+      "Heimdall is scanning for devices"
+    );
+    function heimdallWait() {
+      return heimdall
+        .hasAccess()
+        .then(access => {
+          if (access) resolve();
+          else
+            mainEvent.emit("user:connection-lost", heimdallWait);
+        })
+        .catch(e => {
+          log.warn(e);
+          resolve();
+        });
+    }
+    return heimdallWait();
+  }
+  */
+}
 
 module.exports = new HeimdallPlugin();

@@ -45,6 +45,7 @@ ipcMain.on("install", () => {
     global.installConfig.operating_systems[global.installProperties.osIndex]
       .steps,
     global.installProperties.settings,
+    global.installConfig.user_actions,
     global.installConfig.handlers
   );
 });

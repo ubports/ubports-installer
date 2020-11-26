@@ -20,6 +20,35 @@
 /**
  * fastboot plugin
  */
-class FastbootPlugin {}
+class FastbootPlugin {
+  /* required by core:user_action
+  wait() {
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit(
+      "user:write:status",
+      "Waiting for device",
+      true
+    );
+    mainEvent.emit(
+      "user:write:under",
+      "Fastboot is scanning for devices"
+    );
+    function fastbootWait() {
+      return fastboot
+        .hasAccess()
+        .then(access => {
+          if (access) resolve();
+          else
+            mainEvent.emit("user:connection-lost", fastbootWait);
+        })
+        .catch(e => {
+          log.warn(e);
+          resolve();
+        });
+    }
+    return fastbootWait();
+  }
+  */
+}
 
 module.exports = new FastbootPlugin();

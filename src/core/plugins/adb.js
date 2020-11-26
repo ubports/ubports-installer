@@ -20,6 +20,34 @@
 /**
  * adb plugin
  */
-class AdbPlugin {}
+class AdbPlugin {
+  /* TODO required by core:user_action
+  wait() {
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit(
+      "user:write:status",
+      "Waiting for device",
+      true
+    );
+    mainEvent.emit(
+      "user:write:under",
+      "Adb is scanning for devices"
+    );
+    function adbWait() {
+      return adb
+        .hasAccess()
+        .then(access => {
+          if (access) resolve();
+          else mainEvent.emit("user:connection-lost", adbWait);
+        })
+        .catch(e => {
+          log.warn(e);
+          resolve();
+        });
+    }
+    return adbWait();
+  }
+  */
+}
 
 module.exports = new AdbPlugin();

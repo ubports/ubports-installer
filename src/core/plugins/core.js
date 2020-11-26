@@ -17,9 +17,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const mainEvent = require("../../lib/mainEvent.js");
+
 /**
  * core plugin
  */
-class CorePlugin {}
+class CorePlugin {
+  /**
+   * core:group action
+   * @param {Array} group array of steps
+   * @returns {Promise}
+   */
+  group(group) {
+    return Promise.resolve(group.length ? group : null);
+  }
+
+  /**
+   * core:user_action action
+   * @param {Object} action action
+   * @param {Object} settings settings object
+   * @param {Object} user_actions user_actions object
+   * @returns {Promise}
+   */
+  user_action({ action }, settings, user_actions) {
+    return new Promise(function(resolve, reject) {
+      mainEvent.emit("user:action", user_actions[action], () => {
+        switch (action) {
+          case "recovery":
+          case "system":
+            resolve([{ actions: [{ "adb:wait": null }] }]);
+            break;
+          case "bootloader":
+            resolve([{ actions: [{ "fastboot:wait": null }] }]);
+            break;
+          case "download":
+            resolve([{ actions: [{ "heimdall:wait": null }] }]);
+            break;
+          default:
+            resolve();
+            break;
+        }
+      });
+    });
+  }
+}
 
 module.exports = new CorePlugin();
