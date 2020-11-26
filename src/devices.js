@@ -469,7 +469,7 @@ function assembleInstallSteps(steps) {
       } else {
         log.debug("running step: " + JSON.stringify(step));
         const fullRestart = () => install(steps);
-        const smartRestart = step.resumable ? runStep : fullRestart;
+        const smartRestart = step.resumable ? runStep : fullRestart; // FIXME resumable never implemented
         let reconnections = 0;
         function runStep() {
           installStep(step)()

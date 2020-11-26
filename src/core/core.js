@@ -35,11 +35,13 @@ class Core {
   /**
    * run a chain of installation steps
    * @param {Array} steps installation steps
+   * @param {Object} settings settings object
+   * @param {Object} handlers handlers object
    * @returns {Promise}
    */
   run(steps, settings, handlers) {
     return steps
-      .map(step => () => this.step(step, settings))
+      .map(step => () => this.step(step, settings, handlers))
       .reduce((chain, next) => chain.then(next), Promise.resolve())
       .catch(() => null); // errors can be ignored here, since this is exclusively used for killing the promise chain
   }
@@ -48,21 +50,60 @@ class Core {
    *run one installation step
    * @param {Object} step step object
    * @param {Object} settings settings object
+   * @param {Object} handlers handlers object
+   * @returns {Promise}
    */
-  step(step, settings) {
+  step(step, settings, handlers) {
     return this.evaluate(step.condition, settings)
-      ? this.delay().then(() =>
-          log.debug(`running step ${JSON.stringify(step)}`)
-        )
-      : Promise.resolve().then(() =>
-          log.debug(`skipping step ${JSON.stringify(step)}`)
+      ? this.delay(1)
+          .then(() => log.verbose(`running step ${JSON.stringify(step)}`))
+          .then(() => this.actions(step.actions, settings, handlers))
+      : this.delay(1).then(() =>
+          log.verbose(`skipping step ${JSON.stringify(step)}`)
         );
+  }
+
+  /**
+   * Run multiple actions
+   * @param {Array<Object>} actions array of actions
+   * @param {Object} settings settings object
+   * @param {Object} handlers handlers object
+   * @returns {Promise}
+   */
+  actions(actions, settings, handlers) {
+    return actions.reduce(
+      (prev, curr) => prev.then(() => this.action(curr, settings, handlers)),
+      Promise.resolve()
+    );
+  }
+
+  /**
+   * Run one action
+   * @param {Object} action one action
+   * @param {Object} settings settings object
+   * @param {Object} handlers handlers object
+   * @returns {Promise}
+   */
+  action(action, settings, handlers) {
+    return Promise.resolve(Object.keys(action)[0].split(":"))
+      .then(([plugin, func]) => {
+        if (this.plugins[plugin] && this.plugins[plugin][func]) {
+          log.verbose(`running ${plugin} action ${func}`);
+          return this.plugins[plugin][func](action, settings);
+        } else {
+          throw new Error(`Unknown action ${plugin}:${func}`);
+        }
+      })
+      .then(substeps =>
+        substeps ? this.run(substeps, settings, handlers) : null
+      );
   }
 
   /**
    * Evaluate a conditional expression against the settings
    * @param {Object} expression conditional expression
    * @param {Object} settings settings object
+   * @returns {Boolean}
    */
   evaluate(expression, settings) {
     if (!expression) {
@@ -90,7 +131,7 @@ class Core {
   }
 
   /**
-   * resolves after a delay
+   * resolves after a delay to give the UI a chance to catch up
    * @property {Number} [delay] delay in ms
    * @returns {Promise}
    */
