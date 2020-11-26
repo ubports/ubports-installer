@@ -2,7 +2,7 @@ process.argv = [null, null, "-vv"];
 const winston = require("winston");
 jest.mock("winston");
 
-const levels = ["error", "warn", "info", "debug", "command"];
+const levels = ["error", "warn", "info", "verbose", "debug", "command"];
 
 it("should be a singleton", () => {
   expect(require("./log.js")).toBe(require("./log.js"));
@@ -38,8 +38,10 @@ describe("setLevel()", function() {
     log.setLevel();
     expect(log.stdout.level).toEqual("info");
     log.setLevel(1);
-    expect(log.stdout.level).toEqual("debug");
+    expect(log.stdout.level).toEqual("verbose");
     log.setLevel(2);
+    expect(log.stdout.level).toEqual("debug");
+    log.setLevel(3);
     expect(log.stdout.level).toEqual("command");
     log.setLevel(1337);
     expect(log.stdout.level).toEqual("info");

@@ -107,9 +107,12 @@ class Logger {
   setLevel(level = 0) {
     switch (level) {
       case 1:
-        this.stdout.level = "debug";
+        this.stdout.level = "verbose";
         break;
       case 2:
+        this.stdout.level = "debug";
+        break;
+      case 3:
         this.stdout.level = "command";
         break;
       default:
@@ -140,6 +143,14 @@ class Logger {
    */
   info(message) {
     this.winston.log("info", message);
+  }
+
+  /**
+   * log a verbose message
+   * @param {String} message message to log
+   */
+  verbose(message) {
+    this.winston.log("verbose", message);
   }
 
   /**
