@@ -47,63 +47,6 @@ function addPathToFiles(files, device) {
  */
 function installStep(step) {
   switch (step.type) {
-    case "download":
-      return () => {
-        return download(
-          step.files.map(file => ({
-            ...file,
-            partition: file.type,
-            path: path.join(
-              cachePath,
-              global.installProperties.device,
-              step.group,
-              path.basename(file.url)
-            ),
-            file: path.join(path.basename(file.url))
-          })),
-          (progress, speed) => {
-            mainEvent.emit("user:write:progress", progress * 100);
-            mainEvent.emit("user:write:speed", Math.round(speed * 100) / 100);
-            mainEvent.emit("user:write:under", "Downloading");
-          },
-          (current, total) => {
-            log.info(`Downloaded file ${current} of ${total}`);
-            mainEvent.emit(
-              "user:write:status",
-              `${current} of ${total} files downloaded and verified`,
-              true
-            );
-          },
-          activity => {
-            log.info(activity);
-            switch (activity) {
-              case "downloading":
-                log.info(`downloading ${step.group} files`);
-                mainEvent.emit("user:write:working", "download");
-                break;
-              case "preparing":
-                log.info(`checking previously downloaded ${step.group} files`);
-                mainEvent.emit("user:write:working", "particles");
-                mainEvent.emit("user:write:status", "Preparing download", true);
-                mainEvent.emit(
-                  "user:write:under",
-                  `Checking ${step.group} files...`
-                );
-              default:
-                break;
-            }
-          }
-        )
-          .then(() => {
-            mainEvent.emit("user:write:working", "particles");
-            mainEvent.emit("user:write:progress", 0);
-            mainEvent.emit("user:write:speed", 0);
-          })
-          .catch(error => {
-            log.error("download error: " + error);
-            mainEvent.emit("user:no-network");
-          });
-      };
     case "manual_download":
       return () => {
         mainEvent.emit("user:write:working", "particles");

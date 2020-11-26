@@ -18,6 +18,10 @@
  */
 
 const mainEvent = require("../../lib/mainEvent.js");
+const { download, checkFile } = require("progressive-downloader");
+const log = require("../../lib/log.js");
+const { path: cachePath } = require("../../lib/cache.js");
+const path = require("path");
 
 /**
  * core plugin
@@ -59,6 +63,64 @@ class CorePlugin {
         }
       });
     });
+  }
+
+  /**
+   * core:download action
+   * @param {Object} param0 {group, files}
+   * @returns {Promise}
+   */
+  download({ group, files }) {
+    return download(
+      files.map(file => ({
+        ...file,
+        path: path.join(
+          cachePath,
+          global.installProperties.device, // FIXME globals are ^-_~*evil*~_-^
+          group,
+          path.basename(file.url)
+        )
+      })),
+      (progress, speed) => {
+        mainEvent.emit("user:write:progress", progress * 100);
+        mainEvent.emit("user:write:speed", Math.round(speed * 100) / 100);
+        mainEvent.emit("user:write:under", "Downloading");
+      },
+      (current, total) => {
+        if (current > 1) log.info(`Downloaded file ${current} of ${total}`);
+        mainEvent.emit(
+          "user:write:status",
+          `${current} of ${total} files downloaded and verified`,
+          true
+        );
+      },
+      activity => {
+        switch (activity) {
+          case "downloading":
+            log.debug(`downloading ${group} files`);
+            mainEvent.emit("user:write:working", "download");
+            break;
+          case "preparing":
+            log.debug(`checking previously downloaded ${group} files`);
+            mainEvent.emit("user:write:working", "particles");
+            mainEvent.emit("user:write:status", "Preparing download", true);
+            mainEvent.emit("user:write:under", `Checking ${group} files...`);
+          default:
+            break;
+        }
+      }
+    )
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:progress", 0);
+        mainEvent.emit("user:write:speed", 0);
+      })
+      .catch(error => {
+        log.error("download error: " + error);
+        // TODO should this be handled here or outside?
+        mainEvent.emit("user:no-network");
+        throw new Error(`core:download ${error}`);
+      });
   }
 }
 

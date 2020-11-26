@@ -41,13 +41,15 @@ let mainWindow;
 // FIXME move after devices has been modularized
 ipcMain.on("install", () => {
   log.debug("settings: " + JSON.stringify(global.installProperties.settings));
-  core.run(
-    global.installConfig.operating_systems[global.installProperties.osIndex]
-      .steps,
-    global.installProperties.settings,
-    global.installConfig.user_actions,
-    global.installConfig.handlers
-  );
+  core
+    .run(
+      global.installConfig.operating_systems[global.installProperties.osIndex]
+        .steps,
+      global.installProperties.settings,
+      global.installConfig.user_actions,
+      global.installConfig.handlers
+    )
+    .then(() => log.info("all done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")); // FIXME
 });
 
 // Submit a user-requested bug-report

@@ -1,4 +1,5 @@
 const mainEvent = require("../../lib/mainEvent.js");
+const { download } = require("progressive-downloader");
 const core = require("./core.js");
 
 it("should be a singleton", () => expect(core).toEqual(require("./core.js")));
@@ -49,5 +50,36 @@ describe("core plugin", () => {
         });
       })
     );
+  });
+
+  describe("download()", () => {
+    global.installProperties = { device: "bacon" };
+    it("should download", () =>
+      core.download({
+        group: "fimrware",
+        files: [
+          { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
+          { url: "a/b", checksum: { sum: "a", algorithm: "sha256" } }
+        ]
+      })); // TODO add assertions for event messages
+    it("should show network error", done => {
+      download.mockRejectedValueOnce("download error");
+      jest.spyOn(mainEvent, "emit");
+      core
+        .download({
+          group: "fimrware",
+          files: [
+            { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
+            { url: "a/b", checksum: { sum: "a", algorithm: "sha256" } }
+          ]
+        })
+        .catch(error => {
+          expect(error.message).toEqual("core:download download error");
+          expect(mainEvent.emit).toHaveBeenCalledWith("user:no-network");
+          expect(mainEvent.emit).toHaveBeenCalledTimes(1);
+          mainEvent.emit.mockRestore();
+          done();
+        });
+    });
   });
 });
