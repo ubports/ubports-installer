@@ -29,6 +29,23 @@ const { path: cachePath } = require("../../lib/cache.js");
  * core plugin
  */
 class CorePlugin {
+  end() {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:done");
+      mainEvent.emit(
+        "user:write:status",
+        global.installConfig.operating_systems[global.installProperties.osIndex]
+          .name + " successfully installed!",
+        false
+      );
+      mainEvent.emit(
+        "user:write:under",
+        global.installConfig.operating_systems[global.installProperties.osIndex]
+          .success_message || "All done! Enjoy exploring your new OS!"
+      );
+    });
+  }
+
   /**
    * core:group action
    * @param {Array} group array of steps

@@ -17,9 +17,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const mainEvent = require("../../lib/mainEvent.js");
+
 /**
  * systemimage plugin
  */
-class SystemimagePlugin {}
+class SystemimagePlugin {
+  /*
+
+        mainEvent.emit("user:write:progress", 0);
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
+        mainEvent.emit("user:write:under", "Checking local files");
+        return systemImage.installLatestVersion(
+          Object.assign(
+            { device: global.installConfig.codename },
+            global.installProperties.settings
+          )
+        );
+        */
+}
 
 module.exports = new SystemimagePlugin();

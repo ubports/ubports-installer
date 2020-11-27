@@ -17,16 +17,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const path = require("path");
 const mainEvent = require("../../lib/mainEvent.js");
 const { fastboot } = require("../../lib/deviceTools.js");
+
+/**
+ * Transform path array
+ * @param {Array} files files
+ * @param {String} device codename
+ */
+function addPathToFiles(files, device) {
+  return files.map(file => ({
+    ...file,
+    file: path.join(cachePath, device, file.group, file.file)
+  }));
+}
 
 /**
  * fastboot plugin
  */
 class FastbootPlugin {
   /**
-   * oem unlock
+   * fastboot:oem_unlock
    * @param {Object} step {code_url}
+   * @returns {Promise}
    */
   oem_unlock(step) {
     const code_url = step ? step.code_url : null;
@@ -52,7 +66,8 @@ class FastbootPlugin {
   }
 
   /**
-   * flashing unlock
+   * fastboot:flashing_unlock
+   * @returns {Promise}
    */
   flashing_unlock() {
     return new Promise((resolve, reject) =>
@@ -64,6 +79,152 @@ class FastbootPlugin {
       )
     );
   }
+
+  /**
+   * fastboot:reboot_bootloader action
+   * @returns {Promise}
+   */
+  reboot_bootloader() {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Rebooting", true);
+      mainEvent.emit("user:write:under", "Rebooting to bootloader");
+      return fastboot.rebootBootloader();
+    });
+  }
+
+  /**
+   * fastboot:reboot action
+   * @returns {Promise}
+   */
+  reboot() {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Rebooting", true);
+      mainEvent.emit("user:write:under", "Rebooting system");
+      return fastboot.reboot();
+    });
+  }
+
+  /**
+   * fastboot:continue action
+   * @returns {Promise}
+   */
+  continue() {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Continuing boot", true);
+      mainEvent.emit("user:write:under", "Resuming boot");
+      return fastboot.continue();
+    });
+  }
+
+  /**
+   * fastboot:set_active action
+   * @returns {Promise}
+   */
+  set_active({ slot }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Setting slots", true);
+      mainEvent.emit("user:write:under", `Activating slot ${slot}`);
+      return fastboot.setActive(slot);
+    });
+  }
+
+  /**
+   * fastboot:flash action
+   * @returns {Promise}
+   */
+  flash({ partitions }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Flashing firmware", true);
+      mainEvent.emit(
+        "user:write:under",
+        "Flashing firmware partitions using fastboot"
+      );
+      return fastboot
+        .wait()
+        .then(() =>
+          fastboot.flash(
+            addPathToFiles(partitions, global.installProperties.device), // FIXME
+            p => mainEvent.emit("user:write:progress", p * 100)
+          )
+        )
+        .then(() => mainEvent.emit("user:write:progress", 0));
+    });
+  }
+
+  /**
+   * fastboot:erase action
+   * @returns {Promise}
+   */
+  erase({ partition }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Cleaning up", true);
+      mainEvent.emit("user:write:under", "Erasing " + partition + " partition");
+      return fastboot.erase(partition);
+    });
+  }
+
+  /**
+   * fastboot:format action
+   * @returns {Promise}
+   */
+  format({ partition, type, size }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Cleaning up", true);
+      mainEvent.emit(
+        "user:write:under",
+        "Formatting " + partition + " partition"
+      );
+      return fastboot.format(partition, type, size);
+    });
+  }
+
+  /**
+   * fastboot:boot action
+   * @returns {Promise}
+   */
+  boot({ group, file, partition }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Rebooting");
+      mainEvent.emit("user:write:under", "Your device is being rebooted...");
+      return fastboot.boot(
+        path.join(cachePath, global.installProperties.device, group, file),
+        partition
+      );
+    });
+  }
+
+  /**
+   * fastboot:update action
+   * @returns {Promise}
+   */
+  update({ group, file, partition }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Updating system", true);
+      mainEvent.emit(
+        "user:write:under",
+        "Applying fastboot update zip. This may take a while..."
+      );
+      return fastboot.update(
+        path.join(
+          cachePath,
+          global.installProperties.device,
+          step.group,
+          step.file
+        ),
+        global.installProperties.settings.wipe
+      );
+    });
+  }
+
   /* required by core:user_action
   wait() {
     mainEvent.emit("user:write:working", "particles");

@@ -17,10 +17,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const path = require("path");
+const { heimdall } = require("../../lib/deviceTools.js");
+const mainEvent = require("../../lib/mainEvent.js");
+
+/**
+ * Transform path array
+ * @param {Array} files files
+ * @param {String} device codename
+ */
+function addPathToFiles(files, device) {
+  return files.map(file => ({
+    ...file,
+    file: path.join(cachePath, device, file.group, file.file)
+  }));
+}
+
 /**
  * heimdall plugin
  */
 class HeimdallPlugin {
+  /**
+   * fastboot:flash action
+   * @returns {Promise}
+   */
+  flash({ partitions }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", "Flashing firmware", true);
+      mainEvent.emit(
+        "user:write:under",
+        "Flashing firmware partitions using heimdall"
+      );
+      return heimdall.flash(
+        addPathToFiles(step.flash, global.installProperties.device)
+      );
+    });
+  }
+
   /* required by core:user_action
   wait() {
     mainEvent.emit("user:write:working", "particles");

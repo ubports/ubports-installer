@@ -17,10 +17,66 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const path = require("path");
+const { adb } = require("../../lib/deviceTools.js");
+const mainEvent = require("../../lib/mainEvent.js");
+
 /**
  * adb plugin
  */
 class AdbPlugin {
+  /**
+   * adb:format action
+   * @returns {Promise}
+   */
+  format({ partition }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit(
+        "user:write:status",
+        "Preparing system for installation",
+        true
+      );
+      mainEvent.emit("user:write:under", "Formatting " + partition);
+      return adb.wait().then(() => adb.format(partition));
+    });
+  }
+
+  /**
+   * adb:sideload action
+   * @returns {Promise}
+   */
+  sideload({ group, file }) {
+    return Promise.resolve().then(() => {
+      mainEvent.emit("user:write:working", "particles");
+      mainEvent.emit("user:write:status", `Sideloading ${group}`, true);
+      mainEvent.emit(
+        "user:write:under",
+        "Your new operating system is being installed..."
+      );
+      return adb
+        .sideload(
+          path.join(cachePath, global.installProperties.device, group, file),
+          p => mainEvent.emit("user:write:progress", p * 100)
+        )
+        .then(() => mainEvent.emit("user:write:progress", 0));
+    });
+  }
+
+  /**
+   * adb:reboot action
+   * @returns {Promise}
+   */
+  reboot({ to_state }) {
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Rebooting");
+        mainEvent.emit("user:write:under", "Rebooting to " + to_state);
+      })
+      .then(() => adb.reboot(to_state));
+  }
+
   /* TODO required by core:user_action
   wait() {
     mainEvent.emit("user:write:working", "particles");

@@ -18,6 +18,7 @@
  */
 
 const log = require("../lib/log.js");
+const errors = require("../lib/errors.js");
 const fs = require("fs-extra");
 const path = require("path");
 
@@ -66,6 +67,7 @@ class Core {
           .then(() =>
             this.actions(step.actions, settings, user_actions, handlers)
           )
+          .catch(log.error)
       : this.delay(1).then(() =>
           log.verbose(`skipping step ${JSON.stringify(step)}`)
         );
@@ -96,22 +98,47 @@ class Core {
    * @returns {Promise}
    */
   action(action, settings, user_actions, handlers) {
-    return Promise.resolve(Object.keys(action)[0].split(":"))
-      .then(([plugin, func]) => {
+    return Promise.resolve(Object.keys(action)[0].split(":")).then(
+      ([plugin, func]) => {
         if (this.plugins[plugin] && this.plugins[plugin][func]) {
           log.verbose(`running ${plugin} action ${func}`);
           return this.plugins[plugin][func](
             action[`${plugin}:${func}`],
             settings,
             user_actions
-          );
+          )
+            .catch(error => this.handle(error, action))
+            .then(substeps =>
+              substeps
+                ? this.run(substeps, settings, user_actions, handlers)
+                : null
+            );
         } else {
           throw new Error(`Unknown action ${plugin}:${func}`);
         }
-      })
-      .then(substeps =>
-        substeps ? this.run(substeps, settings, user_actions, handlers) : null
+      }
+    );
+  }
+
+  /**
+   * Handle an error
+   * @param {Error} error error thrown
+   * @param {Object} location action
+   */
+  handle(error, location) {
+    log.debug(`attempting to handle handling ${error}`);
+    if (error && error.message.includes("killed")) {
+      throw error; // Used for exiting the installer
+    } else {
+      return new Promise((resolve, reject) =>
+        errors.toUser(
+          error,
+          Object.keys(location)[0],
+          () => resolve([{ actions: [location] }]),
+          resolve
+        )
       );
+    }
   }
 
   /**

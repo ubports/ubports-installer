@@ -49,7 +49,7 @@ ipcMain.on("install", () => {
       global.installConfig.user_actions,
       global.installConfig.handlers
     )
-    .then(() => log.info("all done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")); // FIXME
+    .then(() => core.plugins.core.end()); // FIXME
 });
 
 // Submit a user-requested bug-report

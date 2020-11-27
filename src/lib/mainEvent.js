@@ -19,6 +19,7 @@
 
 const log = require("./log.js");
 const api = require("./api.js");
+const settings = require("./settings.js");
 const window = require("./window.js");
 const { ipcMain } = require("electron");
 const EventEmitter = require("events");
