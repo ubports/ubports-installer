@@ -5,6 +5,31 @@ const core = require("./core.js");
 it("should be a singleton", () => expect(core).toEqual(require("./core.js")));
 
 describe("core plugin", () => {
+  describe("end()", () => {
+    it("should display end screen", () => {
+      global.installProperties = { osIndex: 0, device: "bacon" };
+      global.installConfig = {
+        operating_systems: [{ name: "os" }]
+      };
+      jest.spyOn(mainEvent, "emit").mockImplementation();
+      return core.end().then(r => {
+        expect(r).toEqual(undefined);
+        expect(mainEvent.emit).toHaveBeenCalledWith("user:write:done");
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:status",
+          "os successfully installed!",
+          false
+        );
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          "All done! Enjoy exploring your new OS!"
+        );
+        expect(mainEvent.emit).toHaveBeenCalledTimes(3);
+        mainEvent.emit.mockRestore();
+      });
+    });
+  });
+
   describe("group()", () => {
     it("should resolve group steps", () =>
       core.group([{}]).then(r => expect(r).toEqual([{}])));
