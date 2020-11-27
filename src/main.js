@@ -32,7 +32,6 @@ const errors = require("./lib/errors.js");
 const deviceTools = require("./lib/deviceTools.js");
 const menuManager = require("./lib/menuManager.js");
 const api = require("./lib/api.js");
-const devices = require("./devices.js");
 const core = require("./core/core.js");
 
 let mainWindow;
@@ -74,14 +73,14 @@ mainEvent.on("user:configure", osInstructs => {
   if (osInstructs.options) {
     // If there's something to configure, configure it!
     devices
-      .setRemoteValues(osInstructs)
+      .setRemoteValues(osInstructs) // FIXME
       .then(osInstructs => {
         window.send("user:configure", osInstructs);
       })
       .catch(e => errors.toUser(e, "configure"));
   } else {
     // If there's nothing to configure, don't configure anything
-    devices.install(osInstructs.steps);
+    devices.install(osInstructs.steps); // FIXME
   }
 });
 

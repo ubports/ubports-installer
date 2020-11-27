@@ -18,24 +18,40 @@
  */
 
 const mainEvent = require("../../lib/mainEvent.js");
+const systemImage = require("../../lib/system-image.js");
 
 /**
  * systemimage plugin
  */
 class SystemimagePlugin {
-  /*
-
-        mainEvent.emit("user:write:progress", 0);
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
-        mainEvent.emit("user:write:under", "Checking local files");
-        return systemImage.installLatestVersion(
-          Object.assign(
-            { device: global.installConfig.codename },
-            global.installProperties.settings
+  constructor() {
+    this.remote_values = {
+      channels: () =>
+        systemImage
+          .getDeviceChannels(global.installConfig.codename)
+          .then(channels =>
+            channels
+              .map(channel => ({
+                value: channel,
+                label: channel.replace("ubports-touch/", "")
+              }))
+              .reverse()
           )
-        );
-        */
+    };
+  }
+
+  install() {
+    mainEvent.emit("user:write:progress", 0);
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
+    mainEvent.emit("user:write:under", "Checking local files");
+    return systemImage.installLatestVersion(
+      Object.assign(
+        { device: global.installConfig.codename },
+        global.installProperties.settings
+      )
+    );
+  }
 }
 
 module.exports = new SystemimagePlugin();
