@@ -65,7 +65,7 @@
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.1.2",
-    "systeminformation": "^4.27.11",
+    "systeminformation": "^4.30.5",
     "ubports-api-node-module": "^3.0.2",
     "ubuntu-pastebin": "^1.0.0",
     "winston": "^3.3.3"
