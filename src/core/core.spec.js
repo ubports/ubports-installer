@@ -1,4 +1,5 @@
 process.argv = [null, null, "-vv"];
+const mainEvent = require("../lib/mainEvent.js");
 jest.useFakeTimers();
 
 const log = require("../lib/log.js");
@@ -281,6 +282,54 @@ describe("Core module", () => {
   });
 
   describe("handle()", () => {
+    it("should ignore errors on optional steps", () => {
+      expect(
+        core.handle(
+          new Error("some error"),
+          "a:x",
+          { optional: true },
+          settings,
+          user_actions,
+          handlers
+        )
+      ).toEqual(undefined);
+    });
+    it("should ignore fallback actions", () => {
+      jest.spyOn(core, "actions").mockResolvedValue();
+      return core
+        .handle(
+          new Error("some error"),
+          "a:x",
+          { fallback: [{}] },
+          settings,
+          user_actions,
+          handlers
+        )
+        .then(r => {
+          expect(core.actions).toHaveBeenCalledWith(
+            [{}],
+            settings,
+            user_actions,
+            handlers
+          );
+          core.actions.mockRestore();
+        });
+    });
+    it("should show low power error", done => {
+      jest.spyOn(mainEvent, "emit").mockImplementation(m => {
+        expect(m).toEqual("user:low-power");
+        mainEvent.emit.mockRestore();
+        done();
+      });
+      core.handle(
+        new Error("low battery"),
+        "a:x",
+        {},
+        settings,
+        user_actions,
+        handlers
+      );
+    });
     it("should ignore 'killed' errors", done => {
       try {
         core.handle(

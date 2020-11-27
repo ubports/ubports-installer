@@ -17,10 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const mainEvent = require("../lib/mainEvent.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const fs = require("fs-extra");
 const path = require("path");
+const { adb } = require("../lib/deviceTools.js");
 
 /**
  * UBports Installer core. Parses config files to run actions from plugins.
@@ -134,7 +136,49 @@ class Core {
    */
   handle(error, location, step, settings, user_actions, handlers) {
     log.debug(`attempting to handle handling ${error}`);
-    if (error && error.message.includes("killed")) {
+    if (step.optional) {
+      return;
+    } else if (step.fallback) {
+      return this.actions(step.fallback, settings, user_actions, handlers);
+    } else if (error.message.includes("low battery")) {
+      return new Promise((resolve, reject) => mainEvent.emit("user:low-power"));
+    } else if (
+      error.message.includes("bootloader locked") ||
+      error.message.includes("enable unlocking")
+    ) {
+      return this.step(
+        handlers.bootloader_locked,
+        settings,
+        user_actions,
+        handlers
+      ).then(() => this.step(step, settings, user_actions, handlers));
+    } else if (error.message.includes("no device")) {
+      return new Promise((resolve, reject) =>
+        mainEvent.emit("user:connection-lost", () =>
+          resolve(this.step(step, settings, user_actions, handlers))
+        )
+      );
+    } else if (
+      error.message.includes("device offline") ||
+      error.message.includes("unauthorized")
+    ) {
+      // Try re-connecting offline or unauthorized devices three times and resume step.
+      // Failing that, instruct the user to re-connect the device.
+      // FIXME implement an adb:reconnect action, so we don't have to have adb here
+      return adb
+        .reconnect()
+        .catch(() => adb.reconnect())
+        .catch(() => adb.reconnect())
+        .catch(
+          () =>
+            new Promise((resolve, reject) =>
+              mainEvent.emit("user:connection-lost", () =>
+                resolve(this.step(step, settings, user_actions, handlers))
+              )
+            )
+        )
+        .then(() => this.step(step, settings, user_actions, handlers));
+    } else if (error && error.message.includes("killed")) {
       throw error; // Used for exiting the installer
     } else {
       return new Promise((resolve, reject) =>
