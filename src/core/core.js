@@ -67,7 +67,9 @@ class Core {
           .then(() =>
             this.actions(step.actions, settings, user_actions, handlers)
           )
-          .catch(log.error)
+          .catch(({ error, action }) =>
+            this.handle(error, action, step, settings, user_actions, handlers)
+          )
       : this.delay(1).then(() =>
           log.verbose(`skipping step ${JSON.stringify(step)}`)
         );
@@ -107,14 +109,19 @@ class Core {
             settings,
             user_actions
           )
-            .catch(error => this.handle(error, action))
+            .catch(error => {
+              throw { error, action: `${plugin}:${func}` };
+            })
             .then(substeps =>
               substeps
                 ? this.run(substeps, settings, user_actions, handlers)
                 : null
             );
         } else {
-          throw new Error(`Unknown action ${plugin}:${func}`);
+          throw {
+            error: new Error(`Unknown action ${plugin}:${func}`),
+            action: `${plugin}:${func}`
+          };
         }
       }
     );
@@ -125,7 +132,7 @@ class Core {
    * @param {Error} error error thrown
    * @param {Object} location action
    */
-  handle(error, location) {
+  handle(error, location, step, settings, user_actions, handlers) {
     log.debug(`attempting to handle handling ${error}`);
     if (error && error.message.includes("killed")) {
       throw error; // Used for exiting the installer
@@ -133,9 +140,9 @@ class Core {
       return new Promise((resolve, reject) =>
         errors.toUser(
           error,
-          Object.keys(location)[0],
-          () => resolve([{ actions: [location] }]),
-          resolve
+          location,
+          () => resolve(this.step(step, settings, user_actions, handlers)), // try again
+          () => resolve(null) // ignore
         )
       );
     }

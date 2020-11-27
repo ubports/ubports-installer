@@ -2,6 +2,7 @@ process.argv = [null, null, "-vv"];
 jest.useFakeTimers();
 
 const log = require("../lib/log.js");
+const errors = require("../lib/errors.js");
 const fs = require("fs-extra");
 fs.readdirSync.mockReturnValue(["core.js"]);
 
@@ -82,6 +83,32 @@ describe("Core module", () => {
           expect(core.actions).toHaveBeenCalledTimes(1);
           core.actions.mockRestore();
           done();
+        });
+      jest.runOnlyPendingTimers();
+    });
+    it("should handle error", () => {
+      jest
+        .spyOn(core, "actions")
+        .mockRejectedValue({ error: new Error("aaa"), action: "a:x" });
+      jest.spyOn(core, "handle").mockResolvedValue();
+      core
+        .step({ actions: [{ "a:x": null }] }, settings, user_actions, handlers)
+        .then(() => {
+          expect(core.handle).toHaveBeenCalledWith(
+            expect.any(Error),
+            "a:x",
+            { actions: [{ "a:x": null }] },
+            {
+              bootstrap: true,
+              channel: "16.04/arm64/hybris/stable",
+              wipe: false
+            },
+            {},
+            { fastboot_lock: {} }
+          );
+          expect(core.handle).toHaveBeenCalledTimes(1);
+          core.actions.mockRestore();
+          core.handle.mockRestore();
         });
       jest.runOnlyPendingTimers();
     });
@@ -228,16 +255,86 @@ describe("Core module", () => {
     it("should reject on unknown plugin", done => {
       core.plugins = { b: {} };
       core.action({ "a:y": { foo: "bar" } }).catch(e => {
-        expect(e.message).toEqual("Unknown action a:y");
+        expect(e.error.message).toEqual("Unknown action a:y");
+        expect(e.action).toEqual("a:y");
         done();
       });
     });
     it("should reject on unknown action", done => {
       core.plugins = { a: {} };
       core.action({ "a:y": { foo: "bar" } }).catch(e => {
-        expect(e.message).toEqual("Unknown action a:y");
+        expect(e.error.message).toEqual("Unknown action a:y");
+        expect(e.action).toEqual("a:y");
         done();
       });
+    });
+    it("should reject on error", done => {
+      core.plugins = {
+        a: { y: jest.fn().mockRejectedValue(new Error("some error")) }
+      };
+      core.action({ "a:y": { foo: "bar" } }).catch(e => {
+        expect(e.error.message).toEqual("some error");
+        expect(e.action).toEqual("a:y");
+        done();
+      });
+    });
+  });
+
+  describe("handle()", () => {
+    it("should ignore 'killed' errors", done => {
+      try {
+        core.handle(
+          new Error("killed"),
+          "a:x",
+          { actions: [{ "a:x": null }] },
+          settings,
+          user_actions,
+          handlers
+        );
+      } catch (e) {
+        expect(e.message).toEqual("killed");
+        done();
+      }
+    });
+    it("should let the user ignore the error", () => {
+      jest
+        .spyOn(errors, "toUser")
+        .mockImplementation((e, l, again, ignore) => ignore());
+      return core
+        .handle(
+          new Error("some error"),
+          "a:x",
+          { actions: [{ "a:x": null }] },
+          settings,
+          user_actions,
+          handlers
+        )
+        .then(r => expect(r).toEqual(null));
+    });
+    it("should let the user try again", () => {
+      jest
+        .spyOn(errors, "toUser")
+        .mockImplementation((e, l, again, ignore) => again());
+      jest.spyOn(core, "step").mockResolvedValue();
+      return core
+        .handle(
+          new Error("some error"),
+          "a:x",
+          { actions: [{ "a:x": null }] },
+          settings,
+          user_actions,
+          handlers
+        )
+        .then(() => {
+          expect(core.step).toHaveBeenCalledWith(
+            { actions: [{ "a:x": null }] },
+            settings,
+            user_actions,
+            handlers
+          );
+          expect(core.step).toHaveBeenCalledTimes(1);
+          core.step.mockRestore();
+        });
     });
   });
 
