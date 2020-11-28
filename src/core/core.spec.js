@@ -18,13 +18,13 @@ const settings = {
   wipe: false,
   bootstrap: true
 };
-core.settings = settings;
+core.props.settings = settings;
 
 const user_actions = {};
 const handlers = {
   fastboot_lock: {}
 };
-core.config = { user_actions, handlers };
+core.props.config = { user_actions, handlers };
 
 describe("Core module", () => {
   describe("run", () => {

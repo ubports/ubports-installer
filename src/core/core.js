@@ -51,9 +51,11 @@ class Core {
    * reset run properties
    */
   reset() {
-    this.config = null;
-    this.os = null;
-    this.settings = {};
+    this.props = {
+      config: null,
+      os: null,
+      settings: {}
+    };
   }
 
   /**
@@ -62,7 +64,7 @@ class Core {
    */
   prepare() {
     adb.startServer();
-    if (this.config) {
+    if (this.props.config) {
       this.selectOs();
     } else {
       api
@@ -82,7 +84,7 @@ class Core {
    * @param {Object} config installer config
    */
   setConfig(config) {
-    return Promise.resolve().then(() => (this.config = config));
+    return Promise.resolve().then(() => (this.props.config = config));
   }
 
   /**
@@ -112,8 +114,8 @@ class Core {
       .then(() =>
         window.send(
           "user:os",
-          this.config,
-          this.config.operating_systems.map(
+          this.props.config,
+          this.props.config.operating_systems.map(
             (os, i) => `<option name="${i}">${os.name}</option>`
           )
         )
@@ -125,12 +127,12 @@ class Core {
    * @returns {Promise}
    */
   unlock() {
-    return this.config.unlock && this.config.unlock.length
+    return this.props.config.unlock && this.props.config.unlock.length
       ? new Promise((resolve, reject) =>
           mainEvent.emit(
             "user:unlock",
-            this.config.unlock,
-            this.config.user_actions,
+            this.props.config.unlock,
+            this.props.config.user_actions,
             resolve
           )
         )
@@ -143,18 +145,18 @@ class Core {
    */
   install(index) {
     return Promise.resolve()
-      .then(() => (this.os = this.config.operating_systems[index]))
+      .then(() => (this.props.os = this.props.config.operating_systems[index]))
       .then(() =>
         log.info(
-          `Installing ${this.os.name} on your ${this.config.name} (${this.config.codename})`
+          `Installing ${this.props.os.name} on your ${this.props.config.name} (${this.props.config.codename})`
         )
       )
       .then(() => this.prerequisites())
       .then(() => this.eula())
-      .then(() => this.configure())
+      .then(() => this.props.configure())
       .catch(error => this.handle(error, "preparing"))
       .then(() =>
-        this.run([...this.os.steps, { actions: [{ "core:end": null }] }])
+        this.run([...this.props.os.steps, { actions: [{ "core:end": null }] }])
       );
   }
 
@@ -163,12 +165,12 @@ class Core {
    * @returns {Promise}
    */
   prerequisites() {
-    return this.os.prerequisites && this.os.prerequisites.length
+    return this.props.os.prerequisites && this.props.os.prerequisites.length
       ? new Promise((resolve, reject) =>
           mainEvent.emit(
             "user:prerequisites",
-            this.os.prerequisites,
-            this.config.user_actions,
+            this.props.os.prerequisites,
+            this.props.config.user_actions,
             resolve
           )
         )
@@ -180,9 +182,9 @@ class Core {
    * @returns {Promise}
    */
   eula() {
-    return this.os.eula // TODO implement eula in unlock modal
+    return this.props.os.eula // TODO implement eula in unlock modal
       ? new Promise((resolve, reject) =>
-          mainEvent.emit("user:eula", this.os.eula, resolve, reject)
+          mainEvent.emit("user:eula", this.props.os.eula, resolve, reject)
         )
       : null;
   }
@@ -192,18 +194,20 @@ class Core {
    * @returns {Promise}
    */
   configure() {
-    return this.os.options && this.os.options.length
+    return this.props.os.options && this.props.os.options.length
       ? Promise.resolve(log.info("configuring..."))
           .then(() =>
-            Promise.all(this.os.options.map(o => this.setRemoteValues(o)))
+            Promise.all(this.props.os.options.map(o => this.setRemoteValues(o)))
           )
           .then(
             () =>
               new Promise((resolve, reject) =>
-                mainEvent.emit("user:configure", this.os.options, resolve)
+                mainEvent.emit("user:configure", this.props.os.options, resolve)
               )
           )
-          .then(() => log.info(`settings: ${JSON.stringify(this.settings)}`))
+          .then(() =>
+            log.info(`settings: ${JSON.stringify(this.props.settings)}`)
+          )
       : log.debug("nothing to configure");
   }
 
@@ -282,8 +286,8 @@ class Core {
           log.verbose(`running ${plugin} action ${func}`);
           return this.plugins[plugin].actions[func](
             action[`${plugin}:${func}`],
-            this.settings,
-            this.config.user_actions
+            this.props.settings,
+            this.props.config.user_actions
           )
             .catch(error => {
               throw { error, action: `${plugin}:${func}` };
@@ -316,7 +320,7 @@ class Core {
       error.message.includes("bootloader locked") ||
       error.message.includes("enable unlocking")
     ) {
-      return this.step(this.config.handlers.bootloader_locked).then(() =>
+      return this.step(this.props.config.handlers.bootloader_locked).then(() =>
         this.step(step)
       );
     } else if (error.message.includes("no device")) {
@@ -377,7 +381,7 @@ class Core {
       return !this.evaluate(expression.NOT);
     } else {
       // identity
-      return this.settings[expression.var] === expression.value;
+      return this.props.settings[expression.var] === expression.value;
     }
   }
 
