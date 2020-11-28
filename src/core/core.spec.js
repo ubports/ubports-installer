@@ -5,7 +5,7 @@ jest.useFakeTimers();
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const fs = require("fs-extra");
-fs.readdirSync.mockReturnValue(["core.js"]);
+fs.readdirSync.mockReturnValue(["core"]);
 
 const core = require("./core.js");
 

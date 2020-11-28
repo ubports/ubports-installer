@@ -18,8 +18,8 @@
  */
 
 const path = require("path");
-const { heimdall } = require("../../lib/deviceTools.js");
-const mainEvent = require("../../lib/mainEvent.js");
+const { heimdall } = require("../../../lib/deviceTools.js");
+const mainEvent = require("../../../lib/mainEvent.js");
 
 /**
  * Transform path array

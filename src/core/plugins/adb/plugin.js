@@ -18,8 +18,8 @@
  */
 
 const path = require("path");
-const { adb } = require("../../lib/deviceTools.js");
-const mainEvent = require("../../lib/mainEvent.js");
+const { adb } = require("../../../lib/deviceTools.js");
+const mainEvent = require("../../../lib/mainEvent.js");
 
 /**
  * adb actions plugin

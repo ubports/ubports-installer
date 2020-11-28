@@ -18,8 +18,8 @@
  */
 
 const path = require("path");
-const mainEvent = require("../../lib/mainEvent.js");
-const { fastboot } = require("../../lib/deviceTools.js");
+const mainEvent = require("../../../lib/mainEvent.js");
+const { fastboot } = require("../../../lib/deviceTools.js");
 
 /**
  * Transform path array

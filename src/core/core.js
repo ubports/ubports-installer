@@ -42,9 +42,7 @@ class Core {
     fs.readdirSync(path.join(__dirname, "plugins"))
       .filter(p => !p.includes("spec"))
       .forEach(plugin => {
-        this.plugins[
-          plugin.replace(".js", "")
-        ] = require(`./plugins/${plugin}`);
+        this.plugins[plugin] = require(`./plugins/${plugin}/plugin.js`);
       });
     this.reset();
   }

@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const mainEvent = require("../../lib/mainEvent.js");
-const systemImage = require("../../lib/system-image.js");
+const mainEvent = require("../../../lib/mainEvent.js");
+const systemImage = require("../../../lib/system-image.js");
 
 /**
  * systemimage remote_values plugin

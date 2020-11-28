@@ -1,9 +1,9 @@
-const mainEvent = require("../../lib/mainEvent.js");
-const { fastboot } = require("../../lib/deviceTools.js");
-const fastbootPlugin = require("./fastboot.js").actions;
+const mainEvent = require("../../../lib/mainEvent.js");
+const { fastboot } = require("../../../lib/deviceTools.js");
+const fastbootPlugin = require("./plugin.js").actions;
 
 it("should be a singleton", () =>
-  expect(fastbootPlugin).toEqual(require("./fastboot.js").actions));
+  expect(fastbootPlugin).toEqual(require("./plugin.js").actions));
 
 describe("fastboot plugin", () => {
   describe("oem_unlock()", () => {
