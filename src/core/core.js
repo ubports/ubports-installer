@@ -27,8 +27,14 @@ const path = require("path");
 const { adb } = require("../lib/deviceTools.js");
 const api = require("../lib/api.js");
 
+// FIXME remove global.installProperties and global.installConfig
+
 /**
  * UBports Installer core. Parses config files to run actions from plugins.
+ * @property {Object} plugins installer plugins
+ * @property {Object} config installer config file object
+ * @property {Object} os operating_system config
+ * @property {Object} settings settings for the run
  */
 class Core {
   constructor() {
@@ -40,22 +46,160 @@ class Core {
           plugin.replace(".js", "")
         ] = require(`./plugins/${plugin}`);
       });
+    this.reset();
   }
 
   /**
-   * prepare installation
+   * reset run properties
+   */
+  reset() {
+    this.config = null;
+    this.os = null;
+    this.settings = {};
+  }
+
+  /**
+   * prepare the installer: get device selects and start adb server
    * @returns {Promise}
    */
   prepare() {
-    return api
-      .getDeviceSelects()
-      .then(out => {
-        window.send("device:wait:device-selects-ready", out);
+    adb.startServer();
+    if (this.config) {
+      this.selectOs();
+    } else {
+      api
+        .getDeviceSelects()
+        .then(out => {
+          window.send("device:wait:device-selects-ready", out);
+        })
+        .catch(e => {
+          log.error("getDeviceSelects error: " + e);
+          window.send("user:no-network");
+        });
+    }
+  }
+
+  /**
+   * set config from object
+   * @param {Object} config installer config
+   */
+  setConfig(config) {
+    return Promise.resolve().then(() => (this.config = config));
+  }
+
+  /**
+   * set device, read config from api
+   * @param {String} codename device codename
+   */
+  setDevice(codename) {
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Preparing installation", true);
+        mainEvent.emit("user:write:under", `Fetching ${codename} config`);
       })
-      .catch(e => {
-        log.error("getDeviceSelects error: " + e);
-        window.send("user:no-network");
-      });
+      .then(() => api.getDevice(codename))
+      .then(config => this.setConfig(config))
+      .then(() => this.selectOs())
+      .catch(() => mainEvent.emit("user:device-unsupported", codename));
+  }
+
+  selectOs() {
+    return this.delay(1000) // FIXME race condition
+      .then(() => this.unlock())
+      .then(() =>
+        window.send(
+          "user:os",
+          this.config,
+          this.config.operating_systems.map(
+            (os, i) => `<option name="${i}">${os.name}</option>`
+          )
+        )
+      );
+  }
+
+  /**
+   * ensure unlock steps before we proceed
+   */
+  unlock() {
+    return this.config.unlock && this.config.unlock.length
+      ? new Promise((resolve, reject) =>
+          mainEvent.emit(
+            "user:unlock",
+            this.config.unlock,
+            this.config.user_actions,
+            resolve
+          )
+        )
+      : null;
+  }
+
+  /**
+   * install an os
+   * @param {Number} index selected operating system
+   */
+  install(index) {
+    return Promise.resolve()
+      .then(() => (this.os = this.config.operating_systems[index]))
+      .then(() =>
+        log.info(
+          `Installing ${this.os.name} on your ${this.config.name} (${this.config.codename})`
+        )
+      )
+      .then(() => this.prerequisites())
+      .then(() => this.eula())
+      .then(() => this.configure())
+      .then(() =>
+        this.run([...this.os.steps, { actions: [{ "core:end": null }] }])
+      );
+  }
+
+  /**
+   * ensure prerequisites are fulfilled
+   * @returns {Promise}
+   */
+  prerequisites() {
+    return this.os.prerequisites && this.os.prerequisites.length
+      ? new Promise((resolve, reject) =>
+          mainEvent.emit(
+            "user:prerequisites",
+            this.os.prerequisites,
+            this.config.user_actions,
+            resolve
+          )
+        )
+      : null;
+  }
+
+  /**
+   * enforce the end-user license agreement if necessary
+   * @returns {Promise}
+   */
+  eula() {
+    return this.os.eula // TODO implement eula in unlock modal
+      ? new Promise((resolve, reject) =>
+          mainEvent.emit("user:eula", this.os.eula, resolve, reject)
+        )
+      : null;
+  }
+
+  /**
+   * configure if necessary
+   * @returns {Promise}
+   */
+  configure() {
+    return this.os.options
+      ? Promise.resolve()
+          .then(() => log.info("configuring..."))
+          .then(
+            () =>
+              new Promise((resolve, reject) =>
+                mainEvent.emit("user:configure", this.os.options, resolve)
+              )
+          )
+          .then(settings => (this.settings = settings))
+          .then(() => log.info(`settings: ${this.settings}`))
+      : log.debug("nothing to configure");
   }
 
   /**
@@ -70,7 +214,11 @@ class Core {
     return steps
       .map(step => () => this.step(step, settings, user_actions, handlers))
       .reduce((chain, next) => chain.then(next), Promise.resolve())
-      .catch(() => null); // errors can be ignored here, since this is exclusively used for killing the promise chain
+      .catch(() => {
+        // used for killing the run, no actual errors are escalated here
+        log.warn("aborting run...");
+        mainEvent.emit("user:write:working", "particles");
+      });
   }
 
   /**
@@ -245,34 +393,22 @@ class Core {
 
 const core = new Core();
 
-// The user selected an os
-ipcMain.on("os:selected", (event, osIndex) => {
-  global.installProperties.osIndex = osIndex;
-  log.debug(
-    "os config: " +
-      JSON.stringify(global.installConfig.operating_systems[osIndex])
-  );
-  mainEvent.emit(
-    "user:configure",
-    global.installConfig.operating_systems[osIndex]
-  );
-  if (global.installConfig.operating_systems[osIndex].prerequisites.length) {
-    window.send("user:prerequisites", global.installConfig, osIndex);
-  }
+// The user configured the installation
+ipcMain.on("option", (_, variable, value) => (core.settings[variable] = value));
+
+// the user selected an os
+ipcMain.on("os:selected", (_, index) => core.install(index));
+
+// a device was selected
+ipcMain.on("device:selected", (_, device) => {
+  log.info(`device selected: ${device}`);
+  core.setDevice(device);
 });
 
-// Begin install process
-ipcMain.on("install", () => {
-  log.debug("settings: " + JSON.stringify(global.installProperties.settings));
-  core
-    .run(
-      global.installConfig.operating_systems[global.installProperties.osIndex]
-        .steps,
-      global.installProperties.settings,
-      global.installConfig.user_actions,
-      global.installConfig.handlers
-    )
-    .then(() => core.plugins.core.end()); // FIXME
+// a device was detected
+mainEvent.on("device:detected", device => {
+  log.info(`device detected: ${device}`);
+  core.setDevice(device);
 });
 
 module.exports = core;

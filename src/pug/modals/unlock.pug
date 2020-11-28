@@ -8,7 +8,7 @@
       .modal-body
         #actions(style="display: inline-block;")
       .modal-footer
-        button#btn-installModal.btn.btn-primary(type='button', data-dismiss='modal', onclick="") Ok
+        button#btn-unlock-modal.btn.btn-primary(type='button', data-dismiss='modal', onclick="ipcRenderer.send('user:unlock:ok')") Ok
   script.
     function addAction(action) {
       // can be used in html IDs
@@ -55,16 +55,16 @@
       }
     }
 
-    ipcRenderer.on("user:unlock", (event, installConfig) => {
-      document.getElementById("unlock-modal-title").innerHTML = "Unlock the device";
+    ipcRenderer.on("user:unlock", (_, unlock, user_actions) => {
+      document.getElementById("unlock-modal-title").innerHTML = "Before we start...";
       modals.show('unlock');
       document.getElementById("actions").innerHTML = ""; // remove all previously added actions
-      installConfig.unlock.forEach(actionId => addAction(installConfig.user_actions[actionId]));
+      unlock.forEach(actionId => addAction(user_actions[actionId]));
     });
 
-    ipcRenderer.on("user:prerequisites", (event, installConfig, osIndex) => {
+    ipcRenderer.on("user:prerequisites", (_, prerequisites, user_actions) => {
       document.getElementById("unlock-modal-title").innerHTML = "Before we continue...";
       modals.show('unlock');
       document.getElementById("actions").innerHTML = ""; // remove all previously added actions
-      installConfig.operating_systems[osIndex].prerequisites.forEach(actionId => addAction(installConfig.user_actions[actionId]));
+      prerequisites.forEach(actionId => addAction(user_actions[actionId]));
     });

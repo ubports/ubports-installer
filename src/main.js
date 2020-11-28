@@ -43,10 +43,9 @@ ipcMain.on("reportResult", async (event, result, error) => {
 // Restart the installer
 // FIXME move after a better way to access mainWindow has been found
 mainEvent.on("restart", () => {
+  log.info("UBports Installer restarting...");
   deviceTools.kill();
-  global.installProperties = { settings: {} };
-  global.installConfig = {};
-  log.debug("WINDOW RELOADED");
+  core.reset();
   mainWindow.reload();
 });
 
@@ -69,7 +68,8 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    if (!global.installProperties.device) {
+    if (!core.config) {
+      // FIXME implement core.detect()
       const wait = deviceTools.wait();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
     }

@@ -13,20 +13,26 @@
             label.control-label OS
           .col-xs-9
             select#options-os.form-control.space
-      button#btn-inst.btn.btn-primary(type='button', style='width: 100%; margin-top: 10px;', onclick="ipcRenderer.send(\"os:selected\", getElementById('options-os').selectedIndex); global.installConfig.os_to_install = getElementById('options-os').selectedIndex;") Install
+      button#btn-inst.btn.btn-primary(type='button', style='width: 100%; margin-top: 10px;') Install
   script.
-    ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
-      global.installConfig = installConfig;
-      global.installConfig.os_to_install = undefined;
-      footer.topText.set(installConfig.name+" ("+installConfig.codename+")");
+    $("#btn-inst").click(() => {
+      views.show("working", "particles");
+      ipcRenderer.send(
+        "os:selected",
+        document.getElementById('options-os').selectedIndex
+      );
+    })
+
+    ipcRenderer.on("user:os", (event, config, osSelects) => {
+      footer.topText.set(config.name+" ("+config.codename+")");
       footer.underText.set("Please select an operating system for installation");
       $("#options-os").append(osSelects);
-      $("#device-name").text(installConfig.name+" ("+installConfig.codename+")");
+      $("#device-name").text(config.name+" ("+config.codename+")");
       $("#device-page-link").click(() => {
-        shell.openExternal("https://devices.ubuntu-touch.io/device/" + installConfig.codename);
+        shell.openExternal("https://devices.ubuntu-touch.io/device/" + config.codename);
       });
       $("#device-config").click(() => {
-        shell.openExternal("https://github.com/ubports/installer-configs/blob/master/v1/" + installConfig.codename + ".json");
+        shell.openExternal("https://github.com/ubports/installer-configs/blob/master/v1/" + config.codename + ".json");
       });
       views.show("select-os");
     });

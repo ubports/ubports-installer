@@ -26,6 +26,7 @@ const { OpenCutsReporter } = require("open-cuts-reporter");
 const { paste } = require("ubuntu-pastebin");
 const prompt = require("electron-dynamic-prompt");
 const settings = require("./settings.js");
+const core = require("../core/core.js");
 
 /**
  * OPEN-CUTS operating system mapping
@@ -47,8 +48,8 @@ class Reporter {
    */
   getDeviceString() {
     try {
-      return global.installProperties && global.installProperties.device
-        ? `${global.installProperties.device}`
+      return core.config && core.config.codename
+        ? `${core.config.codename}`
         : "(device not yet detected)";
     } catch (e) {
       return "unknown";
@@ -61,11 +62,7 @@ class Reporter {
    */
   getTargetOsString() {
     try {
-      return global.installProperties.osIndex === undefined
-        ? global.installConfig.operating_systems[
-            global.installProperties.osIndex
-          ].name
-        : "(target os not yet set)";
+      return core.os ? core.os.name : "(target os not yet set)";
     } catch (e) {
       return "unknown";
     }
@@ -77,7 +74,7 @@ class Reporter {
    */
   getSettingsString() {
     try {
-      `\`${JSON.stringify(global.installProperties.settings || {})}\``;
+      `\`${JSON.stringify(core.settings || {})}\``;
     } catch (e) {
       return "unknown";
     }

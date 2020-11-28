@@ -18,7 +18,6 @@
  */
 
 const log = require("./log.js");
-const api = require("./api.js");
 const settings = require("./settings.js");
 const window = require("./window.js");
 const { ipcMain } = require("electron");
@@ -29,17 +28,6 @@ const mainEvent = new EventEmitter();
 // Restart the installer
 ipcMain.on("restart", () => {
   mainEvent.emit("restart");
-});
-
-// The user selected a device
-ipcMain.on("device:selected", (event, device) => {
-  log.info("device selected: " + device);
-  mainEvent.emit("device", device);
-});
-
-// The user configured the installation
-ipcMain.on("option", (event, targetVar, value) => {
-  global.installProperties.settings[targetVar] = value;
 });
 
 // Error from the renderer process
@@ -77,46 +65,6 @@ mainEvent.on("user:error", (error, restart, ignore) => {
   }
 });
 
-// The user selected a device
-mainEvent.on("device:detected", device => {
-  log.info("device detected: " + device);
-  mainEvent.emit("device", device);
-});
-
-mainEvent.on("device", device => {
-  global.installProperties.device = device;
-  function continueWithConfig() {
-    window.send(
-      "user:os",
-      global.installConfig,
-      global.installConfig.operating_systems.map(
-        (os, i) => `<option name="${i}">${os.name}</option>`
-      )
-    );
-    if (global.installConfig.unlock.length) {
-      window.send("user:unlock", global.installConfig);
-    }
-  }
-  if (global.installConfig && global.installConfig.operating_systems) {
-    // local config specified
-    continueWithConfig();
-  } else {
-    // fetch remote config
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit("user:write:status", "Preparing installation", true);
-    mainEvent.emit("user:write:under", "Fetching configuration");
-    api
-      .getDevice(device)
-      .then(config => {
-        global.installConfig = config;
-        continueWithConfig();
-      })
-      .catch(() => {
-        mainEvent.emit("user:device-unsupported", device);
-      });
-  }
-});
-
 // The device's bootloader is locked, prompt the user to unlock it
 mainEvent.on("user:oem-lock", (enable = false, code_url, unlock) => {
   if (code_url) throw new Error("unlock code url not implemented yet");
@@ -130,6 +78,24 @@ mainEvent.on("user:oem-lock", (enable = false, code_url, unlock) => {
     );
     unlock();
   });
+});
+
+// unlock
+mainEvent.on("user:unlock", (unlock, user_actions, resolve) => {
+  window.send("user:unlock", unlock, user_actions);
+  ipcMain.once("user:unlock:ok", resolve);
+});
+
+// prerequisites
+mainEvent.on("user:prerequisites", (prerequisites, user_actions, resolve) => {
+  window.send("user:prerequisites", prerequisites, user_actions);
+  ipcMain.once("user:unlock:ok", resolve);
+});
+
+// configure
+mainEvent.on("user:configure", (options, resolve) => {
+  window.send("user:configure", options);
+  ipcMain.once("option", () => setTimeout(resolve, 250));
 });
 
 // Request user_action

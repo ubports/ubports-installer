@@ -21,7 +21,9 @@ const cli = require("commander");
 const path = require("path");
 const fs = require("fs-extra");
 const YAML = require("yaml");
+const log = require("./log.js");
 const packageInfo = require("../../package.json");
+const core = require("../core/core.js");
 
 const description = `UBports Installer (${
   packageInfo.version
@@ -37,7 +39,7 @@ cli
   .description(description)
   .option(
     "-f, --file <file>",
-    "Override the official config by loading a local file"
+    "Override the official config by loading a YAML local file"
   )
   .option(
     "-v, --verbose",
@@ -51,26 +53,25 @@ cli
   )
   .parse(process.argv);
 
+log.setLevel(cli.verbose);
+
 if (cli.file) {
   try {
-    global.installConfig = YAML.parse(
-      fs
-        .readFileSync(
-          path.isAbsolute(cli.file)
-            ? cli.file
-            : path.join(process.cwd(), cli.file)
-        )
-        .toString()
+    core.setConfig(
+      YAML.parse(
+        fs
+          .readFileSync(
+            path.isAbsolute(cli.file)
+              ? cli.file
+              : path.join(process.cwd(), cli.file)
+          )
+          .toString()
+      )
     );
   } catch (error) {
     console.error(`failed to read ${cli.file}: ${error}`);
     process.exit(1);
   }
 }
-
-global.installProperties = {
-  device: global.installConfig ? global.installConfig.codename : null,
-  settings: {}
-};
 
 module.exports = cli;
