@@ -1,20 +1,24 @@
 <script>
-    import Modal from './Modal.svelte';
-    const { shell, ipcRenderer } = require("electron");
-    import { createEventDispatcher } from 'svelte';
+  import Modal from './Modal.svelte';
+  const { shell, ipcRenderer } = require("electron");
+  import { createEventDispatcher } from 'svelte';
+  import { deviceSelectOptions } from '../../stores.mjs';
+      
+  let device_selects;
 
-    export let selectOptions;
+  const unsubscribe = deviceSelectOptions.subscribe(value => {
+    device_selects = value;
+  });
 
-    let selectedDevice;
+  let selectedDevice;
 
-    function selectDevice(device) {
-      console.log(device)
-      ipcRenderer.send("device:selected", device);
-      close();
-    }
+  function selectDevice(device) {
+    ipcRenderer.send("device:selected", device);
+    close();
+  }
 
-    const dispatch = createEventDispatcher();
-    const close = () => dispatch('close');
+  const dispatch = createEventDispatcher();
+  const close = () => dispatch('close');
 </script>
 
 <Modal on:close={close}>
@@ -27,9 +31,9 @@
                 <label for="" class="col-xs-3 control-label">Device</label>
                 <div class="col-xs-9">
                     <select class="form-control space" bind:value={selectedDevice}>
-                      {#each selectOptions as selectOption}
-                        <option value={selectOption.value}>
-                          {selectOption.name}
+                      {#each device_selects as deviceSelect}
+                        <option value={deviceSelect.value}>
+                          {deviceSelect.name}
                         </option>
                       {/each}
                     </select>

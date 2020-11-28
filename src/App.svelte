@@ -1,6 +1,7 @@
 <script>
+	import { onMount } from 'svelte';
 	const { remote, ipcRenderer, shell } = require("electron");
-	import { animationType } from './stores.mjs';
+	import { animationType, footerData, osSelectOptions, installConfigData } from './stores.mjs';
 
 	global.installProperties = remote.getGlobal("installProperties");
 	global.packageInfo = remote.getGlobal("packageInfo");
@@ -9,12 +10,17 @@
 	import NewUpdateModal from './ui/modals/NewUpdateModal.svelte'
 	import UdevModal from './ui/modals/UdevModal.svelte'
 	import ConnectionLostModal from './ui/modals/ConnectionLostModal.svelte'
+	import NoNetworkModal from './ui/modals/NoNetworkModal.svelte'
+	import LowPowerModal from './ui/modals/LowPowerModal.svelte'
+	import WindowsDriversModal from './ui/modals/WindowsDriversModal.svelte'
 
 	let showNewUpdateModal = false;
 	let showUdevModal = false;
 	let showConnectionLostModal = false;
+	let showNoNetworkModal = false;
+	let showLowPowerModal = false;
+	let showWindowsDriversModal = false;
 
-	console.log(process.platform, process.env)
 	if (process.platform === "linux" && !process.env.SNAP) {
 		ipcRenderer.invoke("getSettingsValue", "never.udev")
 			.then(never => {
@@ -24,8 +30,41 @@
 		})
 	}
 
+	if (process.platform === "win32") {
+		ipcRenderer.invoke("getSettingsValue", "never.windowsDrivers")
+			.then(never => {
+				if (never) {
+					setTimeout(() => showWindowsDriversModal = true, 1000)
+				}
+			})
+	}
+
 	ipcRenderer.on("user:connection-lost", () => {
 		showConnectionLostModal = true;
+	});
+	
+	ipcRenderer.on("user:no-network", () => {
+    showNoNetworkModal = true;
+	});
+	
+	ipcRenderer.on("user:low-power", (callback) => {
+    showLowPowerModal = true;
+	});
+	
+	let footer_data = {
+		topText: '',
+  	underText: ''
+	};
+
+	onMount(() => {
+		footerData.set({
+			topText: 'UBports Installer is starting up',
+			underText: 'Starting adb service'
+		});
+	});
+
+  const unsubscribe = footerData.subscribe(value => {
+    footer_data = value;
   });
 
 	//Routing
@@ -70,8 +109,10 @@
 	});
 	
 	ipcRenderer.on("user:device-unsupported", (event, device) => {
-    //   footer.topText.set("Device not supported");
-    //   footer.underText.set("The device " + device + " is not supported");
+		footerData.set({
+			topText: "Device not supported",
+			underText: `The device ${device} is not supported`
+		});
     //   $("[id=your-device]").text(device);
 		push('/not-supported');
 	});
@@ -82,8 +123,16 @@
 
 	ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
 		global.installConfig = installConfig;
-      	global.installConfig.os_to_install = undefined;
+		global.installConfig.os_to_install = undefined;
 
+		footerData.set({
+			topText: `${installConfig.name} (${installConfig.codename})`,
+			underText: "Please select an operating system for installation"
+		});
+
+		osSelectOptions.set(osSelects);
+		installConfigData.set(installConfig)
+		
 		push('/select-os');
 	});
 </script>
@@ -109,18 +158,27 @@
 		{#if showConnectionLostModal}
 		<ConnectionLostModal on:close={() => showConnectionLostModal = false}/>
 		{/if}
+		{#if showNoNetworkModal}
+		<NoNetworkModal on:close={() => showNoNetworkModal = false}/>
+		{/if}
+		{#if showLowPowerModal}
+		<LowPowerModal on:close={() => showLowPowerModal = false}/>
+		{/if}
+		{#if showWindowsDriversModal}
+		<WindowsDriversModal on:close={() => showWindowsDriversModal = false}/>
+		{/if}
 	</div>
 	<footer class="footer">
 		<div class="container">
 			<h3 class="text-muted footer-top">
 				<span id="footer-top">
-					UBports Installer is starting up
+					{footer_data.topText}
 				</span>
 				<span id="wait-dot"></span>
 			</h3>
 			<p>
 				<span id="footer-bottom" class="text-muted">
-					Starting adb service
+					{footer_data.underText}
 				</span>
 				<span id="footer-speed" class="text-muted"></span>
 			</p>

@@ -1,6 +1,8 @@
 <script>
     const { shell, ipcRenderer, remote } = require("electron");
 
+    import { deviceSelectOptions, footerData } from '../../stores.mjs';
+
     import SelectDeviceModal from '../modals/SelectDeviceModal.svelte'
     import DeveloperModeModal from '../modals/DeveloperModeModal.svelte'
 
@@ -9,10 +11,12 @@
     let selectOptions;
 
     ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
-    //   footer.topText.set("Waiting for device", true);
-    //   footer.underText.set("Please connect your device with a USB cable");
+      footerData.set({
+        topText: "Waiting for device",
+        underText: "Please connect your device with a USB cable"
+      });
       if (!remote.getGlobal("installProperties").device) {
-        selectOptions = deviceSelects;
+        deviceSelectOptions.set(deviceSelects);
       } else {
         // if the device is set, just return the device:selected event
         ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);
