@@ -22,29 +22,28 @@ const mainEvent = require("../lib/mainEvent.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
-const fs = require("fs-extra");
-const path = require("path");
 const { adb } = require("../lib/deviceTools.js");
 const api = require("../lib/api.js");
-
-// FIXME remove global.installProperties and global.installConfig
+const PluginIndex = require("./plugins/index.js");
 
 /**
- * UBports Installer core. Parses config files to run actions from plugins.
- * @property {Object} plugins installer plugins
+ * properties
+ * @typedef {Object} Props
  * @property {Object} config installer config file object
  * @property {Object} os operating_system config
  * @property {Object} settings settings for the run
  */
+
+/**
+ * UBports Installer core. Parses config files to run actions from plugins.
+ * @property {Props} props properties object
+ * @property {PluginIndex} plugins installer plugins
+ */
 class Core {
   constructor() {
-    this.plugins = {};
-    fs.readdirSync(path.join(__dirname, "plugins"))
-      .filter(p => !p.includes("spec"))
-      .forEach(plugin => {
-        this.plugins[plugin] = require(`./plugins/${plugin}/plugin.js`);
-      });
+    this.props = {};
     this.reset();
+    this.plugins = new PluginIndex(this.props);
   }
 
   /**
@@ -217,11 +216,7 @@ class Core {
    */
   setRemoteValues(option) {
     return option.remote_values
-      ? Promise.resolve(this.parsePluginCall(option.remote_values))
-          .then(([plugin, func]) =>
-            this.plugins[plugin].remote_values[func](option)
-          )
-          .then(values => (option.values = values))
+      ? this.plugins.remote_value(option)
       : Promise.resolve(option);
   }
 
@@ -276,31 +271,9 @@ class Core {
    * @returns {Promise}
    */
   action(action) {
-    return Promise.resolve(this.parsePluginCall(action)).then(
-      ([plugin, func]) => {
-        if (
-          this.plugins[plugin] &&
-          this.plugins[plugin].actions &&
-          this.plugins[plugin].actions[func]
-        ) {
-          log.verbose(`running ${plugin} action ${func}`);
-          return this.plugins[plugin].actions[func](
-            action[`${plugin}:${func}`],
-            this.props.settings,
-            this.props.config.user_actions
-          )
-            .catch(error => {
-              throw { error, action: `${plugin}:${func}` };
-            })
-            .then(substeps => (substeps ? this.run(substeps) : null));
-        } else {
-          throw {
-            error: new Error(`Unknown action ${plugin}:${func}`),
-            action: `${plugin}:${func}`
-          };
-        }
-      }
-    );
+    return this.plugins
+      .action(action)
+      .then(substeps => (substeps ? this.run(substeps) : null));
   }
 
   /**
@@ -344,15 +317,6 @@ class Core {
         )
       );
     }
-  }
-
-  /**
-   * get plugin and call from object
-   * @param {Object} call action or remote
-   * @returns {Array<String>} [plugin, function]
-   */
-  parsePluginCall(call) {
-    return Object.keys(call)[0].split(":");
   }
 
   /**
