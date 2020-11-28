@@ -17,12 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { ipcMain } = require("electron");
 const mainEvent = require("../lib/mainEvent.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
+const window = require("../lib/window.js");
 const fs = require("fs-extra");
 const path = require("path");
 const { adb } = require("../lib/deviceTools.js");
+const api = require("../lib/api.js");
 
 /**
  * UBports Installer core. Parses config files to run actions from plugins.
@@ -36,6 +39,22 @@ class Core {
         this.plugins[
           plugin.replace(".js", "")
         ] = require(`./plugins/${plugin}`);
+      });
+  }
+
+  /**
+   * prepare installation
+   * @returns {Promise}
+   */
+  prepare() {
+    return api
+      .getDeviceSelects()
+      .then(out => {
+        window.send("device:wait:device-selects-ready", out);
+      })
+      .catch(e => {
+        log.error("getDeviceSelects error: " + e);
+        window.send("user:no-network");
       });
   }
 
@@ -104,9 +123,13 @@ class Core {
   action(action, settings, user_actions, handlers) {
     return Promise.resolve(Object.keys(action)[0].split(":")).then(
       ([plugin, func]) => {
-        if (this.plugins[plugin] && this.plugins[plugin][func]) {
+        if (
+          this.plugins[plugin] &&
+          this.plugins[plugin].actions &&
+          this.plugins[plugin].actions[func]
+        ) {
           log.verbose(`running ${plugin} action ${func}`);
-          return this.plugins[plugin][func](
+          return this.plugins[plugin].actions[func](
             action[`${plugin}:${func}`],
             settings,
             user_actions
@@ -162,22 +185,7 @@ class Core {
       error.message.includes("device offline") ||
       error.message.includes("unauthorized")
     ) {
-      // Try re-connecting offline or unauthorized devices three times and resume step.
-      // Failing that, instruct the user to re-connect the device.
-      // FIXME implement an adb:reconnect action, so we don't have to have adb here
-      return adb
-        .reconnect()
-        .catch(() => adb.reconnect())
-        .catch(() => adb.reconnect())
-        .catch(
-          () =>
-            new Promise((resolve, reject) =>
-              mainEvent.emit("user:connection-lost", () =>
-                resolve(this.step(step, settings, user_actions, handlers))
-              )
-            )
-        )
-        .then(() => this.step(step, settings, user_actions, handlers));
+      return this.action({ "adb:reconnect": null });
     } else if (error && error.message.includes("killed")) {
       throw error; // Used for exiting the installer
     } else {
@@ -235,4 +243,36 @@ class Core {
   }
 }
 
-module.exports = new Core();
+const core = new Core();
+
+// The user selected an os
+ipcMain.on("os:selected", (event, osIndex) => {
+  global.installProperties.osIndex = osIndex;
+  log.debug(
+    "os config: " +
+      JSON.stringify(global.installConfig.operating_systems[osIndex])
+  );
+  mainEvent.emit(
+    "user:configure",
+    global.installConfig.operating_systems[osIndex]
+  );
+  if (global.installConfig.operating_systems[osIndex].prerequisites.length) {
+    window.send("user:prerequisites", global.installConfig, osIndex);
+  }
+});
+
+// Begin install process
+ipcMain.on("install", () => {
+  log.debug("settings: " + JSON.stringify(global.installProperties.settings));
+  core
+    .run(
+      global.installConfig.operating_systems[global.installProperties.osIndex]
+        .steps,
+      global.installProperties.settings,
+      global.installConfig.user_actions,
+      global.installConfig.handlers
+    )
+    .then(() => core.plugins.core.end()); // FIXME
+});
+
+module.exports = core;

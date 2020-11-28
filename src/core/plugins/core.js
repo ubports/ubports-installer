@@ -26,9 +26,9 @@ const log = require("../../lib/log.js");
 const { path: cachePath } = require("../../lib/cache.js");
 
 /**
- * core plugin
+ * core actions plugin
  */
-class CorePlugin {
+class CoreActionsPlugin {
   end() {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:done");
@@ -239,4 +239,6 @@ class CorePlugin {
   }
 }
 
-module.exports = new CorePlugin();
+module.exports = {
+  actions: new CoreActionsPlugin()
+};

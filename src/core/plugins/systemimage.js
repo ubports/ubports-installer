@@ -21,25 +21,27 @@ const mainEvent = require("../../lib/mainEvent.js");
 const systemImage = require("../../lib/system-image.js");
 
 /**
- * systemimage plugin
+ * systemimage remote_values plugin
  */
-class SystemimagePlugin {
-  constructor() {
-    this.remote_values = {
-      channels: () =>
-        systemImage
-          .getDeviceChannels(global.installConfig.codename)
-          .then(channels =>
-            channels
-              .map(channel => ({
-                value: channel,
-                label: channel.replace("ubports-touch/", "")
-              }))
-              .reverse()
-          )
-    };
+class SystemimageRemoteValuesPlugin {
+  channels() {
+    return systemImage
+      .getDeviceChannels(global.installConfig.codename)
+      .then(channels =>
+        channels
+          .map(channel => ({
+            value: channel,
+            label: channel.replace("ubports-touch/", "")
+          }))
+          .reverse()
+      );
   }
+}
 
+/**
+ * systemimage actions plugin
+ */
+class SystemimageActionsPlugin {
   install() {
     mainEvent.emit("user:write:progress", 0);
     mainEvent.emit("user:write:working", "particles");
@@ -54,4 +56,7 @@ class SystemimagePlugin {
   }
 }
 
-module.exports = new SystemimagePlugin();
+module.exports = {
+  actions: new SystemimageActionsPlugin(),
+  remote_values: new SystemimageRemoteValuesPlugin()
+};

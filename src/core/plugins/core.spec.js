@@ -1,8 +1,9 @@
 const mainEvent = require("../../lib/mainEvent.js");
 const { download, checkFile } = require("progressive-downloader");
-const core = require("./core.js");
+const core = require("./core.js").actions;
 
-it("should be a singleton", () => expect(core).toEqual(require("./core.js")));
+it("should be a singleton", () =>
+  expect(core).toEqual(require("./core.js").actions));
 
 describe("core plugin", () => {
   describe("end()", () => {

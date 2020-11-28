@@ -28,28 +28,11 @@ const window = require("./lib/window.js");
 const updater = require("./lib/updater.js");
 const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
-const errors = require("./lib/errors.js");
 const deviceTools = require("./lib/deviceTools.js");
 const menuManager = require("./lib/menuManager.js");
-const api = require("./lib/api.js");
 const core = require("./core/core.js");
 
 let mainWindow;
-
-// Begin install process
-// FIXME move after devices has been modularized
-ipcMain.on("install", () => {
-  log.debug("settings: " + JSON.stringify(global.installProperties.settings));
-  core
-    .run(
-      global.installConfig.operating_systems[global.installProperties.osIndex]
-        .steps,
-      global.installProperties.settings,
-      global.installConfig.user_actions,
-      global.installConfig.handlers
-    )
-    .then(() => core.plugins.core.end()); // FIXME
-});
 
 // Submit a user-requested bug-report
 // FIXME move after a better way to access mainWindow has been found
@@ -65,23 +48,6 @@ mainEvent.on("restart", () => {
   global.installConfig = {};
   log.debug("WINDOW RELOADED");
   mainWindow.reload();
-});
-
-// Set the install configuration data
-// FIXME move after devices has been modularized
-mainEvent.on("user:configure", osInstructs => {
-  if (osInstructs.options) {
-    // If there's something to configure, configure it!
-    devices
-      .setRemoteValues(osInstructs) // FIXME
-      .then(osInstructs => {
-        window.send("user:configure", osInstructs);
-      })
-      .catch(e => errors.toUser(e, "configure"));
-  } else {
-    // If there's nothing to configure, don't configure anything
-    devices.install(osInstructs.steps); // FIXME
-  }
 });
 
 async function createWindow() {
@@ -107,16 +73,7 @@ async function createWindow() {
       const wait = deviceTools.wait();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
     }
-    // FIXME move or replace
-    api
-      .getDeviceSelects()
-      .then(out => {
-        window.send("device:wait:device-selects-ready", out);
-      })
-      .catch(e => {
-        log.error("getDeviceSelects error: " + e);
-        window.send("user:no-network");
-      });
+    core.prepare();
   });
 
   // Task we need only on the first start

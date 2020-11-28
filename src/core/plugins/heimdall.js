@@ -34,9 +34,9 @@ function addPathToFiles(files, device) {
 }
 
 /**
- * heimdall plugin
+ * heimdall actions plugin
  */
-class HeimdallPlugin {
+class HeimdallActionsPlugin {
   /**
    * fastboot:flash action
    * @returns {Promise}
@@ -50,39 +50,26 @@ class HeimdallPlugin {
         "Flashing firmware partitions using heimdall"
       );
       return heimdall.flash(
-        addPathToFiles(step.flash, global.installProperties.device)
+        addPathToFiles(partitions, global.installProperties.device)
       );
     });
   }
 
-  /* required by core:user_action
+  /**
+   * heimdall:wait action
+   * @returns {Promise}
+   */
   wait() {
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit(
-      "user:write:status",
-      "Waiting for device",
-      true
-    );
-    mainEvent.emit(
-      "user:write:under",
-      "Heimdall is scanning for devices"
-    );
-    function heimdallWait() {
-      return heimdall
-        .hasAccess()
-        .then(access => {
-          if (access) resolve();
-          else
-            mainEvent.emit("user:connection-lost", heimdallWait);
-        })
-        .catch(e => {
-          log.warn(e);
-          resolve();
-        });
-    }
-    return heimdallWait();
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Waiting for device", true);
+        mainEvent.emit("user:write:under", "Heimdall is scanning for devices");
+      })
+      .then(() => heimdall.wait());
   }
-  */
 }
 
-module.exports = new HeimdallPlugin();
+module.exports = {
+  actions: new HeimdallActionsPlugin()
+};

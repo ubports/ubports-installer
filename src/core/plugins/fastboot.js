@@ -34,9 +34,9 @@ function addPathToFiles(files, device) {
 }
 
 /**
- * fastboot plugin
+ * fastboot actions plugin
  */
-class FastbootPlugin {
+class FastbootActionsPlugin {
   /**
    * fastboot:oem_unlock
    * @param {Object} step {code_url}
@@ -225,34 +225,21 @@ class FastbootPlugin {
     });
   }
 
-  /* required by core:user_action
+  /**
+   * fastboot:wait action
+   * @returns {Promise}
+   */
   wait() {
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit(
-      "user:write:status",
-      "Waiting for device",
-      true
-    );
-    mainEvent.emit(
-      "user:write:under",
-      "Fastboot is scanning for devices"
-    );
-    function fastbootWait() {
-      return fastboot
-        .hasAccess()
-        .then(access => {
-          if (access) resolve();
-          else
-            mainEvent.emit("user:connection-lost", fastbootWait);
-        })
-        .catch(e => {
-          log.warn(e);
-          resolve();
-        });
-    }
-    return fastbootWait();
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Waiting for device", true);
+        mainEvent.emit("user:write:under", "Fastboot is scanning for devices");
+      })
+      .then(() => fastboot.wait());
   }
-  */
 }
 
-module.exports = new FastbootPlugin();
+module.exports = {
+  actions: new FastbootActionsPlugin()
+};

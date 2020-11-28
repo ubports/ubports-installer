@@ -22,9 +22,9 @@ const { adb } = require("../../lib/deviceTools.js");
 const mainEvent = require("../../lib/mainEvent.js");
 
 /**
- * adb plugin
+ * adb actions plugin
  */
-class AdbPlugin {
+class AdbActionsPlugin {
   /**
    * adb:format action
    * @returns {Promise}
@@ -77,33 +77,47 @@ class AdbPlugin {
       .then(() => adb.reboot(to_state));
   }
 
-  /* TODO required by core:user_action
-  wait() {
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit(
-      "user:write:status",
-      "Waiting for device",
-      true
-    );
-    mainEvent.emit(
-      "user:write:under",
-      "Adb is scanning for devices"
-    );
-    function adbWait() {
-      return adb
-        .hasAccess()
-        .then(access => {
-          if (access) resolve();
-          else mainEvent.emit("user:connection-lost", adbWait);
-        })
-        .catch(e => {
-          log.warn(e);
-          resolve();
-        });
-    }
-    return adbWait();
+  /**
+   * adb:reconnect action
+   * Try re-connecting offline or unauthorized devices three times and resume step. Failing that, instruct the user to re-connect the device.
+   * @returns {Promise}
+   */
+  reconnect() {
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Reconnecting", true);
+        mainEvent.emit("user:write:under", "Reconnecting to the device");
+      })
+      .then(() => adb.reconnect())
+      .catch(() => adb.reconnect())
+      .catch(() => adb.reconnect())
+      .catch(
+        () =>
+          new Promise((resolve, reject) =>
+            mainEvent.emit("user:connection-lost", () =>
+              resolve(this.step(step, settings, user_actions, handlers))
+            )
+          )
+      )
+      .then(() => this.step(step, settings, user_actions, handlers));
   }
-  */
+
+  /**
+   * adb:wait action
+   * @returns {Promise}
+   */
+  wait() {
+    return Promise.resolve()
+      .then(() => {
+        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:status", "Waiting for device", true);
+        mainEvent.emit("user:write:under", "Adb is scanning for devices");
+      })
+      .then(() => adb.wait());
+  }
 }
 
-module.exports = new AdbPlugin();
+module.exports = {
+  actions: new AdbActionsPlugin()
+};

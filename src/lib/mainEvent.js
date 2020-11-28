@@ -47,22 +47,6 @@ ipcMain.on("renderer:error", (event, error) => {
   mainEvent.emit("user:error", error);
 });
 
-// The user selected an os
-ipcMain.on("os:selected", (event, osIndex) => {
-  global.installProperties.osIndex = osIndex;
-  log.debug(
-    "os config: " +
-      JSON.stringify(global.installConfig.operating_systems[osIndex])
-  );
-  mainEvent.emit(
-    "user:configure",
-    global.installConfig.operating_systems[osIndex]
-  );
-  if (global.installConfig.operating_systems[osIndex].prerequisites.length) {
-    window.send("user:prerequisites", global.installConfig, osIndex);
-  }
-});
-
 // Open the bugreporting tool
 mainEvent.on("user:error", (error, restart, ignore) => {
   try {
