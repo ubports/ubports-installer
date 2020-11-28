@@ -310,7 +310,9 @@ mainEvent.on("device", device => {
       "user:os",
       global.installConfig,
       global.installConfig.operating_systems.map(
-        (os, i) => `<option name="${i}">${os.name}</option>`
+        (os, i) => {
+          return {value: i, name: os.name};
+        }
       )
     );
     if (global.installConfig.unlock.length) {
