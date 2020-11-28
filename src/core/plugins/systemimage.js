@@ -26,7 +26,7 @@ const systemImage = require("../../lib/system-image.js");
 class SystemimageRemoteValuesPlugin {
   channels() {
     return systemImage
-      .getDeviceChannels(global.installConfig.codename)
+      .getDeviceChannels("bacon") // FIXME put actual value here
       .then(channels =>
         channels
           .map(channel => ({

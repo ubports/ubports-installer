@@ -18,12 +18,13 @@ const settings = {
   wipe: false,
   bootstrap: true
 };
+core.settings = settings;
 
 const user_actions = {};
-
 const handlers = {
   fastboot_lock: {}
 };
+core.config = { user_actions, handlers };
 
 describe("Core module", () => {
   describe("run", () => {
@@ -33,32 +34,17 @@ describe("Core module", () => {
     ];
     it("should run steps", () => {
       jest.spyOn(core, "step").mockResolvedValue();
-      return core.run(steps, settings, user_actions, handlers).then(() => {
-        expect(core.step).toHaveBeenCalledWith(
-          steps[0],
-          settings,
-          user_actions,
-          handlers
-        );
-        expect(core.step).toHaveBeenCalledWith(
-          steps[1],
-          settings,
-          user_actions,
-          handlers
-        );
+      return core.run(steps).then(() => {
+        expect(core.step).toHaveBeenCalledWith(steps[0]);
+        expect(core.step).toHaveBeenCalledWith(steps[1]);
         expect(core.step).toHaveBeenCalledTimes(2);
         core.step.mockRestore();
       });
     });
     it("should fail silently", () => {
       jest.spyOn(core, "step").mockRejectedValue();
-      return core.run(steps, settings, user_actions, handlers).then(() => {
-        expect(core.step).toHaveBeenCalledWith(
-          steps[0],
-          settings,
-          user_actions,
-          handlers
-        );
+      return core.run(steps).then(() => {
+        expect(core.step).toHaveBeenCalledWith(steps[0]);
         expect(core.step).toHaveBeenCalledTimes(1);
         core.step.mockRestore();
       });
@@ -68,23 +54,16 @@ describe("Core module", () => {
   describe("step", () => {
     it("should run step", done => {
       jest.spyOn(core, "actions").mockResolvedValue();
-      core
-        .step({ actions: [{ "a:x": null }] }, settings, user_actions, handlers)
-        .then(() => {
-          expect(log.winston.log).toHaveBeenCalledWith(
-            "verbose",
-            'running step {"actions":[{"a:x":null}]}'
-          );
-          expect(core.actions).toHaveBeenCalledWith(
-            [{ "a:x": null }],
-            settings,
-            user_actions,
-            handlers
-          );
-          expect(core.actions).toHaveBeenCalledTimes(1);
-          core.actions.mockRestore();
-          done();
-        });
+      core.step({ actions: [{ "a:x": null }] }).then(() => {
+        expect(log.winston.log).toHaveBeenCalledWith(
+          "verbose",
+          'running step {"actions":[{"a:x":null}]}'
+        );
+        expect(core.actions).toHaveBeenCalledWith([{ "a:x": null }]);
+        expect(core.actions).toHaveBeenCalledTimes(1);
+        core.actions.mockRestore();
+        done();
+      });
       jest.runOnlyPendingTimers();
     });
     it("should handle error", () => {
@@ -92,50 +71,29 @@ describe("Core module", () => {
         .spyOn(core, "actions")
         .mockRejectedValue({ error: new Error("aaa"), action: "a:x" });
       jest.spyOn(core, "handle").mockResolvedValue();
-      core
-        .step({ actions: [{ "a:x": null }] }, settings, user_actions, handlers)
-        .then(() => {
-          expect(core.handle).toHaveBeenCalledWith(
-            expect.any(Error),
-            "a:x",
-            { actions: [{ "a:x": null }] },
-            {
-              bootstrap: true,
-              channel: "16.04/arm64/hybris/stable",
-              wipe: false
-            },
-            {},
-            { fastboot_lock: {} }
-          );
-          expect(core.handle).toHaveBeenCalledTimes(1);
-          core.actions.mockRestore();
-          core.handle.mockRestore();
+      core.step({ actions: [{ "a:x": null }] }).then(() => {
+        expect(core.handle).toHaveBeenCalledWith(expect.any(Error), "a:x", {
+          actions: [{ "a:x": null }]
         });
+        expect(core.handle).toHaveBeenCalledTimes(1);
+        core.actions.mockRestore();
+        core.handle.mockRestore();
+      });
       jest.runOnlyPendingTimers();
     });
     it("should run conditional step", done => {
       jest.spyOn(core, "actions").mockResolvedValue();
       core
-        .step(
-          {
-            actions: [{ "a:x": null }],
-            condition: { var: "wipe", value: false }
-          },
-          settings,
-          user_actions,
-          handlers
-        )
+        .step({
+          actions: [{ "a:x": null }],
+          condition: { var: "wipe", value: false }
+        })
         .then(() => {
           expect(log.winston.log).toHaveBeenCalledWith(
             "verbose",
             'running step {"actions":[{"a:x":null}],"condition":{"var":"wipe","value":false}}'
           );
-          expect(core.actions).toHaveBeenCalledWith(
-            [{ "a:x": null }],
-            settings,
-            user_actions,
-            handlers
-          );
+          expect(core.actions).toHaveBeenCalledWith([{ "a:x": null }]);
           expect(core.actions).toHaveBeenCalledTimes(1);
           core.actions.mockRestore();
           done();
@@ -145,14 +103,10 @@ describe("Core module", () => {
     it("should skip conditional step", done => {
       jest.spyOn(core, "actions").mockResolvedValue();
       core
-        .step(
-          {
-            actions: [{ "a:x": null }],
-            condition: { var: "wipe", value: true }
-          },
-          settings,
-          handlers
-        )
+        .step({
+          actions: [{ "a:x": null }],
+          condition: { var: "wipe", value: true }
+        })
         .then(() => {
           expect(log.winston.log).toHaveBeenCalledWith(
             "verbose",
@@ -170,90 +124,54 @@ describe("Core module", () => {
     it("should run actions", () => {
       jest.spyOn(core, "action").mockResolvedValue();
       return core
-        .actions(
-          [{ "a:x": null }, { "a:y": { foo: "bar" } }],
-          settings,
-          user_actions,
-          handlers
-        )
+        .actions([{ "a:x": null }, { "a:y": { foo: "bar" } }])
         .then(() => {
-          expect(core.action).toHaveBeenCalledWith(
-            { "a:x": null },
-            settings,
-            user_actions,
-            handlers
-          );
-          expect(core.action).toHaveBeenCalledWith(
-            { "a:y": { foo: "bar" } },
-            settings,
-            user_actions,
-            handlers
-          );
+          expect(core.action).toHaveBeenCalledWith({ "a:x": null });
+          expect(core.action).toHaveBeenCalledWith({ "a:y": { foo: "bar" } });
           expect(core.action).toHaveBeenCalledTimes(2);
           core.action.mockRestore();
         });
     });
     it("should reject on error actions", done => {
       jest.spyOn(core, "action").mockRejectedValue("oh no");
-      core
-        .actions(
-          [{ "a:x": null }, { "a:y": { foo: "bar" } }],
-          settings,
-          user_actions,
-          handlers
-        )
-        .catch(e => {
-          expect(e).toEqual("oh no");
-          expect(core.action).toHaveBeenCalledWith(
-            { "a:x": null },
-            settings,
-            user_actions,
-            handlers
-          );
-          expect(core.action).toHaveBeenCalledTimes(1);
-          core.action.mockRestore();
-          done();
-        });
+      core.actions([{ "a:x": null }, { "a:y": { foo: "bar" } }]).catch(e => {
+        expect(e).toEqual("oh no");
+        expect(core.action).toHaveBeenCalledWith({ "a:x": null });
+        expect(core.action).toHaveBeenCalledTimes(1);
+        core.action.mockRestore();
+        done();
+      });
     });
   });
 
   describe("action()", () => {
     it("should run action", () => {
       core.plugins = { a: { actions: { y: jest.fn().mockResolvedValue() } } };
-      return core
-        .action({ "a:y": { foo: "bar" } }, settings, user_actions, handlers)
-        .then(r => {
-          expect(r).toEqual(null);
-          expect(core.plugins.a.actions.y).toHaveBeenCalledWith(
-            { foo: "bar" },
-            settings,
-            user_actions
-          );
-        });
+      return core.action({ "a:y": { foo: "bar" } }).then(r => {
+        expect(r).toEqual(null);
+        expect(core.plugins.a.actions.y).toHaveBeenCalledWith(
+          { foo: "bar" },
+          settings,
+          user_actions
+        );
+      });
     });
     it("should run substeps generated by action", () => {
       jest.spyOn(core, "run").mockResolvedValue();
       core.plugins = {
         a: { actions: { y: jest.fn().mockResolvedValue([{}]) } }
       };
-      return core
-        .action({ "a:y": { foo: "bar" } }, settings, user_actions, handlers)
-        .then(r => {
-          expect(r).toEqual(undefined);
-          expect(core.plugins.a.actions.y).toHaveBeenCalledWith(
-            { foo: "bar" },
-            settings,
-            user_actions
-          );
-          expect(core.run).toHaveBeenCalledWith(
-            [{}],
-            settings,
-            user_actions,
-            handlers
-          );
-          expect(core.run).toHaveBeenCalledTimes(1);
-          core.run.mockRestore();
-        });
+      return core.action({ "a:y": { foo: "bar" } }).then(r => {
+        expect(r).toEqual(undefined);
+        expect(core.plugins.a.actions.y).toHaveBeenCalledWith(
+          { foo: "bar" },
+          settings,
+          user_actions
+        );
+        expect(core.run).toHaveBeenCalledWith([{}]);
+        expect(core.run).toHaveBeenCalledTimes(1);
+        core.run.mockRestore();
+      });
     });
     it("should reject on unknown plugin", done => {
       core.plugins = { b: {} };
@@ -288,34 +206,15 @@ describe("Core module", () => {
   describe("handle()", () => {
     it("should ignore errors on optional steps", () => {
       expect(
-        core.handle(
-          new Error("some error"),
-          "a:x",
-          { optional: true },
-          settings,
-          user_actions,
-          handlers
-        )
+        core.handle(new Error("some error"), "a:x", { optional: true })
       ).toEqual(undefined);
     });
     it("should ignore fallback actions", () => {
       jest.spyOn(core, "actions").mockResolvedValue();
       return core
-        .handle(
-          new Error("some error"),
-          "a:x",
-          { fallback: [{}] },
-          settings,
-          user_actions,
-          handlers
-        )
+        .handle(new Error("some error"), "a:x", { fallback: [{}] })
         .then(r => {
-          expect(core.actions).toHaveBeenCalledWith(
-            [{}],
-            settings,
-            user_actions,
-            handlers
-          );
+          expect(core.actions).toHaveBeenCalledWith([{}]);
           core.actions.mockRestore();
         });
     });
@@ -325,25 +224,11 @@ describe("Core module", () => {
         mainEvent.emit.mockRestore();
         done();
       });
-      core.handle(
-        new Error("low battery"),
-        "a:x",
-        {},
-        settings,
-        user_actions,
-        handlers
-      );
+      core.handle(new Error("low battery"), "a:x", {});
     });
     it("should ignore 'killed' errors", done => {
       try {
-        core.handle(
-          new Error("killed"),
-          "a:x",
-          { actions: [{ "a:x": null }] },
-          settings,
-          user_actions,
-          handlers
-        );
+        core.handle(new Error("killed"), "a:x", { actions: [{ "a:x": null }] });
       } catch (e) {
         expect(e.message).toEqual("killed");
         done();
@@ -354,14 +239,7 @@ describe("Core module", () => {
         .spyOn(errors, "toUser")
         .mockImplementation((e, l, again, ignore) => ignore());
       return core
-        .handle(
-          new Error("some error"),
-          "a:x",
-          { actions: [{ "a:x": null }] },
-          settings,
-          user_actions,
-          handlers
-        )
+        .handle(new Error("some error"), "a:x", { actions: [{ "a:x": null }] })
         .then(r => expect(r).toEqual(null));
     });
     it("should let the user try again", () => {
@@ -370,21 +248,11 @@ describe("Core module", () => {
         .mockImplementation((e, l, again, ignore) => again());
       jest.spyOn(core, "step").mockResolvedValue();
       return core
-        .handle(
-          new Error("some error"),
-          "a:x",
-          { actions: [{ "a:x": null }] },
-          settings,
-          user_actions,
-          handlers
-        )
+        .handle(new Error("some error"), "a:x", { actions: [{ "a:x": null }] })
         .then(() => {
-          expect(core.step).toHaveBeenCalledWith(
-            { actions: [{ "a:x": null }] },
-            settings,
-            user_actions,
-            handlers
-          );
+          expect(core.step).toHaveBeenCalledWith({
+            actions: [{ "a:x": null }]
+          });
           expect(core.step).toHaveBeenCalledTimes(1);
           core.step.mockRestore();
         });
@@ -471,9 +339,7 @@ describe("Core module", () => {
       }
     ].forEach(({ exp, res }) =>
       it(`should return ${res} for ${JSON.stringify(exp)}`, () =>
-        expect(core.evaluate(exp, settings, user_actions, handlers)).toEqual(
-          res
-        ))
+        expect(core.evaluate(exp)).toEqual(res))
     );
   });
 

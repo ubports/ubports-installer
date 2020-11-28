@@ -104,6 +104,10 @@ class Core {
       .catch(() => mainEvent.emit("user:device-unsupported", codename));
   }
 
+  /**
+   * ask the user to select an OS
+   * @returns {Promise}
+   */
   selectOs() {
     return this.delay(1000) // FIXME race condition
       .then(() => this.unlock())
@@ -120,6 +124,7 @@ class Core {
 
   /**
    * ensure unlock steps before we proceed
+   * @returns {Promise}
    */
   unlock() {
     return this.config.unlock && this.config.unlock.length
@@ -149,6 +154,7 @@ class Core {
       .then(() => this.prerequisites())
       .then(() => this.eula())
       .then(() => this.configure())
+      .catch(error => this.handle(error, "preparing"))
       .then(() =>
         this.run([...this.os.steps, { actions: [{ "core:end": null }] }])
       );
@@ -188,34 +194,47 @@ class Core {
    * @returns {Promise}
    */
   configure() {
-    return this.os.options
-      ? Promise.resolve()
-          .then(() => log.info("configuring..."))
+    return this.os.options && this.os.options.length
+      ? Promise.resolve(log.info("configuring..."))
+          .then(() =>
+            Promise.all(this.os.options.map(o => this.setRemoteValues(o)))
+          )
           .then(
             () =>
               new Promise((resolve, reject) =>
                 mainEvent.emit("user:configure", this.os.options, resolve)
               )
           )
-          .then(settings => (this.settings = settings))
-          .then(() => log.info(`settings: ${this.settings}`))
+          .then(() => log.info(`settings: ${JSON.stringify(this.settings)}`))
       : log.debug("nothing to configure");
+  }
+
+  /**
+   * set remote_values on an options object
+   * @param {Object} option option object
+   */
+  setRemoteValues(option) {
+    return option.remote_values
+      ? Promise.resolve(this.parsePluginCall(option.remote_values))
+          .then(([plugin, func]) =>
+            this.plugins[plugin].remote_values[func](option)
+          )
+          .then(values => (option.values = values))
+      : Promise.resolve(option);
   }
 
   /**
    * run a chain of installation steps
    * @param {Array} steps installation steps
-   * @param {Object} settings settings object
-   * @param {Object} user_actions user_actions object
-   * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  run(steps, settings, user_actions, handlers) {
+  run(steps) {
     return steps
-      .map(step => () => this.step(step, settings, user_actions, handlers))
+      .map(step => () => this.step(step))
       .reduce((chain, next) => chain.then(next), Promise.resolve())
-      .catch(() => {
+      .catch(error => {
         // used for killing the run, no actual errors are escalated here
+        log.debug(`run killed with: ${error}`);
         log.warn("aborting run...");
         mainEvent.emit("user:write:working", "particles");
       });
@@ -224,21 +243,14 @@ class Core {
   /**
    *run one installation step
    * @param {Object} step step object
-   * @param {Object} settings settings object
-   * @param {Object} user_actions user_actions object
-   * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  step(step, settings, user_actions, handlers) {
-    return this.evaluate(step.condition, settings)
+  step(step) {
+    return this.evaluate(step.condition)
       ? this.delay(1)
           .then(() => log.verbose(`running step ${JSON.stringify(step)}`))
-          .then(() =>
-            this.actions(step.actions, settings, user_actions, handlers)
-          )
-          .catch(({ error, action }) =>
-            this.handle(error, action, step, settings, user_actions, handlers)
-          )
+          .then(() => this.actions(step.actions))
+          .catch(({ error, action }) => this.handle(error, action, step))
       : this.delay(1).then(() =>
           log.verbose(`skipping step ${JSON.stringify(step)}`)
         );
@@ -247,15 +259,11 @@ class Core {
   /**
    * Run multiple actions
    * @param {Array<Object>} actions array of actions
-   * @param {Object} settings settings object
-   * @param {Object} user_actions user_actions object
-   * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  actions(actions, settings, user_actions, handlers) {
+  actions(actions) {
     return actions.reduce(
-      (prev, curr) =>
-        prev.then(() => this.action(curr, settings, user_actions, handlers)),
+      (prev, curr) => prev.then(() => this.action(curr)),
       Promise.resolve()
     );
   }
@@ -263,13 +271,10 @@ class Core {
   /**
    * Run one action
    * @param {Object} action one action
-   * @param {Object} settings settings object
-   * @param {Object} user_actions user_actions object
-   * @param {Object} handlers handlers object
    * @returns {Promise}
    */
-  action(action, settings, user_actions, handlers) {
-    return Promise.resolve(Object.keys(action)[0].split(":")).then(
+  action(action) {
+    return Promise.resolve(this.parsePluginCall(action)).then(
       ([plugin, func]) => {
         if (
           this.plugins[plugin] &&
@@ -279,17 +284,13 @@ class Core {
           log.verbose(`running ${plugin} action ${func}`);
           return this.plugins[plugin].actions[func](
             action[`${plugin}:${func}`],
-            settings,
-            user_actions
+            this.settings,
+            this.config.user_actions
           )
             .catch(error => {
               throw { error, action: `${plugin}:${func}` };
             })
-            .then(substeps =>
-              substeps
-                ? this.run(substeps, settings, user_actions, handlers)
-                : null
-            );
+            .then(substeps => (substeps ? this.run(substeps) : null));
         } else {
           throw {
             error: new Error(`Unknown action ${plugin}:${func}`),
@@ -305,29 +306,24 @@ class Core {
    * @param {Error} error error thrown
    * @param {Object} location action
    */
-  handle(error, location, step, settings, user_actions, handlers) {
+  handle(error, location, step) {
     log.debug(`attempting to handle handling ${error}`);
     if (step.optional) {
       return;
     } else if (step.fallback) {
-      return this.actions(step.fallback, settings, user_actions, handlers);
+      return this.actions(step.fallback);
     } else if (error.message.includes("low battery")) {
       return new Promise((resolve, reject) => mainEvent.emit("user:low-power"));
     } else if (
       error.message.includes("bootloader locked") ||
       error.message.includes("enable unlocking")
     ) {
-      return this.step(
-        handlers.bootloader_locked,
-        settings,
-        user_actions,
-        handlers
-      ).then(() => this.step(step, settings, user_actions, handlers));
+      return this.step(this.config.handlers.bootloader_locked).then(() =>
+        this.step(step)
+      );
     } else if (error.message.includes("no device")) {
       return new Promise((resolve, reject) =>
-        mainEvent.emit("user:connection-lost", () =>
-          resolve(this.step(step, settings, user_actions, handlers))
-        )
+        mainEvent.emit("user:connection-lost", () => resolve(this.step(step)))
       );
     } else if (
       error.message.includes("device offline") ||
@@ -341,7 +337,7 @@ class Core {
         errors.toUser(
           error,
           location,
-          () => resolve(this.step(step, settings, user_actions, handlers)), // try again
+          () => resolve(this.step(step)), // try again
           () => resolve(null) // ignore
         )
       );
@@ -349,33 +345,41 @@ class Core {
   }
 
   /**
+   * get plugin and call from object
+   * @param {Object} call action or remote
+   * @returns {Array<String>} [plugin, function]
+   */
+  parsePluginCall(call) {
+    return Object.keys(call)[0].split(":");
+  }
+
+  /**
    * Evaluate a conditional expression against the settings
    * @param {Object} expression conditional expression
-   * @param {Object} settings settings object
    * @returns {Boolean}
    */
-  evaluate(expression, settings) {
+  evaluate(expression) {
     if (!expression) {
       // no condition
       return true;
     } else if (expression.AND) {
       // conjunction
       return expression.AND.reduce(
-        (prev, curr) => prev && this.evaluate(curr, settings),
+        (prev, curr) => prev && this.evaluate(curr),
         true // TODO short-circuit execution
       );
     } else if (expression.OR) {
       // disjunction
       return expression.OR.reduce(
-        (prev, curr) => prev || this.evaluate(curr, settings),
+        (prev, curr) => prev || this.evaluate(curr),
         false // TODO short-circuit execution
       );
     } else if (expression.NOT) {
       // negation
-      return !this.evaluate(expression.NOT, settings);
+      return !this.evaluate(expression.NOT);
     } else {
       // identity
-      return settings[expression.var] === expression.value;
+      return this.settings[expression.var] === expression.value;
     }
   }
 
