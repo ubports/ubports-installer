@@ -150,7 +150,7 @@ class FastbootPlugin extends Plugin {
         .wait()
         .then(() =>
           fastboot.flash(
-            addPathToFiles(partitions, global.installProperties.device), // FIXME
+            addPathToFiles(partitions, this.props.config.codename),
             p => mainEvent.emit("user:write:progress", p * 100)
           )
         )
@@ -197,7 +197,7 @@ class FastbootPlugin extends Plugin {
       mainEvent.emit("user:write:status", "Rebooting");
       mainEvent.emit("user:write:under", "Your device is being rebooted...");
       return fastboot.boot(
-        path.join(cachePath, global.installProperties.device, group, file),
+        path.join(cachePath, this.props.config.codename, group, file),
         partition
       );
     });
@@ -216,13 +216,8 @@ class FastbootPlugin extends Plugin {
         "Applying fastboot update zip. This may take a while..."
       );
       return fastboot.update(
-        path.join(
-          cachePath,
-          global.installProperties.device,
-          step.group,
-          step.file
-        ),
-        global.installProperties.settings.wipe
+        path.join(cachePath, this.props.config.codename, step.group, step.file),
+        this.props.settings.wipe
       );
     });
   }

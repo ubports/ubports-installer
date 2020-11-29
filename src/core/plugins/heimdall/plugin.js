@@ -52,7 +52,7 @@ class HeimdallPlugin extends Plugin {
         "Flashing firmware partitions using heimdall"
       );
       return heimdall.flash(
-        addPathToFiles(partitions, global.installProperties.device)
+        addPathToFiles(partitions, this.props.config.codename)
       );
     });
   }

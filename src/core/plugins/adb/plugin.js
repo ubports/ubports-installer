@@ -57,7 +57,7 @@ class AdbPlugin extends Plugin {
       );
       return adb
         .sideload(
-          path.join(cachePath, global.installProperties.device, group, file),
+          path.join(cachePath, this.props.config.codename, group, file),
           p => mainEvent.emit("user:write:progress", p * 100)
         )
         .then(() => mainEvent.emit("user:write:progress", 0));

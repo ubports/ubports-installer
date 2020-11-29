@@ -48,8 +48,8 @@ class Reporter {
    */
   getDeviceString() {
     try {
-      return core.config && core.config.codename
-        ? `${core.config.codename}`
+      return core.props && core.props.config && core.props.config.codename
+        ? `${core.props.config.codename}`
         : "(device not yet detected)";
     } catch (e) {
       return "unknown";
@@ -62,7 +62,9 @@ class Reporter {
    */
   getTargetOsString() {
     try {
-      return core.os ? core.os.name : "(target os not yet set)";
+      return core.props && core.props.os
+        ? core.props.os.name
+        : "(target os not yet set)";
     } catch (e) {
       return "unknown";
     }
@@ -74,7 +76,7 @@ class Reporter {
    */
   getSettingsString() {
     try {
-      `\`${JSON.stringify(core.settings || {})}\``;
+      `\`${JSON.stringify(core.props.settings || {})}\``;
     } catch (e) {
       return "unknown";
     }

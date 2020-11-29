@@ -40,14 +40,13 @@ class CorePlugin extends Plugin {
       mainEvent.emit("user:write:done");
       mainEvent.emit(
         "user:write:status",
-        global.installConfig.operating_systems[global.installProperties.osIndex]
-          .name + " successfully installed!",
+        this.props.os.name + " successfully installed!",
         false
       );
       mainEvent.emit(
         "user:write:under",
-        global.installConfig.operating_systems[global.installProperties.osIndex]
-          .success_message || "All done! Enjoy exploring your new OS!"
+        this.props.os.success_message ||
+          "All done! Enjoy exploring your new OS!"
       );
     });
   }
@@ -101,7 +100,7 @@ class CorePlugin extends Plugin {
         ...file,
         path: path.join(
           cachePath,
-          global.installProperties.device, // FIXME globals are ^-_~*evil*~_-^
+          this.props.config.codename,
           group,
           path.basename(file.url)
         )
@@ -159,11 +158,7 @@ class CorePlugin extends Plugin {
         mainEvent.emit("user:write:working", "particles");
         mainEvent.emit("user:write:status", `Unpacking ${group}`, true);
         mainEvent.emit("user:write:under", `Unpacking...`);
-        return path.join(
-          cachePath,
-          global.installProperties.device, // FIXME remove global
-          group
-        );
+        return path.join(cachePath, this.props.config.codename, group);
       })
       .then(basepath =>
         Promise.all(
@@ -188,7 +183,7 @@ class CorePlugin extends Plugin {
             checksum: file.checksum,
             path: path.join(
               cachePath,
-              global.installProperties.device,
+              this.props.config.codename,
               group,
               file.name
             )
@@ -198,48 +193,48 @@ class CorePlugin extends Plugin {
       })
       .then(ok => {
         if (!ok) {
-          return new Promise(function(resolve, reject) {
-            mainEvent.emit(
-              "user:manual_download",
-              file,
-              group,
-              downloadedFilePath => {
-                fs.ensureDir(
-                  path.join(cachePath, global.installProperties.device, group)
-                )
-                  .then(() =>
-                    fs.copyFile(
-                      downloadedFilePath,
-                      path.join(
-                        cachePath,
-                        global.installProperties.device,
-                        group,
-                        file.name
-                      )
-                    )
-                  )
-                  .then(() =>
-                    checkFile(
-                      {
-                        checksum: file.checksum,
-                        path: path.join(
-                          cachePath,
-                          global.installProperties.device,
-                          group,
-                          file.name
-                        )
-                      },
-                      true
-                    )
-                  )
-                  .then(ok =>
-                    ok ? resolve() : reject(new Error("checksum mismatch"))
-                  )
-                  .catch(reject);
-              }
+          return new Promise(resolve => {
+            mainEvent.emit("user:manual_download", file, group, path =>
+              resolve(path)
             );
-            mainEvent.emit("user:write:under", `Manual download required!`);
-          });
+            mainEvent.emit("user:write:under", "Manual download required!");
+          })
+            .then(downloadedFilePath => {
+              fs.ensureDir(
+                path.join(cachePath, this.props.config.codename, group)
+              ).then(() =>
+                fs.copyFile(
+                  downloadedFilePath,
+                  path.join(
+                    cachePath,
+                    this.props.config.codename,
+                    group,
+                    file.name
+                  )
+                )
+              );
+            })
+            .then(() =>
+              checkFile(
+                {
+                  checksum: file.checksum,
+                  path: path.join(
+                    cachePath,
+                    this.props.config.codename,
+                    group,
+                    file.name
+                  )
+                },
+                true
+              )
+            )
+            .then(ok => {
+              if (ok) {
+                return ok;
+              } else {
+                throw new Error("checksum mismatch");
+              }
+            });
         }
       });
   }

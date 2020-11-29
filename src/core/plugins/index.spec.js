@@ -54,7 +54,10 @@ describe("PluginIndex", () => {
           expect(r).toEqual(["a"]);
           expect(
             pluginIndex.plugins.systemimage.remote_values__channels
-          ).toHaveBeenCalledWith({ remote_values: { "systemimage:channels": { a: "b" } }, values: ["a"]});
+          ).toHaveBeenCalledWith({
+            remote_values: { "systemimage:channels": { a: "b" } },
+            values: ["a"]
+          });
           expect(
             pluginIndex.plugins.systemimage.remote_values__channels
           ).toHaveBeenCalledTimes(1);

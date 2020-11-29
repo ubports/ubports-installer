@@ -1,21 +1,20 @@
 const mainEvent = require("../../../lib/mainEvent.js");
 const { download, checkFile } = require("progressive-downloader");
-const core = new (require("./plugin.js"))();
+const core = new (require("./plugin.js"))({
+  os: { name: "Ubuntu Touch" },
+  config: { codename: "yggdrasil" }
+});
 
 describe("core plugin", () => {
   describe("end()", () => {
     it("should display end screen", () => {
-      global.installProperties = { osIndex: 0, device: "bacon" };
-      global.installConfig = {
-        operating_systems: [{ name: "os" }]
-      };
       jest.spyOn(mainEvent, "emit").mockImplementation();
       return core.action__end().then(r => {
         expect(r).toEqual(undefined);
         expect(mainEvent.emit).toHaveBeenCalledWith("user:write:done");
         expect(mainEvent.emit).toHaveBeenCalledWith(
           "user:write:status",
-          "os successfully installed!",
+          "Ubuntu Touch successfully installed!",
           false
         );
         expect(mainEvent.emit).toHaveBeenCalledWith(
@@ -76,7 +75,6 @@ describe("core plugin", () => {
   });
 
   describe("download()", () => {
-    global.installProperties = { device: "bacon" };
     it("should download", () =>
       core.action__download({
         group: "fimrware",
@@ -107,7 +105,6 @@ describe("core plugin", () => {
   });
 
   describe("unpack()", () => {
-    global.installProperties = { device: "bacon" };
     it("should unpack", () =>
       core.action__unpack({
         group: "firmware",
@@ -116,7 +113,6 @@ describe("core plugin", () => {
   });
 
   describe("manual_download()", () => {
-    global.installProperties = { device: "bacon" };
     it("should resolve if checksum was verified", () => {
       jest
         .spyOn(mainEvent, "emit")
@@ -174,7 +170,7 @@ describe("core plugin", () => {
     it("should reject on checksum mismatch", done => {
       jest
         .spyOn(mainEvent, "emit")
-        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+        .mockImplementation((e, f, g, cb) => (cb ? cb("a") : null));
       checkFile.mockResolvedValue(false);
       core
         .action__manual_download({
