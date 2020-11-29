@@ -226,6 +226,7 @@ class Core {
    * @returns {Promise}
    */
   run(steps) {
+    if (!(steps && steps.length)) return Promise.resolve();
     return steps
       .map(step => () => this.step(step))
       .reduce((chain, next) => chain.then(next), Promise.resolve())
@@ -233,7 +234,6 @@ class Core {
         // used for killing the run, no actual errors are escalated here
         log.debug(`run killed with: ${JSON.stringify(error)}`);
         log.warn("aborting run...");
-        mainEvent.emit("restart");
       });
   }
 
@@ -247,7 +247,7 @@ class Core {
       ? this.delay(1)
           .then(() => log.verbose(`running step ${JSON.stringify(step)}`))
           .then(() => this.actions(step.actions))
-          .catch(({ error, action }) => this.handle(error, action, step))
+          .catch(e => this.handle(e.error || e, e.action || "unknown", step))
       : this.delay(1).then(() =>
           log.verbose(`skipping step ${JSON.stringify(step)}`)
         );
@@ -282,7 +282,7 @@ class Core {
    * @param {Object} location action
    */
   handle(error, location, step) {
-    log.debug(`attempting to handle handling ${error}`);
+    log.debug(`attempting to handle ${error}`);
     if (step && step.optional) {
       return;
     } else if (step && step.fallback) {

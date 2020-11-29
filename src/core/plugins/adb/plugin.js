@@ -21,6 +21,7 @@ const Plugin = require("../plugin.js");
 const path = require("path");
 const { adb } = require("../../../lib/deviceTools.js");
 const mainEvent = require("../../../lib/mainEvent.js");
+const { path: cachePath } = require("../../../lib/cache.js");
 
 /**
  * adb plugin

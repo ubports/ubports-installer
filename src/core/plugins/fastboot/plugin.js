@@ -21,6 +21,7 @@ const Plugin = require("../plugin.js");
 const path = require("path");
 const mainEvent = require("../../../lib/mainEvent.js");
 const { fastboot } = require("../../../lib/deviceTools.js");
+const { path: cachePath } = require("../../../lib/cache.js");
 
 /**
  * Transform path array
@@ -233,7 +234,8 @@ class FastbootPlugin extends Plugin {
         mainEvent.emit("user:write:status", "Waiting for device", true);
         mainEvent.emit("user:write:under", "Fastboot is scanning for devices");
       })
-      .then(() => fastboot.wait());
+      .then(() => fastboot.wait())
+      .then(() => null); // ensure null is returned
   }
 }
 

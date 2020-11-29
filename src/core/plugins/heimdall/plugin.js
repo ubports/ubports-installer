@@ -21,6 +21,7 @@ const Plugin = require("../plugin.js");
 const path = require("path");
 const { heimdall } = require("../../../lib/deviceTools.js");
 const mainEvent = require("../../../lib/mainEvent.js");
+const { path: cachePath } = require("../../../lib/cache.js");
 
 /**
  * Transform path array
