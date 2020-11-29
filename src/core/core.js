@@ -231,9 +231,9 @@ class Core {
       .reduce((chain, next) => chain.then(next), Promise.resolve())
       .catch(error => {
         // used for killing the run, no actual errors are escalated here
-        log.debug(`run killed with: ${error}`);
+        log.debug(`run killed with: ${JSON.stringify(error)}`);
         log.warn("aborting run...");
-        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("restart");
       });
   }
 

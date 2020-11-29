@@ -60,7 +60,8 @@ describe("core plugin", () => {
     ].forEach(([action, user_actions, substeps]) =>
       it(`should run user_action ${action.action}`, () => {
         jest.spyOn(mainEvent, "emit").mockImplementation((m, d, cb) => cb());
-        return core.action__user_action(action, null, user_actions).then(r => {
+        core.props.config.user_actions = user_actions;
+        return core.action__user_action(action).then(r => {
           expect(r).toEqual(substeps);
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:action",
@@ -72,6 +73,13 @@ describe("core plugin", () => {
         });
       })
     );
+    it("should reject on unknown user_action", done => {
+      core.props.config.user_actions = {};
+      core.action__user_action({ action: "a" }).catch(e => {
+        expect(e.message).toEqual("Unknown user_action: a");
+        done();
+      });
+    });
   });
 
   describe("download()", () => {

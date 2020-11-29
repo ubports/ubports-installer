@@ -63,30 +63,31 @@ class CorePlugin extends Plugin {
   /**
    * core:user_action action
    * @param {Object} action action
-   * @param {Object} settings settings object
-   * @param {Object} user_actions user_actions object
    * @returns {Promise}
    */
-  action__user_action({ action }, settings, user_actions) {
-    return new Promise(function(resolve, reject) {
-      mainEvent.emit("user:action", user_actions[action], () => {
-        switch (action) {
-          case "recovery":
-          case "system":
-            resolve([{ actions: [{ "adb:wait": null }] }]);
-            break;
-          case "bootloader":
-            resolve([{ actions: [{ "fastboot:wait": null }] }]);
-            break;
-          case "download":
-            resolve([{ actions: [{ "heimdall:wait": null }] }]);
-            break;
-          default:
-            resolve();
-            break;
-        }
-      });
-    });
+  action__user_action({ action }) {
+    const user_action = this.props.config.user_actions[action];
+    return user_action
+      ? new Promise(function(resolve, reject) {
+          mainEvent.emit("user:action", user_action, () => {
+            switch (action) {
+              case "recovery":
+              case "system":
+                resolve([{ actions: [{ "adb:wait": null }] }]);
+                break;
+              case "bootloader":
+                resolve([{ actions: [{ "fastboot:wait": null }] }]);
+                break;
+              case "download":
+                resolve([{ actions: [{ "heimdall:wait": null }] }]);
+                break;
+              default:
+                resolve();
+                break;
+            }
+          });
+        })
+      : Promise.reject(new Error(`Unknown user_action: ${action}`));
   }
 
   /**
@@ -194,10 +195,12 @@ class CorePlugin extends Plugin {
       .then(ok => {
         if (!ok) {
           return new Promise(resolve => {
-            mainEvent.emit("user:manual_download", file, group, path =>
-              resolve(path)
-            );
-            mainEvent.emit("user:write:under", "Manual download required!");
+            setTimeout(() => {
+              mainEvent.emit("user:manual_download", file, group, path =>
+                resolve(path)
+              );
+              mainEvent.emit("user:write:under", "Manual download required!");
+            }, 10);
           })
             .then(downloadedFilePath => {
               fs.ensureDir(
