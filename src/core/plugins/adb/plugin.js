@@ -116,7 +116,8 @@ class AdbPlugin extends Plugin {
         mainEvent.emit("user:write:status", "Waiting for device", true);
         mainEvent.emit("user:write:under", "Adb is scanning for devices");
       })
-      .then(() => adb.wait());
+      .then(() => adb.wait())
+      .then(() => null); // ensure null is returned
   }
 }
 

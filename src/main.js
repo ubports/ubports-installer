@@ -70,8 +70,10 @@ async function createWindow() {
   mainWindow.webContents.on("did-finish-load", () => {
     if (!core.props.config) {
       // FIXME implement core.detect()
-      const wait = deviceTools.wait();
-      ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+      deviceTools.adb.startServer().then(() => {
+        const wait = deviceTools.wait();
+        ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+      });
     }
     core.prepare();
   });

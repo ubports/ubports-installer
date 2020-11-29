@@ -69,7 +69,8 @@ class HeimdallPlugin extends Plugin {
         mainEvent.emit("user:write:status", "Waiting for device", true);
         mainEvent.emit("user:write:under", "Heimdall is scanning for devices");
       })
-      .then(() => heimdall.wait());
+      .then(() => heimdall.wait())
+      .then(() => null); // ensure null is returned
   }
 }
 

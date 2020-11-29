@@ -66,7 +66,6 @@
     "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.1.2",
     "systeminformation": "^4.27.11",
-    "ubports-api-node-module": "^3.0.2",
     "ubuntu-pastebin": "^1.0.0",
     "winston": "^3.3.3",
     "yaml": "^2.0.0-1"

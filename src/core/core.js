@@ -23,7 +23,7 @@ const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
 const { adb } = require("../lib/deviceTools.js");
-const api = require("../lib/api.js");
+const api = require("./api.js");
 const PluginIndex = require("./plugins/index.js");
 
 /**

@@ -19,7 +19,7 @@
 
 const { DeviceTools } = require("./asarLibs.js");
 const errors = require("./errors.js");
-const api = require("./api.js");
+const api = require("../core/api.js");
 const log = require("./log.js");
 const mainEvent = require("./mainEvent.js");
 
