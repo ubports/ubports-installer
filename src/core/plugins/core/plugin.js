@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const Plugin = require("../plugin.js");
 const fs = require("fs-extra");
 const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
@@ -26,10 +27,15 @@ const log = require("../../../lib/log.js");
 const { path: cachePath } = require("../../../lib/cache.js");
 
 /**
- * core actions plugin
+ * core plugin
+ * @extends Plugin
  */
-class CoreActionsPlugin {
-  end() {
+class CorePlugin extends Plugin {
+  /**
+   * core:end end action
+   * @returns {Promise}
+   */
+  action__end() {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:done");
       mainEvent.emit(
@@ -51,7 +57,7 @@ class CoreActionsPlugin {
    * @param {Array} group array of steps
    * @returns {Promise}
    */
-  group(group) {
+  action__group(group) {
     return Promise.resolve(group.length ? group : null);
   }
 
@@ -62,7 +68,7 @@ class CoreActionsPlugin {
    * @param {Object} user_actions user_actions object
    * @returns {Promise}
    */
-  user_action({ action }, settings, user_actions) {
+  action__user_action({ action }, settings, user_actions) {
     return new Promise(function(resolve, reject) {
       mainEvent.emit("user:action", user_actions[action], () => {
         switch (action) {
@@ -89,7 +95,7 @@ class CoreActionsPlugin {
    * @param {Object} param0 {group, files}
    * @returns {Promise}
    */
-  download({ group, files }) {
+  action__download({ group, files }) {
     return download(
       files.map(file => ({
         ...file,
@@ -147,7 +153,7 @@ class CoreActionsPlugin {
    * @param {Object} param0 {group, files}
    * @returns {Promise}
    */
-  unpack({ group, files }) {
+  action__unpack({ group, files }) {
     return Promise.resolve()
       .then(() => {
         mainEvent.emit("user:write:working", "particles");
@@ -171,7 +177,7 @@ class CoreActionsPlugin {
       );
   }
 
-  manual_download({ group, file }) {
+  action__manual_download({ group, file }) {
     return Promise.resolve()
       .then(() => {
         mainEvent.emit("user:write:working", "particles");
@@ -239,6 +245,4 @@ class CoreActionsPlugin {
   }
 }
 
-module.exports = {
-  actions: new CoreActionsPlugin()
-};
+module.exports = CorePlugin;

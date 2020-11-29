@@ -152,7 +152,7 @@ class Core {
       )
       .then(() => this.prerequisites())
       .then(() => this.eula())
-      .then(() => this.props.configure())
+      .then(() => this.configure())
       .catch(error => this.handle(error, "preparing"))
       .then(() =>
         this.run([...this.props.os.steps, { actions: [{ "core:end": null }] }])
@@ -283,9 +283,9 @@ class Core {
    */
   handle(error, location, step) {
     log.debug(`attempting to handle handling ${error}`);
-    if (step.optional) {
+    if (step && step.optional) {
       return;
-    } else if (step.fallback) {
+    } else if (step && step.fallback) {
       return this.actions(step.fallback);
     } else if (error.message.includes("low battery")) {
       return new Promise((resolve, reject) => mainEvent.emit("user:low-power"));
@@ -364,7 +364,10 @@ class Core {
 const core = new Core();
 
 // The user configured the installation
-ipcMain.on("option", (_, variable, value) => (core.settings[variable] = value));
+ipcMain.on(
+  "option",
+  (_, variable, value) => (core.props.settings[variable] = value)
+);
 
 // the user selected an os
 ipcMain.on("os:selected", (_, index) => core.install(index));

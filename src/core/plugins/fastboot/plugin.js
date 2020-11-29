@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const Plugin = require("../plugin.js");
 const path = require("path");
 const mainEvent = require("../../../lib/mainEvent.js");
 const { fastboot } = require("../../../lib/deviceTools.js");
@@ -34,15 +35,16 @@ function addPathToFiles(files, device) {
 }
 
 /**
- * fastboot actions plugin
+ * fastboot plugin
+ * @extends Plugin
  */
-class FastbootActionsPlugin {
+class FastbootPlugin extends Plugin {
   /**
    * fastboot:oem_unlock
    * @param {Object} step {code_url}
    * @returns {Promise}
    */
-  oem_unlock(step) {
+  action__oem_unlock(step) {
     const code_url = step ? step.code_url : null;
     return new Promise((resolve, reject) =>
       mainEvent.emit("user:oem-lock", false, code_url, code =>
@@ -69,7 +71,7 @@ class FastbootActionsPlugin {
    * fastboot:flashing_unlock
    * @returns {Promise}
    */
-  flashing_unlock() {
+  action__flashing_unlock() {
     return new Promise((resolve, reject) =>
       mainEvent.emit("user:flashing-lock", () =>
         fastboot
@@ -84,7 +86,7 @@ class FastbootActionsPlugin {
    * fastboot:reboot_bootloader action
    * @returns {Promise}
    */
-  reboot_bootloader() {
+  action__reboot_bootloader() {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Rebooting", true);
@@ -97,7 +99,7 @@ class FastbootActionsPlugin {
    * fastboot:reboot action
    * @returns {Promise}
    */
-  reboot() {
+  action__reboot() {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Rebooting", true);
@@ -110,7 +112,7 @@ class FastbootActionsPlugin {
    * fastboot:continue action
    * @returns {Promise}
    */
-  continue() {
+  action__continue() {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Continuing boot", true);
@@ -123,7 +125,7 @@ class FastbootActionsPlugin {
    * fastboot:set_active action
    * @returns {Promise}
    */
-  set_active({ slot }) {
+  action__set_active({ slot }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Setting slots", true);
@@ -136,7 +138,7 @@ class FastbootActionsPlugin {
    * fastboot:flash action
    * @returns {Promise}
    */
-  flash({ partitions }) {
+  action__flash({ partitions }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Flashing firmware", true);
@@ -160,7 +162,7 @@ class FastbootActionsPlugin {
    * fastboot:erase action
    * @returns {Promise}
    */
-  erase({ partition }) {
+  action__erase({ partition }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Cleaning up", true);
@@ -173,7 +175,7 @@ class FastbootActionsPlugin {
    * fastboot:format action
    * @returns {Promise}
    */
-  format({ partition, type, size }) {
+  action__format({ partition, type, size }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Cleaning up", true);
@@ -189,7 +191,7 @@ class FastbootActionsPlugin {
    * fastboot:boot action
    * @returns {Promise}
    */
-  boot({ group, file, partition }) {
+  action__boot({ group, file, partition }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Rebooting");
@@ -205,7 +207,7 @@ class FastbootActionsPlugin {
    * fastboot:update action
    * @returns {Promise}
    */
-  update({ group, file, partition }) {
+  action__update({ group, file, partition }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Updating system", true);
@@ -229,7 +231,7 @@ class FastbootActionsPlugin {
    * fastboot:wait action
    * @returns {Promise}
    */
-  wait() {
+  action__wait() {
     return Promise.resolve()
       .then(() => {
         mainEvent.emit("user:write:working", "particles");
@@ -240,6 +242,4 @@ class FastbootActionsPlugin {
   }
 }
 
-module.exports = {
-  actions: new FastbootActionsPlugin()
-};
+module.exports = FastbootPlugin;

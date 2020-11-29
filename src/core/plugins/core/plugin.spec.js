@@ -1,9 +1,6 @@
 const mainEvent = require("../../../lib/mainEvent.js");
 const { download, checkFile } = require("progressive-downloader");
-const core = require("./plugin.js").actions;
-
-it("should be a singleton", () =>
-  expect(core).toEqual(require("./plugin.js").actions));
+const core = new (require("./plugin.js"))();
 
 describe("core plugin", () => {
   describe("end()", () => {
@@ -13,7 +10,7 @@ describe("core plugin", () => {
         operating_systems: [{ name: "os" }]
       };
       jest.spyOn(mainEvent, "emit").mockImplementation();
-      return core.end().then(r => {
+      return core.action__end().then(r => {
         expect(r).toEqual(undefined);
         expect(mainEvent.emit).toHaveBeenCalledWith("user:write:done");
         expect(mainEvent.emit).toHaveBeenCalledWith(
@@ -33,9 +30,9 @@ describe("core plugin", () => {
 
   describe("group()", () => {
     it("should resolve group steps", () =>
-      core.group([{}]).then(r => expect(r).toEqual([{}])));
+      core.action__group([{}]).then(r => expect(r).toEqual([{}])));
     it("should resolve null on empty array", () =>
-      core.group([]).then(r => expect(r).toEqual(null)));
+      core.action__group([]).then(r => expect(r).toEqual(null)));
   });
 
   describe("user_action()", () => {
@@ -64,7 +61,7 @@ describe("core plugin", () => {
     ].forEach(([action, user_actions, substeps]) =>
       it(`should run user_action ${action.action}`, () => {
         jest.spyOn(mainEvent, "emit").mockImplementation((m, d, cb) => cb());
-        return core.user_action(action, null, user_actions).then(r => {
+        return core.action__user_action(action, null, user_actions).then(r => {
           expect(r).toEqual(substeps);
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:action",
@@ -81,7 +78,7 @@ describe("core plugin", () => {
   describe("download()", () => {
     global.installProperties = { device: "bacon" };
     it("should download", () =>
-      core.download({
+      core.action__download({
         group: "fimrware",
         files: [
           { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
@@ -92,7 +89,7 @@ describe("core plugin", () => {
       download.mockRejectedValueOnce("download error");
       jest.spyOn(mainEvent, "emit");
       core
-        .download({
+        .action__download({
           group: "fimrware",
           files: [
             { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
@@ -112,7 +109,7 @@ describe("core plugin", () => {
   describe("unpack()", () => {
     global.installProperties = { device: "bacon" };
     it("should unpack", () =>
-      core.unpack({
+      core.action__unpack({
         group: "firmware",
         files: [{ archive: "a.zip", dir: "a" }]
       })); // TODO add assertions
@@ -126,7 +123,7 @@ describe("core plugin", () => {
         .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
       checkFile.mockResolvedValue(true);
       return core
-        .manual_download({
+        .action__manual_download({
           group: "firmware",
           file: { name: "a.zip" }
         })
@@ -153,7 +150,7 @@ describe("core plugin", () => {
         .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
       checkFile.mockResolvedValueOnce(false);
       return core
-        .manual_download({
+        .action__manual_download({
           group: "firmware",
           file: { name: "a.zip" }
         })
@@ -180,7 +177,7 @@ describe("core plugin", () => {
         .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
       checkFile.mockResolvedValue(false);
       core
-        .manual_download({
+        .action__manual_download({
           group: "firmware",
           file: { name: "a.zip" }
         })

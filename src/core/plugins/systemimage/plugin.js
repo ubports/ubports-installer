@@ -17,14 +17,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const Plugin = require("../plugin.js");
 const mainEvent = require("../../../lib/mainEvent.js");
 const systemImage = require("../../../lib/system-image.js");
 
 /**
- * systemimage remote_values plugin
+ * systemimage plugin
+ * @extends Plugin
  */
-class SystemimageRemoteValuesPlugin {
-  channels() {
+class SystemimagePlugin extends Plugin {
+  /**
+   * install action
+   * @returns {Promise}
+   */
+  action__install() {
+    mainEvent.emit("user:write:progress", 0);
+    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
+    mainEvent.emit("user:write:under", "Checking local files");
+    return systemImage.installLatestVersion({
+      device: this.props.config.codename,
+      ...this.props.settings
+    });
+  }
+
+  /**
+   * channels remote_values
+   * @returns {Promise<Array<Object>>}
+   */
+  remote_values__channels() {
     return systemImage
       .getDeviceChannels("bacon") // FIXME put actual value here
       .then(channels =>
@@ -38,25 +59,4 @@ class SystemimageRemoteValuesPlugin {
   }
 }
 
-/**
- * systemimage actions plugin
- */
-class SystemimageActionsPlugin {
-  install() {
-    mainEvent.emit("user:write:progress", 0);
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
-    mainEvent.emit("user:write:under", "Checking local files");
-    return systemImage.installLatestVersion(
-      Object.assign(
-        { device: global.installConfig.codename },
-        global.installProperties.settings
-      )
-    );
-  }
-}
-
-module.exports = {
-  actions: new SystemimageActionsPlugin(),
-  remote_values: new SystemimageRemoteValuesPlugin()
-};
+module.exports = SystemimagePlugin;

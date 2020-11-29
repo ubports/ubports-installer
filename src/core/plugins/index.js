@@ -65,15 +65,17 @@ class PluginIndex {
   action(action) {
     return Promise.resolve(this.parsePluginId(action)).then(([p, f]) => {
       log.verbose(`running ${p} action ${f}`);
-      return this.plugins[p].actions[f](action[`${p}:${f}`]).catch(error => {
-        throw { error, action: `${p}:${f}` };
-      });
+      return this.plugins[p][`action__${f}`](action[`${p}:${f}`]).catch(
+        error => {
+          throw { error, action: `${p}:${f}` };
+        }
+      );
     });
   }
 
   remote_value(option) {
     return Promise.resolve(this.parsePluginId(option.remote_values))
-      .then(([p, f]) => this.plugins[p].remote_values[f](option))
+      .then(([p, f]) => this.plugins[p][`remote_values__${f}`](option))
       .then(values => (option.values = values));
   }
 }

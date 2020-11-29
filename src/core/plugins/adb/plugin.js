@@ -17,19 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const Plugin = require("../plugin.js");
 const path = require("path");
 const { adb } = require("../../../lib/deviceTools.js");
 const mainEvent = require("../../../lib/mainEvent.js");
 
 /**
- * adb actions plugin
+ * adb plugin
  */
-class AdbActionsPlugin {
+class AdbPlugin extends Plugin {
   /**
    * adb:format action
    * @returns {Promise}
    */
-  format({ partition }) {
+  action__format({ partition }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit(
@@ -46,7 +47,7 @@ class AdbActionsPlugin {
    * adb:sideload action
    * @returns {Promise}
    */
-  sideload({ group, file }) {
+  action__sideload({ group, file }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", `Sideloading ${group}`, true);
@@ -67,7 +68,7 @@ class AdbActionsPlugin {
    * adb:reboot action
    * @returns {Promise}
    */
-  reboot({ to_state }) {
+  action__reboot({ to_state }) {
     return Promise.resolve()
       .then(() => {
         mainEvent.emit("user:write:working", "particles");
@@ -82,7 +83,7 @@ class AdbActionsPlugin {
    * Try re-connecting offline or unauthorized devices three times and resume step. Failing that, instruct the user to re-connect the device.
    * @returns {Promise}
    */
-  reconnect() {
+  action__reconnect() {
     return Promise.resolve()
       .then(() => {
         mainEvent.emit("user:write:working", "particles");
@@ -107,7 +108,7 @@ class AdbActionsPlugin {
    * adb:wait action
    * @returns {Promise}
    */
-  wait() {
+  action__wait() {
     return Promise.resolve()
       .then(() => {
         mainEvent.emit("user:write:working", "particles");
@@ -118,6 +119,4 @@ class AdbActionsPlugin {
   }
 }
 
-module.exports = {
-  actions: new AdbActionsPlugin()
-};
+module.exports = AdbPlugin;

@@ -68,7 +68,7 @@ async function createWindow() {
 
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => {
-    if (!core.config) {
+    if (!core.props.config) {
       // FIXME implement core.detect()
       const wait = deviceTools.wait();
       ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));

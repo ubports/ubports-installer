@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const Plugin = require("../plugin.js");
 const path = require("path");
 const { heimdall } = require("../../../lib/deviceTools.js");
 const mainEvent = require("../../../lib/mainEvent.js");
@@ -35,13 +36,14 @@ function addPathToFiles(files, device) {
 
 /**
  * heimdall actions plugin
+ * @extends Plugin
  */
-class HeimdallActionsPlugin {
+class HeimdallPlugin extends Plugin {
   /**
    * fastboot:flash action
    * @returns {Promise}
    */
-  flash({ partitions }) {
+  action__flash({ partitions }) {
     return Promise.resolve().then(() => {
       mainEvent.emit("user:write:working", "particles");
       mainEvent.emit("user:write:status", "Flashing firmware", true);
@@ -59,7 +61,7 @@ class HeimdallActionsPlugin {
    * heimdall:wait action
    * @returns {Promise}
    */
-  wait() {
+  action__wait() {
     return Promise.resolve()
       .then(() => {
         mainEvent.emit("user:write:working", "particles");
@@ -70,6 +72,4 @@ class HeimdallActionsPlugin {
   }
 }
 
-module.exports = {
-  actions: new HeimdallActionsPlugin()
-};
+module.exports = HeimdallPlugin;
