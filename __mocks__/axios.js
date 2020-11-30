@@ -1,5 +1,8 @@
 const axios = {
-  get: jest.fn().mockResolvedValue()
+  get: jest.fn().mockResolvedValue(),
+  create: jest.fn()
 };
+
+axios.create.mockReturnValue(axios);
 
 module.exports = axios;

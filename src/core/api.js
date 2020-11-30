@@ -21,14 +21,16 @@ const axios = require("axios");
 
 /** @module api */
 
-/** api base url */
-const HOST = "http://localhost:8080";
+const api = axios.create({
+  baseURL: "http://localhost:8080/",
+  timeout: 5000
+});
 
 /**
  * get device index
  * @returns {Promise<Array<Object>>}
  */
-const getIndex = () => axios.get(`${HOST}/index.json`).then(({ data }) => data);
+const getIndex = () => api.get("index.json").then(({ data }) => data);
 
 /**
  * get device selects html
@@ -48,8 +50,8 @@ const getDeviceSelects = () =>
  * @throws {Error} message "unsupported" if 404 not found
  */
 const getDevice = codename =>
-  axios
-    .get(`${HOST}/devices/${codename}.json`)
+  api
+    .get(`/devices/${codename}.json`)
     .then(({ data }) => data)
     .catch(error => {
       if (error.response.status === 404) throw new Error("unsupported");
@@ -62,8 +64,8 @@ const getDevice = codename =>
  * @returns {Promise<String>} resolved codename
  */
 const resolveAlias = codename =>
-  axios
-    .get(`${HOST}/aliases.json`)
+  api
+    .get("/aliases.json")
     .then(({ data }) => (data[codename] ? data[codename][0] : codename));
 
 module.exports = {
