@@ -18,6 +18,9 @@
  */
 
 const { ipcMain } = require("electron");
+const path = require("path");
+const fs = require("fs-extra");
+const YAML = require("yaml");
 const mainEvent = require("../lib/mainEvent.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
@@ -58,11 +61,15 @@ class Core {
   }
 
   /**
-   * prepare the installer: get device selects and start adb server
+   * prepare the installer: start adb server and get device selects or read config
+   * @param {String} [file] config file
    * @returns {Promise}
    */
-  prepare() {
-    deviceTools.adb.startServer().then(() => {
+  prepare(file) {
+    Promise.all([
+      this.readConfigFile(file),
+      deviceTools.adb.startServer()
+    ]).then(() => {
       if (this.props.config) {
         this.selectOs();
       } else {
@@ -116,6 +123,18 @@ class Core {
       .then(config => this.setConfig(config))
       .then(() => this.selectOs())
       .catch(() => mainEvent.emit("user:device-unsupported", codename));
+  }
+
+  readConfigFile(file) {
+    return file
+      ? Promise.resolve(
+          path.isAbsolute(file) ? file : path.join(process.cwd(), file)
+        )
+          .then(file => fs.readFileSync(file).toString())
+          .then(content => YAML.parse(content))
+          .then(config => this.setConfig(config))
+          .catch(error => errors.toUser(error, "reading config file"))
+      : Promise.resolve();
   }
 
   /**

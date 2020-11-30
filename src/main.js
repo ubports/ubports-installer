@@ -65,7 +65,7 @@ async function createWindow() {
   });
 
   // Tasks we need for every start and restart
-  mainWindow.webContents.on("did-finish-load", () => core.prepare());
+  mainWindow.webContents.on("did-finish-load", () => core.prepare(cli.file));
 
   // Task we need only on the first start
   mainWindow.webContents.once("did-finish-load", () => {
