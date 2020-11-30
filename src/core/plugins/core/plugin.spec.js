@@ -1,17 +1,19 @@
-const mainEvent = require("../../../lib/mainEvent.js");
+const mainEvent = { emit: jest.fn() };
+beforeEach(() => mainEvent.emit.mockReset());
+
 const { download, checkFile } = require("progressive-downloader");
 const core = new (require("./plugin.js"))(
   {
     os: { name: "Ubuntu Touch" },
     config: { codename: "yggdrasil" }
   },
-  "a"
+  "a",
+  mainEvent
 );
 
 describe("core plugin", () => {
   describe("end()", () => {
     it("should display end screen", () => {
-      jest.spyOn(mainEvent, "emit").mockImplementation();
       return core.action__end().then(r => {
         expect(r).toEqual(undefined);
         expect(mainEvent.emit).toHaveBeenCalledWith("user:write:done");
@@ -25,7 +27,6 @@ describe("core plugin", () => {
           "All done! Enjoy exploring your new OS!"
         );
         expect(mainEvent.emit).toHaveBeenCalledTimes(3);
-        mainEvent.emit.mockRestore();
       });
     });
   });
@@ -62,7 +63,7 @@ describe("core plugin", () => {
       ]
     ].forEach(([action, user_actions, substeps]) =>
       it(`should run user_action ${action.action}`, () => {
-        jest.spyOn(mainEvent, "emit").mockImplementation((m, d, cb) => cb());
+        mainEvent.emit.mockImplementation((m, d, cb) => cb());
         core.props.config.user_actions = user_actions;
         return core.action__user_action(action).then(r => {
           expect(r).toEqual(substeps);
@@ -72,7 +73,6 @@ describe("core plugin", () => {
             expect.any(Function)
           );
           expect(mainEvent.emit).toHaveBeenCalledTimes(1);
-          mainEvent.emit.mockRestore();
         });
       })
     );
@@ -96,7 +96,6 @@ describe("core plugin", () => {
       })); // TODO add assertions for event messages
     it("should show network error", done => {
       download.mockRejectedValueOnce("download error");
-      jest.spyOn(mainEvent, "emit");
       core
         .action__download({
           group: "fimrware",
@@ -109,7 +108,6 @@ describe("core plugin", () => {
           expect(error.message).toEqual("core:download download error");
           expect(mainEvent.emit).toHaveBeenCalledWith("user:no-network");
           expect(mainEvent.emit).toHaveBeenCalledTimes(1);
-          mainEvent.emit.mockRestore();
           done();
         });
     });
@@ -148,7 +146,6 @@ describe("core plugin", () => {
             "Checking firmware files..."
           );
           expect(mainEvent.emit).toHaveBeenCalledTimes(3);
-          mainEvent.emit.mockRestore();
         });
     });
     it("should instruct manual download", () => {
@@ -175,7 +172,6 @@ describe("core plugin", () => {
             "Checking firmware files..."
           );
           expect(mainEvent.emit).toHaveBeenCalledTimes(5);
-          mainEvent.emit.mockRestore();
         });
     });
     it("should reject on checksum mismatch", done => {
@@ -203,7 +199,6 @@ describe("core plugin", () => {
             "Checking firmware files..."
           );
           expect(mainEvent.emit).toHaveBeenCalledTimes(5);
-          mainEvent.emit.mockRestore();
           done();
         });
     });

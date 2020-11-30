@@ -18,7 +18,6 @@
  */
 
 const Plugin = require("../plugin.js");
-const mainEvent = require("../../../lib/mainEvent.js");
 const systemImage = require("../../../lib/system-image.js");
 
 /**
@@ -31,10 +30,10 @@ class SystemimagePlugin extends Plugin {
    * @returns {Promise}
    */
   action__install() {
-    mainEvent.emit("user:write:progress", 0);
-    mainEvent.emit("user:write:working", "particles");
-    mainEvent.emit("user:write:status", "Downloading Ubuntu Touch", true);
-    mainEvent.emit("user:write:under", "Checking local files");
+    this.event.emit("user:write:progress", 0);
+    this.event.emit("user:write:working", "particles");
+    this.event.emit("user:write:status", "Downloading Ubuntu Touch", true);
+    this.event.emit("user:write:under", "Checking local files");
     return systemImage.installLatestVersion({
       device: this.props.config.codename,
       ...this.props.settings

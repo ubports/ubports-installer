@@ -20,7 +20,6 @@
 const Plugin = require("../plugin.js");
 const path = require("path");
 const { heimdall } = require("../../../lib/deviceTools.js");
-const mainEvent = require("../../../lib/mainEvent.js");
 
 /**
  * heimdall actions plugin
@@ -33,9 +32,9 @@ class HeimdallPlugin extends Plugin {
    */
   action__flash({ partitions }) {
     return Promise.resolve().then(() => {
-      mainEvent.emit("user:write:working", "particles");
-      mainEvent.emit("user:write:status", "Flashing firmware", true);
-      mainEvent.emit(
+      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:status", "Flashing firmware", true);
+      this.event.emit(
         "user:write:under",
         "Flashing firmware partitions using heimdall"
       );
@@ -60,9 +59,9 @@ class HeimdallPlugin extends Plugin {
   action__wait() {
     return Promise.resolve()
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Waiting for device", true);
-        mainEvent.emit("user:write:under", "Heimdall is scanning for devices");
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:status", "Waiting for device", true);
+        this.event.emit("user:write:under", "Heimdall is scanning for devices");
       })
       .then(() => heimdall.wait())
       .then(() => null); // ensure null is returned

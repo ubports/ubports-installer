@@ -20,7 +20,6 @@
 const Plugin = require("../plugin.js");
 const path = require("path");
 const { adb } = require("../../../lib/deviceTools.js");
-const mainEvent = require("../../../lib/mainEvent.js");
 
 /**
  * adb plugin
@@ -32,13 +31,13 @@ class AdbPlugin extends Plugin {
    */
   action__format({ partition }) {
     return Promise.resolve().then(() => {
-      mainEvent.emit("user:write:working", "particles");
-      mainEvent.emit(
+      this.event.emit("user:write:working", "particles");
+      this.event.emit(
         "user:write:status",
         "Preparing system for installation",
         true
       );
-      mainEvent.emit("user:write:under", "Formatting " + partition);
+      this.event.emit("user:write:under", "Formatting " + partition);
       return adb.wait().then(() => adb.format(partition));
     });
   }
@@ -49,18 +48,18 @@ class AdbPlugin extends Plugin {
    */
   action__sideload({ group, file }) {
     return Promise.resolve().then(() => {
-      mainEvent.emit("user:write:working", "particles");
-      mainEvent.emit("user:write:status", `Sideloading ${group}`, true);
-      mainEvent.emit(
+      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:status", `Sideloading ${group}`, true);
+      this.event.emit(
         "user:write:under",
         "Your new operating system is being installed..."
       );
       return adb
         .sideload(
           path.join(this.cachePath, this.props.config.codename, group, file),
-          p => mainEvent.emit("user:write:progress", p * 100)
+          p => this.event.emit("user:write:progress", p * 100)
         )
-        .then(() => mainEvent.emit("user:write:progress", 0));
+        .then(() => this.event.emit("user:write:progress", 0));
     });
   }
 
@@ -71,9 +70,9 @@ class AdbPlugin extends Plugin {
   action__reboot({ to_state }) {
     return Promise.resolve()
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Rebooting");
-        mainEvent.emit("user:write:under", "Rebooting to " + to_state);
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:status", "Rebooting");
+        this.event.emit("user:write:under", "Rebooting to " + to_state);
       })
       .then(() => adb.reboot(to_state));
   }
@@ -84,11 +83,12 @@ class AdbPlugin extends Plugin {
    * @returns {Promise}
    */
   action__reconnect() {
+    const _event = this.event;
     return Promise.resolve()
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Reconnecting", true);
-        mainEvent.emit("user:write:under", "Reconnecting to the device");
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:status", "Reconnecting", true);
+        this.event.emit("user:write:under", "Reconnecting to the device");
       })
       .then(() => adb.reconnect())
       .catch(() => adb.reconnect())
@@ -96,7 +96,7 @@ class AdbPlugin extends Plugin {
       .catch(
         () =>
           new Promise((resolve, reject) =>
-            mainEvent.emit("user:connection-lost", () =>
+            _event.emit("user:connection-lost", () =>
               resolve(this.step(step, settings, user_actions, handlers))
             )
           )
@@ -111,9 +111,9 @@ class AdbPlugin extends Plugin {
   action__wait() {
     return Promise.resolve()
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Waiting for device", true);
-        mainEvent.emit("user:write:under", "Adb is scanning for devices");
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:status", "Waiting for device", true);
+        this.event.emit("user:write:under", "Adb is scanning for devices");
       })
       .then(() => adb.wait())
       .then(() => null); // ensure null is returned

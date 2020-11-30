@@ -19,6 +19,7 @@
 
 const log = require("../../lib/log.js");
 const { path: cachePath } = require("../../lib/cache.js");
+const mainEvent = require("../../lib/mainEvent.js");
 
 const AdbPlugin = require("./adb/plugin.js");
 const CorePlugin = require("./core/plugin.js");
@@ -40,11 +41,11 @@ class PluginIndex {
   constructor(props) {
     this.props = props;
     this.plugins = {
-      adb: new AdbPlugin(props, cachePath),
-      core: new CorePlugin(props, cachePath),
-      fastboot: new FastbootPlugin(props, cachePath),
-      heimdall: new HeimdallPlugin(props, cachePath),
-      systemimage: new SystemimagePlugin(props, cachePath)
+      adb: new AdbPlugin(props, cachePath, mainEvent),
+      core: new CorePlugin(props, cachePath, mainEvent),
+      fastboot: new FastbootPlugin(props, cachePath, mainEvent),
+      heimdall: new HeimdallPlugin(props, cachePath, mainEvent),
+      systemimage: new SystemimagePlugin(props, cachePath, mainEvent)
     };
   }
 

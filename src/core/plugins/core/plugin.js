@@ -21,7 +21,6 @@ const Plugin = require("../plugin.js");
 const fs = require("fs-extra");
 const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
-const mainEvent = require("../../../lib/mainEvent.js");
 const { unpack } = require("../../../lib/asarLibs.js");
 const log = require("../../../lib/log.js");
 
@@ -36,13 +35,13 @@ class CorePlugin extends Plugin {
    */
   action__end() {
     return Promise.resolve().then(() => {
-      mainEvent.emit("user:write:done");
-      mainEvent.emit(
+      this.event.emit("user:write:done");
+      this.event.emit(
         "user:write:status",
         this.props.os.name + " successfully installed!",
         false
       );
-      mainEvent.emit(
+      this.event.emit(
         "user:write:under",
         this.props.os.success_message ||
           "All done! Enjoy exploring your new OS!"
@@ -66,9 +65,10 @@ class CorePlugin extends Plugin {
    */
   action__user_action({ action }) {
     const user_action = this.props.config.user_actions[action];
+    const _event = this.event;
     return user_action
       ? new Promise(function(resolve, reject) {
-          mainEvent.emit("user:action", user_action, () => {
+          _event.emit("user:action", user_action, () => {
             switch (action) {
               case "recovery":
               case "system":
@@ -106,13 +106,13 @@ class CorePlugin extends Plugin {
         )
       })),
       (progress, speed) => {
-        mainEvent.emit("user:write:progress", progress * 100);
-        mainEvent.emit("user:write:speed", Math.round(speed * 100) / 100);
-        mainEvent.emit("user:write:under", "Downloading");
+        this.event.emit("user:write:progress", progress * 100);
+        this.event.emit("user:write:speed", Math.round(speed * 100) / 100);
+        this.event.emit("user:write:under", "Downloading");
       },
       (current, total) => {
         if (current > 1) log.info(`Downloaded file ${current} of ${total}`);
-        mainEvent.emit(
+        this.event.emit(
           "user:write:status",
           `${current} of ${total} files downloaded and verified`,
           true
@@ -122,27 +122,27 @@ class CorePlugin extends Plugin {
         switch (activity) {
           case "downloading":
             log.debug(`downloading ${group} files`);
-            mainEvent.emit("user:write:working", "download");
+            this.event.emit("user:write:working", "download");
             break;
           case "preparing":
             log.debug(`checking previously downloaded ${group} files`);
-            mainEvent.emit("user:write:working", "particles");
-            mainEvent.emit("user:write:status", "Preparing download", true);
-            mainEvent.emit("user:write:under", `Checking ${group} files...`);
+            this.event.emit("user:write:working", "particles");
+            this.event.emit("user:write:status", "Preparing download", true);
+            this.event.emit("user:write:under", `Checking ${group} files...`);
           default:
             break;
         }
       }
     )
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:progress", 0);
-        mainEvent.emit("user:write:speed", 0);
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:progress", 0);
+        this.event.emit("user:write:speed", 0);
       })
       .catch(error => {
         log.error("download error: " + error);
         // TODO should this be handled here or outside?
-        mainEvent.emit("user:no-network");
+        this.event.emit("user:no-network");
         throw new Error(`core:download ${error}`);
       });
   }
@@ -155,9 +155,9 @@ class CorePlugin extends Plugin {
   action__unpack({ group, files }) {
     return Promise.resolve()
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", `Unpacking ${group}`, true);
-        mainEvent.emit("user:write:under", `Unpacking...`);
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:status", `Unpacking ${group}`, true);
+        this.event.emit("user:write:under", `Unpacking...`);
         return path.join(this.cachePath, this.props.config.codename, group);
       })
       .then(basepath =>
@@ -175,9 +175,9 @@ class CorePlugin extends Plugin {
   action__manual_download({ group, file }) {
     return Promise.resolve()
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
-        mainEvent.emit("user:write:status", "Manual download");
-        mainEvent.emit("user:write:under", `Checking ${group} files...`);
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:status", "Manual download");
+        this.event.emit("user:write:under", `Checking ${group} files...`);
         return checkFile(
           {
             checksum: file.checksum,
@@ -192,13 +192,14 @@ class CorePlugin extends Plugin {
         );
       })
       .then(ok => {
+        const _event = this.event;
         if (!ok) {
           return new Promise(resolve => {
             setTimeout(() => {
-              mainEvent.emit("user:manual_download", file, group, path =>
+              _event.emit("user:manual_download", file, group, path =>
                 resolve(path)
               );
-              mainEvent.emit("user:write:under", "Manual download required!");
+              _event.emit("user:write:under", "Manual download required!");
             }, 10);
           })
             .then(downloadedFilePath => {
