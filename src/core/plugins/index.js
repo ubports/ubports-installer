@@ -40,12 +40,13 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
 class PluginIndex {
   constructor(props) {
     this.props = props;
+    const pluginArgs = [props, cachePath, mainEvent, log];
     this.plugins = {
-      adb: new AdbPlugin(props, cachePath, mainEvent),
-      core: new CorePlugin(props, cachePath, mainEvent),
-      fastboot: new FastbootPlugin(props, cachePath, mainEvent),
-      heimdall: new HeimdallPlugin(props, cachePath, mainEvent),
-      systemimage: new SystemimagePlugin(props, cachePath, mainEvent)
+      adb: new AdbPlugin(...pluginArgs),
+      core: new CorePlugin(...pluginArgs),
+      fastboot: new FastbootPlugin(...pluginArgs),
+      heimdall: new HeimdallPlugin(...pluginArgs),
+      systemimage: new SystemimagePlugin(...pluginArgs)
     };
   }
 

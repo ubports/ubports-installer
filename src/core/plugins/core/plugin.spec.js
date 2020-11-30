@@ -1,5 +1,11 @@
 const mainEvent = { emit: jest.fn() };
-beforeEach(() => mainEvent.emit.mockReset());
+const log = { error: jest.fn(), debug: jest.fn(), info: jest.fn() };
+beforeEach(() => {
+  mainEvent.emit.mockReset();
+  log.error.mockReset();
+  log.debug.mockReset();
+  log.info.mockReset();
+});
 
 const { download, checkFile } = require("progressive-downloader");
 const core = new (require("./plugin.js"))(
@@ -8,7 +14,8 @@ const core = new (require("./plugin.js"))(
     config: { codename: "yggdrasil" }
   },
   "a",
-  mainEvent
+  mainEvent,
+  log
 );
 
 describe("core plugin", () => {

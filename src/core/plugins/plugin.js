@@ -21,16 +21,23 @@
  * UBports Installer plugin
  * @abstract
  * @property {Props} props properties
+ * @param {String} cachePath cache path
+ * @param {EventEmitter} event event
+ * @param {Object} log logger
  */
 class Plugin {
   /**
    * @constructs Plugin
    * @param {Props} props properties
+   * @param {String} cachePath cache path
+   * @param {EventEmitter} event event
+   * @param {Object} log logger
    */
-  constructor(props, cachePath, event) {
+  constructor(props, cachePath, event, log) {
     this.props = props;
     this.cachePath = cachePath;
     this.event = event;
+    this.log = log;
   }
 }
 

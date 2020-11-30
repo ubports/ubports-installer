@@ -22,7 +22,6 @@ const fs = require("fs-extra");
 const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
 const { unpack } = require("../../../lib/asarLibs.js");
-const log = require("../../../lib/log.js");
 
 /**
  * core plugin
@@ -111,7 +110,8 @@ class CorePlugin extends Plugin {
         this.event.emit("user:write:under", "Downloading");
       },
       (current, total) => {
-        if (current > 1) log.info(`Downloaded file ${current} of ${total}`);
+        if (current > 1)
+          this.log.info(`Downloaded file ${current} of ${total}`);
         this.event.emit(
           "user:write:status",
           `${current} of ${total} files downloaded and verified`,
@@ -121,11 +121,11 @@ class CorePlugin extends Plugin {
       activity => {
         switch (activity) {
           case "downloading":
-            log.debug(`downloading ${group} files`);
+            this.log.debug(`downloading ${group} files`);
             this.event.emit("user:write:working", "download");
             break;
           case "preparing":
-            log.debug(`checking previously downloaded ${group} files`);
+            this.log.debug(`checking previously downloaded ${group} files`);
             this.event.emit("user:write:working", "particles");
             this.event.emit("user:write:status", "Preparing download", true);
             this.event.emit("user:write:under", `Checking ${group} files...`);
@@ -140,7 +140,7 @@ class CorePlugin extends Plugin {
         this.event.emit("user:write:speed", 0);
       })
       .catch(error => {
-        log.error("download error: " + error);
+        this.log.error("download error: " + error);
         // TODO should this be handled here or outside?
         this.event.emit("user:no-network");
         throw new Error(`core:download ${error}`);
