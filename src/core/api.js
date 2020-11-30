@@ -22,7 +22,8 @@ const axios = require("axios");
 /** @module api */
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/",
+  baseURL:
+    "https://raw.githubusercontent.com/NeoTheThird/installer-config-experimental/main/", // FIXME replace with a permanent target
   timeout: 15000
 });
 

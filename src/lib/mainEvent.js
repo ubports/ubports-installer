@@ -86,6 +86,12 @@ mainEvent.on("user:update-available", updateUrl => {
   window.send("user:update-available", updateUrl);
 });
 
+// eula
+mainEvent.on("user:eula", (eula, resolve) => {
+  window.send("user:eula", eula);
+  ipcMain.once("user:unlock:ok", resolve);
+});
+
 // unlock
 mainEvent.on("user:unlock", (unlock, user_actions, resolve) => {
   window.send("user:unlock", unlock, user_actions);

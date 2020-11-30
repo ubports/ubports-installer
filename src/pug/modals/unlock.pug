@@ -55,6 +55,14 @@
       }
     }
 
+    ipcRenderer.on("user:eula", (_, eula) => {
+      document.getElementById("unlock-modal-title").innerHTML = "End User License Agreement";
+      modals.show('unlock');
+      document.getElementById("actions").innerHTML = ""; // remove all previously added actions
+      console.log("eula", eula);
+      addAction(eula);
+    });
+
     ipcRenderer.on("user:unlock", (_, unlock, user_actions) => {
       document.getElementById("unlock-modal-title").innerHTML = "Before we start...";
       modals.show('unlock');

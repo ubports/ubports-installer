@@ -207,7 +207,7 @@ class Core {
             this.props.config.user_actions,
             resolve
           )
-        )
+        ).then(() => this.delay(500))
       : null;
   }
 
@@ -218,8 +218,8 @@ class Core {
   eula() {
     return this.props.os.eula // TODO implement eula in unlock modal
       ? new Promise((resolve, reject) =>
-          mainEvent.emit("user:eula", this.props.os.eula, resolve, reject)
-        )
+          mainEvent.emit("user:eula", this.props.os.eula, resolve)
+        ).then(() => this.delay(500))
       : null;
   }
 
@@ -266,7 +266,7 @@ class Core {
       .map(step => () => this.step(step))
       .reduce((chain, next) => chain.then(next), Promise.resolve())
       .catch(error => {
-        // used for killing the run, no actual errors are escalated here
+        // used for killing the run, no actual errors should be escalated here
         log.debug(`run killed with: ${JSON.stringify(error)}`);
         log.warn("aborting run...");
       });
