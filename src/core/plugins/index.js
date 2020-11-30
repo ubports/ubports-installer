@@ -17,10 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const log = require("../../lib/log.js");
-const { path: cachePath } = require("../../lib/cache.js");
-const mainEvent = require("../../lib/mainEvent.js");
-
 const AdbPlugin = require("./adb/plugin.js");
 const CorePlugin = require("./core/plugin.js");
 const FastbootPlugin = require("./fastboot/plugin.js");
@@ -38,8 +34,9 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
  * @property {SystemimagePlugin} plugins.systemimage systemimage plugin
  */
 class PluginIndex {
-  constructor(props) {
+  constructor(props, cachePath, mainEvent, log) {
     this.props = props;
+    this.log = log;
     const pluginArgs = [props, cachePath, mainEvent, log];
     this.plugins = {
       adb: new AdbPlugin(...pluginArgs),
@@ -67,7 +64,7 @@ class PluginIndex {
    */
   action(action) {
     return Promise.resolve(this.parsePluginId(action)).then(([p, f]) => {
-      log.verbose(`running ${p} action ${f}`);
+      this.log.verbose(`running ${p} action ${f}`);
       return this.plugins[p][`action__${f}`](action[`${p}:${f}`]).catch(
         error => {
           throw { error, action: `${p}:${f}` };

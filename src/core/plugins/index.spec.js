@@ -1,6 +1,9 @@
-const { parseExpectedArgs } = require("commander");
-const { isType } = require("graphql");
-const pluginIndex = new (require("./index.js"))({});
+const log = { verbose: jest.fn() };
+beforeEach(() => {
+  log.verbose.mockReset();
+});
+
+const pluginIndex = new (require("./index.js"))({}, "a", {}, log);
 
 describe("PluginIndex", () => {
   it("should update params on plugins", () => {

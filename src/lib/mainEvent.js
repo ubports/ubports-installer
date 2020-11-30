@@ -80,6 +80,12 @@ mainEvent.on("user:oem-lock", (enable = false, code_url, unlock) => {
   });
 });
 
+// update
+mainEvent.on("user:update-available", updateUrl => {
+  log.warn(`Please update: ${updateUrl}`);
+  window.send("user:update-available", updateUrl);
+});
+
 // unlock
 mainEvent.on("user:unlock", (unlock, user_actions, resolve) => {
   window.send("user:unlock", unlock, user_actions);

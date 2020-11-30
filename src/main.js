@@ -24,7 +24,6 @@ const path = require("path");
 const url = require("url");
 const cli = require("./lib/cli.js");
 const log = require("./lib/log.js");
-const window = require("./lib/window.js");
 const updater = require("./lib/updater.js");
 const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
@@ -72,10 +71,7 @@ async function createWindow() {
     updater
       .isOutdated()
       .then(updateUrl => {
-        if (updateUrl) {
-          log.warn(`Please update: ${updateUrl}`);
-          window.send("user:update-available");
-        }
+        if (updateUrl) mainEvent.emit("user:update-available", updateUrl);
       })
       .catch(e => log.debug(e)); // Ignore errors, since this is non-essential
   });
