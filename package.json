@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.8.0-beta",
+  "version": "0.8.1-beta",
   "description": "The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
   "keywords": [
     "Ubuntu",
@@ -74,44 +74,67 @@
   },
   "arkit": {
     "$schema": "https://arkit.pro/schema.json",
-    "excludePatterns": ["__mocks__", "**/*.spec.*", "src/pug"],
+    "excludePatterns": [
+      "__mocks__",
+      "**/*.spec.*",
+      "src/pug"
+    ],
     "components": [
       {
         "type": "Lib",
-        "patterns": ["src/lib/**/*.js"]
+        "patterns": [
+          "src/lib/**/*.js"
+        ]
       },
       {
         "type": "Core",
-        "patterns": ["src/core/**/*.js"]
+        "patterns": [
+          "src/core/**/*.js"
+        ]
       },
       {
         "type": "Plugins",
-        "patterns": ["src/core/plugins/**/*.js"]
+        "patterns": [
+          "src/core/plugins/**/*.js"
+        ]
       },
       {
         "type": "Component",
-        "patterns": ["src/**/*.js"]
+        "patterns": [
+          "src/**/*.js"
+        ]
       }
     ],
     "output": [
       {
-        "path": ["dist/arkit.svg", "dist/arkit.png"],
+        "path": [
+          "dist/arkit.svg",
+          "dist/arkit.png"
+        ],
         "groups": [
           {
             "first": true,
-            "components": ["Component"]
+            "components": [
+              "Component"
+            ]
           },
           {
             "type": "Lib",
-            "components": ["Lib"]
+            "components": [
+              "Lib"
+            ]
           },
           {
             "type": "Core",
-            "components": ["Core"]
+            "components": [
+              "Core"
+            ]
           },
           {
             "type": "Dependencies",
-            "components": ["Dependency"]
+            "components": [
+              "Dependency"
+            ]
           }
         ]
       }
