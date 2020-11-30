@@ -18,13 +18,25 @@
  */
 
 const Plugin = require("../plugin.js");
-const systemImage = require("../../../lib/system-image.js");
+const SystemImageClient = require("./client.js");
 
 /**
  * systemimage plugin
  * @extends Plugin
  */
 class SystemimagePlugin extends Plugin {
+  /**
+   * @constructs Plugin
+   * @param {Props} props properties
+   * @param {String} cachePath cache path
+   * @param {EventEmitter} event event
+   * @param {Object} log logger
+   */
+  constructor(props, cachePath, event, log) {
+    super(props, cachePath, event, log);
+    this.client = new SystemImageClient(cachePath, log, event);
+  }
+
   /**
    * install action
    * @returns {Promise}
@@ -34,7 +46,7 @@ class SystemimagePlugin extends Plugin {
     this.event.emit("user:write:working", "particles");
     this.event.emit("user:write:status", "Downloading Ubuntu Touch", true);
     this.event.emit("user:write:under", "Checking local files");
-    return systemImage.installLatestVersion({
+    return this.client.installLatestVersion({
       device: this.props.config.codename,
       ...this.props.settings
     });
@@ -45,7 +57,7 @@ class SystemimagePlugin extends Plugin {
    * @returns {Promise<Array<Object>>}
    */
   remote_values__channels() {
-    return systemImage
+    return this.client
       .getDeviceChannels("bacon") // FIXME put actual value here
       .then(channels =>
         channels
