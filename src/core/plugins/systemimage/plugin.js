@@ -58,7 +58,7 @@ class SystemimagePlugin extends Plugin {
    */
   remote_values__channels() {
     return this.client
-      .getDeviceChannels("bacon") // FIXME put actual value here
+      .getDeviceChannels(this.props.config.codename)
       .then(channels =>
         channels
           .map(channel => ({
