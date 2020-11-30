@@ -76,8 +76,10 @@ class Core {
       } else {
         // TODO allow plugins to define detection
         const wait = deviceTools.wait().then(device => {
-          log.info(`device detected: ${device}`);
-          this.setDevice(device);
+          if (device) {
+            log.info(`device detected: ${device}`);
+            this.setDevice(device);
+          }
         });
         ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
         api
