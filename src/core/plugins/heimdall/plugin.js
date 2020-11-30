@@ -19,7 +19,7 @@
 
 const Plugin = require("../plugin.js");
 const path = require("path");
-const { heimdall } = require("../../../lib/deviceTools.js");
+const { heimdall } = require("../../deviceTools.js");
 
 /**
  * heimdall actions plugin

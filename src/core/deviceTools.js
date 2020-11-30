@@ -17,11 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { DeviceTools } = require("./asarLibs.js");
-const errors = require("./errors.js");
-const api = require("../core/api.js");
-const log = require("./log.js");
-const mainEvent = require("./mainEvent.js");
+const { DeviceTools } = require("../lib/asarLibs.js");
+const errors = require("../lib/errors.js");
+const api = require("./api.js");
+const log = require("../lib/log.js");
+const mainEvent = require("../lib/mainEvent.js");
 
 /**
  * adb, fastboot, and heimdall
@@ -47,16 +47,15 @@ class DeviceToolsWithListeners extends DeviceTools {
       .wait()
       .then(() => super.getDeviceName())
       .then(device =>
-        api.resolveAlias(device).catch(e => {
-          log.debug(`failed to resolve device name: ${e}`);
-          mainEvent.emit("user:no-network");
-        })
+        api.resolveAlias(device).catch(
+          e =>
+            new Promise(() => {
+              log.debug(`failed to resolve device name: ${e}`);
+              mainEvent.emit("user:no-network");
+            })
+        )
       )
-      .then(resolvedDevice => mainEvent.emit("device:detected", resolvedDevice))
-      .catch(error => {
-        if (!error.message.includes("no device"))
-          errors.toUser(error, "get device name");
-      });
+      .catch(() => null); // ignore all errors
   }
 }
 

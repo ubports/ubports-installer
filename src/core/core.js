@@ -22,7 +22,7 @@ const mainEvent = require("../lib/mainEvent.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
-const deviceTools = require("../lib/deviceTools.js");
+const deviceTools = require("./deviceTools.js");
 const api = require("./api.js");
 const PluginIndex = require("./plugins/index.js");
 
@@ -66,7 +66,11 @@ class Core {
       if (this.props.config) {
         this.selectOs();
       } else {
-        const wait = deviceTools.wait(); // TODO allow plugins to define detection
+        // TODO allow plugins to define detection
+        const wait = deviceTools.wait().then(device => {
+          log.info(`device detected: ${device}`);
+          this.setDevice(device);
+        });
         ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
         api
           .getDeviceSelects()
@@ -386,12 +390,6 @@ ipcMain.on("os:selected", (_, index) => core.install(index));
 // a device was selected
 ipcMain.on("device:selected", (_, device) => {
   log.info(`device selected: ${device}`);
-  core.setDevice(device);
-});
-
-// a device was detected
-mainEvent.on("device:detected", device => {
-  log.info(`device detected: ${device}`);
   core.setDevice(device);
 });
 

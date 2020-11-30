@@ -1,7 +1,7 @@
 const mainEvent = { emit: jest.fn() };
 beforeEach(() => mainEvent.emit.mockReset());
 
-const { fastboot } = require("../../../lib/deviceTools.js");
+const { fastboot } = require("../../deviceTools.js");
 const fastbootPlugin = new (require("./plugin.js"))({}, "a", mainEvent);
 
 describe("fastboot plugin", () => {

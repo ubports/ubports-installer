@@ -19,7 +19,7 @@
 
 const Plugin = require("../plugin.js");
 const path = require("path");
-const { adb } = require("../../../lib/deviceTools.js");
+const { adb } = require("../../deviceTools.js");
 
 /**
  * adb plugin

@@ -19,7 +19,7 @@
 
 const Plugin = require("../plugin.js");
 const path = require("path");
-const { fastboot } = require("../../../lib/deviceTools.js");
+const { fastboot } = require("../../deviceTools.js");
 
 /**
  * fastboot plugin
