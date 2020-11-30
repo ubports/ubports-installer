@@ -28,7 +28,6 @@ const window = require("./lib/window.js");
 const updater = require("./lib/updater.js");
 const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
-const deviceTools = require("./lib/deviceTools.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
 
@@ -44,8 +43,7 @@ ipcMain.on("reportResult", async (event, result, error) => {
 // FIXME move after a better way to access mainWindow has been found
 mainEvent.on("restart", () => {
   log.info("UBports Installer restarting...");
-  deviceTools.kill();
-  core.reset();
+  core.kill();
   mainWindow.reload();
 });
 
@@ -67,16 +65,7 @@ async function createWindow() {
   });
 
   // Tasks we need for every start and restart
-  mainWindow.webContents.on("did-finish-load", () => {
-    if (!core.props.config) {
-      // FIXME implement core.detect()
-      deviceTools.adb.startServer().then(() => {
-        const wait = deviceTools.wait();
-        ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
-      });
-    }
-    core.prepare();
-  });
+  mainWindow.webContents.on("did-finish-load", () => core.prepare());
 
   // Task we need only on the first start
   mainWindow.webContents.once("did-finish-load", () => {
@@ -109,7 +98,7 @@ async function createWindow() {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", function() {
-  deviceTools.kill();
+  core.kill();
   log.info("Good bye!");
   setTimeout(() => {
     app.quit();

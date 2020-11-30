@@ -22,7 +22,7 @@ const mainEvent = require("../lib/mainEvent.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
-const { adb } = require("../lib/deviceTools.js");
+const deviceTools = require("../lib/deviceTools.js");
 const api = require("./api.js");
 const PluginIndex = require("./plugins/index.js");
 
@@ -62,20 +62,31 @@ class Core {
    * @returns {Promise}
    */
   prepare() {
-    adb.startServer();
-    if (this.props.config) {
-      this.selectOs();
-    } else {
-      api
-        .getDeviceSelects()
-        .then(out => {
-          window.send("device:wait:device-selects-ready", out);
-        })
-        .catch(e => {
-          log.error("getDeviceSelects error: " + e);
-          window.send("user:no-network");
-        });
-    }
+    deviceTools.adb.startServer().then(() => {
+      if (this.props.config) {
+        this.selectOs();
+      } else {
+        const wait = deviceTools.wait(); // TODO allow plugins to define detection
+        ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+        api
+          .getDeviceSelects()
+          .then(out => {
+            window.send("device:wait:device-selects-ready", out);
+          })
+          .catch(e => {
+            log.error("getDeviceSelects error: " + e);
+            window.send("user:no-network");
+          });
+      }
+    });
+  }
+
+  /**
+   * kill subprocesses in plugins
+   */
+  kill() {
+    this.reset();
+    return deviceTools.kill(); // TODO allow plugins to define kill
   }
 
   /**
