@@ -1,9 +1,12 @@
 const mainEvent = require("../../../lib/mainEvent.js");
 const { download, checkFile } = require("progressive-downloader");
-const core = new (require("./plugin.js"))({
-  os: { name: "Ubuntu Touch" },
-  config: { codename: "yggdrasil" }
-});
+const core = new (require("./plugin.js"))(
+  {
+    os: { name: "Ubuntu Touch" },
+    config: { codename: "yggdrasil" }
+  },
+  "a"
+);
 
 describe("core plugin", () => {
   describe("end()", () => {

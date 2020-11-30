@@ -27,8 +27,9 @@ class Plugin {
    * @constructs Plugin
    * @param {Props} props properties
    */
-  constructor(props) {
+  constructor(props, cachePath) {
     this.props = props;
+    this.cachePath = cachePath;
   }
 }
 

@@ -21,7 +21,6 @@ const Plugin = require("../plugin.js");
 const path = require("path");
 const { adb } = require("../../../lib/deviceTools.js");
 const mainEvent = require("../../../lib/mainEvent.js");
-const { path: cachePath } = require("../../../lib/cache.js");
 
 /**
  * adb plugin
@@ -58,7 +57,7 @@ class AdbPlugin extends Plugin {
       );
       return adb
         .sideload(
-          path.join(cachePath, this.props.config.codename, group, file),
+          path.join(this.cachePath, this.props.config.codename, group, file),
           p => mainEvent.emit("user:write:progress", p * 100)
         )
         .then(() => mainEvent.emit("user:write:progress", 0));

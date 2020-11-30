@@ -24,7 +24,6 @@ const { download, checkFile } = require("progressive-downloader");
 const mainEvent = require("../../../lib/mainEvent.js");
 const { unpack } = require("../../../lib/asarLibs.js");
 const log = require("../../../lib/log.js");
-const { path: cachePath } = require("../../../lib/cache.js");
 
 /**
  * core plugin
@@ -100,7 +99,7 @@ class CorePlugin extends Plugin {
       files.map(file => ({
         ...file,
         path: path.join(
-          cachePath,
+          this.cachePath,
           this.props.config.codename,
           group,
           path.basename(file.url)
@@ -159,7 +158,7 @@ class CorePlugin extends Plugin {
         mainEvent.emit("user:write:working", "particles");
         mainEvent.emit("user:write:status", `Unpacking ${group}`, true);
         mainEvent.emit("user:write:under", `Unpacking...`);
-        return path.join(cachePath, this.props.config.codename, group);
+        return path.join(this.cachePath, this.props.config.codename, group);
       })
       .then(basepath =>
         Promise.all(
@@ -183,7 +182,7 @@ class CorePlugin extends Plugin {
           {
             checksum: file.checksum,
             path: path.join(
-              cachePath,
+              this.cachePath,
               this.props.config.codename,
               group,
               file.name
@@ -204,12 +203,12 @@ class CorePlugin extends Plugin {
           })
             .then(downloadedFilePath => {
               fs.ensureDir(
-                path.join(cachePath, this.props.config.codename, group)
+                path.join(this.cachePath, this.props.config.codename, group)
               ).then(() =>
                 fs.copyFile(
                   downloadedFilePath,
                   path.join(
-                    cachePath,
+                    this.cachePath,
                     this.props.config.codename,
                     group,
                     file.name
@@ -222,7 +221,7 @@ class CorePlugin extends Plugin {
                 {
                   checksum: file.checksum,
                   path: path.join(
-                    cachePath,
+                    this.cachePath,
                     this.props.config.codename,
                     group,
                     file.name

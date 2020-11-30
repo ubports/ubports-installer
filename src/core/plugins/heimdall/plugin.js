@@ -21,19 +21,6 @@ const Plugin = require("../plugin.js");
 const path = require("path");
 const { heimdall } = require("../../../lib/deviceTools.js");
 const mainEvent = require("../../../lib/mainEvent.js");
-const { path: cachePath } = require("../../../lib/cache.js");
-
-/**
- * Transform path array
- * @param {Array} files files
- * @param {String} device codename
- */
-function addPathToFiles(files, device) {
-  return files.map(file => ({
-    ...file,
-    file: path.join(cachePath, device, file.group, file.file)
-  }));
-}
 
 /**
  * heimdall actions plugin
@@ -53,7 +40,15 @@ class HeimdallPlugin extends Plugin {
         "Flashing firmware partitions using heimdall"
       );
       return heimdall.flash(
-        addPathToFiles(partitions, this.props.config.codename)
+        partitions.map(file => ({
+          ...file,
+          file: path.join(
+            this.cachePath,
+            this.props.config.codename,
+            file.group,
+            file.file
+          )
+        }))
       );
     });
   }

@@ -1,6 +1,6 @@
 const mainEvent = require("../../../lib/mainEvent.js");
 const { fastboot } = require("../../../lib/deviceTools.js");
-const fastbootPlugin = new (require("./plugin.js"))();
+const fastbootPlugin = new (require("./plugin.js"))({}, "a");
 
 describe("fastboot plugin", () => {
   describe("oem_unlock()", () => {

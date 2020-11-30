@@ -21,19 +21,6 @@ const Plugin = require("../plugin.js");
 const path = require("path");
 const mainEvent = require("../../../lib/mainEvent.js");
 const { fastboot } = require("../../../lib/deviceTools.js");
-const { path: cachePath } = require("../../../lib/cache.js");
-
-/**
- * Transform path array
- * @param {Array} files files
- * @param {String} device codename
- */
-function addPathToFiles(files, device) {
-  return files.map(file => ({
-    ...file,
-    file: path.join(cachePath, device, file.group, file.file)
-  }));
-}
 
 /**
  * fastboot plugin
@@ -151,7 +138,15 @@ class FastbootPlugin extends Plugin {
         .wait()
         .then(() =>
           fastboot.flash(
-            addPathToFiles(partitions, this.props.config.codename),
+            partitions.map(file => ({
+              ...file,
+              file: path.join(
+                this.cachePath,
+                this.props.config.codename,
+                file.group,
+                file.file
+              )
+            })),
             p => mainEvent.emit("user:write:progress", p * 100)
           )
         )
@@ -198,7 +193,7 @@ class FastbootPlugin extends Plugin {
       mainEvent.emit("user:write:status", "Rebooting");
       mainEvent.emit("user:write:under", "Your device is being rebooted...");
       return fastboot.boot(
-        path.join(cachePath, this.props.config.codename, group, file),
+        path.join(this.cachePath, this.props.config.codename, group, file),
         partition
       );
     });
@@ -217,7 +212,12 @@ class FastbootPlugin extends Plugin {
         "Applying fastboot update zip. This may take a while..."
       );
       return fastboot.update(
-        path.join(cachePath, this.props.config.codename, step.group, step.file),
+        path.join(
+          this.cachePath,
+          this.props.config.codename,
+          step.group,
+          step.file
+        ),
         this.props.settings.wipe
       );
     });
