@@ -65,6 +65,16 @@ Options:
   -h, --help                   output usage information
 ```
 
+## Libraries
+
+The UBports Foundation maintains a various free- and open-source NPM libraries for the UBports Installer.
+
+- [progressive-downloader ![version](https://shields.io/npm/v/progressive-downloader)](https://www.npmjs.com/package/progressive-downloader) Parallel downloads and opportunistic checksum verification
+- [promise-android-tools ![version](https://shields.io/npm/v/promise-android-tools)](https://www.npmjs.com/package/promise-android-tools) Extensive wrapper for ADB, Fastboot, Heimdall
+- [android-tools-bin ![version](https://shields.io/npm/v/android-tools-bin)](https://www.npmjs.com/package/android-tools-bin) Cross-platform binaries for ADB, Fastboot, Heimdall
+- [open-cuts-reporter ![version](https://shields.io/npm/v/open-cuts-reporter)](https://www.npmjs.com/package/open-cuts-reporter) Report test results to [UBports OPEN-CUTS](https://www.open-cuts.org/)
+- [ubuntu-pastebin ![version](https://shields.io/npm/v/ubuntu-pastebin)](https://www.npmjs.com/package/ubuntu-pastebin) Send logs to [Ubuntu Pastebin](https://paste.ubuntu.com)
+
 ## License
 
 Original development by [Marius Gripsgård](http://mariogrip.com/) and [Jan Sprinz](https://spri.nz). Copyright (C) 2017-2020 [UBports Foundation](https://ubports.com).
