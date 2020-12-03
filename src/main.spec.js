@@ -1,3 +1,4 @@
+jest.useFakeTimers();
 process.argv = [null, null, "-vv"];
 const { ipcMain } = require("electron");
 jest.mock("electron");

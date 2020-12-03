@@ -63,12 +63,15 @@ ipcMain.on("die", exitCode => {
   errorHandler.die(null, exitCode);
 });
 
-process.on("unhandledRejection", (reason, promise) => {
-  errorHandler.toUser(reason, "unhandled rejection at " + promise);
-});
+// make sure jest isn't killed
+if (process.env.JEST_WORKER_ID === undefined) {
+  process.on("unhandledRejection", (reason, promise) => {
+    errorHandler.toUser(reason, "unhandled rejection at " + promise);
+  });
 
-process.on("uncaughtException", (error, origin) => {
-  errorHandler.toUser(error, "uncaught exception at " + origin);
-});
+  process.on("uncaughtException", (error, origin) => {
+    errorHandler.toUser(error, "uncaught exception at " + origin);
+  });
+}
 
 module.exports = errorHandler;

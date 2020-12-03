@@ -17,16 +17,12 @@ it("should be a singleton", () => {
 
 describe("prepareErrorReport()", () => {
   it("should return error report object", () => {
-    global.installProperties = { device: undefined };
     expect(reporter.prepareErrorReport()).resolves.toBeDefined();
   });
 });
 
 describe("prepareSuccessReport()", () => {
   it("should return success report object", () => {
-    global.installProperties = {
-      device: "bacon"
-    };
     expect(reporter.prepareSuccessReport()).resolves.toBeDefined();
   });
 });

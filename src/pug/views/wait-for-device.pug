@@ -13,17 +13,12 @@
     ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
       footer.topText.set("Waiting for device", true);
       footer.underText.set("Please connect your device with a USB cable");
-      if (!remote.getGlobal("installProperties").device) {
-        // if the device is not yet set (i.e. from a cli argument), prompt the user
-        $("#device-select").append(deviceSelects);
-        views.show("wait-for-device");
-        // Button to confirm device selection
-        $("#btn-select-device").click(() => {
-          var device = $("#device-select").find(":selected").attr("name");
-          ipcRenderer.send("device:selected", device);
-        });
-      } else {
-        // if the device is set, just return the device:selected event
-        ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);
-      }
+      // if the device is not yet set (i.e. from a cli argument), prompt the user
+      $("#device-select").append(deviceSelects);
+      views.show("wait-for-device");
+      // Button to confirm device selection
+      $("#btn-select-device").click(() => {
+        var device = $("#device-select").find(":selected").attr("name");
+        ipcRenderer.send("device:selected", device);
+      });
     });

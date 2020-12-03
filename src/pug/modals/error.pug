@@ -21,20 +21,12 @@
         button.btn.btn-default(type='button', hidden='hidden', data-dismiss='modal', onclick='ipcRenderer.send("user:error:reply", "ignore")') Ignore
         button#btn-bugreport.btn.btn-primary(type='button', onclick='ipcRenderer.send("user:error:reply", "bugreport")') Report a bug
   script.
-    let errormodal_open = false;
-
     ipcRenderer.on("user:error", (event, error, restart, ignore) => {
-      if (!errormodal_open) {
-        $("#error-body").text(error);
-        $("#error-modal").modal("show");
-        errormodal_open = true;
-      }
+      $("#error-body").text(error);
+      $("#error-modal").modal("show");
     });
 
     // Catch all unhandled errors in rendering process
     window.onerror = (err, url, line) => {
-      if (!errormodal_open) {
-        ipcRenderer.send("renderer:error", err + " (MainRenderer:" + line + ")");
-        errormodal_open = true;
-      }
+      ipcRenderer.send("renderer:error", err + " (MainRenderer:" + line + ")");
     }

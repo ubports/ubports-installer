@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2020 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,9 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const Api = require("ubports-api-node-module").Installer;
+/**
+ * UBports Installer plugin
+ * @abstract
+ * @property {Props} props properties
+ * @param {String} cachePath cache path
+ * @param {EventEmitter} event event
+ * @param {Object} log logger
+ */
+class Plugin {
+  /**
+   * @constructs Plugin
+   * @param {Props} props properties
+   * @param {String} cachePath cache path
+   * @param {EventEmitter} event event
+   * @param {Object} log logger
+   */
+  constructor(props, cachePath, event, log) {
+    this.props = props;
+    this.cachePath = cachePath;
+    this.event = event;
+    this.log = log;
+  }
+}
 
-module.exports = new Api({
-  timeout: 7500,
-  cachetime: 60000
-});
+module.exports = Plugin;

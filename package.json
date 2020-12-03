@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.8.0-beta",
+  "version": "0.8.1-beta",
   "description": "The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
   "keywords": [
     "Ubuntu",
@@ -30,9 +30,11 @@
     "lint": "npx eslint *.js \"src/**/*.js\" \"__mocks__/**/*.js\"",
     "lint-fix": "npm run lint -- --fix",
     "docs": "npx jsdoc -c jsdoc-config.json",
+    "diagram": "npx arkit -f src/main.js",
     "test": "npx jest --coverage"
   },
   "devDependencies": {
+    "arkit": "^1.6.4",
     "electron": "^10.1.5",
     "electron-builder": "^22.9.1",
     "electron-packager": "^15.1.0",
@@ -61,13 +63,81 @@
     "open-cuts-reporter": "^1.0.0",
     "popper.js": "^1.16.0",
     "progressive-downloader": "^1.0.5",
-    "promise-android-tools": "^4.0.3",
+    "promise-android-tools": "^4.0.4",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
     "system-image-node-module": "^1.1.2",
     "systeminformation": "^4.27.11",
-    "ubports-api-node-module": "^3.0.2",
     "ubuntu-pastebin": "^1.0.0",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "yaml": "^2.0.0-1"
+  },
+  "arkit": {
+    "$schema": "https://arkit.pro/schema.json",
+    "excludePatterns": [
+      "__mocks__",
+      "**/*.spec.*",
+      "src/pug"
+    ],
+    "components": [
+      {
+        "type": "Lib",
+        "patterns": [
+          "src/lib/**/*.js"
+        ]
+      },
+      {
+        "type": "Core",
+        "patterns": [
+          "src/core/**/*.js"
+        ]
+      },
+      {
+        "type": "Plugins",
+        "patterns": [
+          "src/core/plugins/**/*.js"
+        ]
+      },
+      {
+        "type": "Component",
+        "patterns": [
+          "src/**/*.js"
+        ]
+      }
+    ],
+    "output": [
+      {
+        "path": [
+          "dist/arkit.svg",
+          "dist/arkit.png"
+        ],
+        "groups": [
+          {
+            "first": true,
+            "components": [
+              "Component"
+            ]
+          },
+          {
+            "type": "Lib",
+            "components": [
+              "Lib"
+            ]
+          },
+          {
+            "type": "Core",
+            "components": [
+              "Core"
+            ]
+          },
+          {
+            "type": "Dependencies",
+            "components": [
+              "Dependency"
+            ]
+          }
+        ]
+      }
+    ]
   }
 }
