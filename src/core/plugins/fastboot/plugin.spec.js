@@ -35,14 +35,14 @@ describe("fastboot plugin", () => {
   });
   describe("flashing_unlock()", () => {
     it("should unlock", () => {
-      mainEvent.emit.mockImplementation((m, cb) => cb());
+      mainEvent.emit.mockImplementation((m, x, y, cb) => cb());
       jest.spyOn(fastboot, "flashingUnlock").mockResolvedValue();
       return fastbootPlugin.action__flashing_unlock().then(() => {
         fastboot.flashingUnlock.mockRestore();
       });
     });
     it("should reject on error", done => {
-      mainEvent.emit.mockImplementation((m, cb) => cb());
+      mainEvent.emit.mockImplementation((m, x, y, cb) => cb());
       jest.spyOn(fastboot, "flashingUnlock").mockRejectedValue("ono");
       return fastbootPlugin.action__flashing_unlock().catch(e => {
         expect(e).toEqual("ono");

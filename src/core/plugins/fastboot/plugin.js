@@ -62,7 +62,7 @@ class FastbootPlugin extends Plugin {
   action__flashing_unlock() {
     const _event = this.event;
     return new Promise((resolve, reject) =>
-      _event.emit("user:flashing-lock", () =>
+      _event.emit("user:oem-lock", false, null, () =>
         fastboot
           .flashingUnlock()
           .then(resolve)
