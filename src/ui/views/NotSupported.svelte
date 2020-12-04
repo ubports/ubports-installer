@@ -1,9 +1,6 @@
 <script>
-    import SelectDeviceModal from '../modals/SelectDeviceModal.svelte'
-
     const { shell } = require("electron");
-
-    let showSelectDeviceModal = false;
+    import { showSelectDeviceModal} from '../../stores.mjs';
 </script>
 
 <div class="row">
@@ -14,6 +11,7 @@
         <h4 style='font-weight: bold;'>Device not supported</h4>
         <p>
             Your device:
+            <!-- Store for device name -->
             <span id="your-device"></span>
         </p>
         <p>
@@ -30,6 +28,6 @@
         <p>
             You can try selecting your device manually, but please only do so if you're sure that your exact model is actually supported! You might also want to <a href on:click|preventDefault={() => shell.openExternal('http://devices.ubuntu-touch.io')}>file a bug</a>.
         </p>
-        <button class="btn btn-default" style='width: 100%;'>Select device manually</button>
+        <button class="btn btn-default" style='width: 100%;' on:click={() => showSelectDeviceModal.set(true)}>Select device manually</button>
     </div>
 </div>

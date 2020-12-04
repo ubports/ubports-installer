@@ -1,6 +1,6 @@
 <script>
   const { shell, ipcRenderer } = require("electron");
-  import { osSelectOptions, installConfigData } from '../../stores.mjs';
+  import { osSelectOptions, installConfigData, showDeveloperModeModal } from '../../stores.mjs';
       
   let os_selects;
   let install_config;
@@ -32,8 +32,7 @@
             <a href on:click|preventDefault={() => shell.openExternal(`https://github.com/ubports/installer-configs/blob/master/v1/${install_config.codename}.json`)}>view config file</a>
         </p>
         <p>
-          Please make sure you enabled <a href on:click|preventDefault={null}>developer mode and OEM unlocking</a>.
-          <!-- open developerModeModal with store -->
+          Please make sure you enabled <a href on:click|preventDefault={() => showDeveloperModeModal.set(true)}>developer mode and OEM unlocking</a>.
         </p>
         <p>
             What operating system do you want to install?

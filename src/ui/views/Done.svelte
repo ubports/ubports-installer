@@ -17,7 +17,7 @@
         </p>
         <p>
             Got more devices you want to flash?
-            <button class="btn btn-info" style='width: 100%;' on:click|preventDefault={() => ipcRenderer.send('restart')}>Flash another device!</button> 
+            <button class="btn btn-info" style='width: 100%;' on:click={() => ipcRenderer.send('restart')}>Flash another device!</button> 
         </p>
     </div>
 </div>

@@ -1,14 +1,7 @@
 <script>
     const { shell, ipcRenderer, remote } = require("electron");
 
-    import { deviceSelectOptions, footerData } from '../../stores.mjs';
-
-    import SelectDeviceModal from '../modals/SelectDeviceModal.svelte'
-    import DeveloperModeModal from '../modals/DeveloperModeModal.svelte'
-
-    let showSelectDeviceModal = false;
-    let showDeveloperModeModal = false;
-    let selectOptions;
+    import { deviceSelectOptions, footerData, showDeveloperModeModal, showSelectDeviceModal } from '../../stores.mjs';
 
     ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
       footerData.set({
@@ -38,7 +31,7 @@
         <p>
             Connect your device to the computer and enable developer mode. After that, your device should be detected automatically.
         </p>
-        <button class="btn btn-primary" on:click={() => showDeveloperModeModal = true}>
+        <button class="btn btn-primary" on:click={() => showDeveloperModeModal.set(true)}>
             How do I enable developer mode?
         </button>
         <p>
@@ -46,18 +39,11 @@
             <a href on:click|preventDefault={() => shell.openExternal('http://devices.ubuntu-touch.io')}>supported devices</a>.
             
         </p>
-        <button id="btn-modal-select-device" class="btn btn-outline-dark" on:click={() => showSelectDeviceModal = true}>
+        <button id="btn-modal-select-device" class="btn btn-outline-dark" on:click={() => showSelectDeviceModal.set(true)}>
             Select device manually
         </button>
     </div>
 </div>
-
-{#if showSelectDeviceModal}
-	<SelectDeviceModal selectOptions={selectOptions} on:close={() => showSelectDeviceModal = false}/>
-{/if}
-{#if showDeveloperModeModal}
-	<DeveloperModeModal on:close={() => showDeveloperModeModal = false}/>
-{/if}
 
 <style>
     button {
