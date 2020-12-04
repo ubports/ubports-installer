@@ -1,10 +1,17 @@
 <script>
+	//Svelte imports
 	import { onMount } from 'svelte';
-	const { remote, ipcRenderer, shell } = require("electron");
-	import { animationType, footerData, osSelectOptions, installConfigData } from './stores.mjs';
 
-	global.installProperties = remote.getGlobal("installProperties");
-	global.packageInfo = remote.getGlobal("packageInfo");
+	//Electron imports
+	const { remote, ipcRenderer, shell } = require("electron");
+
+	//Store imports
+	import { 
+		animationType, footerData, osSelectOptions, 
+		installConfigData, manualDownloadGroup, manualDownloadFileData, 
+		eventObject, showSelectDeviceModal, showDeveloperModeModal,
+		deviceSelectOptions, userActionEventObject, actionData
+	} from './stores.mjs';
 
 	//Modals
 	import NewUpdateModal from './ui/modals/NewUpdateModal.svelte'
@@ -13,14 +20,61 @@
 	import NoNetworkModal from './ui/modals/NoNetworkModal.svelte'
 	import LowPowerModal from './ui/modals/LowPowerModal.svelte'
 	import WindowsDriversModal from './ui/modals/WindowsDriversModal.svelte'
+	import SelectDeviceModal from './ui/modals/SelectDeviceModal.svelte'
+  import DeveloperModeModal from './ui/modals/DeveloperModeModal.svelte'
 
+	//Routing
+	import Router from 'svelte-spa-router'
+	import { push } from 'svelte-spa-router'
+	import routes from './routes.mjs'
+
+	//Variables
+	//Global variables
+	global.installProperties = remote.getGlobal("installProperties");
+	global.packageInfo = remote.getGlobal("packageInfo");
+
+	//Modal variables
 	let showNewUpdateModal = false;
 	let showUdevModal = false;
 	let showConnectionLostModal = false;
 	let showNoNetworkModal = false;
 	let showLowPowerModal = false;
 	let showWindowsDriversModal = false;
+	let show_selectDeviceModal;
+	let show_developerModeModal = false;
+	
+	let select_options;
 
+	//Footer data
+	let footer_data;
+
+	//Reactive variables
+	const unsubscribeFooterData = footerData.subscribe(value => {
+    footer_data = value;
+	});
+	
+	const unsubscribeShowSelectDeviceModal = showSelectDeviceModal.subscribe(value => {
+    show_selectDeviceModal = value;
+	});
+	
+	const unsubscribeShowDeveloperModeModal = showDeveloperModeModal.subscribe(value => {
+    show_developerModeModal = value;
+	});
+	
+	const unsubscribeDeviceSelectOptions = deviceSelectOptions.subscribe(value => {
+    select_options = value;
+  });
+
+	//Life cycle methods
+	onMount(() => {
+		footerData.set({
+			topText: 'UBports Installer is starting up',
+			underText: 'Starting adb service'
+		});
+	});
+
+	//Messages
+	//Modal related messages
 	if (process.platform === "linux" && !process.env.SNAP) {
 		ipcRenderer.invoke("getSettingsValue", "never.udev")
 			.then(never => {
@@ -50,50 +104,12 @@
 	ipcRenderer.on("user:low-power", (callback) => {
     showLowPowerModal = true;
 	});
-	
-	let footer_data = {
-		topText: '',
-  	underText: ''
-	};
 
-	onMount(() => {
-		footerData.set({
-			topText: 'UBports Installer is starting up',
-			underText: 'Starting adb service'
-		});
+	ipcRenderer.on("user:update-available", () => {
+      showNewUpdateModal = true;
 	});
 
-  const unsubscribe = footerData.subscribe(value => {
-    footer_data = value;
-  });
-
-	//Routing
-	import Router from 'svelte-spa-router'
-	import { push } from 'svelte-spa-router'
-
-	//Views
-	import Done from './ui/views/Done.svelte'
-	import NotSupported from './ui/views/NotSupported.svelte'
-	import SelectOs from './ui/views/SelectOs.svelte'
-	import UserAction from './ui/views/UserAction.svelte'
-	import WaitForDevice from './ui/views/WaitForDevice.svelte'
-	import Working from './ui/views/Working.svelte'
-
-	const routes = {
-		'/': WaitForDevice,
-
-		'/done': Done,
-
-		'/not-supported': NotSupported,
-
-		'/select-os': SelectOs,
-
-		'/user-action': UserAction,
-
-		'/working': Working
-	}
-
-	//Messages	
+	//Routing messages
 	ipcRenderer.on("user:write:working", (e, animation) => {
 		animationType.set(animation);
 		push('/working')
@@ -101,11 +117,7 @@
 
 	ipcRenderer.on("user:write:done", () => {
 		push('/done')
-		//$("#progress").width("0%");
-	});
-	  
-	ipcRenderer.on("user:update-available", () => {
-      showNewUpdateModal = true;
+		progressBarWidth = 0;
 	});
 	
 	ipcRenderer.on("user:device-unsupported", (event, device) => {
@@ -118,6 +130,8 @@
 	});
 	
 	ipcRenderer.on("user:action", (event, action) => {
+		userActionEventObject.set(event);
+		actionData.set(action);
 		push('/user-action');
 	});
 
@@ -135,6 +149,13 @@
 		
 		push('/select-os');
 	});
+
+	ipcRenderer.on("user:manual_download", (event, file, group) => {
+		manualDownloadGroup.set(group);
+		manualDownloadFileData.set(file);
+		eventObject.set(event);
+		push('/manual-download');
+  });
 </script>
 
 <div class="app-wrapper">
@@ -167,6 +188,15 @@
 		{#if showWindowsDriversModal}
 		<WindowsDriversModal on:close={() => showWindowsDriversModal = false}/>
 		{/if}
+		{#if show_selectDeviceModal}
+		<SelectDeviceModal selectOptions={select_options} on:close={() => showSelectDeviceModal.set(false)}/>
+		{/if}
+		{#if show_developerModeModal}
+		<DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)}/>
+		{/if}
+	</div>
+	<div class="progress">
+		<div class="progress-bar"></div>
 	</div>
 	<footer class="footer">
 		<div class="container">
@@ -212,6 +242,21 @@
 		display: flex;
 		flex: 1 1 auto;
 		flex-direction: column;
+	}
+
+	.progress {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: row;
+		max-height: 4px;
+		background-color: #f5f5f5;
+		margin: 0;
+	}
+
+	.progress-bar {
+		width: 100%;
+		height: 4px;
+		background-color: #E95420;
 	}
 
 	.footer {

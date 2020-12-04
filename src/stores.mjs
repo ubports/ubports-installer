@@ -10,5 +10,18 @@ export const deviceSelectOptions = writable([]);
 export const osSelectOptions = writable([]);
 export const installConfigData = writable({});
 
+//user action view
+export const actionData = writable({});
+export const userActionEventObject = writable({});
+
 //app footer
 export const footerData = writable({});
+
+//manual download view
+export const manualDownloadFileData = writable({});
+export const manualDownloadGroup = writable('');
+export const eventObject = writable({});
+
+//modals
+export const showSelectDeviceModal = writable(false);
+export const showDeveloperModeModal = writable(false);
