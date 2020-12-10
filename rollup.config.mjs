@@ -9,7 +9,6 @@ const production = !process.env.ROLLUP_WATCH;
 
 function serve() {
 	let server;
-	
 	function toExit() {
 		if (server) server.kill(0);
 	}
@@ -38,14 +37,13 @@ export default {
 	},
 	plugins: [
 		svelte({
-			
+
 			dev: !production,
-		
+
 			css: css => {
 				css.write('bundle.css');
 			}
 		}),
-		
 		css({ output: './public/build/theme.css' }),
 
 		resolve({
