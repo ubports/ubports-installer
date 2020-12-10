@@ -152,7 +152,9 @@ class Core {
           "user:os",
           this.props.config,
           this.props.config.operating_systems.map(
-            (os, i) => `<option name="${i}">${os.name}</option>`
+            (os, i) => {
+              return {value: i, name: os.name};
+            }
           )
         )
       );

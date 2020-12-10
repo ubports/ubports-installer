@@ -10,7 +10,8 @@
 		animationType, footerData, osSelectOptions, 
 		installConfigData, manualDownloadGroup, manualDownloadFileData, 
 		eventObject, showSelectDeviceModal, showDeveloperModeModal,
-		deviceSelectOptions, userActionEventObject, actionData
+		deviceSelectOptions, userActionEventObject, actionData,
+		deviceName
 	} from './stores.mjs';
 
 	//Modals
@@ -21,7 +22,12 @@
 	import LowPowerModal from './ui/modals/LowPowerModal.svelte'
 	import WindowsDriversModal from './ui/modals/WindowsDriversModal.svelte'
 	import SelectDeviceModal from './ui/modals/SelectDeviceModal.svelte'
-  import DeveloperModeModal from './ui/modals/DeveloperModeModal.svelte'
+	import DeveloperModeModal from './ui/modals/DeveloperModeModal.svelte'
+	import ErrorModal from './ui/modals/ErrorModal.svelte'
+	import ResultModal from './ui/modals/ResultModal.svelte'
+	import UnlockModal from './ui/modals/UnlockModal.svelte'
+	import OptionsModal from './ui/modals/OptionsModal.svelte'
+	import OemLockModal from './ui/modals/OemLockModal.svelte'
 
 	//Routing
 	import Router from 'svelte-spa-router'
@@ -42,8 +48,16 @@
 	let showWindowsDriversModal = false;
 	let show_selectDeviceModal;
 	let show_developerModeModal = false;
+	let showErrorModal = false;
+	let showResultModal = false;
+	let showUnlockModal = false;
+	let showOptionsModal = false;
+	let showOemLockModal = false;
 	
+	//Modal props
 	let select_options;
+	let errorData;
+	let showDoNotAskAgainButton;
 
 	//Footer data
 	let footer_data;
@@ -109,6 +123,12 @@
       showNewUpdateModal = true;
 	});
 
+	ipcRenderer.on("user:error", (event, error, restart, ignore) => {
+		errorData = error;
+		showErrorModal = true;
+	});
+
+	ipcRenderer.on("user:report", (_, done) => requestReport(done));
 	//Routing messages
 	ipcRenderer.on("user:write:working", (e, animation) => {
 		animationType.set(animation);
@@ -125,7 +145,7 @@
 			topText: "Device not supported",
 			underText: `The device ${device} is not supported`
 		});
-    //   $("[id=your-device]").text(device);
+    deviceName.set(device);
 		push('/not-supported');
 	});
 	
@@ -155,7 +175,19 @@
 		manualDownloadFileData.set(file);
 		eventObject.set(event);
 		push('/manual-download');
-  });
+	});
+	
+	//Error handling
+	// Catch all unhandled errors in rendering process
+	window.onerror = (err, url, line) => {
+		ipcRenderer.send("renderer:error", err + " (MainRenderer:" + line + ")");
+	}
+		
+	//Other methods
+	function requestReport(done = false) {
+		done? showDoNotAskAgainButton = true : showDoNotAskAgainButton = true;
+		showResultModal = true;
+	}
 </script>
 
 <div class="app-wrapper">
@@ -164,7 +196,7 @@
 			UBports Installer {global.packageInfo.version}
 		</h3> 
 		<div class="header-buttons-wrapper">
-			<button id="help" class="help-button btn btn-primary" on:click={null}>Report a bug</button>
+			<button id="help" class="help-button btn btn-primary" on:click={requestReport}>Report a bug</button>
 			<button id="donate" class="donate-button btn btn-primary" on:click|preventDefault={() => shell.openExternal("https://ubports.com/donate")}>Donate</button>
 		</div>
 	</div>
@@ -193,6 +225,21 @@
 		{/if}
 		{#if show_developerModeModal}
 		<DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)}/>
+		{/if}
+		{#if showErrorModal}
+		<ErrorModal errorData={errorData} on:close={() => showErrorModal = false}/>
+		{/if}
+		{#if showResultModal}
+		<ResultModal showDoNotAskAgainButton={showDoNotAskAgainButton} on:close={() => showResultModal = false}/>
+		{/if}
+		{#if showUnlockModal}
+		<UnlockModal on:close={() => showUnlockModal = false}/>
+		{/if}
+		{#if showOptionsModal}
+		<OptionsModal on:close={() => showOptionsModal = false}/>
+		{/if}
+		{#if showOemLockModal}
+		<OemLockModal on:close={() => showOemLockModal = false}/>
 		{/if}
 	</div>
 	<div class="progress">

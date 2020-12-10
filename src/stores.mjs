@@ -14,6 +14,9 @@ export const installConfigData = writable({});
 export const actionData = writable({});
 export const userActionEventObject = writable({});
 
+//not supported view
+export const deviceName = writable('');
+
 //app footer
 export const footerData = writable({});
 

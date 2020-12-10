@@ -1,5 +1,5 @@
 <script>
-  import { shell } from "electron";
+  const { shell } = require("electron");
   import { manualDownloadFileData, manualDownloadGroup, eventObject } from '../../stores.mjs';
 
   let manualDownload_group;

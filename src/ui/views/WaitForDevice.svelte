@@ -1,5 +1,5 @@
 <script>
-    const { shell, ipcRenderer, remote } = require("electron");
+    const { shell, ipcRenderer } = require("electron");
 
     import { deviceSelectOptions, footerData, showDeveloperModeModal, showSelectDeviceModal } from '../../stores.mjs';
 
@@ -8,12 +8,7 @@
         topText: "Waiting for device",
         underText: "Please connect your device with a USB cable"
       });
-      if (!remote.getGlobal("installProperties").device) {
-        deviceSelectOptions.set(deviceSelects);
-      } else {
-        // if the device is set, just return the device:selected event
-        ipcRenderer.send("device:selected", remote.getGlobal("installProperties").device);
-      }
+      deviceSelectOptions.set(deviceSelects);
     });
 </script>
 

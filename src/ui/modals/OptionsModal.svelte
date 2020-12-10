@@ -1,20 +1,111 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
+  const { shell, ipcRenderer } = require("electron");
   import Modal from './Modal.svelte';
 
-  import { createEventDispatcher } from 'svelte';
-
   const dispatch = createEventDispatcher();
+
   const close = () => dispatch('close');
 </script>
 
 <Modal on:close={close}>
-  <h2 slot="header">
-
-  </h2>
+  <h4 slot="header">
+    Install options
+  </h4>
   <div slot="content">
-
+    <div>
+      <form action="" id="options-form" class="form-horizontal"></form>
+    </div>
+    <p>
+      <b>NOTE</b>: Installing may in rare cases lead to data loss. If the device is running Android, please note that you won't be able to access your Android data and/or apps in Ubuntu Touch. However the Android data will use storage space, so if you don't want it, please select the "Wipe" option. It's always wise to backup before installing.
+    </p>
   </div>
   <div slot="actions">
-    
+    <button id="btn-options-close" class="btn btn-default" on:click={() => close}>Next</button>
   </div>
 </Modal>
+
+
+<!-- 
+  script.
+    function addOption(option) {
+      // div to contain entire option row
+      let _div = document.createElement("div");
+      _div.className = "form-group";
+
+      // label describing the option
+      let _label = document.createElement("label");
+      _label.className = "col-xs-3 control-label";
+      _label.appendChild(document.createTextNode(option.name));
+      _div.appendChild(_label);
+
+      // div to contain input/select element
+      let _subdiv = document.createElement("div");
+      _subdiv.className = "col-xs-9";
+
+      // create the actual input element
+      let _input = document.createElement(option.type == "select" ? "select" : "input");
+      if (option.type != "checkbox") _input.className = "form-control space";
+      if (option.type != "select") _input.type = option.type;
+      _input.value = option.value;
+      // HACK: the checked property behaves super weird for some reason
+      if (option.type == "checkbox" && option.value) _input.checked = option.value;
+      _input.id = "options-" + option.var;
+
+      // if it's a select, add the values
+      if (option.type == "select") {
+        for (var i = 0; i < option.values.length; i++) {
+          let _value = document.createElement("option");
+          _value.value = option.values[i].value;
+          _value.appendChild(document.createTextNode(option.values[i].label));
+          _input.appendChild(_value);
+        }
+      }
+
+      // put it all in there
+      _subdiv.appendChild(_input);
+      _div.appendChild(_subdiv);
+      $("#options-form").append(_div);
+
+      // tooltip describing the option
+      if (option.tooltip) {
+        let _tooltipdiv = document.createElement("div");
+        _tooltipdiv.className = "col-xs-3";
+        _div.appendChild(_tooltipdiv);
+        let _tooltip = document.createElement("p");
+        _tooltip.className = "col-xs-9";
+        _tooltip.appendChild(document.createTextNode(option.tooltip + " "));
+        if (option.link) {
+          let _tooltiplink = document.createElement("a");
+          _tooltiplink.id = option.var + "_link"
+          _tooltiplink.appendChild(document.createTextNode("More..."));
+          _tooltip.appendChild(_tooltiplink);
+        }
+        _div.appendChild(_tooltip);
+        // HACK: link target can not be set before, because the element needs to have already been created
+        if (option.link) $("#" + option.var + "_link").click(() => shell.openExternal(option.link));
+      }
+
+      // send data for this option to main for processing
+      $("#btn-options-close").click(() => {
+        if (option.type == "checkbox") {
+          ipcRenderer.send("option", option.var, $("#options-" + option.var).is(":checked"));
+        } else {
+          ipcRenderer.send("option", option.var, $("#options-" + option.var).val());
+        }
+      });
+    }
+
+    let optionsAdded = false;
+    ipcRenderer.on("user:configure", (event, osInstructs) => {
+      if (!optionsAdded) {
+        optionsAdded = true;
+        osInstructs.forEach(addOption);
+      }
+      views.show("working", "particles");
+      footer.underText.set("Please Configure the installation");
+      modals.show("options");
+      $("#btn-options-close").click(() => {
+        setTimeout(() => ipcRenderer.send('install'), 250);
+      });
+    }); -->

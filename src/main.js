@@ -29,13 +29,6 @@ const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
-const reload = require("electron-reload")(__dirname, {
-  electron: require(`../node_modules/electron`)
-});
-const fs = require("fs-extra");
-const url = require("url");
-const events = require("events");
-class event extends events {}
 
 let mainWindow;
 
@@ -54,7 +47,7 @@ mainEvent.on("restart", () => {
 });
 
 async function createWindow() {
-  utils.log.info(
+  log.info(
     "Welcome to the UBports Installer version " +
       global.packageInfo.version +
       "!"
@@ -85,8 +78,13 @@ async function createWindow() {
       .catch(e => log.debug(e)); // Ignore errors, since this is non-essential
   });
 
-  //mainWindow.loadURL(`file://${__dirname}/html/index.html`);
-  mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
+  mainWindow.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "../public/index.html"),
+      protocol: "file",
+      slashes: true
+    })
+  );
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
