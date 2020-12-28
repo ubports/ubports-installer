@@ -22,8 +22,7 @@ const axios = require("axios");
 /** @module api */
 
 const api = axios.create({
-  baseURL:
-    "https://raw.githubusercontent.com/NeoTheThird/installer-config-experimental/main/", // FIXME replace with a permanent target
+  baseURL: "https://ubports.github.io/installer-configs/v2/",
   timeout: 15000
 });
 
@@ -31,7 +30,7 @@ const api = axios.create({
  * get device index
  * @returns {Promise<Array<Object>>}
  */
-const getIndex = () => api.get("index.json").then(({ data }) => data);
+const getIndex = () => api.get("/").then(({ data }) => data);
 
 /**
  * get device selects object array

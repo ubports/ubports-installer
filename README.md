@@ -12,7 +12,7 @@ Troubleshooting information can be found [in the docs](https://docs.ubports.com/
 
 ## Config files
 
-By default, the Installer will always use the latest version of the [installation configuration files](https://github.com/ubports/installer-configs) available. Should you want to specify a custom config file, you can do that by starting the Installer with the `-f ./path/to/config.json` argument. This can be used to test changes to the configuration or even to add new devices to the installer. The [structure of the config files is specified here](https://github.com/ubports/installer-configs/blob/master/v1/_device.schema.json).
+By default, the Installer will always use the latest version of the [installation configuration files](https://github.com/ubports/installer-configs) available. Should you want to specify a custom config file, you can do that by starting the Installer with the `-f ./path/to/config.yml` argument. This can be used to test changes to the configuration or even to add new devices to the installer. The [structure of the config files is specified here](https://github.com/ubports/installer-configs#readme).
 
 ## Logs
 
