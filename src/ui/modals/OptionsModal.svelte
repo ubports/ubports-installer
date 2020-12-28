@@ -1,11 +1,16 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+import App from '../../App.svelte';
+import ConnectionLostModal from './ConnectionLostModal.svelte';
+import DeveloperModeModal from './DeveloperModeModal.svelte';
   const { shell, ipcRenderer } = require("electron");
   import Modal from './Modal.svelte';
 
   const dispatch = createEventDispatcher();
 
   const close = () => dispatch('close');
+
+  let inputValue;
 </script>
 
 <Modal on:close={close}>
@@ -14,7 +19,37 @@
   </h4>
   <div slot="content">
     <div>
-      <form action="" id="options-form" class="form-horizontal"></form>
+      <form action="" id="options-form" class="form-horizontal">
+        {#each osInstructs as osInstruction}
+        <div class="form-group">
+          <label for="" class="col-xs-3 control-label">option.name</label>
+          <div class="col-xs-9">
+            {#if option.type === "select"}
+            <select name="" id="" class="form-control space" bind:value={inputValue}>
+              {#each option.values as value}
+            <option value={value.value}>{value.label}</option>
+              {/each}
+            </select>
+            {:else}
+              {#if option.type === "checkbox"}
+              <input type="checkbox" bind:value={inputValue} checked={option.value}>
+              {:else}
+              <input type="{option.type}" class="form-control space" bind:value={inputValue}>
+              {/if}
+            {/if}
+          </div>
+          {#if option.tooltip}
+          <div class="col-xs-3"></div>
+          <p class="col-xs-9">
+            {option.tooltip}
+            {#if option.link}
+            <a href on:click|preventDefault={() => shell.openExternal(option.link)}>More...</a>
+            {/if}
+          </p>
+          {/if}
+        </div>
+        {/each}
+      </form>
     </div>
     <p>
       <b>NOTE</b>: Installing may in rare cases lead to data loss. If the device is running Android, please note that you won't be able to access your Android data and/or apps in Ubuntu Touch. However the Android data will use storage space, so if you don't want it, please select the "Wipe" option. It's always wise to backup before installing.
@@ -25,67 +60,7 @@
   </div>
 </Modal>
 
-
 <!-- 
-  script.
-    function addOption(option) {
-      // div to contain entire option row
-      let _div = document.createElement("div");
-      _div.className = "form-group";
-
-      // label describing the option
-      let _label = document.createElement("label");
-      _label.className = "col-xs-3 control-label";
-      _label.appendChild(document.createTextNode(option.name));
-      _div.appendChild(_label);
-
-      // div to contain input/select element
-      let _subdiv = document.createElement("div");
-      _subdiv.className = "col-xs-9";
-
-      // create the actual input element
-      let _input = document.createElement(option.type == "select" ? "select" : "input");
-      if (option.type != "checkbox") _input.className = "form-control space";
-      if (option.type != "select") _input.type = option.type;
-      _input.value = option.value;
-      // HACK: the checked property behaves super weird for some reason
-      if (option.type == "checkbox" && option.value) _input.checked = option.value;
-      _input.id = "options-" + option.var;
-
-      // if it's a select, add the values
-      if (option.type == "select") {
-        for (var i = 0; i < option.values.length; i++) {
-          let _value = document.createElement("option");
-          _value.value = option.values[i].value;
-          _value.appendChild(document.createTextNode(option.values[i].label));
-          _input.appendChild(_value);
-        }
-      }
-
-      // put it all in there
-      _subdiv.appendChild(_input);
-      _div.appendChild(_subdiv);
-      $("#options-form").append(_div);
-
-      // tooltip describing the option
-      if (option.tooltip) {
-        let _tooltipdiv = document.createElement("div");
-        _tooltipdiv.className = "col-xs-3";
-        _div.appendChild(_tooltipdiv);
-        let _tooltip = document.createElement("p");
-        _tooltip.className = "col-xs-9";
-        _tooltip.appendChild(document.createTextNode(option.tooltip + " "));
-        if (option.link) {
-          let _tooltiplink = document.createElement("a");
-          _tooltiplink.id = option.var + "_link"
-          _tooltiplink.appendChild(document.createTextNode("More..."));
-          _tooltip.appendChild(_tooltiplink);
-        }
-        _div.appendChild(_tooltip);
-        // HACK: link target can not be set before, because the element needs to have already been created
-        if (option.link) $("#" + option.var + "_link").click(() => shell.openExternal(option.link));
-      }
-
       // send data for this option to main for processing
       $("#btn-options-close").click(() => {
         if (option.type == "checkbox") {
@@ -95,8 +70,8 @@
         }
       });
     }
-
-    let optionsAdded = false;
+        
+    let optionsAdded = false;        
     ipcRenderer.on("user:configure", (event, osInstructs) => {
       if (!optionsAdded) {
         optionsAdded = true;
