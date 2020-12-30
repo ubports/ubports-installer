@@ -53,7 +53,7 @@
                 </div>
             </div>
         </form>
-        <button class="btn btn-primary" style='width: 100%; margin-top: 10px;' on:click={() => handleInstallButton}>
+        <button class="btn btn-primary" style='width: 100%; margin-top: 10px;' on:click={() => handleInstallButton()}>
             Install
         </button>
     </div>

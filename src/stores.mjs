@@ -28,3 +28,6 @@ export const eventObject = writable({});
 //modals
 export const showSelectDeviceModal = writable(false);
 export const showDeveloperModeModal = writable(false);
+
+//options modal
+export const osInstructsData = writable({});

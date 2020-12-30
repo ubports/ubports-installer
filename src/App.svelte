@@ -11,7 +11,7 @@
 		installConfigData, manualDownloadGroup, manualDownloadFileData, 
 		eventObject, showSelectDeviceModal, showDeveloperModeModal,
 		deviceSelectOptions, userActionEventObject, actionData,
-		deviceName
+		deviceName, osInstructsData
 	} from './stores.mjs';
 
 	//Modals
@@ -175,6 +175,17 @@
 		manualDownloadFileData.set(file);
 		eventObject.set(event);
 		push('/manual-download');
+	});
+
+	ipcRenderer.on("user:configure", (event, osInstructs) => {
+		osInstructsData.set(osInstructs);
+		animationType.set('particles');
+		push('/working');
+		footerData.set({
+			topText: `${installConfig.name} (${installConfig.codename})`,
+			underText: "Please Configure the installation"
+		});
+		showOptionsModal = true;
 	});
 	
 	//Error handling
