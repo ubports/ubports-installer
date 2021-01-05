@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "7zip-min": "^1.2.0",
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "bootstrap": "^3.3.7",
     "commander": "^2.9.0",
     "electron-dynamic-prompt": "^1.0.2",
