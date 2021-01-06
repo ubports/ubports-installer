@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2020-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 
 const AdbPlugin = require("./adb/plugin.js");
+const AsteroidOsPlugin = require("./asteroid_os/plugin.js");
 const CorePlugin = require("./core/plugin.js");
 const FastbootPlugin = require("./fastboot/plugin.js");
 const HeimdallPlugin = require("./heimdall/plugin.js");
@@ -28,6 +29,7 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
  * @property {Props} props props reference
  * @property {Object} plugins plugins namespace
  * @property {AdbPlugin} plugins.adb adb plugin
+ * @property {AsteroidOsPlugin} plugins.asteroid_os AteroidOS plugin
  * @property {CorePlugin} plugins.core core plugin
  * @property {FastbootPlugin} plugins.fastboot fastboot plugin
  * @property {HeimdallPlugin} plugins.heimdall heimdall plugin
@@ -40,6 +42,7 @@ class PluginIndex {
     const pluginArgs = [props, cachePath, mainEvent, log];
     this.plugins = {
       adb: new AdbPlugin(...pluginArgs),
+      asteroid_os: new AsteroidOsPlugin(...pluginArgs),
       core: new CorePlugin(...pluginArgs),
       fastboot: new FastbootPlugin(...pluginArgs),
       heimdall: new HeimdallPlugin(...pluginArgs),
