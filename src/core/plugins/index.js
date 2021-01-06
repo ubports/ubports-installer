@@ -32,6 +32,7 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
  * @property {Object} plugins plugins namespace
  * @property {AdbPlugin} plugins.adb adb plugin
  * @property {AsteroidOsPlugin} plugins.asteroid_os AteroidOS plugin
+ * @property {LineageOSPlugin} plugins.lineage_os LineageOS plugin
  * @property {CorePlugin} plugins.core core plugin
  * @property {FastbootPlugin} plugins.fastboot fastboot plugin
  * @property {HeimdallPlugin} plugins.heimdall heimdall plugin
