@@ -202,7 +202,7 @@ class CorePlugin extends Plugin {
               _event.emit("user:write:under", "Manual download required!");
             }, 10);
           })
-            .then(downloadedFilePath => {
+            .then(downloadedFilePath =>
               fs.ensureDir(
                 path.join(this.cachePath, this.props.config.codename, group)
               ).then(() =>
@@ -215,8 +215,8 @@ class CorePlugin extends Plugin {
                     file.name
                   )
                 )
-              );
-            })
+              )
+            )
             .then(() =>
               checkFile(
                 {
