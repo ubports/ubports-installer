@@ -203,19 +203,21 @@ class CorePlugin extends Plugin {
             }, 10);
           })
             .then(downloadedFilePath =>
-              fs.ensureDir(
-                path.join(this.cachePath, this.props.config.codename, group)
-              ).then(() =>
-                fs.copyFile(
-                  downloadedFilePath,
-                  path.join(
-                    this.cachePath,
-                    this.props.config.codename,
-                    group,
-                    file.name
+              fs
+                .ensureDir(
+                  path.join(this.cachePath, this.props.config.codename, group)
+                )
+                .then(() =>
+                  fs.copyFile(
+                    downloadedFilePath,
+                    path.join(
+                      this.cachePath,
+                      this.props.config.codename,
+                      group,
+                      file.name
+                    )
                   )
                 )
-              )
             )
             .then(() =>
               checkFile(
