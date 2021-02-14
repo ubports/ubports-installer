@@ -58,6 +58,7 @@
 	let select_options;
 	let errorData;
 	let showDoNotAskAgainButton;
+	let unlockData;
 
 	//Footer data
 	let footer_data;
@@ -188,6 +189,22 @@
 		showOptionsModal = true;
 	});
 	
+	ipcRenderer.on("user:eula", (_, eula) => {
+		unlockData = eula;
+		showUnlockModal = true;
+		console.log("eula", eula);
+	});
+
+	ipcRenderer.on("user:unlock", (_, unlock, user_actions) => {
+		unlockData = user_actions
+		showUnlockModal = true;
+	});
+
+	ipcRenderer.on("user:prerequisites", (_, prerequisites, user_actions) => {
+		unlockData = user_actions
+		showUnlockModal = true;
+	});
+	
 	//Error handling
 	// Catch all unhandled errors in rendering process
 	window.onerror = (err, url, line) => {
@@ -244,7 +261,7 @@
 		<ResultModal showDoNotAskAgainButton={showDoNotAskAgainButton} on:close={() => showResultModal = false}/>
 		{/if}
 		{#if showUnlockModal}
-		<UnlockModal on:close={() => showUnlockModal = false}/>
+		<UnlockModal unlockData={unlockData} on:close={() => showUnlockModal = false}/>
 		{/if}
 		{#if showOptionsModal}
 		<OptionsModal on:close={() => showOptionsModal = false}/>
