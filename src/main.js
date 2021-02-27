@@ -60,6 +60,7 @@ async function createWindow() {
     kiosk: false,
     fullscreen: false,
     webPreferences: {
+      contextIsolation: false,
       nodeIntegration: true,
       enableRemoteModule: true
     }
