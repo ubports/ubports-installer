@@ -7,7 +7,7 @@
 	const close = () => dispatch('close');
 </script>
 
-<div class="svelte-modal-background" on:click={close}></div>
+<div class="svelte-modal-background"></div>
 
 <div class="svelte-modal" role="dialog" aria-modal="true">
 	<div class="svelte-modal-header">

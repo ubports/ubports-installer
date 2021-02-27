@@ -59,9 +59,33 @@
 	let errorData;
 	let showDoNotAskAgainButton;
 	let unlockData;
+	let oemUnlockData;
 
+	//Footer
+	let progressBarWidth = 0;
 	//Footer data
 	let footer_data;
+
+	ipcRenderer.on("user:write:status", (e, status, waitDots) => {
+		//footer.topText.set(status, waitDots);
+		// footerData.set({
+		// 	topText: status,
+		// });
+		// footerData.topText.set({
+		// 	status
+		// });
+	});
+
+	ipcRenderer.on("user:write:under", (e, status) => {
+		//footer.underText.set(status, true);
+		// footerData.underText.set({
+		// 	status
+		// });
+	});
+
+	ipcRenderer.on("user:write:speed", (e, speed) => {
+		//footer.speedText.set(speed);
+	});
 
 	//Reactive variables
 	const unsubscribeFooterData = footerData.subscribe(value => {
@@ -130,10 +154,18 @@
 	});
 
 	ipcRenderer.on("user:report", (_, done) => requestReport(done));
+
 	//Routing messages
 	ipcRenderer.on("user:write:working", (e, animation) => {
 		animationType.set(animation);
 		push('/working')
+	});
+
+	ipcRenderer.on("user:write:progress", (e, length) => {
+		if (length >= 100) {
+			length = 100;
+		}
+		progressBarWidth = length.toString() + '%';
 	});
 
 	ipcRenderer.on("user:write:done", () => {
@@ -205,6 +237,14 @@
 		showUnlockModal = true;
 	});
 	
+	ipcRenderer.on("user:oem-lock", (event, enable = false, url) => {
+		oemUnlockData = {
+			enable: enable,
+			url: url,
+		};
+		showOemLockModal = true;
+  });
+
 	//Error handling
 	// Catch all unhandled errors in rendering process
 	window.onerror = (err, url, line) => {
@@ -267,11 +307,11 @@
 		<OptionsModal on:close={() => showOptionsModal = false}/>
 		{/if}
 		{#if showOemLockModal}
-		<OemLockModal on:close={() => showOemLockModal = false}/>
+		<OemLockModal oemUnlockData={oemUnlockData} on:close={() => showOemLockModal = false}/>
 		{/if}
 	</div>
 	<div class="progress">
-		<div class="progress-bar"></div>
+		<div class="progress-bar" style="--progressWidth:{progressBarWidth}"></div>
 	</div>
 	<footer class="footer">
 		<div class="container">
@@ -329,7 +369,7 @@
 	}
 
 	.progress-bar {
-		width: 100%;
+		width: var(--progressWidth);
 		height: 4px;
 		background-color: #E95420;
 	}

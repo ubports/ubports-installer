@@ -1,32 +1,4 @@
-const switchHide = (from, to) => {
-  $("." + from).hide();
-  $("." + to).show();
-};
-
-const hideAll = id => {
-  $("." + id).hide();
-};
-
-const showAll = id => {
-  $("." + id).show();
-};
-
-const show = (cat, id) => {
-  hideAll(cat);
-  $("#" + cat + "-" + id).show();
-};
-
-const setText = (cat, id, text) => {
-  $("." + cat + "-" + id).text(text);
-};
-
 const animations = {
-  hideAll: () => {
-    $("#particles-foreground").hide();
-    $("#particles-background").hide();
-    $("#push-animation").hide();
-    $("#download-animation").hide();
-  },
   particles: async () => {
     if (await ipcRenderer.invoke("getSettingsValue", "animations")) {
       $("#particles-foreground").show();
@@ -107,11 +79,6 @@ const footer = {
       return $("#footer-top").text(text);
     }
   },
-  underText: {
-    set: text => {
-      return $("#footer-bottom").text(text);
-    }
-  },
   speedText: {
     set: text => {
       if (text) return $("#footer-speed").text(" at " + text + " MB/s");
@@ -119,40 +86,5 @@ const footer = {
     }
   }
 };
-
-const modals = {
-  show: modal => {
-    $("#" + modal + "-modal").modal("show");
-  },
-  hide: modal => {
-    $("#" + modal + "-modal").modal("hide");
-  }
-};
-
-$("#donate").click(() => {
-  shell.openExternal("https://ubports.com/donate");
-});
-
-ipcRenderer.on("user:write:progress", (e, length) => {
-  if (length >= 100) {
-    length = 100;
-  }
-  $("#progress").show();
-  $("#progress").width(length.toString() + "%");
-});
-
-ipcRenderer.on("user:write:status", (e, status, waitDots) => {
-  footer.topText.set(status, waitDots);
-});
-
-ipcRenderer.on("user:write:under", (e, status) => {
-  footer.underText.set(status, true);
-});
-
-ipcRenderer.on("user:write:speed", (e, speed) => {
-  footer.speedText.set(speed);
-});
-
-ipcRenderer.on("animations:hide", animations.hideAll);
 
 views.show("working", "particles");
