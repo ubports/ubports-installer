@@ -8,6 +8,7 @@ beforeEach(() => {
 });
 
 const { download, checkFile } = require("progressive-downloader");
+const { writeFile } = require("fs-extra");
 const core = new (require("./plugin.js"))(
   {
     os: { name: "Ubuntu Touch" },
@@ -118,6 +119,22 @@ describe("core plugin", () => {
           done();
         });
     });
+  });
+
+  describe("write()", () => {
+    it("should write file", () =>
+      core
+        .action__write({
+          group: "Ubuntu Touch",
+          file: "testfile",
+          content: "asdf"
+        })
+        .then(() =>
+          expect(writeFile).toHaveBeenCalledWith(
+            "a/yggdrasil/Ubuntu Touch/testfile",
+            "asdf"
+          )
+        ));
   });
 
   describe("unpack()", () => {
