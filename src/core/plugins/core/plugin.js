@@ -148,6 +148,22 @@ class CorePlugin extends Plugin {
   }
 
   /**
+   * core:write action
+   * @param {Object} param0 {group, file, content}
+   */
+  action__write({ group, file, content }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:status", `Writing ${group} config file`);
+      this.event.emit("user:write:under", `Writing file...`);
+      return fs.writeFile(
+        path.join(this.cachePath, this.props.config.codename, group, file),
+        content
+      );
+    });
+  }
+
+  /**
    * core:unpack action
    * @param {Object} param0 {group, files}
    * @returns {Promise}
