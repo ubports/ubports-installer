@@ -131,7 +131,12 @@ describe("core plugin", () => {
         })
         .then(() =>
           expect(writeFile).toHaveBeenCalledWith(
-            "a/yggdrasil/Ubuntu Touch/testfile",
+            expect.stringContaining(
+              "a",
+              "yggdrasil",
+              "Ubuntu Touch",
+              "testfile"
+            ),
             "asdf"
           )
         ));
