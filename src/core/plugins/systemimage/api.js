@@ -79,8 +79,7 @@ const getImages = (channel, device, wipe, enable = [], disable = []) =>
     }))
     .catch(error => {
       if (error.response.status === 404) throw new Error("404");
-      else if (error.response) throw new Error("no network");
-      else throw error;
+      else throw new Error("no network");
     });
 
 /**
