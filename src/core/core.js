@@ -67,10 +67,7 @@ class Core {
    * @returns {Promise}
    */
   prepare(file) {
-    Promise.all([
-      this.readConfigFile(file),
-      deviceTools.adb.startServer()
-    ]).then(() => {
+    Promise.all([this.readConfigFile(file), this.plugins.init()]).then(() => {
       if (this.props.config) {
         this.selectOs();
       } else {
@@ -112,7 +109,7 @@ class Core {
    */
   kill() {
     this.reset();
-    return deviceTools.kill(); // TODO allow plugins to define kill
+    return this.plugins.kill();
   }
 
   /**

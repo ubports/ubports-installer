@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,14 @@ const { fastboot } = require("../../helpers/deviceTools.js");
  * @extends Plugin
  */
 class FastbootPlugin extends Plugin {
+  /**
+   * kill all running tasks
+   * @returns {Promise}
+   */
+  kill() {
+    return fastboot.kill();
+  }
+
   /**
    * fastboot:oem_unlock
    * @param {Object} step {code_url}

@@ -81,6 +81,30 @@ class PluginIndex {
       .then(([p, f]) => this.plugins[p][`remote_values__${f}`](option))
       .then(values => (option.values = values));
   }
+
+  /**
+   * returns iterable array of all plugins
+   * @returns {Array<Object>}
+   */
+  getPluginArray() {
+    return Object.entries(this.plugins).map(([name, plugin]) => plugin);
+  }
+
+  /**
+   * initialize all plugins
+   * @returns {Promise}
+   */
+  init() {
+    return Promise.all(this.getPluginArray().map(plugin => plugin.init()));
+  }
+
+  /**
+   * kill all running tasks
+   * @returns {Promise}
+   */
+  kill() {
+    return Promise.all(this.getPluginArray().map(plugin => plugin.kill()));
+  }
 }
 
 module.exports = PluginIndex;

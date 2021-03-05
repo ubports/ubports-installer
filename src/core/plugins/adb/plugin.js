@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,22 @@ const { adb } = require("../../helpers/deviceTools.js");
  * adb plugin
  */
 class AdbPlugin extends Plugin {
+  /**
+   * initialize adb server
+   * @returns {Promise}
+   */
+  init() {
+    return adb.startServer();
+  }
+
+  /**
+   * kill all running tasks
+   * @returns {Promise}
+   */
+  kill() {
+    return adb.kill();
+  }
+
   /**
    * adb:format action
    * @returns {Promise}
