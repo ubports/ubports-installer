@@ -64,6 +64,30 @@ class AdbPlugin extends Plugin {
   }
 
   /**
+   * adb:push action
+   * @returns {Promise}
+   */
+  action__push({ group, files, dest }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:status", `Pushing ${group} files`, true);
+      this.event.emit(
+        "user:write:under",
+        `Sending ${group} files to the device...`
+      );
+      return adb
+        .push(
+          files.map(file =>
+            path.join(this.cachePath, this.props.config.codename, group, file)
+          ),
+          dest,
+          p => this.event.emit("user:write:progress", p * 100)
+        )
+        .then(() => this.event.emit("user:write:progress", 0));
+    });
+  }
+
+  /**
    * adb:reboot action
    * @returns {Promise}
    */
@@ -116,6 +140,35 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:under", "Adb is scanning for devices");
       })
       .then(() => adb.wait())
+      .then(() => null); // ensure null is returned
+  }
+
+  /**
+   * adb:preparesystemimage action
+   * @returns {Promise}
+   */
+  action__preparesystemimage() {
+    return Promise.resolve()
+      .then(() => {
+        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:status", "Preparing system image", true);
+        this.event.emit("user:write:under", "Mounting partitions...");
+      })
+      .then(() => adb.shell("mount -a").catch(() => null))
+      .then(() => this.event.emit("user:write:under", "Cleaning cache..."))
+      .then(() => adb.wipeCache().catch(() => null))
+      .then(() => this.event.emit("user:write:under", "Preparing recovery..."))
+      .then(() => adb.shell("mkdir -p /cache/recovery"))
+      .then(() => {
+        this.log.debug("adb created /cache/recovery directory");
+        adb
+          .verifyPartitionType("data", "ext4")
+          .then(isExt4 => {
+            if (isExt4) this.log.debug("ext4 data partition ok");
+            else this.log.warning("no ext4 data partition");
+          })
+          .catch(e => this.log.warn(e));
+      })
       .then(() => null); // ensure null is returned
   }
 }
