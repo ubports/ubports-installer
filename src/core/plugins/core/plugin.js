@@ -21,7 +21,7 @@ const Plugin = require("../plugin.js");
 const fs = require("fs-extra");
 const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
-const { unpack } = require("../../../lib/asarLibs.js");
+const { unpack } = require("../../helpers/asarLibs.js");
 
 /**
  * core plugin

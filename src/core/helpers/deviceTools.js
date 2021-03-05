@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { DeviceTools } = require("../lib/asarLibs.js");
+const { DeviceTools } = require("./asarLibs.js");
 const api = require("./api.js");
-const log = require("../lib/log.js");
-const mainEvent = require("../lib/mainEvent.js");
+const log = require("../../lib/log.js");
+const mainEvent = require("../../lib/mainEvent.js");
 
 /**
  * adb, fastboot, and heimdall

@@ -26,8 +26,8 @@ const { path: cachePath } = require("../lib/cache.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
-const deviceTools = require("./deviceTools.js");
-const api = require("./api.js");
+const deviceTools = require("./helpers/deviceTools.js");
+const api = require("./helpers/api.js");
 const PluginIndex = require("./plugins/index.js");
 
 /**

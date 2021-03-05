@@ -76,7 +76,8 @@
     "excludePatterns": [
       "__mocks__",
       "**/*.spec.*",
-      "src/pug"
+      "src/pug",
+      "src/core/plugins/plugin.js"
     ],
     "components": [
       {

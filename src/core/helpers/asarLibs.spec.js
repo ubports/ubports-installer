@@ -1,6 +1,6 @@
 process.argv = [null, null, "-vv"];
-const packageInfo = require("../../package.json");
-jest.mock("../../package.json");
+const packageInfo = require("../../../package.json");
+jest.mock("../../../package.json");
 packageInfo.package = null;
 
 const asarLibs = require("./asarLibs.js");

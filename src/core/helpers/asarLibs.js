@@ -19,7 +19,7 @@
 
 const util = require("util");
 const path = require("path");
-const packageInfo = require("../../package.json");
+const packageInfo = require("../../../package.json");
 
 /**
  * Resolve a module to require an unpacked asar file
