@@ -71,8 +71,7 @@ class Core {
       if (this.props.config) {
         this.selectOs();
       } else {
-        // TODO allow plugins to define detection
-        const wait = deviceTools
+        const wait = this.plugins
           .wait()
           .then(device =>
             api.resolveAlias(device).catch(

@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { CancelablePromise } = require("cancelable-promise");
+
 const AdbPlugin = require("./adb/plugin.js");
 const AsteroidOsPlugin = require("./asteroid_os/plugin.js");
 const CorePlugin = require("./core/plugin.js");
@@ -104,6 +106,27 @@ class PluginIndex {
    */
   kill() {
     return Promise.all(this.getPluginArray().map(plugin => plugin.kill()));
+  }
+
+  /**
+   * detect devices using all plugins
+   * @returns {Promise}
+   */
+  wait() {
+    const _this = this;
+    return new CancelablePromise(function(resolve, reject, onCancel) {
+      const waitPromises = _this.getPluginArray().map(plugin => plugin.wait());
+      CancelablePromise.race(waitPromises)
+        .then(state => {
+          waitPromises.forEach(p => (p.cancel ? p.cancel() : null));
+          resolve(state);
+        })
+        .catch(e => {
+          reject(new Error("no device"));
+        });
+
+      onCancel(() => waitPromises.forEach(p => p.cancel()));
+    });
   }
 }
 

@@ -51,6 +51,7 @@
     "7zip-min": "^1.2.0",
     "axios": "^0.21.1",
     "bootstrap": "^3.3.7",
+    "cancelable-promise": "^3.2.3",
     "commander": "^6.2.1",
     "electron-dynamic-prompt": "^1.0.2",
     "electron-open-link-in-browser": "^1.0.2",

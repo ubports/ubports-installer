@@ -35,6 +35,15 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
+   * wait for a device
+   * @virtual
+   * @returns {Promise<String>}
+   */
+  wait() {
+    return fastboot.wait().then(() => fastboot.getDeviceName());
+  }
+
+  /**
    * fastboot:oem_unlock
    * @param {Object} step {code_url}
    * @returns {Promise}

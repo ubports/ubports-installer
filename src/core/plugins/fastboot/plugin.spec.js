@@ -5,6 +5,27 @@ const { fastboot } = require("../../helpers/deviceTools.js");
 const fastbootPlugin = new (require("./plugin.js"))({}, "a", mainEvent);
 
 describe("fastboot plugin", () => {
+  describe("kill()", () => {
+    it("should kill", () => {
+      jest.spyOn(fastboot, "kill").mockResolvedValue();
+      return fastbootPlugin.kill().then(() => {
+        expect(fastboot.kill).toHaveBeenCalledTimes(1);
+        fastboot.kill.mockRestore();
+      });
+    });
+  });
+  describe("wait()", () => {
+    it("should wait", () => {
+      jest.spyOn(fastboot, "wait").mockResolvedValue();
+      jest.spyOn(fastboot, "getDeviceName").mockResolvedValue();
+      return fastbootPlugin.wait().then(() => {
+        expect(fastboot.wait).toHaveBeenCalledTimes(1);
+        expect(fastboot.getDeviceName).toHaveBeenCalledTimes(1);
+        fastboot.wait.mockRestore();
+        fastboot.getDeviceName.mockRestore();
+      });
+    });
+  });
   describe("oem_unlock()", () => {
     it("should unlock", () => {
       mainEvent.emit.mockImplementation((m, d, a, cb) => cb());

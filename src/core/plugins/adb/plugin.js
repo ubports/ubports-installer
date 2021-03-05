@@ -42,6 +42,15 @@ class AdbPlugin extends Plugin {
   }
 
   /**
+   * wait for a device
+   * @virtual
+   * @returns {Promise<String>}
+   */
+  wait() {
+    return adb.wait().then(() => adb.getDeviceName());
+  }
+
+  /**
    * adb:format action
    * @returns {Promise}
    */

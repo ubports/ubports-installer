@@ -35,6 +35,15 @@ class HeimdallPlugin extends Plugin {
   }
 
   /**
+   * wait for a device
+   * @virtual
+   * @returns {Promise<String>}
+   */
+  wait() {
+    return heimdall.wait().then(() => "Unknown");
+  }
+
+  /**
    * fastboot:flash action
    * @returns {Promise}
    */
