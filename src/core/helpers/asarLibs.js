@@ -36,5 +36,5 @@ function asarLibPathHack(lib) {
 module.exports = {
   asarLibPathHack,
   unpack: util.promisify(require(asarLibPathHack("7zip-min")).unpack),
-  DeviceTools: require(asarLibPathHack("promise-android-tools")).DeviceTools
+  DeviceTools: require(asarLibPathHack("promise-android-tools"))
 };

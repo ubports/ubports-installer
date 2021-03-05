@@ -19,18 +19,33 @@
 
 const Plugin = require("../plugin.js");
 const path = require("path");
-const { adb } = require("../../helpers/deviceTools.js");
+const { Adb } = require("../../helpers/asarLibs.js").DeviceTools;
 
 /**
  * adb plugin
  */
 class AdbPlugin extends Plugin {
   /**
+   * @constructs AdbPlugin
+   * @param {Props} props properties
+   * @param {String} cachePath cache path
+   * @param {EventEmitter} event event
+   * @param {Object} log logger
+   */
+  constructor(props, cachePath, event, log) {
+    super(props, cachePath, event, log);
+    this.adb = new Adb();
+    ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
+      this.adb.on(event, r => log.command(`${event}: ${JSON.stringify(r)}`))
+    );
+  }
+
+  /**
    * initialize adb server
    * @returns {Promise}
    */
   init() {
-    return adb.startServer();
+    return this.adb.startServer();
   }
 
   /**
@@ -38,7 +53,7 @@ class AdbPlugin extends Plugin {
    * @returns {Promise}
    */
   kill() {
-    return adb.kill();
+    return this.adb.kill();
   }
 
   /**
@@ -47,7 +62,7 @@ class AdbPlugin extends Plugin {
    * @returns {Promise<String>}
    */
   wait() {
-    return adb.wait().then(() => adb.getDeviceName());
+    return this.adb.wait().then(() => this.adb.getDeviceName());
   }
 
   /**
@@ -63,7 +78,7 @@ class AdbPlugin extends Plugin {
         true
       );
       this.event.emit("user:write:under", "Formatting " + partition);
-      return adb.wait().then(() => adb.format(partition));
+      return this.adb.wait().then(() => this.adb.format(partition));
     });
   }
 
@@ -79,7 +94,7 @@ class AdbPlugin extends Plugin {
         "user:write:under",
         "Your new operating system is being installed..."
       );
-      return adb
+      return this.adb
         .sideload(
           path.join(this.cachePath, this.props.config.codename, group, file),
           p => this.event.emit("user:write:progress", p * 100)
@@ -100,7 +115,7 @@ class AdbPlugin extends Plugin {
         "user:write:under",
         `Sending ${group} files to the device...`
       );
-      return adb
+      return this.adb
         .push(
           files.map(file =>
             path.join(this.cachePath, this.props.config.codename, group, file)
@@ -123,7 +138,7 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Rebooting");
         this.event.emit("user:write:under", "Rebooting to " + to_state);
       })
-      .then(() => adb.reboot(to_state));
+      .then(() => this.adb.reboot(to_state));
   }
 
   /**
@@ -139,9 +154,9 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Reconnecting", true);
         this.event.emit("user:write:under", "Reconnecting to the device");
       })
-      .then(() => adb.reconnect())
-      .catch(() => adb.reconnect())
-      .catch(() => adb.reconnect())
+      .then(() => this.adb.reconnect())
+      .catch(() => this.adb.reconnect())
+      .catch(() => this.adb.reconnect())
       .catch(
         () =>
           new Promise((resolve, reject) =>
@@ -164,7 +179,7 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Waiting for device", true);
         this.event.emit("user:write:under", "Adb is scanning for devices");
       })
-      .then(() => adb.wait())
+      .then(() => this.adb.wait())
       .then(() => null); // ensure null is returned
   }
 
@@ -179,14 +194,14 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Preparing system image", true);
         this.event.emit("user:write:under", "Mounting partitions...");
       })
-      .then(() => adb.shell("mount -a").catch(() => null))
+      .then(() => this.adb.shell("mount -a").catch(() => null))
       .then(() => this.event.emit("user:write:under", "Cleaning cache..."))
-      .then(() => adb.wipeCache().catch(() => null))
+      .then(() => this.adb.wipeCache().catch(() => null))
       .then(() => this.event.emit("user:write:under", "Preparing recovery..."))
-      .then(() => adb.shell("mkdir -p /cache/recovery"))
+      .then(() => this.adb.shell("mkdir -p /cache/recovery"))
       .then(() => {
         this.log.debug("adb created /cache/recovery directory");
-        adb
+        this.adb
           .verifyPartitionType("data", "ext4")
           .then(isExt4 => {
             if (isExt4) this.log.debug("ext4 data partition ok");

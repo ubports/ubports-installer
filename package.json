@@ -108,6 +108,7 @@
     ],
     "output": [
       {
+        "direction": "horizontal",
         "path": [
           "dist/arkit.svg",
           "dist/arkit.png"
