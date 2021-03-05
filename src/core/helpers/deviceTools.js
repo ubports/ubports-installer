@@ -34,14 +34,6 @@ class DeviceToolsWithListeners extends DeviceTools {
       log.debug(`using ${tool}: ${this[tool].executable}`)
     );
   }
-
-  /**
-   * Resolves device name and resolves aliases
-   * @returns {Promise<String>} canonical device codename
-   */
-  wait() {
-    return super.wait().then(() => super.getDeviceName());
-  }
 }
 
 module.exports = new DeviceToolsWithListeners();
