@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,7 @@
  */
 
 const { DeviceTools } = require("./asarLibs.js");
-const api = require("./api.js");
 const log = require("../../lib/log.js");
-const mainEvent = require("../../lib/mainEvent.js");
 
 /**
  * adb, fastboot, and heimdall
@@ -42,19 +40,7 @@ class DeviceToolsWithListeners extends DeviceTools {
    * @returns {Promise<String>} canonical device codename
    */
   wait() {
-    return super
-      .wait()
-      .then(() => super.getDeviceName())
-      .then(device =>
-        api.resolveAlias(device).catch(
-          e =>
-            new Promise(() => {
-              log.debug(`failed to resolve device name: ${e}`);
-              mainEvent.emit("user:no-network");
-            })
-        )
-      )
-      .catch(() => null); // ignore all errors
+    return super.wait().then(() => super.getDeviceName());
   }
 }
 

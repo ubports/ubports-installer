@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,12 +75,24 @@ class Core {
         this.selectOs();
       } else {
         // TODO allow plugins to define detection
-        const wait = deviceTools.wait().then(device => {
-          if (device) {
-            log.info(`device detected: ${device}`);
-            this.setDevice(device);
-          }
-        });
+        const wait = deviceTools
+          .wait()
+          .then(device =>
+            api.resolveAlias(device).catch(
+              e =>
+                new Promise(() => {
+                  log.debug(`failed to resolve device name: ${e}`);
+                  mainEvent.emit("user:no-network");
+                })
+            )
+          )
+          .catch(e => null) // Ignore all errors
+          .then(device => {
+            if (device) {
+              log.info(`device detected: ${device}`);
+              this.setDevice(device);
+            }
+          });
         ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
         api
           .getDeviceSelects()
