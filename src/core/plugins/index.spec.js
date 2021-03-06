@@ -67,6 +67,20 @@ describe("PluginIndex", () => {
           pluginIndex.plugins.systemimage.remote_values__channels.mockRestore();
         });
     });
+    it("should resolve empty on invalid plugin", () => {
+      return pluginIndex
+        .remote_value({ remote_values: { "systemimage:invalid": { a: "b" } } })
+        .then(r => {
+          expect(r).toEqual([]);
+        });
+    });
+    it("should resolve empty on invalid provider", () => {
+      return pluginIndex
+        .remote_value({ remote_values: { "invalid:invalid": { a: "b" } } })
+        .then(r => {
+          expect(r).toEqual([]);
+        });
+    });
   });
   describe("getPluginArray()", () => {
     it("should return plugin array", () =>

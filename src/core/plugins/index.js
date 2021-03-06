@@ -78,9 +78,17 @@ class PluginIndex {
     });
   }
 
+  /**
+   * resolves remote values
+   * @returns {Promise}
+   */
   remote_value(option) {
     return Promise.resolve(this.parsePluginId(option.remote_values))
-      .then(([p, f]) => this.plugins[p][`remote_values__${f}`](option))
+      .then(([p, f]) =>
+        this.plugins[p] && this.plugins[p][`remote_values__${f}`]
+          ? this.plugins[p][`remote_values__${f}`](option)
+          : []
+      )
       .then(values => (option.values = values));
   }
 
