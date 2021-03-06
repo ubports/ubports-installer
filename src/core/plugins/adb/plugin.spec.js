@@ -43,7 +43,7 @@ describe("adb plugin", () => {
   });
 
   describe("action__format()", () => {
-    it("should run shell command", () => {
+    it("should format partition", () => {
       jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
       jest.spyOn(adbPlugin.adb, "wait").mockResolvedValueOnce();
       jest.spyOn(adbPlugin.adb, "format").mockResolvedValueOnce();
@@ -61,7 +61,7 @@ describe("adb plugin", () => {
   });
 
   describe("action__sideload()", () => {
-    it("should run shell command", () => {
+    it("should run sideload image", () => {
       jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
       jest
         .spyOn(adbPlugin.adb, "sideload")
@@ -74,6 +74,28 @@ describe("adb plugin", () => {
           expect(adbPlugin.adb.sideload).toHaveBeenCalledTimes(1);
           adbPlugin.event.emit.mockRestore();
           adbPlugin.adb.sideload.mockRestore();
+        });
+    });
+  });
+
+  describe("action__push()", () => {
+    it("should run push files", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest
+        .spyOn(adbPlugin.adb, "push")
+        .mockImplementation((files, dest, cb) => Promise.resolve(cb(1)));
+      return adbPlugin
+        .action__push({
+          group: "Ubuntu Touch",
+          files: ["main.zip"],
+          dest: "asdf"
+        })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(adbPlugin.event.emit).toHaveBeenCalledTimes(5);
+          expect(adbPlugin.adb.push).toHaveBeenCalledTimes(1);
+          adbPlugin.event.emit.mockRestore();
+          adbPlugin.adb.push.mockRestore();
         });
     });
   });
