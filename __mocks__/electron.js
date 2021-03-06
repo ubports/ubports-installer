@@ -6,6 +6,7 @@ const electron = {
   },
   BrowserWindow: jest.fn(),
   ipcMain: {
+    once: jest.fn(),
     on: jest.fn(),
     handle: jest.fn()
   },

@@ -4,8 +4,12 @@ jest.useFakeTimers();
 
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
+const api = require("./helpers/api.js");
+jest.mock("./helpers/api.js");
 
 const core = require("./core.js");
+const { ipcMain } = require("electron");
+jest.mock("electron");
 
 it("should be a singleton", () => {
   expect(require("./core.js")).toBe(require("./core.js"));
@@ -25,6 +29,212 @@ const handlers = {
 core.props.config = { user_actions, handlers };
 
 describe("Core module", () => {
+  describe("prepare()", () => {
+    it("should prepare and read config", () => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest.spyOn(core, "selectOs").mockResolvedValueOnce();
+      return core.prepare("a").then(() => {
+        expect(core.readConfigFile).toHaveBeenCalledWith("a");
+        expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+        core.readConfigFile.mockRestore();
+        expect(core.plugins.init).toHaveBeenCalledTimes(1);
+        core.plugins.init.mockRestore();
+        expect(core.selectOs).toHaveBeenCalledTimes(1);
+        core.selectOs.mockRestore();
+      });
+    });
+    it("should prepare and get device selects", () => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest
+        .spyOn(core.plugins, "wait")
+        .mockReturnValueOnce(new Promise(() => null));
+      core.props.config = null;
+      api.getDeviceSelects.mockResolvedValueOnce([]);
+      return core.prepare("a").then(() => {
+        expect(core.readConfigFile).toHaveBeenCalledWith("a");
+        expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+        core.readConfigFile.mockRestore();
+        expect(core.plugins.init).toHaveBeenCalledTimes(1);
+        core.plugins.init.mockRestore();
+        expect(core.plugins.wait).toHaveBeenCalledTimes(1);
+        core.plugins.wait.mockRestore();
+        core.props.config = { user_actions, handlers };
+      });
+    });
+    it("should prepare and handle device selects error", () => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "wait").mockResolvedValueOnce("asdf");
+      core.props.config = null;
+      api.getDeviceSelects.mockRejectedValueOnce("some error");
+      api.resolveAlias.mockResolvedValueOnce();
+      return core.prepare("a").then(() => {
+        expect(core.readConfigFile).toHaveBeenCalledWith("a");
+        expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+        core.readConfigFile.mockRestore();
+        expect(core.plugins.init).toHaveBeenCalledTimes(1);
+        core.plugins.init.mockRestore();
+        expect(core.plugins.wait).toHaveBeenCalledTimes(1);
+        core.plugins.wait.mockRestore();
+        api.resolveAlias.mockRestore();
+        core.props.config = { user_actions, handlers };
+      });
+    });
+    it("should prepare and handle alias resolution error", () => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "wait").mockResolvedValueOnce("asdf");
+      core.props.config = null;
+      api.getDeviceSelects.mockRejectedValueOnce("some error");
+      api.resolveAlias.mockRejectedValueOnce("some error");
+      return core.prepare("a").then(() => {
+        expect(core.readConfigFile).toHaveBeenCalledWith("a");
+        expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+        core.readConfigFile.mockRestore();
+        expect(core.plugins.init).toHaveBeenCalledTimes(1);
+        core.plugins.init.mockRestore();
+        expect(core.plugins.wait).toHaveBeenCalledTimes(1);
+        core.plugins.wait.mockRestore();
+        api.resolveAlias.mockRestore();
+        core.props.config = { user_actions, handlers };
+      });
+    });
+    it("should prepare and resolve alias", done => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "wait").mockResolvedValueOnce("bacon");
+      core.props.config = null;
+      api.getDeviceSelects.mockReturnValueOnce(new Promise(() => null));
+      api.resolveAlias.mockResolvedValueOnce("eggs");
+      jest.spyOn(core, "setDevice").mockImplementation(() => {
+        expect(core.readConfigFile).toHaveBeenCalledWith("a");
+        expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+        core.readConfigFile.mockRestore();
+        expect(core.plugins.init).toHaveBeenCalledTimes(1);
+        core.plugins.init.mockRestore();
+        expect(core.plugins.wait).toHaveBeenCalledTimes(1);
+        core.plugins.wait.mockRestore();
+        expect(core.setDevice).toHaveBeenCalledWith("eggs");
+        core.setDevice.mockRestore();
+        core.props.config = { user_actions, handlers };
+        done();
+      });
+      core.prepare("a");
+    });
+    it("should prepare and cancel wait when device is selected", done => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "wait").mockReturnValueOnce({
+        then: () => ({
+          catch: () => ({
+            then: () => ({
+              cancel: () => {
+                expect(core.readConfigFile).toHaveBeenCalledWith("a");
+                expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+                core.readConfigFile.mockRestore();
+                expect(core.plugins.init).toHaveBeenCalledTimes(1);
+                core.plugins.init.mockRestore();
+                expect(core.plugins.wait).toHaveBeenCalledTimes(1);
+                core.plugins.wait.mockRestore();
+                core.setDevice.mockRestore();
+                core.props.config = { user_actions, handlers };
+                done();
+              }
+            })
+          })
+        })
+      });
+      ipcMain.once.mockImplementation((e, cb) => cb());
+      core.props.config = null;
+      api.getDeviceSelects.mockReturnValueOnce(new Promise(() => null));
+      api.resolveAlias.mockResolvedValueOnce("eggs");
+      jest.spyOn(core, "setDevice");
+      core.prepare("a");
+    });
+    it("should prepare and not cancel if not possible", done => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "wait").mockReturnValueOnce({
+        then: () => ({
+          catch: () => ({
+            then: () => null
+          })
+        })
+      });
+      ipcMain.once.mockImplementation((e, cb) => {
+        cb();
+        expect(core.readConfigFile).toHaveBeenCalledWith("a");
+        expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+        core.readConfigFile.mockRestore();
+        expect(core.plugins.init).toHaveBeenCalledTimes(1);
+        core.plugins.init.mockRestore();
+        expect(core.plugins.wait).toHaveBeenCalledTimes(1);
+        core.plugins.wait.mockRestore();
+        core.setDevice.mockRestore();
+        core.props.config = { user_actions, handlers };
+        done();
+      });
+      core.props.config = null;
+      api.getDeviceSelects.mockReturnValueOnce(new Promise(() => null));
+      api.resolveAlias.mockResolvedValueOnce("eggs");
+      jest.spyOn(core, "setDevice");
+      core.prepare("a");
+    });
+  });
+  describe("kill()", () => {
+    it("should kill", () => {
+      jest.spyOn(core, "reset").mockReturnValue();
+      jest.spyOn(core.plugins, "kill").mockResolvedValueOnce();
+      return core.kill().then(() => {
+        expect(core.reset).toHaveBeenCalledTimes(1);
+        core.reset.mockRestore();
+        expect(core.plugins.kill).toHaveBeenCalledTimes(1);
+        core.plugins.kill.mockRestore();
+      });
+    });
+  });
+  describe("setConfig()", () => {
+    it("should set config", () => {
+      const old = core.props.config;
+      return core.setConfig("new").then(() => {
+        expect(core.props.config).toEqual("new");
+        core.props.config = old;
+      });
+    });
+  });
+  describe("setDevice()", () => {
+    it("should set Device", () => {
+      jest.spyOn(mainEvent, "emit").mockReturnValue();
+      jest.spyOn(api, "getDevice").mockResolvedValueOnce("config");
+      jest.spyOn(core, "setConfig").mockResolvedValueOnce();
+      jest.spyOn(core, "selectOs").mockResolvedValueOnce();
+      return core.setDevice("new").then(() => {
+        expect(mainEvent.emit).toHaveBeenCalledTimes(3);
+        mainEvent.emit.mockRestore();
+        expect(api.getDevice).toHaveBeenCalledTimes(1);
+        expect(api.getDevice).toHaveBeenCalledWith("new");
+        api.getDevice.mockRestore();
+        expect(core.setConfig).toHaveBeenCalledTimes(1);
+        expect(core.setConfig).toHaveBeenCalledWith("config");
+        core.setConfig.mockRestore();
+        expect(core.selectOs).toHaveBeenCalledTimes(1);
+        core.selectOs.mockRestore();
+      });
+    });
+    it("should indicate unsupported", () => {
+      jest.spyOn(mainEvent, "emit").mockReturnValue();
+      jest.spyOn(api, "getDevice").mockRejectedValueOnce();
+      return core.setDevice("new").then(() => {
+        expect(mainEvent.emit).toHaveBeenCalledTimes(4);
+        mainEvent.emit.mockRestore();
+        expect(api.getDevice).toHaveBeenCalledTimes(1);
+        expect(api.getDevice).toHaveBeenCalledWith("new");
+        api.getDevice.mockRestore();
+      });
+    });
+  });
   describe("run", () => {
     const steps = [
       { actions: [{ "a:x": null }, { "b:y": null }] },

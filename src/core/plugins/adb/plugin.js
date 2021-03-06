@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,27 +19,70 @@
 
 const Plugin = require("../plugin.js");
 const path = require("path");
-const { adb } = require("../../helpers/deviceTools.js");
+const { Adb } = require("../../helpers/asarLibs.js").DeviceTools;
 
 /**
  * adb plugin
  */
 class AdbPlugin extends Plugin {
   /**
+   * @constructs AdbPlugin
+   * @param {Props} props properties
+   * @param {String} cachePath cache path
+   * @param {EventEmitter} event event
+   * @param {Object} log logger
+   */
+  constructor(props, cachePath, event, log) {
+    super(props, cachePath, event, log);
+    this.adb = new Adb();
+    ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
+      this.adb.on(event, r => log.command(`${event}: ${JSON.stringify(r)}`))
+    );
+  }
+
+  /**
+   * initialize adb server
+   * @returns {Promise}
+   */
+  init() {
+    return this.adb.startServer();
+  }
+
+  /**
+   * kill all running tasks
+   * @returns {Promise}
+   */
+  kill() {
+    return this.adb.kill();
+  }
+
+  /**
+   * wait for a device
+   * @virtual
+   * @returns {Promise<String>}
+   */
+  wait() {
+    return this.adb.wait().then(() => this.adb.getDeviceName());
+  }
+
+  /**
    * adb:format action
    * @returns {Promise}
    */
   action__format({ partition }) {
-    return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
-      this.event.emit(
-        "user:write:status",
-        "Preparing system for installation",
-        true
-      );
-      this.event.emit("user:write:under", "Formatting " + partition);
-      return adb.wait().then(() => adb.format(partition));
-    });
+    return Promise.resolve()
+      .then(() => {
+        this.event.emit("user:write:working", "particles");
+        this.event.emit(
+          "user:write:status",
+          "Preparing system for installation",
+          true
+        );
+        this.event.emit("user:write:under", "Formatting " + partition);
+        return this.adb.wait();
+      })
+      .then(() => this.adb.format(partition))
+      .then(() => null);
   }
 
   /**
@@ -54,7 +97,7 @@ class AdbPlugin extends Plugin {
         "user:write:under",
         "Your new operating system is being installed..."
       );
-      return adb
+      return this.adb
         .sideload(
           path.join(this.cachePath, this.props.config.codename, group, file),
           p => this.event.emit("user:write:progress", p * 100)
@@ -75,7 +118,7 @@ class AdbPlugin extends Plugin {
         "user:write:under",
         `Sending ${group} files to the device...`
       );
-      return adb
+      return this.adb
         .push(
           files.map(file =>
             path.join(this.cachePath, this.props.config.codename, group, file)
@@ -85,6 +128,14 @@ class AdbPlugin extends Plugin {
         )
         .then(() => this.event.emit("user:write:progress", 0));
     });
+  }
+
+  /**
+   * adb:shell action
+   * @returns {Promise}
+   */
+  action__shell({ args }) {
+    return this.adb.shell(...args).then(() => null); // ensure null is returned
   }
 
   /**
@@ -98,7 +149,7 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Rebooting");
         this.event.emit("user:write:under", "Rebooting to " + to_state);
       })
-      .then(() => adb.reboot(to_state));
+      .then(() => this.adb.reboot(to_state));
   }
 
   /**
@@ -114,18 +165,17 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Reconnecting", true);
         this.event.emit("user:write:under", "Reconnecting to the device");
       })
-      .then(() => adb.reconnect())
-      .catch(() => adb.reconnect())
-      .catch(() => adb.reconnect())
+      .then(() => this.adb.reconnect())
+      .catch(() => this.adb.reconnect())
+      .catch(() => this.adb.reconnect())
       .catch(
         () =>
           new Promise((resolve, reject) =>
             _event.emit("user:connection-lost", () =>
-              resolve(this.step(step, settings, user_actions, handlers))
+              resolve([{ actions: [{ "adb:reconnect": {} }] }])
             )
           )
-      )
-      .then(() => this.step(step, settings, user_actions, handlers));
+      );
   }
 
   /**
@@ -139,7 +189,7 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Waiting for device", true);
         this.event.emit("user:write:under", "Adb is scanning for devices");
       })
-      .then(() => adb.wait())
+      .then(() => this.adb.wait())
       .then(() => null); // ensure null is returned
   }
 
@@ -154,14 +204,14 @@ class AdbPlugin extends Plugin {
         this.event.emit("user:write:status", "Preparing system image", true);
         this.event.emit("user:write:under", "Mounting partitions...");
       })
-      .then(() => adb.shell("mount -a").catch(() => null))
+      .then(() => this.adb.shell("mount -a").catch(() => null))
       .then(() => this.event.emit("user:write:under", "Cleaning cache..."))
-      .then(() => adb.wipeCache().catch(() => null))
+      .then(() => this.adb.wipeCache().catch(() => null))
       .then(() => this.event.emit("user:write:under", "Preparing recovery..."))
-      .then(() => adb.shell("mkdir -p /cache/recovery"))
+      .then(() => this.adb.shell("mkdir -p /cache/recovery"))
       .then(() => {
         this.log.debug("adb created /cache/recovery directory");
-        adb
+        this.adb
           .verifyPartitionType("data", "ext4")
           .then(isExt4 => {
             if (isExt4) this.log.debug("ext4 data partition ok");

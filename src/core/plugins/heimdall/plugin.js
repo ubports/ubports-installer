@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,47 @@
 
 const Plugin = require("../plugin.js");
 const path = require("path");
-const { heimdall } = require("../../helpers/deviceTools.js");
+const { Heimdall } = require("../../helpers/asarLibs.js").DeviceTools;
 
 /**
  * heimdall actions plugin
  * @extends Plugin
  */
 class HeimdallPlugin extends Plugin {
+  /**
+   * @constructs HeimdallPlugin
+   * @param {Props} props properties
+   * @param {String} cachePath cache path
+   * @param {EventEmitter} event event
+   * @param {Object} log logger
+   */
+  constructor(props, cachePath, event, log) {
+    super(props, cachePath, event, log);
+    this.heimdall = new Heimdall();
+    ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
+      this.heimdall.on(event, r =>
+        log.command(`${event}: ${JSON.stringify(r)}`)
+      )
+    );
+  }
+
+  /**
+   * kill all running tasks
+   * @returns {Promise}
+   */
+  kill() {
+    return this.heimdall.kill();
+  }
+
+  /**
+   * wait for a device
+   * @virtual
+   * @returns {Promise<String>}
+   */
+  wait() {
+    return this.heimdall.wait().then(() => "Unknown");
+  }
+
   /**
    * fastboot:flash action
    * @returns {Promise}
@@ -38,7 +72,7 @@ class HeimdallPlugin extends Plugin {
         "user:write:under",
         "Flashing firmware partitions using heimdall"
       );
-      return heimdall.flash(
+      return this.heimdall.flash(
         partitions.map(file => ({
           ...file,
           file: path.join(
@@ -63,7 +97,7 @@ class HeimdallPlugin extends Plugin {
         this.event.emit("user:write:status", "Waiting for device", true);
         this.event.emit("user:write:under", "Heimdall is scanning for devices");
       })
-      .then(() => heimdall.wait())
+      .then(() => this.heimdall.wait())
       .then(() => null); // ensure null is returned
   }
 }

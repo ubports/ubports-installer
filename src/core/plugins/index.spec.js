@@ -68,4 +68,54 @@ describe("PluginIndex", () => {
         });
     });
   });
+  describe("getPluginArray()", () => {
+    it("should return plugin array", () =>
+      expect(pluginIndex.getPluginArray()).toHaveLength(6));
+  });
+  ["init", "kill"].forEach(f =>
+    describe(`${f}()`, () => {
+      it(`should ${f}`, () => {
+        const mock = {};
+        mock[f] = jest.fn();
+        jest.spyOn(pluginIndex, "getPluginArray").mockReturnValueOnce([mock]);
+        pluginIndex[f]();
+        expect(mock[f]).toHaveBeenCalledTimes(1);
+      });
+    })
+  );
+  describe("wait()", () => {
+    it("should wait", () => {
+      const mock_resolved = { wait: jest.fn().mockResolvedValue("asdf") };
+      const mock_cancel = { cancel: jest.fn() };
+      const mock_pending = { wait: jest.fn().mockReturnValue(mock_cancel) };
+      jest
+        .spyOn(pluginIndex, "getPluginArray")
+        .mockReturnValueOnce([mock_resolved, mock_pending]);
+      return pluginIndex.wait().then(() => {
+        expect(mock_resolved.wait).toHaveBeenCalledTimes(1);
+        expect(mock_cancel.cancel).toHaveBeenCalledTimes(1);
+      });
+    });
+    it("should throw error on no device", done => {
+      const mock_rejected = { wait: jest.fn().mockRejectedValue("asdf") };
+      jest
+        .spyOn(pluginIndex, "getPluginArray")
+        .mockReturnValueOnce([mock_rejected]);
+      pluginIndex.wait().catch(e => {
+        expect(mock_rejected.wait).toHaveBeenCalledTimes(1);
+        expect(e.message).toEqual("no device");
+        done();
+      });
+    });
+    it("should be cancelable", done => {
+      const mock_rejected = {
+        wait: jest.fn().mockReturnValue({ cancel: done })
+      };
+      jest
+        .spyOn(pluginIndex, "getPluginArray")
+        .mockReturnValueOnce([mock_rejected]);
+      const wait = pluginIndex.wait();
+      wait.cancel();
+    });
+  });
 });

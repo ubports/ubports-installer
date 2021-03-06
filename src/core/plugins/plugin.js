@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2020-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+const { CancelablePromise } = require("cancelable-promise");
 
 /**
  * UBports Installer plugin
@@ -38,6 +40,33 @@ class Plugin {
     this.cachePath = cachePath;
     this.event = event;
     this.log = log;
+  }
+
+  /**
+   * initialize plugin
+   * @virtual
+   * @returns {Promise}
+   */
+  init() {
+    return Promise.resolve();
+  }
+
+  /**
+   * kill all running tasks
+   * @virtual
+   * @returns {Promise}
+   */
+  kill() {
+    return Promise.resolve();
+  }
+
+  /**
+   * wait for a device
+   * @virtual
+   * @returns {CancelablePromise<String>}
+   */
+  wait() {
+    return new CancelablePromise(() => {});
   }
 }
 

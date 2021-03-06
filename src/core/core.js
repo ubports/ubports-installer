@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ const { path: cachePath } = require("../lib/cache.js");
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
-const deviceTools = require("./helpers/deviceTools.js");
 const api = require("./helpers/api.js");
 const PluginIndex = require("./plugins/index.js");
 
@@ -67,32 +66,40 @@ class Core {
    * @returns {Promise}
    */
   prepare(file) {
-    Promise.all([
-      this.readConfigFile(file),
-      deviceTools.adb.startServer()
-    ]).then(() => {
-      if (this.props.config) {
-        this.selectOs();
-      } else {
-        // TODO allow plugins to define detection
-        const wait = deviceTools.wait().then(device => {
-          if (device) {
-            log.info(`device detected: ${device}`);
-            this.setDevice(device);
-          }
-        });
-        ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
-        api
-          .getDeviceSelects()
-          .then(out => {
-            window.send("device:wait:device-selects-ready", out);
-          })
-          .catch(e => {
-            log.error("getDeviceSelects error: " + e);
-            window.send("user:no-network");
-          });
+    return Promise.all([this.readConfigFile(file), this.plugins.init()]).then(
+      () => {
+        if (this.props.config) {
+          this.selectOs();
+        } else {
+          const wait = this.plugins
+            .wait()
+            .then(device => api.resolveAlias(device))
+            .catch(
+              e =>
+                new Promise(() => {
+                  log.debug(`failed to resolve device name: ${e}`);
+                  mainEvent.emit("user:no-network");
+                })
+            )
+            .then(device => {
+              if (device) {
+                log.info(`device detected: ${device}`);
+                this.setDevice(device);
+              }
+            });
+          ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+          api
+            .getDeviceSelects()
+            .then(out => {
+              window.send("device:wait:device-selects-ready", out);
+            })
+            .catch(e => {
+              log.error("getDeviceSelects error: " + e);
+              window.send("user:no-network");
+            });
+        }
       }
-    });
+    );
   }
 
   /**
@@ -100,7 +107,7 @@ class Core {
    */
   kill() {
     this.reset();
-    return deviceTools.kill(); // TODO allow plugins to define kill
+    return this.plugins.kill();
   }
 
   /**
