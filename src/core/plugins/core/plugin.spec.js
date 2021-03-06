@@ -143,7 +143,7 @@ describe("core plugin", () => {
       download.mockRejectedValueOnce("download error");
       core
         .action__download({
-          group: "fimrware",
+          group: "firmware",
           files: [
             { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
             { url: "a/b", checksum: { sum: "a", algorithm: "sha256" } }
