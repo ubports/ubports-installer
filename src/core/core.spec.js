@@ -183,6 +183,18 @@ describe("Core module", () => {
       core.prepare("a");
     });
   });
+  describe("kill()", () => {
+    it("should prepare and read config", () => {
+      jest.spyOn(core, "reset").mockReturnValue();
+      jest.spyOn(core.plugins, "kill").mockResolvedValueOnce();
+      return core.kill().then(() => {
+        expect(core.reset).toHaveBeenCalledTimes(1);
+        core.reset.mockRestore();
+        expect(core.plugins.kill).toHaveBeenCalledTimes(1);
+        core.plugins.kill.mockRestore();
+      });
+    });
+  });
   describe("run", () => {
     const steps = [
       { actions: [{ "a:x": null }, { "b:y": null }] },
