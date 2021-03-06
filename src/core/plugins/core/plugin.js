@@ -208,6 +208,11 @@ class CorePlugin extends Plugin {
       );
   }
 
+  /**
+   * core:manual_download action
+   * @param {Object} param0 {group, file}
+   * @returns {Promise}
+   */
   action__manual_download({ group, file }) {
     return Promise.resolve()
       .then(() => {
