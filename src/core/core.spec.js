@@ -184,7 +184,7 @@ describe("Core module", () => {
     });
   });
   describe("kill()", () => {
-    it("should prepare and read config", () => {
+    it("should kill", () => {
       jest.spyOn(core, "reset").mockReturnValue();
       jest.spyOn(core.plugins, "kill").mockResolvedValueOnce();
       return core.kill().then(() => {
@@ -192,6 +192,46 @@ describe("Core module", () => {
         core.reset.mockRestore();
         expect(core.plugins.kill).toHaveBeenCalledTimes(1);
         core.plugins.kill.mockRestore();
+      });
+    });
+  });
+  describe("setConfig()", () => {
+    it("should set config", () => {
+      const old = core.props.config;
+      return core.setConfig("new").then(() => {
+        expect(core.props.config).toEqual("new");
+        core.props.config = old;
+      });
+    });
+  });
+  describe("setDevice()", () => {
+    it("should set Device", () => {
+      jest.spyOn(mainEvent, "emit").mockReturnValue();
+      jest.spyOn(api, "getDevice").mockResolvedValueOnce("config");
+      jest.spyOn(core, "setConfig").mockResolvedValueOnce();
+      jest.spyOn(core, "selectOs").mockResolvedValueOnce();
+      return core.setDevice("new").then(() => {
+        expect(mainEvent.emit).toHaveBeenCalledTimes(3);
+        mainEvent.emit.mockRestore();
+        expect(api.getDevice).toHaveBeenCalledTimes(1);
+        expect(api.getDevice).toHaveBeenCalledWith("new");
+        api.getDevice.mockRestore();
+        expect(core.setConfig).toHaveBeenCalledTimes(1);
+        expect(core.setConfig).toHaveBeenCalledWith("config");
+        core.setConfig.mockRestore();
+        expect(core.selectOs).toHaveBeenCalledTimes(1);
+        core.selectOs.mockRestore();
+      });
+    });
+    it("should indicate unsupported", () => {
+      jest.spyOn(mainEvent, "emit").mockReturnValue();
+      jest.spyOn(api, "getDevice").mockRejectedValueOnce();
+      return core.setDevice("new").then(() => {
+        expect(mainEvent.emit).toHaveBeenCalledTimes(4);
+        mainEvent.emit.mockRestore();
+        expect(api.getDevice).toHaveBeenCalledTimes(1);
+        expect(api.getDevice).toHaveBeenCalledWith("new");
+        api.getDevice.mockRestore();
       });
     });
   });
