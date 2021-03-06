@@ -156,4 +156,17 @@ describe("adb plugin", () => {
       });
     });
   });
+
+  describe("action__wait()", () => {
+    it("should wait", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest.spyOn(adbPlugin.adb, "wait").mockResolvedValueOnce();
+      return adbPlugin.action__wait().then(r => {
+        expect(r).toEqual(null);
+        expect(adbPlugin.event.emit).toHaveBeenCalledTimes(3);
+        expect(adbPlugin.adb.wait).toHaveBeenCalledTimes(1);
+        adbPlugin.adb.wait.mockRestore();
+      });
+    });
+  });
 });
