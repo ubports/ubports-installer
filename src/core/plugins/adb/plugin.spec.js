@@ -117,4 +117,18 @@ describe("adb plugin", () => {
         });
     });
   });
+
+  describe("action__reboot()", () => {
+    it("should reboot", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest.spyOn(adbPlugin.adb, "reboot").mockResolvedValueOnce();
+      return adbPlugin.action__reboot({ to_state: "recovery" }).then(r => {
+        expect(r).toEqual(undefined);
+        expect(adbPlugin.event.emit).toHaveBeenCalledTimes(3);
+        expect(adbPlugin.adb.reboot).toHaveBeenCalledTimes(1);
+        expect(adbPlugin.adb.reboot).toHaveBeenCalledWith("recovery");
+        adbPlugin.adb.reboot.mockRestore();
+      });
+    });
+  });
 });
