@@ -148,11 +148,18 @@ describe("core plugin", () => {
             [
               {
                 checksum: { algorithm: "sha256", sum: "b" },
-                path: "a/yggdrasil/firmware/c",
+                path: expect.stringMatching(/a.yggdrasil.firmware.c/),
                 url: "a/c"
               },
-              { path: "a/yggdrasil/firmware/b", url: "a/b" },
-              { name: "d", path: "a/yggdrasil/firmware/d", url: "a/c" }
+              {
+                path: expect.stringMatching(/a.yggdrasil.firmware.b/),
+                url: "a/b"
+              },
+              {
+                name: "d",
+                path: expect.stringMatching(/a.yggdrasil.firmware.d/),
+                url: "a/c"
+              }
             ],
             expect.any(Function),
             expect.any(Function),
