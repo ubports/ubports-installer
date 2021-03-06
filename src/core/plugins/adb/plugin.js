@@ -172,11 +172,10 @@ class AdbPlugin extends Plugin {
         () =>
           new Promise((resolve, reject) =>
             _event.emit("user:connection-lost", () =>
-              resolve(this.step(step, settings, user_actions, handlers))
+              resolve([{ actions: [{ "adb:reconnect": {} }] }])
             )
           )
-      )
-      .then(() => this.step(step, settings, user_actions, handlers));
+      );
   }
 
   /**

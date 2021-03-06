@@ -131,4 +131,29 @@ describe("adb plugin", () => {
       });
     });
   });
+
+  describe("action__reconnect()", () => {
+    it("should reconnect", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest.spyOn(adbPlugin.adb, "reconnect").mockResolvedValueOnce();
+      return adbPlugin.action__reconnect().then(r => {
+        expect(r).toEqual(undefined);
+        expect(adbPlugin.event.emit).toHaveBeenCalledTimes(3);
+        expect(adbPlugin.adb.reconnect).toHaveBeenCalledTimes(1);
+        adbPlugin.adb.reconnect.mockRestore();
+      });
+    });
+    it("should show connection lost on third failure", () => {
+      jest
+        .spyOn(adbPlugin.event, "emit")
+        .mockImplementation((e, cb) => Promise.resolve(cb(1)));
+      jest.spyOn(adbPlugin.adb, "reconnect").mockRejectedValue();
+      return adbPlugin.action__reconnect().then(r => {
+        expect(r).toHaveLength(1);
+        expect(adbPlugin.event.emit).toHaveBeenCalledTimes(2);
+        expect(adbPlugin.adb.reconnect).toHaveBeenCalledTimes(2);
+        adbPlugin.adb.reconnect.mockRestore();
+      });
+    });
+  });
 });
