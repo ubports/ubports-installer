@@ -3,7 +3,12 @@ beforeEach(() => mainEvent.emit.mockReset());
 const log = require("../../../lib/log.js");
 jest.mock("../../../lib/log.js");
 
-const adbPlugin = new (require("./plugin.js"))({}, "a", mainEvent, log);
+const adbPlugin = new (require("./plugin.js"))(
+  { config: { codename: "bacon" } },
+  "a",
+  mainEvent,
+  log
+);
 
 describe("adb plugin", () => {
   describe("init()", () => {
@@ -52,6 +57,24 @@ describe("adb plugin", () => {
         adbPlugin.adb.wait.mockRestore();
         adbPlugin.adb.format.mockRestore();
       });
+    });
+  });
+
+  describe("action__sideload()", () => {
+    it("should run shell command", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest
+        .spyOn(adbPlugin.adb, "sideload")
+        .mockImplementation((path, cb) => Promise.resolve(cb(1)));
+      return adbPlugin
+        .action__sideload({ group: "Ubuntu Touch", file: "main.zip" })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(adbPlugin.event.emit).toHaveBeenCalledTimes(5);
+          expect(adbPlugin.adb.sideload).toHaveBeenCalledTimes(1);
+          adbPlugin.event.emit.mockRestore();
+          adbPlugin.adb.sideload.mockRestore();
+        });
     });
   });
 
