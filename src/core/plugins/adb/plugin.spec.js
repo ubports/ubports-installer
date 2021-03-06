@@ -1,7 +1,9 @@
 const mainEvent = { emit: jest.fn() };
 beforeEach(() => mainEvent.emit.mockReset());
+const log = require("../../../lib/log.js");
+jest.mock("../../../lib/log.js");
 
-const adbPlugin = new (require("./plugin.js"))({}, "a", mainEvent);
+const adbPlugin = new (require("./plugin.js"))({}, "a", mainEvent, log);
 
 describe("adb plugin", () => {
   describe("init()", () => {
@@ -31,6 +33,24 @@ describe("adb plugin", () => {
         expect(adbPlugin.adb.getDeviceName).toHaveBeenCalledTimes(1);
         adbPlugin.adb.wait.mockRestore();
         adbPlugin.adb.getDeviceName.mockRestore();
+      });
+    });
+  });
+
+  describe("action__format()", () => {
+    it("should run shell command", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest.spyOn(adbPlugin.adb, "wait").mockResolvedValueOnce();
+      jest.spyOn(adbPlugin.adb, "format").mockResolvedValueOnce();
+      return adbPlugin.action__format({ partition: "cache" }).then(r => {
+        expect(r).toEqual(null);
+        expect(adbPlugin.event.emit).toHaveBeenCalledTimes(3);
+        expect(adbPlugin.adb.wait).toHaveBeenCalledTimes(1);
+        expect(adbPlugin.adb.format).toHaveBeenCalledTimes(1);
+        expect(adbPlugin.adb.format).toHaveBeenCalledWith("cache");
+        adbPlugin.event.emit.mockRestore();
+        adbPlugin.adb.wait.mockRestore();
+        adbPlugin.adb.format.mockRestore();
       });
     });
   });

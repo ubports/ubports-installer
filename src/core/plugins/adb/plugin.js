@@ -70,16 +70,19 @@ class AdbPlugin extends Plugin {
    * @returns {Promise}
    */
   action__format({ partition }) {
-    return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
-      this.event.emit(
-        "user:write:status",
-        "Preparing system for installation",
-        true
-      );
-      this.event.emit("user:write:under", "Formatting " + partition);
-      return this.adb.wait().then(() => this.adb.format(partition));
-    });
+    return Promise.resolve()
+      .then(() => {
+        this.event.emit("user:write:working", "particles");
+        this.event.emit(
+          "user:write:status",
+          "Preparing system for installation",
+          true
+        );
+        this.event.emit("user:write:under", "Formatting " + partition);
+        return this.adb.wait();
+      })
+      .then(() => this.adb.format(partition))
+      .then(() => null);
   }
 
   /**
