@@ -29,7 +29,7 @@ const { unpack } = require("../../helpers/asarLibs.js");
  */
 class CorePlugin extends Plugin {
   /**
-   * core:end end action
+   * core:end action
    * @returns {Promise}
    */
   action__end() {
@@ -45,6 +45,26 @@ class CorePlugin extends Plugin {
         this.props.os.success_message ||
           "All done! Enjoy exploring your new OS!"
       );
+    });
+  }
+
+  /**
+   * core:info action
+   * @returns {Promise}
+   */
+  action__info({ status, dots, info, progress, speed }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:progress", progress ? progress * 100 : 0);
+      this.event.emit(
+        "user:write:speed",
+        speed ? Math.round(speed * 100) / 100 : false
+      );
+      if (status) {
+        this.event.emit("user:write:status", status, dots);
+      }
+      if (info) {
+        this.event.emit("user:write:under", info);
+      }
     });
   }
 

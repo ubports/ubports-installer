@@ -128,6 +128,14 @@ class AdbPlugin extends Plugin {
   }
 
   /**
+   * adb:shell action
+   * @returns {Promise}
+   */
+  action__shell({ args }) {
+    return this.adb.shell(...args).then(() => null); // ensure null is returned
+  }
+
+  /**
    * adb:reboot action
    * @returns {Promise}
    */
