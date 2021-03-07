@@ -84,7 +84,7 @@ describe("PluginIndex", () => {
   });
   describe("getPluginArray()", () => {
     it("should return plugin array", () =>
-      expect(pluginIndex.getPluginArray()).toHaveLength(6));
+      expect(pluginIndex.getPluginArray()).toHaveLength(7));
   });
   ["init", "kill"].forEach(f =>
     describe(`${f}()`, () => {
