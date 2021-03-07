@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const path = require("path");
 const Plugin = require("../plugin.js");
-const SystemImageClient = require("./client.js");
+const api = require("./api.js");
 
 /**
  * systemimage plugin
@@ -26,30 +27,50 @@ const SystemImageClient = require("./client.js");
  */
 class SystemimagePlugin extends Plugin {
   /**
-   * @constructs Plugin
-   * @param {Props} props properties
-   * @param {String} cachePath cache path
-   * @param {EventEmitter} event event
-   * @param {Object} log logger
-   */
-  constructor(props, cachePath, event, log) {
-    super(props, cachePath, event, log);
-    this.client = new SystemImageClient(cachePath, log, event);
-  }
-
-  /**
-   * install action
-   * @returns {Promise}
+   * systemimage:install action
+   * @returns {Promise<Array<Object>>}
    */
   action__install() {
-    this.event.emit("user:write:progress", 0);
-    this.event.emit("user:write:working", "particles");
-    this.event.emit("user:write:status", "Downloading Ubuntu Touch", true);
-    this.event.emit("user:write:under", "Checking local files");
-    return this.client.installLatestVersion({
-      device: this.props.config.codename,
-      ...this.props.settings
-    });
+    return api
+      .getImages(
+        this.props.settings.channel,
+        this.props.config.codename,
+        this.props.settings.wipe // TODO allow enabling developer mode and mtp https://github.com/ubports/android_bootable_recovery/blob/halium-7.1/system-image-upgrader#L352
+      )
+      .then(({ files, commands }) => [
+        {
+          actions: [
+            {
+              "core:download": {
+                group: "Ubuntu Touch",
+                files
+              }
+            },
+            {
+              "core:write": {
+                content: commands,
+                group: "Ubuntu Touch",
+                file: "ubuntu_command"
+              }
+            },
+            {
+              "adb:wait": null
+            },
+            {
+              "adb:preparesystemimage": null
+            },
+            {
+              "adb:push": {
+                group: "Ubuntu Touch",
+                files: files
+                  .map(f => path.basename(f.url))
+                  .concat(["ubuntu_command"]),
+                dest: "/cache/recovery/"
+              }
+            }
+          ]
+        }
+      ]);
   }
 
   /**
@@ -57,16 +78,14 @@ class SystemimagePlugin extends Plugin {
    * @returns {Promise<Array<Object>>}
    */
   remote_values__channels() {
-    return this.client
-      .getDeviceChannels(this.props.config.codename)
-      .then(channels =>
-        channels
-          .map(channel => ({
-            value: channel,
-            label: channel.replace("ubports-touch/", "")
-          }))
-          .reverse()
-      );
+    return api.getChannels(this.props.config.codename).then(channels =>
+      channels
+        .map(channel => ({
+          value: channel,
+          label: channel.replace("ubports-touch/", "")
+        }))
+        .reverse()
+    );
   }
 }
 

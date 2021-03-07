@@ -21,7 +21,7 @@ const Plugin = require("../plugin.js");
 const fs = require("fs-extra");
 const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
-const { unpack } = require("../../../lib/asarLibs.js");
+const { unpack } = require("../../helpers/asarLibs.js");
 
 /**
  * core plugin
@@ -29,7 +29,7 @@ const { unpack } = require("../../../lib/asarLibs.js");
  */
 class CorePlugin extends Plugin {
   /**
-   * core:end end action
+   * core:end action
    * @returns {Promise}
    */
   action__end() {
@@ -45,6 +45,26 @@ class CorePlugin extends Plugin {
         this.props.os.success_message ||
           "All done! Enjoy exploring your new OS!"
       );
+    });
+  }
+
+  /**
+   * core:info action
+   * @returns {Promise}
+   */
+  action__info({ status, dots, info, progress, speed }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:progress", progress ? progress * 100 : 0);
+      this.event.emit(
+        "user:write:speed",
+        speed ? Math.round(speed * 100) / 100 : false
+      );
+      if (status) {
+        this.event.emit("user:write:status", status, dots);
+      }
+      if (info) {
+        this.event.emit("user:write:under", info);
+      }
     });
   }
 
@@ -101,7 +121,7 @@ class CorePlugin extends Plugin {
           this.cachePath,
           this.props.config.codename,
           group,
-          path.basename(file.url)
+          file.name || path.basename(file.url)
         )
       })),
       (progress, speed) => {
@@ -110,8 +130,9 @@ class CorePlugin extends Plugin {
         this.event.emit("user:write:under", "Downloading");
       },
       (current, total) => {
-        if (current > 1)
+        if (current > 0)
           this.log.info(`Downloaded file ${current} of ${total}`);
+        else this.log.info(`Downloading ${total} files`);
         this.event.emit(
           "user:write:status",
           `${current} of ${total} files downloaded and verified`,
@@ -148,6 +169,22 @@ class CorePlugin extends Plugin {
   }
 
   /**
+   * core:write action
+   * @param {Object} param0 {group, file, content}
+   */
+  action__write({ group, file, content }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:status", `Writing ${group} config file`);
+      this.event.emit("user:write:under", `Writing file...`);
+      return fs.writeFile(
+        path.join(this.cachePath, this.props.config.codename, group, file),
+        content
+      );
+    });
+  }
+
+  /**
    * core:unpack action
    * @param {Object} param0 {group, files}
    * @returns {Promise}
@@ -172,6 +209,11 @@ class CorePlugin extends Plugin {
       );
   }
 
+  /**
+   * core:manual_download action
+   * @param {Object} param0 {group, file}
+   * @returns {Promise}
+   */
   action__manual_download({ group, file }) {
     return Promise.resolve()
       .then(() => {
@@ -202,21 +244,23 @@ class CorePlugin extends Plugin {
               _event.emit("user:write:under", "Manual download required!");
             }, 10);
           })
-            .then(downloadedFilePath => {
-              fs.ensureDir(
-                path.join(this.cachePath, this.props.config.codename, group)
-              ).then(() =>
-                fs.copyFile(
-                  downloadedFilePath,
-                  path.join(
-                    this.cachePath,
-                    this.props.config.codename,
-                    group,
-                    file.name
+            .then(downloadedFilePath =>
+              fs
+                .ensureDir(
+                  path.join(this.cachePath, this.props.config.codename, group)
+                )
+                .then(() =>
+                  fs.copyFile(
+                    downloadedFilePath,
+                    path.join(
+                      this.cachePath,
+                      this.props.config.codename,
+                      group,
+                      file.name
+                    )
                   )
                 )
-              );
-            })
+            )
             .then(() =>
               checkFile(
                 {

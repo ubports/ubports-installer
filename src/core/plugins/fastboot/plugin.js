@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,47 @@
 
 const Plugin = require("../plugin.js");
 const path = require("path");
-const { fastboot } = require("../../deviceTools.js");
+const { Fastboot } = require("../../helpers/asarLibs.js").DeviceTools;
 
 /**
  * fastboot plugin
  * @extends Plugin
  */
 class FastbootPlugin extends Plugin {
+  /**
+   * @constructs FastbootPlugin
+   * @param {Props} props properties
+   * @param {String} cachePath cache path
+   * @param {EventEmitter} event event
+   * @param {Object} log logger
+   */
+  constructor(props, cachePath, event, log) {
+    super(props, cachePath, event, log);
+    this.fastboot = new Fastboot();
+    ["exec", "spawn:start", "spawn:exit", "spawn:error"].forEach(event =>
+      this.fastboot.on(event, r =>
+        log.command(`${event}: ${JSON.stringify(r)}`)
+      )
+    );
+  }
+
+  /**
+   * kill all running tasks
+   * @returns {Promise}
+   */
+  kill() {
+    return this.fastboot.kill();
+  }
+
+  /**
+   * wait for a device
+   * @virtual
+   * @returns {Promise<String>}
+   */
+  wait() {
+    return this.fastboot.wait().then(() => this.fastboot.getDeviceName());
+  }
+
   /**
    * fastboot:oem_unlock
    * @param {Object} step {code_url}
@@ -36,13 +70,13 @@ class FastbootPlugin extends Plugin {
     const _event = this.event;
     return new Promise((resolve, reject) =>
       _event.emit("user:oem-lock", false, code_url, code =>
-        fastboot
+        this.fastboot
           .oemUnlock(code)
           .then(resolve)
           .catch(err => {
             if (err.message.includes("enable unlocking")) {
               this.event.emit("user:oem-lock", true, code_url, code =>
-                fastboot
+                this.fastboot
                   .oemUnlock(code)
                   .then(resolve)
                   .catch(reject)
@@ -63,7 +97,7 @@ class FastbootPlugin extends Plugin {
     const _event = this.event;
     return new Promise((resolve, reject) =>
       _event.emit("user:oem-lock", false, null, () =>
-        fastboot
+        this.fastboot
           .flashingUnlock()
           .then(resolve)
           .catch(reject)
@@ -80,7 +114,7 @@ class FastbootPlugin extends Plugin {
       this.event.emit("user:write:working", "particles");
       this.event.emit("user:write:status", "Rebooting", true);
       this.event.emit("user:write:under", "Rebooting to bootloader");
-      return fastboot.rebootBootloader();
+      return this.fastboot.rebootBootloader();
     });
   }
 
@@ -93,7 +127,7 @@ class FastbootPlugin extends Plugin {
       this.event.emit("user:write:working", "particles");
       this.event.emit("user:write:status", "Rebooting", true);
       this.event.emit("user:write:under", "Rebooting system");
-      return fastboot.reboot();
+      return this.fastboot.reboot();
     });
   }
 
@@ -106,7 +140,7 @@ class FastbootPlugin extends Plugin {
       this.event.emit("user:write:working", "particles");
       this.event.emit("user:write:status", "Continuing boot", true);
       this.event.emit("user:write:under", "Resuming boot");
-      return fastboot.continue();
+      return this.fastboot.continue();
     });
   }
 
@@ -119,7 +153,7 @@ class FastbootPlugin extends Plugin {
       this.event.emit("user:write:working", "particles");
       this.event.emit("user:write:status", "Setting slots", true);
       this.event.emit("user:write:under", `Activating slot ${slot}`);
-      return fastboot.setActive(slot);
+      return this.fastboot.setActive(slot);
     });
   }
 
@@ -135,10 +169,10 @@ class FastbootPlugin extends Plugin {
         "user:write:under",
         "Flashing firmware partitions using fastboot"
       );
-      return fastboot
+      return this.fastboot
         .wait()
         .then(() =>
-          fastboot.flash(
+          this.fastboot.flash(
             partitions.map(file => ({
               ...file,
               file: path.join(
@@ -167,7 +201,7 @@ class FastbootPlugin extends Plugin {
         "user:write:under",
         "Erasing " + partition + " partition"
       );
-      return fastboot.erase(partition);
+      return this.fastboot.erase(partition);
     });
   }
 
@@ -183,7 +217,7 @@ class FastbootPlugin extends Plugin {
         "user:write:under",
         "Formatting " + partition + " partition"
       );
-      return fastboot.format(partition, type, size);
+      return this.fastboot.format(partition, type, size);
     });
   }
 
@@ -196,7 +230,7 @@ class FastbootPlugin extends Plugin {
       this.event.emit("user:write:working", "particles");
       this.event.emit("user:write:status", "Rebooting");
       this.event.emit("user:write:under", "Your device is being rebooted...");
-      return fastboot.boot(
+      return this.fastboot.boot(
         path.join(this.cachePath, this.props.config.codename, group, file),
         partition
       );
@@ -215,7 +249,7 @@ class FastbootPlugin extends Plugin {
         "user:write:under",
         "Applying fastboot update zip. This may take a while..."
       );
-      return fastboot.update(
+      return this.fastboot.update(
         path.join(
           this.cachePath,
           this.props.config.codename,
@@ -238,7 +272,7 @@ class FastbootPlugin extends Plugin {
         this.event.emit("user:write:status", "Waiting for device", true);
         this.event.emit("user:write:under", "Fastboot is scanning for devices");
       })
-      .then(() => fastboot.wait())
+      .then(() => this.fastboot.wait())
       .then(() => null); // ensure null is returned
   }
 }

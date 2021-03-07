@@ -19,7 +19,7 @@
 
 const util = require("util");
 const path = require("path");
-const packageInfo = require("../../package.json");
+const packageInfo = require("../../../package.json");
 
 /**
  * Resolve a module to require an unpacked asar file
@@ -29,12 +29,12 @@ const packageInfo = require("../../package.json");
  */
 function asarLibPathHack(lib) {
   return packageInfo.package
-    ? path.join(__dirname, "../../../app.asar.unpacked/node_modules/", lib)
+    ? path.join(__dirname, "../../../../app.asar.unpacked/node_modules/", lib)
     : lib;
 }
 
 module.exports = {
   asarLibPathHack,
   unpack: util.promisify(require(asarLibPathHack("7zip-min")).unpack),
-  DeviceTools: require(asarLibPathHack("promise-android-tools")).DeviceTools
+  DeviceTools: require(asarLibPathHack("promise-android-tools"))
 };

@@ -8,6 +8,7 @@ beforeEach(() => {
 });
 
 const { download, checkFile } = require("progressive-downloader");
+const { writeFile } = require("fs-extra");
 const core = new (require("./plugin.js"))(
   {
     os: { name: "Ubuntu Touch" },
@@ -19,7 +20,7 @@ const core = new (require("./plugin.js"))(
 );
 
 describe("core plugin", () => {
-  describe("end()", () => {
+  describe("action__end()", () => {
     it("should display end screen", () => {
       return core.action__end().then(r => {
         expect(r).toEqual(undefined);
@@ -38,14 +39,51 @@ describe("core plugin", () => {
     });
   });
 
-  describe("group()", () => {
+  describe("action__info()", () => {
+    it("should display info", () =>
+      core
+        .action__info({
+          status: "this is a status",
+          info: "important details",
+          dots: true,
+          speed: 10,
+          progress: 0.33
+        })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(mainEvent.emit).toHaveBeenCalledWith("user:write:speed", 10);
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:progress",
+            33
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            "this is a status",
+            true
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "important details"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(4);
+        }));
+    it("should hide irrellevant stuff", () =>
+      core.action__info({}).then(r => {
+        expect(r).toEqual(undefined);
+        expect(mainEvent.emit).toHaveBeenCalledWith("user:write:speed", false);
+        expect(mainEvent.emit).toHaveBeenCalledWith("user:write:progress", 0);
+        expect(mainEvent.emit).toHaveBeenCalledTimes(2);
+      }));
+  });
+
+  describe("action__group()", () => {
     it("should resolve group steps", () =>
       core.action__group([{}]).then(r => expect(r).toEqual([{}])));
     it("should resolve null on empty array", () =>
       core.action__group([]).then(r => expect(r).toEqual(null)));
   });
 
-  describe("user_action()", () => {
+  describe("action__user_action()", () => {
     [
       [{ action: "unlock" }, { unlock: { foo: "bar" } }, undefined],
       [
@@ -92,20 +130,48 @@ describe("core plugin", () => {
     });
   });
 
-  describe("download()", () => {
+  describe("action__download()", () => {
     it("should download", () =>
-      core.action__download({
-        group: "fimrware",
-        files: [
-          { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
-          { url: "a/b", checksum: { sum: "a", algorithm: "sha256" } }
-        ]
-      })); // TODO add assertions for event messages
+      core
+        .action__download({
+          group: "firmware",
+          files: [
+            { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
+            { url: "a/b" },
+            { url: "a/c", name: "d" }
+          ]
+        })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(download).toHaveBeenCalledTimes(1);
+          expect(download).toHaveBeenCalledWith(
+            [
+              {
+                checksum: { algorithm: "sha256", sum: "b" },
+                path: expect.stringMatching(/a.yggdrasil.firmware.c/),
+                url: "a/c"
+              },
+              {
+                path: expect.stringMatching(/a.yggdrasil.firmware.b/),
+                url: "a/b"
+              },
+              {
+                name: "d",
+                path: expect.stringMatching(/a.yggdrasil.firmware.d/),
+                url: "a/c"
+              }
+            ],
+            expect.any(Function),
+            expect.any(Function),
+            expect.any(Function)
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(20);
+        }));
     it("should show network error", done => {
       download.mockRejectedValueOnce("download error");
       core
         .action__download({
-          group: "fimrware",
+          group: "firmware",
           files: [
             { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
             { url: "a/b", checksum: { sum: "a", algorithm: "sha256" } }
@@ -120,7 +186,28 @@ describe("core plugin", () => {
     });
   });
 
-  describe("unpack()", () => {
+  describe("action__write()", () => {
+    it("should write file", () =>
+      core
+        .action__write({
+          group: "Ubuntu Touch",
+          file: "testfile",
+          content: "asdf"
+        })
+        .then(() =>
+          expect(writeFile).toHaveBeenCalledWith(
+            expect.stringContaining(
+              "a",
+              "yggdrasil",
+              "Ubuntu Touch",
+              "testfile"
+            ),
+            "asdf"
+          )
+        ));
+  });
+
+  describe("action__unpack()", () => {
     it("should unpack", () =>
       core.action__unpack({
         group: "firmware",
@@ -128,7 +215,7 @@ describe("core plugin", () => {
       })); // TODO add assertions
   });
 
-  describe("manual_download()", () => {
+  describe("action__manual_download()", () => {
     it("should resolve if checksum was verified", () => {
       jest
         .spyOn(mainEvent, "emit")

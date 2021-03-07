@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { CancelablePromise } = require("cancelable-promise");
+
 const AdbPlugin = require("./adb/plugin.js");
 const AsteroidOsPlugin = require("./asteroid_os/plugin.js");
 const CorePlugin = require("./core/plugin.js");
@@ -76,10 +78,63 @@ class PluginIndex {
     });
   }
 
+  /**
+   * resolves remote values
+   * @returns {Promise}
+   */
   remote_value(option) {
     return Promise.resolve(this.parsePluginId(option.remote_values))
-      .then(([p, f]) => this.plugins[p][`remote_values__${f}`](option))
+      .then(([p, f]) =>
+        this.plugins[p] && this.plugins[p][`remote_values__${f}`]
+          ? this.plugins[p][`remote_values__${f}`](option)
+          : []
+      )
       .then(values => (option.values = values));
+  }
+
+  /**
+   * returns iterable array of all plugins
+   * @returns {Array<Object>}
+   */
+  getPluginArray() {
+    return Object.entries(this.plugins).map(([name, plugin]) => plugin);
+  }
+
+  /**
+   * initialize all plugins
+   * @returns {Promise}
+   */
+  init() {
+    return Promise.all(this.getPluginArray().map(plugin => plugin.init()));
+  }
+
+  /**
+   * kill all running tasks
+   * @returns {Promise}
+   */
+  kill() {
+    return Promise.all(this.getPluginArray().map(plugin => plugin.kill()));
+  }
+
+  /**
+   * detect devices using all plugins
+   * @returns {Promise}
+   */
+  wait() {
+    const _this = this;
+    return new CancelablePromise(function(resolve, reject, onCancel) {
+      const waitPromises = _this.getPluginArray().map(plugin => plugin.wait());
+      CancelablePromise.race(waitPromises)
+        .then(state => {
+          waitPromises.forEach(p => (p.cancel ? p.cancel() : null));
+          resolve(state);
+        })
+        .catch(e => {
+          reject(new Error("no device"));
+        });
+
+      onCancel(() => waitPromises.forEach(p => p.cancel()));
+    });
   }
 }
 
