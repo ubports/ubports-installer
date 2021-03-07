@@ -58,8 +58,8 @@
   },
   "dependencies": {
     "7zip-min": "^1.2.0",
-    "bootstrap": "^4.5.2",
     "axios": "^0.21.1",
+    "bootstrap": "^5.0.0-beta2",
     "commander": "^6.2.1",
     "electron-dynamic-prompt": "^1.0.2",
     "electron-open-link-in-browser": "^1.0.2",

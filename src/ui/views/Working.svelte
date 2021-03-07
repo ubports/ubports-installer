@@ -9,13 +9,13 @@
 </script>
 
 <svelte:head>
-    <script src="./scripts/particleground.js"></script>
+    <!-- <script src="./scripts/particleground.js"></script> -->
 </svelte:head>
 
 <div class="content">
-    <div id="particles-background">
+    <!-- <div id="particles-background">
         <div id="particles-foreground"></div>
-    </div>
+    </div> -->
     <div class="loader-circle"></div>
     <div class="loader-line-mask">
         <div class="loader-line"></div>
@@ -32,7 +32,7 @@
         align-items: center;
     }
 
-    #particles-foreground {
+    /* #particles-foreground {
         display: flex;
         flex: 1 1 auto;
         height: 100%;
@@ -56,7 +56,7 @@
     -o-transform: scale3d(0.5, 0.5, 1);
     transform: scale3d(0.5, 0.5, 1);
     z-index: -1;
-    }
+    } */
 
     .loader-circle {
         position: absolute;

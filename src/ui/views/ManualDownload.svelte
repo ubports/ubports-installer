@@ -33,10 +33,10 @@
 </script>
 
 <div class="row">
-  <div class="col-xs-6">
+  <div class="col-6">
     <img src="./screens/Screen6.jpg" alt="Screen6" style='height: 350px; margin: auto; display: block;'>
   </div>
-  <div class="col-xs-6">
+  <div class="col-6">
     <h4 style='font-weight: bold;'>
       Manual Download
     </h4>

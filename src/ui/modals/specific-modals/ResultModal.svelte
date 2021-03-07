@@ -20,7 +20,7 @@
   const close = () => dispatch('close');
 </script>
 
-<Modal on:close={close}>
+<Modal on:close={close} showCloseButton={false}>
   <h4 slot="header">
     Report your result
   </h4>
@@ -32,9 +32,9 @@
   </div>
   <div slot="actions">
     {#if showDoNotAskAgainButton}
-    <button class="btn btn-default" id="resultDoNotAskAgain" on:click={() => handleResultDoNotAskAgainButton}>No, don't ask me again</button>
+    <button class="btn btn-default" id="resultDoNotAskAgain" on:click={() => handleResultDoNotAskAgainButton()}>No, don't ask me again</button>
     {/if} 
-    <button class="btn btn-secondary" on:click={() => close}>Dismiss</button>
+    <button class="btn btn-secondary" on:click={() => close()}>Dismiss</button>
     <button class="btn btn-success" on:click={() => report('PASS')}>PASS</button>
     <button class="btn btn-warning" on:click={() => report('WONKY')}>WONKY</button>
     <button class="btn btn-danger" on:click={() => report('FAIL')}>FAIL</button>

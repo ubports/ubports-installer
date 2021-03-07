@@ -18,7 +18,11 @@ export const userActionEventObject = writable({});
 export const deviceName = writable('');
 
 //app footer
-export const footerData = writable({});
+export const footerData = writable({
+  topText: '',
+  underText: '',
+  speedText: ''
+});
 
 //manual download view
 export const manualDownloadFileData = writable({});

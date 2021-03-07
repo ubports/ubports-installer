@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { osInstructsData } from '../../stores.mjs';
+  import { osInstructsData } from '../../../stores.mjs';
   const { shell, ipcRenderer } = require("electron");
   import Modal from './Modal.svelte';
 
@@ -15,6 +15,7 @@
 
   const close = () => {
     for (const osInstruction of os_Instructs) {
+      console.log(osInstruction)
       ipcRenderer.send("option", osInstruction.var, inputValues[osInstruction]);
     }
     setTimeout(() => ipcRenderer.send('install'), 250);
@@ -28,28 +29,30 @@
   </h4>
   <div slot="content">
     <div>
-      <form action="" id="options-form" class="form-horizontal">
+      <form action="">
         {#each os_Instructs as osInstruction, osInstructsCounter}
-        <div class="form-group">
-          <label for="" class="col-xs-3 control-label">{osInstruction.name}</label>
-          <div class="col-xs-9">
+        <div class="row">
+          <label for="" class="col-3 form-label">{osInstruction.name}</label>
+          <div class="col-9">
             {#if osInstruction.type === "select"}
-            <select name="" id="" class="form-control space" bind:value={inputValues[osInstructsCounter]}>
+            <select class="form-control" bind:value={inputValues[osInstructsCounter]}>
               {#each osInstruction.values as value}
-            <option value={value.value}>{value.label}</option>
+              <option value={value.value}>{value.label}</option>
               {/each}
             </select>
             {:else}
               {#if osInstruction.type === "checkbox"}
-              <input type="checkbox" bind:value={inputValues[osInstructsCounter]} checked={osInstruction.value}>
-              <!-- {:else}
-              <input type="{osInstruction.type}" class="form-control space" bind:value={inputValue}> -->
+              <input class="form-check-input" type="checkbox" bind:value={inputValues[osInstructsCounter]} checked={osInstruction.value}>
+              <!-- {:else} -->
+              <!-- <input type="{osInstruction.type}" class="form-control space" bind:value={inputValues[osInstructsCounter]}> -->
               {/if}
             {/if}
           </div>
+        </div>
+        <div class="row">
           {#if osInstruction.tooltip}
-          <div class="col-xs-3"></div>
-          <p class="col-xs-9">
+          <div class="col-3"></div>
+          <p class="col-9">
             {osInstruction.tooltip}
             {#if osInstruction.link}
             <a href on:click|preventDefault={() => shell.openExternal(osInstruction.link)}>More...</a>
@@ -65,6 +68,6 @@
     </p>
   </div>
   <div slot="actions">
-    <button id="btn-options-close" class="btn btn-default" on:click={() => close}>Next</button>
+    <button id="btn-options-close" class="btn btn-default" on:click={() => close()}>Next</button>
   </div>
 </Modal>

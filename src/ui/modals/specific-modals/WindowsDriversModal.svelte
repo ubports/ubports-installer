@@ -31,7 +31,7 @@
     </p>
   </div>
   <div slot="actions">
-    <button class="btn btn-default" on:click={close}>Dismiss</button>
+    <button class="btn btn-default" on:click={close()}>Dismiss</button>
     <button id="btn-driver-never-ask" class="btn btn-primary" on:click={() => dismissDrivers}>Don't ask me again</button>
   </div>
 </Modal>

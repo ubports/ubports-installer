@@ -39,7 +39,7 @@
 		left: 50%;
 		top: 50%;
 		width: calc(100vw - 4em);
-		max-width: 32em;
+		max-width: 34em;
 		max-height: calc(100% - 4em);
 		overflow: auto;
 		transform: translate(-50%,-50%);
@@ -54,6 +54,11 @@
 	.svelte-modal-header {
 		border-bottom: 1px solid #e9ecef;
 		align-items: center;
+	}
+
+	.svelte-modal-content {
+		overflow-y: auto;
+		max-height: 300px;
 	}
 
 	.svelte-modal-actions {

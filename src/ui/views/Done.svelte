@@ -3,10 +3,10 @@
 </script>
 
 <div class="row">
-    <div class="col-xs-6">
+    <div class="col-6">
         <img src="../screens/Screen6.jpg" alt="Screen6" style="height: 350px; margin: auto; display: block;">
     </div>
-    <div class="col-xs-6">
+    <div class="col-6">
         <h4 style="font-weight: bold;">Success!</h4>
         <p>The installation process from the computer is done. The device will now perform the remaining steps which should take less than five minutes. After the installation, the device will reboot and you can begin to explore Ubuntu Touch.</p>
         <p>Found something you don't like?  <a href on:click|preventDefault={() => shell.openExternal('https://github.com/ubports/ubports-touch')}>Tell us</a>, or help us change it!</p>

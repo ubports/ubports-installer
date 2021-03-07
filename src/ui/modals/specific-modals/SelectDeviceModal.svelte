@@ -2,7 +2,7 @@
   import Modal from './Modal.svelte';
   const { shell, ipcRenderer } = require("electron");
   import { createEventDispatcher } from 'svelte';
-  import { deviceSelectOptions } from '../../stores.mjs';
+  import { deviceSelectOptions } from '../../../stores.mjs';
       
   let device_selects;
 
@@ -26,11 +26,10 @@
         Select your device
     </h2>
     <div slot="content">
-        <form id="device-form" class="form form-horizontal">
-             <div class="form-group">
-                <label for="" class="col-xs-3 control-label">Device</label>
-                <div class="col-xs-9">
-                    <select class="form-control space" bind:value={selectedDevice}>
+        <form id="device-form" class="row">
+                <label for="" class="col-3 form-label">Device</label>
+                <div class="col-9">
+                    <select class="form-control" bind:value={selectedDevice}>
                       {#each device_selects as deviceSelect}
                         <option value={deviceSelect.value}>
                           {deviceSelect.name}
@@ -38,7 +37,6 @@
                       {/each}
                     </select>
                 </div>
-             </div>
         </form>
         <p>
             Not all <a href on:click|preventDefault={() => shell.openExternal('https://devices.ubuntu-touch.io')}>Ubuntu Touch devices</a> are supported by the UBports Installer yet.

@@ -2,7 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   const { shell, ipcRenderer } = require("electron");
   import Modal from './Modal.svelte';
-  import { showDeveloperModeModal } from '../../stores.mjs';
+  import { showDeveloperModeModal } from '../../../stores.mjs';
 
   export let oemUnlockData;
 

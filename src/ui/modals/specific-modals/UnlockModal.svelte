@@ -23,19 +23,19 @@
   <div slot="content">
     <div id="actions">
       {#each Object.keys(unlockData) as action}
-      <div class="form-group">
-        <label for="" class="col-xs-3 control-label">{unlockData[action].title}</label>
-        <div class="col-xs-9">
+      <div class=row>
+        <label for="" class="col-3 form-label">{unlockData[action].title}</label>
+        <div class="col-9">
           <p>{unlockData[action].description}</p>
         </div>
+        {#if unlockData[action].link}
+          <div class="col-3">
+            <p class="col-9">
+              <a href on:click|preventDefault={() => shell.openExternal(unlockData[action].link)}>More...</a>
+            </p>
+          </div>
+        {/if}
       </div>
-      {#if unlockData[action].link}
-        <div class="col-xs-3">
-          <p class="col-xs-9">
-            <a href on:click|preventDefault={() => shell.openExternal(unlockData[action].link)}>More...</a>
-          </p>
-        </div>
-      {/if}
       {/each}
     </div>
   </div>

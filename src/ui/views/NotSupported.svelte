@@ -10,10 +10,10 @@
 </script>
 
 <div class="row">
-    <div class="col-xs-6">
+    <div class="col-6">
         <img src="../screens/Screen5.jpg" alt="Screen5" style='height: 350px; margin: auto; display: block;'>
     </div>
-    <div class="col-xs-6">
+    <div class="col-6">
         <h4 style='font-weight: bold;'>Device not supported</h4>
         <p>
             Your device:

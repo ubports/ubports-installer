@@ -18,7 +18,7 @@
       <div class="card-body">
         <h4 class="card-title">Ubuntu Touch</h4>
         <div class="row">
-          <div class="col-xs-6">
+          <div class="col-6">
             <p>
               This is done from System Settings.
               <br>
@@ -29,7 +29,7 @@
               <li>The 'Lock Security' menu there can be used to set a pin or password.</li>
             </ol>
           </div>
-          <div class="col-xs-6">
+          <div class="col-6">
             <img src="./screens/ubuntu-dev-mode.gif" alt="ubuntu-dev-mode" style="width: 100%">
           </div>
         </div>
@@ -39,7 +39,7 @@
       <div class="card-body">
         <h4 class="card-title">Android</h4>
         <div class="row">
-          <div class="col-xs-6">
+          <div class="col-6">
             <p>
               This is done from System Settings.
               <br>
@@ -52,7 +52,7 @@
               <li>Enable "USB debugging", "ADB" or "Android Debug Bridge" option. If you see it, also enable the "allow OEM unlock" option, but that is not available on every device.</li>
             </ol>
           </div>
-          <div class="col-xs-6">
+          <div class="col-6">
             <img src="./screens/android-dev-mode.gif" alt="android-dev-mode" style="width: 100%">
           </div>
         </div>
