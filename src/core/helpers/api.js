@@ -38,11 +38,9 @@ const getIndex = () => api.get("/").then(({ data }) => data);
  */
 const getDeviceSelects = () =>
   getIndex().then(devices =>
-    devices.map(
-      ({ name, codename }) => {
-        return {name: name, value: codename}
-      }
-    )
+    devices.map(({ name, codename }) => {
+      return { name: name, value: codename };
+    })
   );
 
 /**

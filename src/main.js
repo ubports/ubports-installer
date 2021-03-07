@@ -48,9 +48,7 @@ mainEvent.on("restart", () => {
 
 async function createWindow() {
   log.info(
-    "Welcome to the UBports Installer version " +
-      global.packageInfo.version +
-      "!"
+    "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
   mainWindow = new BrowserWindow({
     width: cli.debug ? 1600 : 800,

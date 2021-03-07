@@ -41,8 +41,6 @@ jobs:
       run: npm run lint
     - name: npm run docs
       run: npm run docs
-    - name: npm run prerender
-      run: npm run prerender
 
   test:
     name: Test ${{ matrix.os }}
@@ -113,7 +111,6 @@ jobs:
     - name: prepare build
       run: |
         npm install
-        npm run prerender
 
     - name: build linux
       if: contains(runner.os, 'Linux')
