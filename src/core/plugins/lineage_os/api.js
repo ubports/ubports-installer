@@ -23,8 +23,7 @@ const axios = require("axios");
 
 const baseURL = "https://download.lineageos.org/api/v1/";
 const deviceBuildTypeURL = `${baseURL}types/`;
-const rootfsDefaultName = "lineageos_rootfs_"
-
+const rootfsDefaultName = "lineageos_rootfs_";
 
 const api = axios.create({ baseURL, timeout: 15000 });
 
@@ -39,14 +38,16 @@ const getLatestBuild = (channel, device) =>
   api
     .get(`${device}/${channel}/abc`)
     .then(({ data }) => {
-      return [{
-        url: data.response[data.response.length - 1].url,
-        checksum: {
-          sum: data.response[data.response.length - 1].id,
-          algorithm: "sha256"
-        },
-        name: rootfsDefaultName + device + ".zip"
-      }]
+      return [
+        {
+          url: data.response[data.response.length - 1].url,
+          checksum: {
+            sum: data.response[data.response.length - 1].id,
+            algorithm: "sha256"
+          },
+          name: rootfsDefaultName + device + ".zip"
+        }
+      ];
     })
     .catch(error => {
       throw error;
@@ -61,7 +62,9 @@ const getLatestBuild = (channel, device) =>
 const getChannels = device =>
   api
     .get(`${deviceBuildTypeURL}${device}`)
-    .then(({ data }) => { return data.response })
+    .then(({ data }) => {
+      return data.response;
+    })
     .catch(error => {
       throw error;
     });
