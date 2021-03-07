@@ -47,6 +47,56 @@ class LineageOSPlugin extends Plugin {
   }
 
   /**
+   * lineage_os:install action
+   * @returns {Promise<Array<Object>>}
+   */
+  action__install() {
+    return api
+      .getLatestBuild(this.props.settings.channel, this.props.config.codename)
+      .then(rootfs_infos => [
+        {
+          actions: [
+            {
+              "core:download": {
+                group: "LineageOS",
+                files: rootfs_infos
+              }
+            },
+            {
+              "core:write": {
+                content: "install /data/" + 
+                    rootfs_infos[0].name,
+                group: "LineageOS",
+                file: "openrecoveryscript"
+              }
+            },
+            {
+              "adb:wait": null
+            },
+            {
+              "adb:push": {
+                group: "LineageOS",
+                files: [
+                  rootfs_infos[0].name,
+                ],
+                dest: "/data/"
+              }
+            },
+            {
+              "adb:push": {
+                group: "LineageOS",
+                files: [
+                    "openrecoveryscript"
+                ],
+                dest: "/cache/recovery/"
+              }
+            }
+          ]
+        }
+      ]);
+  }
+
+  /**
    * channels remote_values
    * @returns {Promise<Array<Object>>}
    */
