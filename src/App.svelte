@@ -1,7 +1,4 @@
 <script>
-	//Svelte imports
-	import { onMount } from 'svelte';
-
 	//Electron imports
 	const { remote, ipcRenderer, shell } = require("electron");
 
@@ -13,6 +10,10 @@
 		userActionEventObject, actionData,
 		deviceName, osInstructsData
 	} from './stores.mjs';
+
+	//Footer
+	import Footer from './ui/partials/Footer.svelte'
+	let footer;
 
 	//Modals
 	import Modals from './ui/modals/Modals.svelte'
@@ -34,38 +35,6 @@
 	let showResultModal = false;
 	let showDoNotAskAgainButton;
 
-	//Footer
-	let progressBarWidth = 0;
-	//Footer data
-	let footer_data;
-
-	ipcRenderer.on("user:write:status", (e, status, waitDots) => {
-		//footer.topText.set(status, waitDots);
-		$footerData.topText = status;
-	});
-
-	ipcRenderer.on("user:write:under", (e, status) => {
-		//footer.underText.set(status, true);
-		$footerData.underText = status;
-	});
-
-	ipcRenderer.on("user:write:speed", (e, speed) => {
-		$footerData.speedText = speed;
-	});
-
-	//Reactive variables
-	const unsubscribeFooterData = footerData.subscribe(value => {
-    footer_data = value;
-	});
-
-	//Life cycle methods
-	onMount(() => {
-		footerData.set({
-			topText: 'UBports Installer is starting up',
-			underText: 'Starting adb service'
-		});
-	});
-
 	//Messages
 	//Routing messages
 	ipcRenderer.on("user:write:working", (e, animation) => {
@@ -73,16 +42,9 @@
 		push('/working')
 	});
 
-	ipcRenderer.on("user:write:progress", (e, length) => {
-		if (length >= 100) {
-			length = 100;
-		}
-		progressBarWidth = length.toString() + '%';
-	});
-
 	ipcRenderer.on("user:write:done", () => {
 		push('/done')
-		progressBarWidth = 0;
+		footer.resetProgress();
 	});
 	
 	ipcRenderer.on("user:device-unsupported", (event, device) => {
@@ -134,7 +96,6 @@
 
 	ipcRenderer.on("user:report", (_, done) => requestReport(done));
 
-
 	//Other methods
 	function requestReport(done = false) {
 		done? showDoNotAskAgainButton = true : showDoNotAskAgainButton = true;
@@ -168,25 +129,7 @@
 		<ResultModal showDoNotAskAgainButton={showDoNotAskAgainButton} on:close={() => showResultModal = false}/>
 		{/if}
 	</div>
-	<div class="progress">
-		<div class="progress-bar" style="--progressWidth:{progressBarWidth}"></div>
-	</div>
-	<footer class="footer">
-		<div class="container">
-			<h3 class="text-muted footer-top">
-				<span id="footer-top">
-					{footer_data.topText}
-				</span>
-				<span id="wait-dot"></span>
-			</h3>
-			<p>
-				<span id="footer-bottom" class="text-muted">
-					{footer_data.underText}
-				</span>
-				<span id="footer-speed" class="text-muted"></span>
-			</p>
-		</div>
-	</footer>
+	<Footer bind:this={footer}/>
 </div>
 
 <style>
@@ -217,30 +160,5 @@
 		flex: 1 1 auto;
 		flex-direction: column;
 		padding: 20px 10px;
-	}
-
-	.progress {
-		display: flex;
-		flex: 1 1 auto;
-		flex-direction: row;
-		max-height: 4px;
-		background-color: #f5f5f5;
-		margin: 0;
-	}
-
-	.progress-bar {
-		width: var(--progressWidth);
-		height: 4px;
-		background-color: #E95420;
-	}
-
-	.footer {
-		display: flex;
-		flex: 1 1 auto;
-		flex-direction: row;
-		height: 90px;
-		max-height: 90px;
-		background-color: #f5f5f5;
-		margin: 0;
 	}
 </style>
