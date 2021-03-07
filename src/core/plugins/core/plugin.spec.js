@@ -132,18 +132,46 @@ describe("core plugin", () => {
 
   describe("action__download()", () => {
     it("should download", () =>
-      core.action__download({
-        group: "fimrware",
-        files: [
-          { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
-          { url: "a/b", checksum: { sum: "a", algorithm: "sha256" } }
-        ]
-      })); // TODO add assertions for event messages
+      core
+        .action__download({
+          group: "firmware",
+          files: [
+            { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
+            { url: "a/b" },
+            { url: "a/c", name: "d" }
+          ]
+        })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(download).toHaveBeenCalledTimes(1);
+          expect(download).toHaveBeenCalledWith(
+            [
+              {
+                checksum: { algorithm: "sha256", sum: "b" },
+                path: expect.stringMatching(/a.yggdrasil.firmware.c/),
+                url: "a/c"
+              },
+              {
+                path: expect.stringMatching(/a.yggdrasil.firmware.b/),
+                url: "a/b"
+              },
+              {
+                name: "d",
+                path: expect.stringMatching(/a.yggdrasil.firmware.d/),
+                url: "a/c"
+              }
+            ],
+            expect.any(Function),
+            expect.any(Function),
+            expect.any(Function)
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(20);
+        }));
     it("should show network error", done => {
       download.mockRejectedValueOnce("download error");
       core
         .action__download({
-          group: "fimrware",
+          group: "firmware",
           files: [
             { url: "a/c", checksum: { sum: "b", algorithm: "sha256" } },
             { url: "a/b", checksum: { sum: "a", algorithm: "sha256" } }

@@ -121,7 +121,7 @@ class CorePlugin extends Plugin {
           this.cachePath,
           this.props.config.codename,
           group,
-          path.basename(file.url)
+          file.name || path.basename(file.url)
         )
       })),
       (progress, speed) => {
@@ -130,8 +130,9 @@ class CorePlugin extends Plugin {
         this.event.emit("user:write:under", "Downloading");
       },
       (current, total) => {
-        if (current > 1)
+        if (current > 0)
           this.log.info(`Downloaded file ${current} of ${total}`);
+        else this.log.info(`Downloading ${total} files`);
         this.event.emit(
           "user:write:status",
           `${current} of ${total} files downloaded and verified`,
@@ -208,6 +209,11 @@ class CorePlugin extends Plugin {
       );
   }
 
+  /**
+   * core:manual_download action
+   * @param {Object} param0 {group, file}
+   * @returns {Promise}
+   */
   action__manual_download({ group, file }) {
     return Promise.resolve()
       .then(() => {
