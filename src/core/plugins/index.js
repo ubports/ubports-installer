@@ -21,6 +21,7 @@ const { CancelablePromise } = require("cancelable-promise");
 
 const AdbPlugin = require("./adb/plugin.js");
 const AsteroidOsPlugin = require("./asteroid_os/plugin.js");
+const LineageOSPlugin = require("./lineage_os/plugin.js");
 const CorePlugin = require("./core/plugin.js");
 const FastbootPlugin = require("./fastboot/plugin.js");
 const HeimdallPlugin = require("./heimdall/plugin.js");
@@ -46,6 +47,7 @@ class PluginIndex {
     this.plugins = {
       adb: new AdbPlugin(...pluginArgs),
       asteroid_os: new AsteroidOsPlugin(...pluginArgs),
+      lineage_os: new LineageOSPlugin(...pluginArgs),
       core: new CorePlugin(...pluginArgs),
       fastboot: new FastbootPlugin(...pluginArgs),
       heimdall: new HeimdallPlugin(...pluginArgs),

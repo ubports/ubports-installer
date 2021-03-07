@@ -32,13 +32,13 @@ class LineageOSPlugin extends Plugin {
   action__download() {
     return api
       .getLatestBuild(this.props.settings.channel, this.props.config.codename)
-      .then(files => [
+      .then(rootfs_infos => [
         {
           actions: [
             {
               "core:download": {
                 group: "LineageOS",
-                files
+                files: rootfs_infos
               }
             }
           ]
