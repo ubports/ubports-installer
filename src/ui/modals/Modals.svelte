@@ -25,32 +25,17 @@
 	let showNoNetworkModal = false;
 	let showLowPowerModal = false;
 	let showWindowsDriversModal = false;
-	let show_selectDeviceModal;
-	let show_developerModeModal = false;
 	let showErrorModal = false;
 	let showUnlockModal = false;
 	let showOptionsModal = false;
 	let showOemLockModal = false;
 
   //Modal props
-	let select_options;
 	let errorData;
 	let unlockData;
 	let oemUnlockData;
 
-  const unsubscribeShowSelectDeviceModal = showSelectDeviceModal.subscribe(value => {
-    show_selectDeviceModal = value;
-	});
-	
-	const unsubscribeShowDeveloperModeModal = showDeveloperModeModal.subscribe(value => {
-    show_developerModeModal = value;
-	});
-	
-	const unsubscribeDeviceSelectOptions = deviceSelectOptions.subscribe(value => {
-    select_options = value;
-  });
-
-  	//Modal related messages
+  //Modal related messages
 	if (process.platform === "linux" && !process.env.SNAP) {
 		ipcRenderer.invoke("getSettingsValue", "never.udev")
 			.then(never => {
@@ -133,10 +118,10 @@
 {#if showWindowsDriversModal}
 <WindowsDriversModal on:close={() => showWindowsDriversModal = false}/>
 {/if}
-{#if show_selectDeviceModal}
-<SelectDeviceModal selectOptions={select_options} on:close={() => showSelectDeviceModal.set(false)}/>
+{#if $showSelectDeviceModal}
+<SelectDeviceModal selectOptions={$deviceSelectOptions} on:close={() => showSelectDeviceModal.set(false)}/>
 {/if}
-{#if show_developerModeModal}
+{#if $showDeveloperModeModal}
 <DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)}/>
 {/if}
 {#if showErrorModal}

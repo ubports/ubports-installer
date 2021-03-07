@@ -7,8 +7,6 @@
 
 	let progressBarWidth = 0;
 
-	let footer_data;
-
   onMount(() => {
 		footerData.set({
 			topText: 'UBports Installer is starting up',
@@ -30,10 +28,6 @@
 		$footerData.speedText = speed;
 	});
 
-	const unsubscribeFooterData = footerData.subscribe(value => {
-    footer_data = value;
-	});
-
   ipcRenderer.on("user:write:progress", (e, length) => {
 		if (length >= 100) {
 			length = 100;
@@ -53,13 +47,13 @@
   <div class="container">
     <h3>
       <span id="footer-top">
-        {footer_data.topText}
+        {$footerData.topText}
       </span>
       <span id="wait-dot"></span>
     </h3>
     <p>
       <span id="footer-bottom">
-        {footer_data.underText}
+        {$footerData.underText}
       </span>
       <span id="footer-speed">
 

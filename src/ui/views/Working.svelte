@@ -1,11 +1,5 @@
 <script>
     import { animationType } from '../../stores.mjs';
-        
-    let animation_value;
-
-	const unsubscribe = animationType.subscribe(value => {
-		animation_value = value;
-	});
 </script>
 
 <svelte:head>

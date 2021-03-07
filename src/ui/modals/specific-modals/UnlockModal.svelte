@@ -4,7 +4,6 @@
   import Modal from './Modal.svelte';
 
   export let unlockData;
-  console.log('Unlock Data', Object.keys(unlockData))
 
   const dispatch = createEventDispatcher();
   

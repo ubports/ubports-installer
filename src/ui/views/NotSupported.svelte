@@ -1,12 +1,7 @@
 <script>
     const { shell } = require("electron");
+    
     import { showSelectDeviceModal, deviceName } from '../../stores.mjs';
-
-    let device_Name;
-
-    const unsubscribeDeviceName = deviceName.subscribe(value => {
-        device_Name = value;
-    });
 </script>
 
 <div class="row">
@@ -17,7 +12,7 @@
         <h4 style='font-weight: bold;'>Device not supported</h4>
         <p>
             Your device:
-        <span>{device_Name}</span>
+        <span>{$deviceName}</span>
         </p>
         <p>
             <b>Sorry</b>

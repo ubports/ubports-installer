@@ -1,29 +1,12 @@
 <script>
   const { shell } = require("electron");
+  
   import { manualDownloadFileData, manualDownloadGroup, eventObject } from '../../stores.mjs';
-
-  let manualDownload_group;
-  let manualDownload_filename;
-  let manualDownload_link;
-  let event;
-
-  const unsubscribeManualDownloadFileData = manualDownloadFileData.subscribe(value => {
-    manualDownload_filename = value.name;
-    manualDownload_link = value.url;
-  });
-
-  const unsubscribeManualDownloadGroup = manualDownloadGroup.subscribe(value => {
-    manualDownload_group = value;
-  });
-
-  const unsubscribeEventObject = eventObject.subscribe(value => {
-    event = value;
-  });
 
   let downloadedFile;
 
   function handleManualDownloadButton() {
-    event.sender.send(
+    $eventObject.sender.send(
       "manual_download:completed",
       (global.packageInfo.package !== "snap") ?
       downloadedFile.path :
@@ -41,10 +24,10 @@
       Manual Download
     </h4>
     <p>
-    The <b>{manualDownload_group}</b> file <b>{manualDownload_filename}</b> needs to be manually downloaded due to licensing restrictions. Sorry for the inconvenience!
+    The <b>{$manualDownloadGroup}</b> file <b>{$manualDownloadFileData.name}</b> needs to be manually downloaded due to licensing restrictions. Sorry for the inconvenience!
     </p>
     <p>
-      Please download the file <b>{manualDownload_filename}</b> from <b on:click|preventDefault={() => shell.openExternal(manualDownload_link)}>{manualDownload_link}</b>.
+      Please download the file <b>{$manualDownloadFileData.name}</b> from <b on:click|preventDefault={() => shell.openExternal($manualDownloadFileData.url)}>{$manualDownloadFileData.url}</b>.
     </p>
     {#if global.packageInfo.package === "snap"}
     <p>

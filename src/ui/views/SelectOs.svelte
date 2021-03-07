@@ -1,18 +1,8 @@
 <script>
   const { shell, ipcRenderer } = require("electron");
+  
   import { osSelectOptions, installConfigData, showDeveloperModeModal } from '../../stores.mjs';
       
-  let os_selects;
-  let install_config;
-
-  const unsubscribeOsSelects = osSelectOptions.subscribe(value => {
-    os_selects = value;
-  });
-
-  const unsubscribeInstallConfig = installConfigData.subscribe(value => {
-    install_config = value;
-  });
-
   let selectedOs;
 
   function handleInstallButton() {
@@ -26,10 +16,10 @@
         <img src="./screens/Screen6.jpg" alt="Screen6" style='height: 350px; margin: auto; display: flex;'>
     </div>
     <div class="col-6">
-      <h4 style='font-weight: bold;'>{install_config.name} ({install_config.codename})</h4>
+      <h4 style='font-weight: bold;'>{$installConfigData.name} ({$installConfigData.codename})</h4>
       <p>
-          <a href on:click|preventDefault={() => shell.openExternal(`https://devices.ubuntu-touch.io/device/${install_config.codename}`)}>about this device</a>
-          <a href on:click|preventDefault={() => shell.openExternal(`https://github.com/ubports/installer-configs/blob/master/v1/${install_config.codename}.json`)}>view config file</a>
+          <a href on:click|preventDefault={() => shell.openExternal(`https://devices.ubuntu-touch.io/device/${$installConfigData.codename}`)}>about this device</a>
+          <a href on:click|preventDefault={() => shell.openExternal(`https://github.com/ubports/installer-configs/blob/master/v1/${$installConfigData.codename}.json`)}>view config file</a>
       </p>
       <p>
         Please make sure you enabled <a href on:click|preventDefault={() => showDeveloperModeModal.set(true)}>developer mode and OEM unlocking</a>.
@@ -43,7 +33,7 @@
               </div>
               <div class="col-9">
                   <select id="options-os" name="options-os" class="form-control" bind:value={selectedOs}>
-                    {#each os_selects as osSelect}
+                    {#each $osSelectOptions as osSelect}
                       <option value={osSelect.value}>
                         {osSelect.name}
                       </option>

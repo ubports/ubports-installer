@@ -6,15 +6,10 @@
 
   const dispatch = createEventDispatcher();
 
-  let os_Instructs;
   let inputValues = [];
 
-  const unsubscribeOsInstructsData = osInstructsData.subscribe(value => {
-    os_Instructs = value;
-  })
-
   const close = () => {
-    for (const osInstruction of os_Instructs) {
+    for (const osInstruction of $osInstructsData) {
       console.log(osInstruction)
       ipcRenderer.send("option", osInstruction.var, inputValues[osInstruction]);
     }
@@ -30,7 +25,7 @@
   <div slot="content">
     <div>
       <form action="">
-        {#each os_Instructs as osInstruction, osInstructsCounter}
+        {#each $osInstructsData as osInstruction, osInstructsCounter}
         <div class="row">
           <label for="" class="col-3 form-label">{osInstruction.name}</label>
           <div class="col-9">

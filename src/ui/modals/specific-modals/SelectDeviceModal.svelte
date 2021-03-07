@@ -4,12 +4,6 @@
   import { createEventDispatcher } from 'svelte';
   import { deviceSelectOptions } from '../../../stores.mjs';
       
-  let device_selects;
-
-  const unsubscribe = deviceSelectOptions.subscribe(value => {
-    device_selects = value;
-  });
-
   let selectedDevice;
 
   function selectDevice(device) {
@@ -30,7 +24,7 @@
                 <label for="" class="col-3 form-label">Device</label>
                 <div class="col-9">
                     <select class="form-control" bind:value={selectedDevice}>
-                      {#each device_selects as deviceSelect}
+                      {#each $deviceSelectOptions as deviceSelect}
                         <option value={deviceSelect.value}>
                           {deviceSelect.name}
                         </option>
