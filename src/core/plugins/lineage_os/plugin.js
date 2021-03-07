@@ -64,8 +64,7 @@ class LineageOSPlugin extends Plugin {
             },
             {
               "core:write": {
-                content: "install /data/" + 
-                    rootfs_infos[0].name,
+                content: "install /data/" + rootfs_infos[0].name,
                 group: "LineageOS",
                 file: "openrecoveryscript"
               }
@@ -76,18 +75,14 @@ class LineageOSPlugin extends Plugin {
             {
               "adb:push": {
                 group: "LineageOS",
-                files: [
-                  rootfs_infos[0].name,
-                ],
+                files: [rootfs_infos[0].name],
                 dest: "/data/"
               }
             },
             {
               "adb:push": {
                 group: "LineageOS",
-                files: [
-                    "openrecoveryscript"
-                ],
+                files: ["openrecoveryscript"],
                 dest: "/cache/recovery/"
               }
             }
