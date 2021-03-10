@@ -86,7 +86,7 @@ class CorePlugin extends Plugin {
     const user_action = this.props.config.user_actions[action];
     const _event = this.event;
     return user_action
-      ? new Promise(function(resolve, reject) {
+      ? new Promise(function (resolve, reject) {
           _event.emit("user:action", user_action, () => {
             switch (action) {
               case "recovery":

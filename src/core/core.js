@@ -399,7 +399,7 @@ class Core {
    * @returns {Promise}
    */
   delay(delay = 250) {
-    return new Promise(function(resolve) {
+    return new Promise(function (resolve) {
       setTimeout(resolve, delay);
     });
   }
