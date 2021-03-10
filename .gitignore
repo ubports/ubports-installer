@@ -57,9 +57,6 @@ dist
 # Visual Studio Code settings folder
 .vscode
 
-# gulp output
-src/html
-
 # jsdoc docs
 docs
 
