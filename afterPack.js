@@ -24,7 +24,7 @@ const path = require("path");
  * Wrap the packaged application to avoid having to use double dashes -- before passing command-line arguments
  * @param {any} context - context
  */
-module.exports = async function(context) {
+module.exports = async function (context) {
   const distDir = context.appOutDir;
   var wrapperScript;
 

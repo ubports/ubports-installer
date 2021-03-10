@@ -32,8 +32,8 @@ describe("get()", () => {
   });
 });
 
-describe("setLevel()", function() {
-  it("should update level", function() {
+describe("setLevel()", function () {
+  it("should update level", function () {
     const log = require("./log.js");
     log.setLevel();
     expect(log.stdout.level).toEqual("info");
@@ -49,8 +49,8 @@ describe("setLevel()", function() {
 });
 
 levels.forEach(level => {
-  describe(`${level}()`, function() {
-    it(`should log ${level}`, function() {
+  describe(`${level}()`, function () {
+    it(`should log ${level}`, function () {
       const log = require("./log.js");
       log[level]("hello world");
       expect(log.winston.log).toHaveBeenCalledWith(level, "hello world");

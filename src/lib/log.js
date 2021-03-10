@@ -72,7 +72,7 @@ class Logger {
    */
   get() {
     const _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       _this.winston.query(
         {
           limit: 400,
