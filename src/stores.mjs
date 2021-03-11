@@ -1,7 +1,7 @@
-import { writable } from 'svelte/store';
+import { writable } from "svelte/store";
 
 //working view
-export const animationType = writable('');
+export const animationType = writable("");
 
 //wait for device view
 export const deviceSelectOptions = writable([]);
@@ -15,18 +15,18 @@ export const actionData = writable({});
 export const userActionEventObject = writable({});
 
 //not supported view
-export const deviceName = writable('');
+export const deviceName = writable("");
 
 //app footer
 export const footerData = writable({
-  topText: '',
-  underText: '',
-  speedText: ''
+  topText: "",
+  underText: "",
+  speedText: ""
 });
 
 //manual download view
 export const manualDownloadFileData = writable({});
-export const manualDownloadGroup = writable('');
+export const manualDownloadGroup = writable("");
 export const eventObject = writable({});
 
 //modals

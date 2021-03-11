@@ -7,7 +7,7 @@
  *
  * Inspired by http://requestlab.fr/ and http://disruptivebydesign.com/
  */
-!(function(a, b) {
+!(function (a, b) {
   "use strict";
   function c(a) {
     a = a || {};
@@ -39,14 +39,14 @@
         }
         a.addEventListener(
           "resize",
-          function() {
+          function () {
             k();
           },
           !1
         ),
           b.addEventListener(
             "mousemove",
-            function(a) {
+            function (a) {
               (A = a.pageX), (B = a.pageY);
             },
             !1
@@ -55,7 +55,7 @@
             !C &&
             a.addEventListener(
               "deviceorientation",
-              function() {
+              function () {
                 (F = Math.min(Math.max(-event.beta, -30), 30)),
                   (E = Math.min(Math.max(-event.gamma, -30), 30));
               },
@@ -191,7 +191,7 @@
       G = !1;
     return (
       (g = c({}, a[e].defaults, g)),
-      (n.prototype.draw = function() {
+      (n.prototype.draw = function () {
         s.beginPath(),
           s.arc(
             this.position.x + this.parallaxOffsetX,
@@ -228,7 +228,7 @@
         }
         s.stroke(), s.closePath();
       }),
-      (n.prototype.updatePosition = function() {
+      (n.prototype.updatePosition = function () {
         if (g.parallax) {
           if (D && !C) {
             var a = (u - 0) / 60;
@@ -277,7 +277,7 @@
         }
         (this.position.x += this.speed.x), (this.position.y += this.speed.y);
       }),
-      (n.prototype.setStackPos = function(a) {
+      (n.prototype.setStackPos = function (a) {
         this.stackPos = a;
       }),
       h(),
@@ -286,7 +286,7 @@
   }
   var e = "particleground",
     f = a.jQuery;
-  (a[e] = function(a, b) {
+  (a[e] = function (a, b) {
     return new d(a, b);
   }),
     (a[e].defaults = {
@@ -305,17 +305,17 @@
       proximity: 100,
       parallax: !0,
       parallaxMultiplier: 5,
-      onInit: function() {},
-      onDestroy: function() {}
+      onInit: function () {},
+      onDestroy: function () {}
     }),
     f &&
-      (f.fn[e] = function(a) {
+      (f.fn[e] = function (a) {
         if ("string" == typeof arguments[0]) {
           var b,
             c = arguments[0],
             g = Array.prototype.slice.call(arguments, 1);
           return (
-            this.each(function() {
+            this.each(function () {
               f.data(this, "plugin_" + e) &&
                 "function" == typeof f.data(this, "plugin_" + e)[c] &&
                 (b = f.data(this, "plugin_" + e)[c].apply(this, g));
@@ -325,7 +325,7 @@
         }
         return "object" != typeof a && a
           ? void 0
-          : this.each(function() {
+          : this.each(function () {
               f.data(this, "plugin_" + e) ||
                 f.data(this, "plugin_" + e, new d(this, a));
             });
@@ -363,7 +363,7 @@
    * @see: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
    * @see: http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
    * @license: MIT license
-   */ (function() {
+   */ (function () {
     for (
       var a = 0, b = ["ms", "moz", "webkit", "o"], c = 0;
       c < b.length && !window.requestAnimationFrame;
@@ -374,16 +374,16 @@
           window[b[c] + "CancelAnimationFrame"] ||
           window[b[c] + "CancelRequestAnimationFrame"]);
     window.requestAnimationFrame ||
-      (window.requestAnimationFrame = function(b) {
+      (window.requestAnimationFrame = function (b) {
         var c = new Date().getTime(),
           d = Math.max(0, 16 - (c - a)),
-          e = window.setTimeout(function() {
+          e = window.setTimeout(function () {
             b(c + d);
           }, d);
         return (a = c + d), e;
       }),
       window.cancelAnimationFrame ||
-        (window.cancelAnimationFrame = function(a) {
+        (window.cancelAnimationFrame = function (a) {
           clearTimeout(a);
         });
   })();
