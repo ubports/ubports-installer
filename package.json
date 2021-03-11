@@ -29,6 +29,7 @@
     "start": "npm run build && electron .",
     "lint": "npx prettier \"**/!(*.min.*)\" --ignore-path=.gitignore --arrow-parens=avoid --trailing-comma=none -uw",
     "docs": "npx jsdoc -c jsdoc-config.json",
+    "diagram": "npx arkit -f src/main.js",
     "test": "npx jest --coverage"
   },
   "devDependencies": {
