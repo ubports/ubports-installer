@@ -18,53 +18,50 @@
   };
 </script>
 
-<Modal on:close={close}>
+<Modal on:close={close} showCloseButton={false}>
   <h4 slot="header">Install options</h4>
   <div slot="content">
     <div>
-      <form action="">
-        {#each $osInstructsData as osInstruction, osInstructsCounter}
-          <div class="row">
-            <label for="" class="col-3 form-label">{osInstruction.name}</label>
-            <div class="col-9">
-              {#if osInstruction.type === "select"}
-                <select
-                  class="form-control"
-                  bind:value={inputValues[osInstructsCounter]}
-                >
-                  {#each osInstruction.values as value}
-                    <option value={value.value}>{value.label}</option>
-                  {/each}
-                </select>
-              {:else if osInstruction.type === "checkbox"}
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  bind:value={inputValues[osInstructsCounter]}
-                  checked={osInstruction.value}
-                />
-                <!-- {:else} -->
-                <!-- <input type="{osInstruction.type}" class="form-control space" bind:value={inputValues[osInstructsCounter]}> -->
-              {/if}
-            </div>
-          </div>
-          <div class="row">
-            {#if osInstruction.tooltip}
-              <div class="col-3" />
-              <p class="col-9">
-                {osInstruction.tooltip}
-                {#if osInstruction.link}
-                  <a
-                    href
-                    on:click|preventDefault={() =>
-                      shell.openExternal(osInstruction.link)}>More...</a
-                  >
-                {/if}
-              </p>
+      {#each $osInstructsData as osInstruction, osInstructsCounter}
+        <div class="row">
+          <label for="" class="col-3 col-form-label">{osInstruction.name}</label
+          >
+          <div class="col-9 d-flex align-items-center">
+            {#if osInstruction.type === "select"}
+              <select
+                class="form-select"
+                bind:value={inputValues[osInstructsCounter]}
+              >
+                {#each osInstruction.values as value}
+                  <option value={value.value}>{value.label}</option>
+                {/each}
+              </select>
+            {:else if osInstruction.type === "checkbox"}
+              <input
+                class="form-check-input"
+                type="checkbox"
+                bind:value={inputValues[osInstructsCounter]}
+                checked={osInstruction.value}
+              />
             {/if}
           </div>
-        {/each}
-      </form>
+        </div>
+        {#if osInstruction.tooltip}
+          <dl class="row">
+            <dt class="col-3" />
+            <dd class="col-9">
+              {osInstruction.tooltip}
+              {#if osInstruction.link}
+                <a
+                  href
+                  on:click|preventDefault={() =>
+                    shell.openExternal(osInstruction.link)}>More...</a
+                >
+              {/if}
+            </dd>
+          </dl>
+        {/if}
+      {/each}
     </div>
     <p>
       <b>NOTE</b>: Installing may in rare cases lead to data loss. If the device

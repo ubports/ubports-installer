@@ -24,7 +24,7 @@
   const close = () => dispatch("close");
 </script>
 
-<Modal on:close={close}>
+<Modal on:close={close} showCloseButton={false}>
   <h4 slot="header">Yikes!</h4>
   <div slot="content">
     <p>
@@ -104,10 +104,10 @@
     </p>
   </div>
   <div slot="actions">
-    <button class="btn btn-default" on:click={() => handleTryAgainButton}
+    <button class="btn btn-default" on:click={() => handleTryAgainButton()}
       >Try again</button
     >
-    <button class="btn btn-default" on:click={() => handleIgnoreButton}
+    <button class="btn btn-default" on:click={() => handleIgnoreButton()}
       >Ignore</button
     >
     <button

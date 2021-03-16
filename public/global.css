@@ -8,6 +8,7 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-user-select: none;
   image-rendering: crisp-edges;
+  font-size: 15px;
 }
 
 * {

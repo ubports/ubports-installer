@@ -40,7 +40,7 @@
     left: 50%;
     top: 50%;
     width: calc(100vw - 4em);
-    max-width: 34em;
+    max-width: 36em;
     max-height: calc(100% - 4em);
     overflow: auto;
     transform: translate(-50%, -50%);

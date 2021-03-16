@@ -8,6 +8,7 @@
   const close = () => dispatch("close");
 
   function handleReconnectButton() {
+    console.log("Reconnect");
     ipcRenderer.send("reconnect");
     close();
   }
@@ -28,7 +29,7 @@
     </p>
   </div>
   <div slot="actions">
-    <button class="btn btn-primary" on:click={() => handleReconnectButton}
+    <button class="btn btn-primary" on:click={() => handleReconnectButton()}
       >Try again</button
     >
   </div>

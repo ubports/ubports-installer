@@ -62,7 +62,8 @@
   ipcRenderer.on("user:device-unsupported", (event, device) => {
     footerData.set({
       topText: "Device not supported",
-      underText: `The device ${device} is not supported`
+      underText: `The device ${device} is not supported`,
+      waitingDots: false
     });
     deviceName.set(device);
     push("/not-supported");
@@ -82,7 +83,8 @@
 
     footerData.set({
       topText: `${installConfig.name} (${installConfig.codename})`,
-      underText: "Please select an operating system for installation"
+      underText: "Please select an operating system for installation",
+      waitingDots: false
     });
 
     osSelectOptions.set(osSelects);
@@ -105,7 +107,8 @@
     push("/working");
     footerData.set({
       topText: `${installConfig.name} (${installConfig.codename})`,
-      underText: "Please Configure the installation"
+      underText: "Please Configure the installation",
+      waitingDots: false
     });
     yumi.setPosition("center");
     showOptionsModal = true;

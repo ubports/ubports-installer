@@ -18,10 +18,10 @@
 <Modal on:close={close}>
   <h2 slot="header">Select your device</h2>
   <div slot="content">
-    <form id="device-form" class="row">
-      <label for="" class="col-3 form-label">Device</label>
+    <div id="device-form" class="row mb-3">
+      <label for="" class="col-3 col-form-label">Device</label>
       <div class="col-9">
-        <select class="form-control" bind:value={selectedDevice}>
+        <select class="form-select" bind:value={selectedDevice}>
           {#each $deviceSelectOptions as deviceSelect}
             <option value={deviceSelect.value}>
               {deviceSelect.name}
@@ -29,7 +29,7 @@
           {/each}
         </select>
       </div>
-    </form>
+    </div>
     <p>
       Not all <a
         href

@@ -51,17 +51,12 @@
       >.
     </p>
     <p>What operating system do you want to install?</p>
-    <form class="form row">
+    <div class="form row">
       <div class="col-3">
-        <label for="options-os" class="form-label">OS</label>
+        <label for="" class="col-form-label">OS</label>
       </div>
       <div class="col-9">
-        <select
-          id="options-os"
-          name="options-os"
-          class="form-control"
-          bind:value={selectedOs}
-        >
+        <select class="form-select" bind:value={selectedOs}>
           {#each $osSelectOptions as osSelect}
             <option value={osSelect.value}>
               {osSelect.name}
@@ -69,10 +64,10 @@
           {/each}
         </select>
       </div>
-    </form>
+    </div>
     <button
-      class="btn btn-primary"
-      style="width: 100%; margin-top: 10px;"
+      class="btn btn-primary mt-3"
+      style="width: 100%;"
       on:click={() => handleInstallButton()}
     >
       Install

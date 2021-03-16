@@ -11,7 +11,8 @@
   ipcRenderer.on("device:wait:device-selects-ready", (event, deviceSelects) => {
     footerData.set({
       topText: "Waiting for device",
-      underText: "Please connect your device with a USB cable"
+      underText: "Please connect your device with a USB cable",
+      waitingDots: true
     });
     deviceSelectOptions.set(deviceSelects);
   });
@@ -36,6 +37,7 @@
       your device should be detected automatically.
     </p>
     <button
+      id="btn-modal-dev-mode"
       class="btn btn-primary"
       on:click={() => showDeveloperModeModal.set(true)}
     >
@@ -62,6 +64,10 @@
 </div>
 
 <style>
+  #btn-modal-dev-mode {
+    margin-bottom: 10px;
+  }
+
   button {
     width: 100%;
   }

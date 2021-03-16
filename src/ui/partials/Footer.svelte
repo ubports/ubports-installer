@@ -6,6 +6,7 @@
   import { footerData } from "../../stores.mjs";
 
   let progressBarWidth = 0;
+  let wait = "";
 
   onMount(() => {
     footerData.set({
@@ -15,13 +16,8 @@
   });
 
   ipcRenderer.on("user:write:status", (e, status, waitDots) => {
-    //footer.topText.set(status, waitDots);
     $footerData.topText = status;
-  });
-
-  ipcRenderer.on("user:write:under", (e, status) => {
-    //footer.underText.set(status, true);
-    $footerData.underText = status;
+    $footerData.waitingDots = waitDots;
   });
 
   ipcRenderer.on("user:write:speed", (e, speed) => {
@@ -38,6 +34,11 @@
   export function resetProgress() {
     progressBarWidth = 0;
   }
+
+  const dots = window.setInterval(function () {
+    if (wait.length > 4) wait = "";
+    else wait += ".";
+  }, 400);
 </script>
 
 <div class="progress">
@@ -48,14 +49,20 @@
     <h3>
       <span id="footer-top">
         {$footerData.topText}
+        {#if $footerData.waitingDots}
+          {wait}
+        {/if}
       </span>
-      <span id="wait-dot" />
     </h3>
     <p>
       <span id="footer-bottom">
         {$footerData.underText}
       </span>
-      <span id="footer-speed" />
+      {#if $footerData.speedText}
+        <span>
+          {$footerData.speedText}
+        </span>
+      {/if}
     </p>
   </div>
 </footer>

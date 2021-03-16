@@ -21,7 +21,8 @@ export const deviceName = writable("");
 export const footerData = writable({
   topText: "",
   underText: "",
-  speedText: ""
+  speedText: "",
+  waitingDots: false
 });
 
 //manual download view
