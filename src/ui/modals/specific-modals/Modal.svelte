@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
+  import { fade, fly } from "svelte/transition";
 
   export let showCloseButton = true;
 
@@ -7,9 +8,15 @@
   const close = () => dispatch("close");
 </script>
 
-<div class="svelte-modal-background" />
+<div class="svelte-modal-background" in:fade out:fade />
 
-<div class="svelte-modal" role="dialog" aria-modal="true">
+<div
+  class="svelte-modal"
+  role="dialog"
+  aria-modal="true"
+  in:fly={{ y: -200, duration: 500 }}
+  out:fly={{ y: -200, duration: 500 }}
+>
   <div class="svelte-modal-header">
     <slot name="header" />
   </div>

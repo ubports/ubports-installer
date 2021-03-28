@@ -10,7 +10,6 @@
 
   const close = () => {
     for (const osInstruction of $osInstructsData) {
-      console.log(osInstruction);
       ipcRenderer.send("option", osInstruction.var, inputValues[osInstruction]);
     }
     setTimeout(() => ipcRenderer.send("install"), 250);
