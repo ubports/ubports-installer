@@ -122,7 +122,7 @@ class PluginIndex {
    */
   wait() {
     const _this = this;
-    return new CancelablePromise(function(resolve, reject, onCancel) {
+    return new CancelablePromise(function (resolve, reject, onCancel) {
       const waitPromises = _this.getPluginArray().map(plugin => plugin.wait());
       CancelablePromise.race(waitPromises)
         .then(state => {

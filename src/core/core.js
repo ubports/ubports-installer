@@ -158,9 +158,9 @@ class Core {
         window.send(
           "user:os",
           this.props.config,
-          this.props.config.operating_systems.map(
-            (os, i) => `<option name="${i}">${os.name}</option>`
-          )
+          this.props.config.operating_systems.map((os, i) => {
+            return { value: i, name: os.name };
+          })
         )
       );
   }
@@ -399,7 +399,7 @@ class Core {
    * @returns {Promise}
    */
   delay(delay = 250) {
-    return new Promise(function(resolve) {
+    return new Promise(function (resolve) {
       setTimeout(resolve, delay);
     });
   }

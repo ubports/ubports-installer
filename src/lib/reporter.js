@@ -88,7 +88,7 @@ class Reporter {
    * @returns {String} environment information
    */
   async getEnvironment() {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       try {
         osInfo(hostOs =>
           resolve(
