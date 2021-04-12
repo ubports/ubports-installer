@@ -66,40 +66,42 @@ class Core {
    * @returns {Promise}
    */
   prepare(file) {
-    return Promise.all([this.readConfigFile(file), this.plugins.init()]).then(
-      () => {
-        if (this.props.config) {
-          this.selectOs();
-        } else {
-          const wait = this.plugins
-            .wait()
-            .then(device => api.resolveAlias(device))
-            .catch(
-              e =>
-                new Promise(() => {
-                  log.debug(`failed to resolve device name: ${e}`);
-                  mainEvent.emit("user:no-network");
-                })
-            )
-            .then(device => {
-              if (device) {
-                log.info(`device detected: ${device}`);
-                this.setDevice(device);
-              }
-            });
-          ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
-          api
-            .getDeviceSelects()
-            .then(out => {
-              window.send("device:wait:device-selects-ready", out);
-            })
-            .catch(e => {
-              log.error("getDeviceSelects error: " + e);
-              window.send("user:no-network");
-            });
-        }
+    return Promise.all([
+      this.readConfigFile(file),
+      this.plugins.init().catch(e => errors.toUser(e, "initializing plugins"))
+    ]).then(() => {
+      if (this.props.config) {
+        this.selectOs();
+      } else {
+        const wait = this.plugins
+          .wait()
+          .catch(e => errors.toUser(e, "plugin wait()"))
+          .then(device => api.resolveAlias(device))
+          .catch(
+            e =>
+              new Promise(() => {
+                log.debug(`failed to resolve device name: ${e}`);
+                mainEvent.emit("user:no-network");
+              })
+          )
+          .then(device => {
+            if (device) {
+              log.info(`device detected: ${device}`);
+              this.setDevice(device);
+            }
+          });
+        ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+        api
+          .getDeviceSelects()
+          .then(out => {
+            window.send("device:wait:device-selects-ready", out);
+          })
+          .catch(e => {
+            log.error("getDeviceSelects error: " + e);
+            window.send("user:no-network");
+          });
       }
-    );
+    });
   }
 
   /**
