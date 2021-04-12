@@ -42,10 +42,10 @@ class AdbPlugin extends Plugin {
 
   /**
    * initialize adb server
-   * @returns {Promise}
+   * @returns {Promise<Boolean>}
    */
   init() {
-    return this.adb.startServer();
+    return this.adb.startServer().then(() => true);
   }
 
   /**
