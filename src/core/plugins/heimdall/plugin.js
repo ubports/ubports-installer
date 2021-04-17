@@ -62,7 +62,12 @@ class HeimdallPlugin extends Plugin {
       .hasAccess()
       .then(() => true)
       .catch(error => {
-        var errorJson = JSON.parse(error.message);
+        try {
+          var errorJson = JSON.parse(error.message);
+        } catch (e) {
+          this.log.warn(`Heimdall returned a non-json error: ${error}`);
+          throw error;
+        }
         if (errorJson.error.code === 3221225781) {
           this.log.warn(
             "Heimdall is missing required DLLs: Is Microsoft Visual C++ 2012 x86 redistributable installed?"
