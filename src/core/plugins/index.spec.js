@@ -1,9 +1,23 @@
-const log = { verbose: jest.fn() };
-beforeEach(() => {
-  log.verbose.mockReset();
-});
+const { plugins } = require("../core.js");
 
-const pluginIndex = new (require("./index.js"))({}, "a", {}, log);
+const log = {
+  verbose: jest.fn(),
+  warn: jest.fn(),
+  command: jest.fn(),
+  error: jest.fn()
+};
+
+const pluginArgs = [{}, "a", {}, log];
+
+const pluginIndex = new (require("./index.js"))(...pluginArgs);
+const originalPluginList = pluginIndex.plugins;
+
+beforeEach(() => {
+  for (const key in log) {
+    log[key].mockReset();
+  }
+  pluginIndex.plugins = originalPluginList;
+});
 
 describe("PluginIndex", () => {
   it("should update params on plugins", () => {
@@ -82,54 +96,153 @@ describe("PluginIndex", () => {
         });
     });
   });
-  describe("getPluginArray()", () => {
+  describe("getPluginMappable()", () => {
     it("should return plugin array", () =>
-      expect(pluginIndex.getPluginArray()).toHaveLength(6));
+      expect(pluginIndex.getPluginMappable()).toHaveLength(6));
   });
-  ["init", "kill"].forEach(f =>
-    describe(`${f}()`, () => {
-      it(`should ${f}`, () => {
-        const mock = {};
-        mock[f] = jest.fn();
-        jest.spyOn(pluginIndex, "getPluginArray").mockReturnValueOnce([mock]);
-        pluginIndex[f]();
-        expect(mock[f]).toHaveBeenCalledTimes(1);
+  ["init", "kill"].forEach(target =>
+    describe(`${target}()`, () => {
+      it(`should call ${target} on every plugin in the plugin array`, () => {
+        const mock1 = {};
+        const mock2 = {};
+        mock1[target] = jest.fn(() => Promise.resolve(true));
+        mock2[target] = jest.fn(() => Promise.resolve(true));
+        mock_pluginList = {
+          mock1: mock1,
+          mock2: mock2
+        };
+        pluginIndex.plugins = mock_pluginList;
+        pluginIndex[target]();
+        expect(mock1[target]).toHaveBeenCalledTimes(1);
+        expect(mock2[target]).toHaveBeenCalledTimes(1);
       });
     })
   );
-  describe("wait()", () => {
-    it("should wait", () => {
-      const mock_resolved = { wait: jest.fn().mockResolvedValue("asdf") };
-      const mock_cancel = { cancel: jest.fn() };
-      const mock_pending = { wait: jest.fn().mockReturnValue(mock_cancel) };
-      jest
-        .spyOn(pluginIndex, "getPluginArray")
-        .mockReturnValueOnce([mock_resolved, mock_pending]);
-      return pluginIndex.wait().then(() => {
-        expect(mock_resolved.wait).toHaveBeenCalledTimes(1);
-        expect(mock_cancel.cancel).toHaveBeenCalledTimes(1);
+  describe("init()", () => {
+    // The happy path for init() is tested along with kill() above
+    it("should log a warning and disable the plugin when it resolves with false", () => {
+      const mock_resolvedFalse = { init: jest.fn().mockResolvedValue(false) };
+      const mock_resolvedTrue = { init: jest.fn().mockResolvedValue(true) };
+      const mock_pluginList = {
+        resolvedFalse: mock_resolvedFalse,
+        resolvedTrue: mock_resolvedTrue
+      };
+      pluginIndex.plugins = mock_pluginList;
+      return pluginIndex.init().then(() => {
+        expect(mock_resolvedFalse.init).toHaveBeenCalledTimes(1);
+        expect(log.warn).toHaveBeenCalledTimes(1);
+        expect(mock_pluginList).toEqual({ resolvedTrue: mock_resolvedTrue });
       });
     });
-    it("should throw error on no device", done => {
-      const mock_rejected = { wait: jest.fn().mockRejectedValue("asdf") };
-      jest
-        .spyOn(pluginIndex, "getPluginArray")
-        .mockReturnValueOnce([mock_rejected]);
+    it("should escalate the error including the plugin's name and error message and disable the plugin when it rejects", () => {
+      const mock_rejected = {
+        init: jest.fn().mockRejectedValue(new Error("Ow!"))
+      };
+      const mock_resolvedTrue = { init: jest.fn().mockResolvedValue(true) };
+      const mock_pluginList = {
+        initRejected: mock_rejected,
+        resolvedTrue: mock_resolvedTrue
+      };
+      pluginIndex.plugins = mock_pluginList;
+      return expect(pluginIndex.init())
+        .rejects.toThrow(
+          // Yes it's ugly, but it means "find 'Ow!' and 'initRejected' in any
+          // order"
+          /^(?=.*Ow\!)(?=.*initRejected).*$/
+        )
+        .then(() => {
+          expect(mock_pluginList).toEqual({ resolvedTrue: mock_resolvedTrue });
+        });
+    });
+  });
+  describe("wait()", () => {
+    it("should cancel all other tasks when one resolves", () => {
+      const mock_resolved = {
+        wait: jest.fn().mockResolvedValue("waitSuccessful")
+      };
+      const mock_cancelFunc = jest.fn(() => Promise.resolve());
+      const mock_pending1 = {
+        wait: jest.fn().mockReturnValue({
+          catch: jest.fn().mockReturnValue({ cancel: mock_cancelFunc })
+        })
+      };
+      const mock_pending2 = {
+        wait: jest.fn().mockReturnValue({
+          catch: jest.fn().mockReturnValue({ cancel: mock_cancelFunc })
+        })
+      };
+      const mock_pluginList = {
+        resolved: mock_resolved,
+        pending1: mock_pending1,
+        pending2: mock_pending2
+      };
+      pluginIndex.plugins = mock_pluginList;
+      return pluginIndex.wait().then(() => {
+        expect(mock_resolved.wait).toHaveBeenCalledTimes(1);
+        expect(mock_cancelFunc).toHaveBeenCalledTimes(2);
+      });
+    });
+    it("should throw a JSON-encoded error and disable the failed plugin when wait fails", done => {
+      const mock_rejected = {
+        wait: jest.fn().mockRejectedValue(new Error("waitRejected"))
+      };
+      const mock_pluginList = { rejected: mock_rejected };
+      pluginIndex.plugins = mock_pluginList;
       pluginIndex.wait().catch(e => {
+        errorJson = JSON.parse(e.message);
         expect(mock_rejected.wait).toHaveBeenCalledTimes(1);
-        expect(e.message).toEqual("no device");
+        expect(errorJson.message).toEqual("waitRejected");
+        expect(errorJson.name).toEqual("rejected");
+        expect(mock_pluginList).toEqual({});
         done();
       });
     });
-    it("should be cancelable", done => {
-      const mock_rejected = {
-        wait: jest.fn().mockReturnValue({ cancel: done })
+    it("should cancel all subtasks on cancel()", done => {
+      mock_cancelFunc = jest.fn();
+      const mock_rejected1 = {
+        wait: jest.fn().mockReturnValue({
+          catch: jest.fn().mockReturnValue({ cancel: mock_cancelFunc })
+        })
       };
-      jest
-        .spyOn(pluginIndex, "getPluginArray")
-        .mockReturnValueOnce([mock_rejected]);
+      const mock_rejected2 = {
+        wait: jest.fn().mockReturnValue({
+          catch: jest.fn().mockReturnValue({ cancel: mock_cancelFunc })
+        })
+      };
+      mock_pluginList = {
+        rejected1: mock_rejected1,
+        rejected2: mock_rejected2
+      };
+      pluginIndex.plugins = mock_pluginList;
       const wait = pluginIndex.wait();
       wait.cancel();
+      expect(mock_cancelFunc).toHaveBeenCalledTimes(2);
+      done();
+    });
+  });
+  describe("__pluginErrorHandler()", () => {
+    it("should handle json-encoded errors", () => {
+      const error = new Error("{'my': 'problem'}");
+      expect(() =>
+        pluginIndex.__pluginErrorHandler("jsonencoded", error)
+      ).toThrow(
+        // Make sure the important parts come out in any order: The plugin name
+        // and the original error message
+        /^(?=.*jsonencoded)(?=.*{'my': 'problem'}).*$/
+      );
+    });
+    it("should handle errors that are just strings", () => {
+      const error = new Error("AAAAAAAAAH");
+      expect(() => pluginIndex.__pluginErrorHandler("string", error)).toThrow(
+        '{"message":"AAAAAAAAAH","name":"string"}'
+      );
+    });
+    it("should log when it can't handle the error input", () => {
+      const error = () => {};
+      expect(() =>
+        pluginIndex.__pluginErrorHandler("whatTheHeck", error)
+      ).toThrow('{"name":"whatTheHeck"}');
+      expect(log.error).toHaveBeenCalledTimes(1);
     });
   });
 });

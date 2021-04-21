@@ -33,8 +33,8 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
 
-    - name: npm install
-      run: npm install
+    - name: npm ci
+      run: npm ci
     - name: npm audit
       run: npm audit --production
     - name: npm run lint
@@ -73,7 +73,7 @@ jobs:
 
     - name: test
       run: |
-        npm install
+        npm ci
         npm run test
 
     - name: codecov.io
@@ -112,7 +112,7 @@ jobs:
 
     - name: prepare build
       run: |
-        npm install
+        npm ci
         npm run prerender
 
     - name: build linux
