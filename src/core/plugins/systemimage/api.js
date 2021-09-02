@@ -22,7 +22,7 @@ const path = require("path");
 
 /** @module systemimage */
 
-const baseURL = "https://system-image.ubports.com/";
+const baseURL = process.env.SYSTEM_IMAGE_SERVER || "https://system-image.ubports.com/";
 
 const api = axios.create({ baseURL, timeout: 15000 });
 
