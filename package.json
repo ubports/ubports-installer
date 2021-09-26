@@ -73,7 +73,6 @@
     "progressive-downloader": "^1.0.7",
     "promise-android-tools": "^4.0.6",
     "ps-tree": "^1.2.0",
-    "pug": "^3.0.2",
     "sudo-prompt": "^9.2.1",
     "systeminformation": "^5.5.0",
     "ubuntu-pastebin": "^1.0.1",
@@ -85,7 +84,6 @@
     "excludePatterns": [
       "__mocks__",
       "**/*.spec.*",
-      "src/pug",
       "src/core/plugins/plugin.js"
     ],
     "components": [
