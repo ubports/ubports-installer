@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "7zip-min": "^1.2.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "bootstrap": "^3.3.7",
     "cancelable-promise": "^3.2.3",
     "commander": "^6.2.1",
