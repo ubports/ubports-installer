@@ -52,6 +52,35 @@ class HeimdallPlugin extends Plugin {
   }
 
   /**
+   * Initialize this plugin
+   * @returns {Promise<Boolean>}
+   */
+  init() {
+    // hasAccess is convenient, we're really just looking for anything that executes Heimdall and throws errors if it fails to execute.
+    // A .version() would be just as useful in this case, but it doesn't exist.
+    return this.heimdall
+      .hasAccess()
+      .then(() => true)
+      .catch(error => {
+        try {
+          var errorJson = JSON.parse(error.message);
+        } catch (e) {
+          this.log.warn(`Heimdall returned a non-json error: ${error}`);
+          throw error;
+        }
+        if (errorJson.error.code === 3221225781) {
+          this.log.warn(
+            "Heimdall is missing required DLLs: Is Microsoft Visual C++ 2012 x86 redistributable installed?"
+          );
+          this.event.emit("user:no-msvc2012x86");
+          return false;
+        } else {
+          throw error;
+        }
+      });
+  }
+
+  /**
    * wait for a device
    * @virtual
    * @returns {Promise<String>}

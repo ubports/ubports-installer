@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.8.8-beta",
+  "version": "0.8.9-beta",
   "description": "The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
   "keywords": [
     "Ubuntu",
@@ -42,14 +42,14 @@
     "eslint-config-prettier": "^6.14.0",
     "eslint-plugin-prettier": "^3.1.4",
     "gulp": "^4.0.2",
-    "gulp-pug": "^4.0.1",
+    "gulp-pug": "^5.0.0",
     "jest": "^26.6.3",
-    "jsdoc": "^3.6.6",
+    "jsdoc": "^3.6.7",
     "prettier": "^1.19.1"
   },
   "dependencies": {
     "7zip-min": "^1.2.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "bootstrap": "^3.3.7",
     "cancelable-promise": "^3.2.3",
     "commander": "^6.2.1",
@@ -63,9 +63,10 @@
     "jquery-i18next": "^1.2.0",
     "open-cuts-reporter": "^1.0.1",
     "popper.js": "^1.16.0",
-    "progressive-downloader": "^1.0.6",
-    "promise-android-tools": "^4.0.5",
+    "progressive-downloader": "^1.0.7",
+    "promise-android-tools": "^4.0.6",
     "ps-tree": "^1.2.0",
+    "pug": "^3.0.2",
     "sudo-prompt": "^9.2.1",
     "systeminformation": "^5.5.0",
     "ubuntu-pastebin": "^1.0.1",

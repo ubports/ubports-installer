@@ -43,7 +43,8 @@ class PluginIndex {
   constructor(props, cachePath, mainEvent, log) {
     this.props = props;
     this.log = log;
-    const pluginArgs = [props, cachePath, mainEvent, log];
+    this.event = mainEvent;
+    const pluginArgs = [props, cachePath, this.event, log];
     this.plugins = {
       adb: new AdbPlugin(...pluginArgs),
       asteroid_os: new AsteroidOsPlugin(...pluginArgs),
@@ -96,11 +97,10 @@ class PluginIndex {
   }
 
   /**
-   * returns iterable array of all plugins
-   * @returns {Array<Object>}
+   * returns array containing [name (String): plugin (Plugin)] pairs
    */
-  getPluginArray() {
-    return Object.entries(this.plugins).map(([name, plugin]) => plugin);
+  getPluginMappable() {
+    return Object.entries(this.plugins);
   }
 
   /**
@@ -108,7 +108,24 @@ class PluginIndex {
    * @returns {Promise}
    */
   init() {
-    return Promise.all(this.getPluginArray().map(plugin => plugin.init()));
+    return Promise.all(
+      this.getPluginMappable().map(([name, plugin]) => {
+        return plugin
+          .init()
+          .then(initSuccessful => {
+            if (!initSuccessful) {
+              this.log.warn(
+                `Disabling plugin ${name} because it failed to initialize with result: ${initSuccessful}`
+              );
+              delete this.plugins[name];
+            }
+          })
+          .catch(error => {
+            delete this.plugins[name];
+            return this.__pluginErrorHandler(name, error);
+          });
+      })
+    );
   }
 
   /**
@@ -116,7 +133,9 @@ class PluginIndex {
    * @returns {Promise}
    */
   kill() {
-    return Promise.all(this.getPluginArray().map(plugin => plugin.kill()));
+    return Promise.all(
+      this.getPluginMappable().map(([_, plugin]) => plugin.kill())
+    );
   }
 
   /**
@@ -126,18 +145,52 @@ class PluginIndex {
   wait() {
     const _this = this;
     return new CancelablePromise(function(resolve, reject, onCancel) {
-      const waitPromises = _this.getPluginArray().map(plugin => plugin.wait());
+      const waitPromises = _this.getPluginMappable().map(([name, plugin]) => {
+        return plugin.wait().catch(error => {
+          delete _this.plugins[name];
+          return _this.__pluginErrorHandler(name, error);
+        });
+      });
       CancelablePromise.race(waitPromises)
         .then(state => {
           waitPromises.forEach(p => (p.cancel ? p.cancel() : null));
           resolve(state);
         })
         .catch(e => {
-          reject(new Error("no device"));
+          reject(e);
         });
 
-      onCancel(() => waitPromises.forEach(p => p.cancel()));
+      onCancel(() =>
+        waitPromises.forEach(p => {
+          p.cancel();
+        })
+      );
     });
+  }
+
+  __pluginErrorHandler(name, error) {
+    const errorJson = {};
+    if (error.message) {
+      try {
+        errorJson = JSON.parse(error.message);
+      } catch (e) {
+        errorJson.message = error.message;
+        if (e instanceof SyntaxError) {
+          // pass
+        } else {
+          this.log.warn(
+            `Plugin error handler for plugin ${name} failed to parse error message: ${e}`
+          );
+        }
+      }
+    } else {
+      this.log.error(
+        `Plugin error handler for plugin ${name} failed to parse error: ${error}`
+      );
+      errorJson.message = error;
+    }
+    errorJson.name = name;
+    throw new Error(JSON.stringify(errorJson));
   }
 }
 

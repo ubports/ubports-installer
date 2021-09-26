@@ -44,11 +44,20 @@ class Plugin {
 
   /**
    * initialize plugin
+   * Return true if the plugin was initialized successfully.
+   * If a plugin finds that it will be unable to function correctly, it can
+   * report this failure in one of two ways. A plugin may return false from
+   * its init() promise to indicate that it should not be called again, but the
+   * exceptional circumstance that it experienced was handled. For example, if
+   * the plugin reports an exception message directly to the user, it should
+   * return false. A plugin may throw an error from its init() promise to
+   * indicate that it should not be called again _and_ that the thrown error
+   * should be shown to the user.
    * @virtual
-   * @returns {Promise}
+   * @returns {Promise<Boolean>}
    */
   init() {
-    return Promise.resolve();
+    return Promise.resolve(true);
   }
 
   /**
