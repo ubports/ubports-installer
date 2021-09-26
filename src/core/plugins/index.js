@@ -144,7 +144,7 @@ class PluginIndex {
    */
   wait() {
     const _this = this;
-    return new CancelablePromise(function(resolve, reject, onCancel) {
+    return new CancelablePromise(function (resolve, reject, onCancel) {
       const waitPromises = _this.getPluginMappable().map(([name, plugin]) => {
         return plugin.wait().catch(error => {
           delete _this.plugins[name];
