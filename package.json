@@ -1,6 +1,6 @@
 {
   "name": "ubports-installer",
-  "version": "0.8.8-beta",
+  "version": "0.8.9-beta",
   "description": "The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platform Installer for Ubuntu Touch. Just connect a supported device to your PC, follow the on-screen instructions and watch this awesome tool do all the rest.",
   "keywords": [
     "Ubuntu",
@@ -50,14 +50,14 @@
     "rollup-plugin-svelte": "^6.0.0",
     "rollup-plugin-terser": "^7.0.0",
     "sinon": "^7.5.0",
-    "sirv-cli": "^1.0.6",
-    "svelte": "^3.29.0",
-    "svelte-spa-router": "^3.0.3"
+    "sirv-cli": "^1.0.14",
+    "svelte": "^3.43.0",
+    "svelte-spa-router": "^3.2.0"
   },
   "dependencies": {
     "7zip-min": "^1.2.0",
-    "axios": "^0.21.1",
-    "bootstrap": "^5.0.0-beta2",
+    "axios": "^0.21.4",
+    "bootstrap": "^5.1.1",
     "cancelable-promise": "^3.2.3",
     "commander": "^6.2.1",
     "electron-dynamic-prompt": "^1.0.2",
@@ -70,8 +70,8 @@
     "jquery-i18next": "^1.2.0",
     "open-cuts-reporter": "^1.0.1",
     "popper.js": "^1.16.0",
-    "progressive-downloader": "^1.0.6",
-    "promise-android-tools": "^4.0.5",
+    "progressive-downloader": "^1.0.7",
+    "promise-android-tools": "^4.0.6",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
     "systeminformation": "^5.5.0",
@@ -84,7 +84,6 @@
     "excludePatterns": [
       "__mocks__",
       "**/*.spec.*",
-      "src/pug",
       "src/core/plugins/plugin.js"
     ],
     "components": [

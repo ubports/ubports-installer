@@ -127,21 +127,23 @@ describe("Core module", () => {
       jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
       jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
       jest.spyOn(core.plugins, "wait").mockReturnValueOnce({
-        then: () => ({
-          catch: () => ({
-            then: () => ({
-              cancel: () => {
-                expect(core.readConfigFile).toHaveBeenCalledWith("a");
-                expect(core.readConfigFile).toHaveBeenCalledTimes(1);
-                core.readConfigFile.mockRestore();
-                expect(core.plugins.init).toHaveBeenCalledTimes(1);
-                core.plugins.init.mockRestore();
-                expect(core.plugins.wait).toHaveBeenCalledTimes(1);
-                core.plugins.wait.mockRestore();
-                core.setDevice.mockRestore();
-                core.props.config = { user_actions, handlers };
-                done();
-              }
+        catch: () => ({
+          then: () => ({
+            catch: () => ({
+              then: () => ({
+                cancel: () => {
+                  expect(core.readConfigFile).toHaveBeenCalledWith("a");
+                  expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+                  core.readConfigFile.mockRestore();
+                  expect(core.plugins.init).toHaveBeenCalledTimes(1);
+                  core.plugins.init.mockRestore();
+                  expect(core.plugins.wait).toHaveBeenCalledTimes(1);
+                  core.plugins.wait.mockRestore();
+                  core.setDevice.mockRestore();
+                  core.props.config = { user_actions, handlers };
+                  done();
+                }
+              })
             })
           })
         })
@@ -157,9 +159,11 @@ describe("Core module", () => {
       jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
       jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
       jest.spyOn(core.plugins, "wait").mockReturnValueOnce({
-        then: () => ({
-          catch: () => ({
-            then: () => null
+        catch: () => ({
+          then: () => ({
+            catch: () => ({
+              then: () => null
+            })
           })
         })
       });

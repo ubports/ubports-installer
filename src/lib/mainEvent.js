@@ -173,6 +173,11 @@ mainEvent.on("user:no-network", () => {
   window.send("user:no-network");
 });
 
+// Visual C++ 2012 Redistributables x86 are not installed
+mainEvent.on("user:no-msvc2012x86", () => {
+  window.send("user:no-msvc2012x86");
+});
+
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
   log.warn("lost connection to device");

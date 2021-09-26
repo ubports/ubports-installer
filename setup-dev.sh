@@ -19,6 +19,14 @@ case "${distro}" in
             packages="npm nodejs libgconf2-4"
         fi
         ;;
+    "Fedora")
+        if [[ ${version} -ge 18 ]]; then
+            packageCommand="dnf install"
+        else
+            packageCommand="yum install"
+        fi
+        packages="npm nodejs"
+        ;;
     "*")
         packages="npm nodejs-legacy"
         echo "Distro could not be identified. Please add yours to the script."
