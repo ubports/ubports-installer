@@ -33,14 +33,14 @@ const api = axios.create({
 const getIndex = () => api.get("/").then(({ data }) => data);
 
 /**
- * get device selects html
+ * get device selects object array
  * @returns {Promise<Array<String>>}
  */
 const getDeviceSelects = () =>
   getIndex().then(devices =>
-    devices.map(
-      ({ name, codename }) => `<option name="${codename}">${name}</option>`
-    )
+    devices.map(({ name, codename }) => {
+      return { name: name, value: codename };
+    })
   );
 
 /**

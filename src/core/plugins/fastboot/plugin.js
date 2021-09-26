@@ -76,10 +76,7 @@ class FastbootPlugin extends Plugin {
           .catch(err => {
             if (err.message.includes("enable unlocking")) {
               this.event.emit("user:oem-lock", true, code_url, code =>
-                this.fastboot
-                  .oemUnlock(code)
-                  .then(resolve)
-                  .catch(reject)
+                this.fastboot.oemUnlock(code).then(resolve).catch(reject)
               );
             } else {
               reject(err);
@@ -97,10 +94,7 @@ class FastbootPlugin extends Plugin {
     const _event = this.event;
     return new Promise((resolve, reject) =>
       _event.emit("user:oem-lock", false, null, () =>
-        this.fastboot
-          .flashingUnlock()
-          .then(resolve)
-          .catch(reject)
+        this.fastboot.flashingUnlock().then(resolve).catch(reject)
       )
     );
   }
