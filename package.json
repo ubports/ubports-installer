@@ -63,7 +63,7 @@
     "jquery-i18next": "^1.2.0",
     "open-cuts-reporter": "^1.0.1",
     "popper.js": "^1.16.0",
-    "progressive-downloader": "^1.0.6",
+    "progressive-downloader": "^1.0.7",
     "promise-android-tools": "^4.0.6",
     "ps-tree": "^1.2.0",
     "pug": "^3.0.2",
