@@ -40,9 +40,10 @@ parts:
   ubports-installer:
     plugin: dump
     source: .
+    build-snaps:
+      - node/16/stable
     build-packages:
       - npm
-      - nodejs
       - libgconf-2-4
     stage-packages:
       - libusb-1.0-0
@@ -66,7 +67,6 @@ parts:
       echo "Running override-build script"
       echo "https_proxy: " $https_proxy
       echo "http_proxy: " $http_proxy
-      echo "updating nodejs" && nvm use stable
       echo "updating npm" && npm install npm@latest -g
       echo "installing dependencies" && npx cross-env ELECTRON_GET_USE_PROXY=true GLOBAL_AGENT_HTTPS_PROXY=$https_proxy npm install
       echo "prerendering" && npm run prerender
