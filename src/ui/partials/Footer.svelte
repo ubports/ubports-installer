@@ -20,6 +20,10 @@
     $footerData.waitingDots = waitDots;
   });
 
+  ipcRenderer.on("user:write:under", (e, underText) => {
+    $footerData.underText = underText;
+  });
+
   ipcRenderer.on("user:write:speed", (e, speed) => {
     $footerData.speedText = speed;
   });
@@ -48,10 +52,7 @@
   <div class="footer-container">
     <h3>
       <span id="footer-top" class="text-muted">
-        {$footerData.topText}
-        {#if $footerData.waitingDots}
-          {wait}
-        {/if}
+        {$footerData.topText}{#if $footerData.waitingDots}{wait}{/if}
       </span>
     </h3>
     <p>

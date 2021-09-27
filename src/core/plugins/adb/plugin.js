@@ -112,7 +112,7 @@ class AdbPlugin extends Plugin {
    */
   action__push({ group, files, dest }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "push");
       this.event.emit("user:write:status", `Pushing ${group} files`, true);
       this.event.emit(
         "user:write:under",

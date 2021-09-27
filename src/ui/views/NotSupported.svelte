@@ -7,7 +7,7 @@
 <div class="row">
   <div class="col-6">
     <img
-      src="../screens/Screen5.jpg"
+      src="./screens/Screen5.jpg"
       alt="Screen5"
       style="height: 350px; margin: auto; display: block;"
     />
