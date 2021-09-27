@@ -79,7 +79,7 @@ async function createWindow() {
 
   mainWindow.loadURL(
     url.format({
-      pathname: path.join(__dirname, "html/index.html"),
+      pathname: path.join(__dirname, "../public/index.html"),
       protocol: "file",
       slashes: true
     })
@@ -87,14 +87,14 @@ async function createWindow() {
 
   if (cli.debug) mainWindow.webContents.openDevTools();
 
-  mainWindow.on("closed", function() {
+  mainWindow.on("closed", function () {
     mainWindow = null;
   });
 }
 
 app.on("ready", createWindow);
 
-app.on("window-all-closed", function() {
+app.on("window-all-closed", function () {
   core.kill();
   log.info("Good bye!");
   setTimeout(() => {
@@ -103,13 +103,13 @@ app.on("window-all-closed", function() {
   }, 2000);
 });
 
-app.on("activate", function() {
+app.on("activate", function () {
   if (mainWindow === null) {
     createWindow();
   }
 });
 
 // Set application menu
-app.on("ready", function() {
+app.on("ready", function () {
   menuManager.setMenu(mainWindow);
 });

@@ -65,7 +65,6 @@ var buildConfig = {
   publish: [],
   files: [
     "src/**/*",
-    "!src/pug/*",
     "node_modules/**/*",
     "build/icons/icon.*",
     // exclude binaries for other operating systems

@@ -2,13 +2,13 @@
 
 Fear not! Installing [UBports](https://ubports.com) [Ubuntu Touch](https://ubuntu-touch.io) on your [device](https://devices.ubuntu-touch.io) is easy! Just download the UBports Installer package for your operating system and sit back and relax while your computer does all the rest. Installing third-party operating systems has never been so easy!
 
-| ![linux logo](https://i.ibb.co/CPq1pL9/linux.png) &nbsp; Linux | ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png) &nbsp; macOS | ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png) &nbsp; Windows |
-|:---:|:---:|:---:|
-| [snap](https://snapcraft.io/ubports-installer) <br> `snap install ubports-installer` <br> [AppImage](https://devices.ubuntu-touch.io/installer?package=appimage) <br> [deb](https://devices.ubuntu-touch.io/installer?package=deb) | [dmg](https://devices.ubuntu-touch.io/installer?package=dmg) | [exe](https://devices.ubuntu-touch.io/installer?package=exe) |
+|                                                                                   ![linux logo](https://i.ibb.co/CPq1pL9/linux.png) &nbsp; Linux                                                                                   | ![mac logo](https://i.ibb.co/Qn2NXq9/apple.png) &nbsp; macOS | ![windowslogo](https://i.ibb.co/RNk81kH/windows10.png) &nbsp; Windows |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------: | :-------------------------------------------------------------------: |
+| [snap](https://snapcraft.io/ubports-installer) <br> `snap install ubports-installer` <br> [AppImage](https://devices.ubuntu-touch.io/installer?package=appimage) <br> [deb](https://devices.ubuntu-touch.io/installer?package=deb) | [dmg](https://devices.ubuntu-touch.io/installer?package=dmg) |     [exe](https://devices.ubuntu-touch.io/installer?package=exe)      |
 
 ## Troubleshooting
 
-Troubleshooting information can be found [in the docs](https://docs.ubports.com/en/latest/userguide/install.html). If you need help, you can join UBports' support channels on [telegram](https://t.me/WelcomePlus) or [matrix](https://matrix.to/#/!KwdniMNeTmClpgHkND:matrix.org?via=matrix.org&via=ubports.chat&via=disroot.org) or ask a question [in the forum](https://forums.ubports.com/) or on [askubuntu](https://askubuntu.com). If you believe that the UBports Installer is not working correctly, you can also [file a new issue](https://github.com/ubports/ubports-installer/issues/new) to help us solve the problem. Use the *Report a bug* button directly in the installer to generate a template for a bugreport with all the important metadata automatically filled out.
+Troubleshooting information can be found [in the docs](https://docs.ubports.com/en/latest/userguide/install.html). If you need help, you can join UBports' support channels on [telegram](https://t.me/WelcomePlus) or [matrix](https://matrix.to/#/!KwdniMNeTmClpgHkND:matrix.org?via=matrix.org&via=ubports.chat&via=disroot.org) or ask a question [in the forum](https://forums.ubports.com/) or on [askubuntu](https://askubuntu.com). If you believe that the UBports Installer is not working correctly, you can also [file a new issue](https://github.com/ubports/ubports-installer/issues/new) to help us solve the problem. Use the _Report a bug_ button directly in the installer to generate a template for a bugreport with all the important metadata automatically filled out.
 
 ## Config files
 
@@ -21,6 +21,7 @@ If the installer runs into an error, it will usually present you with the option
 ## Set up for development
 
 Currently our script will automatically install the toolchain for you on Arch, Ubuntu, OpenSUSE and other apt based distributions.
+
 ```
 git clone https://github.com/ubports/ubports-installer.git
 cd ubports-installer
@@ -48,7 +49,7 @@ Options:
 
 ### Lint
 
-Before filing a PR, please make sure you follow our coding style. Just run `npm lint` to see if there are any problems. If there are, it might even be possible to fix them automatically by running `npm lint-fix`.
+Before filing a PR, please make sure you follow our coding style by running `npm run lint`.
 
 ### Build packages
 
@@ -69,13 +70,13 @@ Options:
 
 The UBports Foundation maintains a various free- and open-source NPM libraries for the UBports Installer.
 
-| Package | Version | Description |
-|---|---|---|
-| `progressive-downloader` | [![version](https://shields.io/npm/v/progressive-downloader)](https://www.npmjs.com/package/progressive-downloader) | Parallel downloads and opportunistic checksum verification |
-| `promise-android-tools` | [![version](https://shields.io/npm/v/promise-android-tools)](https://www.npmjs.com/package/promise-android-tools) | Extensive wrapper for ADB, Fastboot, Heimdall |
-| `android-tools-bin` | [![version](https://shields.io/npm/v/android-tools-bin)](https://www.npmjs.com/package/android-tools-bin) | Cross-platform binaries for ADB, Fastboot, Heimdall |
-| `open-cuts-reporter` | [![version](https://shields.io/npm/v/open-cuts-reporter)](https://www.npmjs.com/package/open-cuts-reporter) | Report test results to [UBports OPEN-CUTS](https://www.open-cuts.org/) |
-| `ubuntu-pastebin` | [![version](https://shields.io/npm/v/ubuntu-pastebin)](https://www.npmjs.com/package/ubuntu-pastebin) | Send logs to [Ubuntu Pastebin](https://paste.ubuntu.com) |
+| Package                  | Version                                                                                                             | Description                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `progressive-downloader` | [![version](https://shields.io/npm/v/progressive-downloader)](https://www.npmjs.com/package/progressive-downloader) | Parallel downloads and opportunistic checksum verification             |
+| `promise-android-tools`  | [![version](https://shields.io/npm/v/promise-android-tools)](https://www.npmjs.com/package/promise-android-tools)   | Extensive wrapper for ADB, Fastboot, Heimdall                          |
+| `android-tools-bin`      | [![version](https://shields.io/npm/v/android-tools-bin)](https://www.npmjs.com/package/android-tools-bin)           | Cross-platform binaries for ADB, Fastboot, Heimdall                    |
+| `open-cuts-reporter`     | [![version](https://shields.io/npm/v/open-cuts-reporter)](https://www.npmjs.com/package/open-cuts-reporter)         | Report test results to [UBports OPEN-CUTS](https://www.open-cuts.org/) |
+| `ubuntu-pastebin`        | [![version](https://shields.io/npm/v/ubuntu-pastebin)](https://www.npmjs.com/package/ubuntu-pastebin)               | Send logs to [Ubuntu Pastebin](https://paste.ubuntu.com)               |
 
 ## License
 

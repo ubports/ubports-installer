@@ -9,14 +9,12 @@ describe("getDeviceSelects()", () => {
         { name: "B", codename: "b" }
       ]
     });
-    return api
-      .getDeviceSelects()
-      .then(r =>
-        expect(r).toEqual([
-          '<option name="a">A</option>',
-          '<option name="b">B</option>'
-        ])
-      );
+    return api.getDeviceSelects().then(r =>
+      expect(r).toEqual([
+        { name: "A", value: "a" },
+        { name: "B", value: "b" }
+      ])
+    );
   });
 });
 
