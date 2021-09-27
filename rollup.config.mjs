@@ -4,6 +4,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import livereload from "rollup-plugin-livereload";
 import { terser } from "rollup-plugin-terser";
 import css from "rollup-plugin-css-only";
+import { spawn } from "child_process";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -16,10 +17,15 @@ function serve() {
   return {
     writeBundle() {
       if (server) return;
-      server = require("child_process").spawn("npm", ["run", "start", "--"], {
-        stdio: ["ignore", "inherit", "inherit"],
-        shell: true
-      });
+      server = spawn(
+        "electron",
+        [".", ...process.env.UBPORTS_INSTALLER_FLAGS.split(" ")],
+        {
+          stdio: ["ignore", "inherit", "inherit"],
+          shell: true
+        }
+      );
+      server.on("exit", code => setTimeout(() => outprocess.exit(code)), 100);
 
       process.on("SIGTERM", toExit);
       process.on("exit", toExit);

@@ -30,6 +30,13 @@ const reporter = require("./lib/reporter.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
 
+// Enable live reload for Electron
+if (process.env.ROLLUP_WATCH) {
+  require("electron-reload")(path.resolve("./public"), {
+    electron: require(`${__dirname}/../node_modules/electron`)
+  });
+}
+
 let mainWindow;
 
 // Submit a user-requested bug-report
