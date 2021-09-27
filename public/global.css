@@ -30,7 +30,7 @@ body {
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 2.2rem;
 }
 
 h2 {
@@ -43,4 +43,13 @@ h3 {
 
 h4 {
   font-size: 1.5rem;
+}
+
+.btn-primary {
+  background-color: #337ab7;
+  border-color: #2e6da4;
+}
+.btn-primary:hover {
+  background-color: #286090;
+  border-color: #204d74;
 }

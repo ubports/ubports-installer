@@ -72,7 +72,7 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: row;
-    max-height: 4px;
+    max-height: 0.2rem;
     background-color: #f5f5f5;
     margin: 0;
   }
@@ -87,7 +87,6 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: row;
-    height: 3rem;
     max-height: 90px;
     background-color: #f5f5f5;
     margin: 0;

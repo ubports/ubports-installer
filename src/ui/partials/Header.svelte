@@ -36,7 +36,6 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    height: 2rem;
     padding: 1.5rem;
   }
 
@@ -46,7 +45,6 @@
   }
 
   .header-buttons {
-    margin-right: 10px;
     display: flex;
   }
 

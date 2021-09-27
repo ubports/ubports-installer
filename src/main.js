@@ -58,8 +58,8 @@ async function createWindow() {
     "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
   mainWindow = new BrowserWindow({
-    width: cli.debug ? 1600 : 800,
-    height: 600,
+    width: cli.debug ? 1300 : 1000,
+    height: 750,
     icon: path.join(__dirname, "../build/icons/icon.png"),
     title: "UBports Installer (" + packageInfo.version + ")",
     kiosk: false,

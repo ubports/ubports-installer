@@ -155,6 +155,8 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    padding: 20px 10px;
+    justify-content: center;
+    padding: 2rem 1rem;
+    height: 100%;
   }
 </style>
