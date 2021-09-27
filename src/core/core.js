@@ -160,9 +160,10 @@ class Core {
         window.send(
           "user:os",
           this.props.config,
-          this.props.config.operating_systems.map((os, i) => {
-            return { value: i, name: os.name };
-          })
+          this.props.config.operating_systems.map((os, i) => ({
+            value: i,
+            name: os.name
+          }))
         )
       );
   }
