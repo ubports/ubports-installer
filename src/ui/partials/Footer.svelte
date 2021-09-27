@@ -45,9 +45,9 @@
   <div class="progress-bar" style="--progressWidth:{progressBarWidth}" />
 </div>
 <footer class="footer">
-  <div class="container">
+  <div class="footer-container">
     <h3>
-      <span id="footer-top">
+      <span id="footer-top" class="text-muted">
         {$footerData.topText}
         {#if $footerData.waitingDots}
           {wait}
@@ -55,7 +55,7 @@
       </span>
     </h3>
     <p>
-      <span id="footer-bottom">
+      <span id="footer-bottom" class="text-muted">
         {$footerData.underText}
       </span>
       {#if $footerData.speedText}
@@ -87,9 +87,15 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: row;
-    height: 90px;
+    height: 3rem;
     max-height: 90px;
     background-color: #f5f5f5;
     margin: 0;
+    padding: 1.5rem;
+    align-items: center;
+  }
+
+  .footer-container p {
+    margin-bottom: 0;
   }
 </style>

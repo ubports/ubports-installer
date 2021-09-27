@@ -1,6 +1,6 @@
 <script>
   //Electron imports
-  const { remote, ipcRenderer, shell } = require("electron");
+  const { remote, ipcRenderer } = require("electron");
 
   //Store imports
   import {
@@ -16,6 +16,9 @@
     deviceName,
     osInstructsData
   } from "./stores.mjs";
+
+  //Header
+  import Header from "./ui/partials/Header.svelte";
 
   //Footer
   import Footer from "./ui/partials/Footer.svelte";
@@ -114,14 +117,6 @@
     showOptionsModal = true;
   });
 
-  ipcRenderer.on("user:report", (_, done) => requestReport(done));
-
-  //Other methods
-  function requestReport(done = false) {
-    done ? (showDoNotAskAgainButton = true) : (showDoNotAskAgainButton = true);
-    showResultModal = true;
-  }
-
   //Error handling
   // Catch all unhandled errors in rendering process
   window.onerror = (err, url, line) => {
@@ -130,24 +125,7 @@
 </script>
 
 <div class="app-wrapper">
-  <div class="header">
-    <h3 id="header-text" class="installer">
-      UBports Installer {global.packageInfo.version}
-    </h3>
-    <div class="header-buttons-wrapper">
-      <button
-        id="help"
-        class="help-button btn btn-primary"
-        on:click={requestReport}>Report a bug</button
-      >
-      <button
-        id="donate"
-        class="donate-button btn btn-primary"
-        on:click|preventDefault={() =>
-          shell.openExternal("https://ubports.com/donate")}>Donate</button
-      >
-    </div>
-  </div>
+  <Header />
   <div class="view-container container">
     <Router {routes} />
     <Modals />
@@ -171,22 +149,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-  }
-
-  .header {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    height: 60px;
-    max-height: 60px;
-    padding: 0 10px 0 10px;
-    background-color: #f5f5f5;
-  }
-
-  .header-buttons-wrapper button:first-of-type {
-    margin-right: 10px;
   }
 
   .view-container {

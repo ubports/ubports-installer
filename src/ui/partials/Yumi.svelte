@@ -28,14 +28,14 @@
 <img
   src="./img/yumi.svg"
   alt="yumi"
-  class="ubp-robot"
-  class:ubp-robot-foot={ubpRobotFoot}
-  class:ubp-robot-side={ubpRobotSide}
+  class="yumi"
+  class:yumi-foot={ubpRobotFoot}
+  class:yumi-side={ubpRobotSide}
   width="100"
 />
 
 <style>
-  .ubp-robot {
+  .yumi {
     bottom: 50%;
     right: 50%;
     margin-bottom: -72px;
@@ -49,19 +49,20 @@
     transition: all 0.7s ease;
     image-rendering: crisp-edges;
     -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     -webkit-transform: translateZ(0) scale(1, 1);
+    transform: translateZ(0) scale(1, 1);
   }
 
-  .ubp-robot-foot {
+  .yumi-foot {
     bottom: 10px !important;
     position: absolute;
-    right: 10px !important;
-    width: 50px !important;
-    margin-bottom: 0px !important;
-    margin-right: 0px !important;
+    right: 1.5rem !important;
+    width: 3.2rem !important;
+    margin: 0;
   }
 
-  .ubp-robot-side {
+  .yumi-side {
     position: absolute;
     right: 62% !important;
     bottom: 35% !important;
