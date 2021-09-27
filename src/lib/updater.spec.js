@@ -6,7 +6,7 @@ jest.mock("axios");
 axios.create.mockReturnValue(axios);
 const packageInfo = require("../../package.json");
 jest.mock("../../package.json");
-packageInfo.package = "0.8.9-beta";
+packageInfo.version = "0.8.9-beta";
 
 const updater = require("./updater.js");
 
