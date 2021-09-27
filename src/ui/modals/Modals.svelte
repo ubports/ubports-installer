@@ -6,7 +6,7 @@
   import ConnectionLostModal from "./specific-modals/ConnectionLostModal.svelte";
   import NoNetworkModal from "./specific-modals/NoNetworkModal.svelte";
   import LowPowerModal from "./specific-modals/LowPowerModal.svelte";
-  import WindowsDriversModal from "./specific-modals/WindowsDriversModal.svelte";
+  import Msvc2012x86Modal from "./specific-modals/Msvc2012x86Modal.svelte";
   import SelectDeviceModal from "./specific-modals/SelectDeviceModal.svelte";
   import DeveloperModeModal from "./specific-modals/DeveloperModeModal.svelte";
   import ErrorModal from "./specific-modals/ErrorModal.svelte";
@@ -25,7 +25,7 @@
   let showConnectionLostModal = false;
   let showNoNetworkModal = false;
   let showLowPowerModal = false;
-  let showWindowsDriversModal = false;
+  let showMsvc2012x86Modal = false;
   let showErrorModal = false;
   let showUnlockModal = false;
   let showOptionsModal = false;
@@ -43,16 +43,6 @@
     });
   }
 
-  if (process.platform === "win32") {
-    ipcRenderer
-      .invoke("getSettingsValue", "never.windowsDrivers")
-      .then(never => {
-        if (never) {
-          setTimeout(() => (showWindowsDriversModal = true), 1000);
-        }
-      });
-  }
-
   ipcRenderer.on("user:connection-lost", () => {
     showConnectionLostModal = true;
   });
@@ -63,6 +53,10 @@
 
   ipcRenderer.on("user:low-power", callback => {
     showLowPowerModal = true;
+  });
+
+  ipcRenderer.on("user:no-msvc2012x86", () => {
+    showMsvc2012x86Modal = true;
   });
 
   ipcRenderer.on("user:update-available", () => {
@@ -114,8 +108,8 @@
 {#if showLowPowerModal}
   <LowPowerModal on:close={() => (showLowPowerModal = false)} />
 {/if}
-{#if showWindowsDriversModal}
-  <WindowsDriversModal on:close={() => (showWindowsDriversModal = false)} />
+{#if showMsvc2012x86Modal}
+  <Msvc2012x86Modal on:close={() => (showMsvc2012x86Modal = false)} />
 {/if}
 {#if $showSelectDeviceModal}
   <SelectDeviceModal
