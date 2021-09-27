@@ -36,3 +36,4 @@ export const showDeveloperModeModal = writable(false);
 
 //options modal
 export const osInstructsData = writable({});
+export const settings = writable({});

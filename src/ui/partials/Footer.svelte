@@ -79,7 +79,7 @@
 
   .progress-bar {
     width: var(--progressWidth);
-    height: 4px;
+    height: 0.5rem;
     background-color: #e95420;
   }
 

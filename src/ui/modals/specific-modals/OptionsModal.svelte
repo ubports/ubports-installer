@@ -1,18 +1,13 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { osInstructsData } from "../../../stores.mjs";
+  import { osInstructsData, settings } from "../../../stores.mjs";
   const { shell, ipcRenderer } = require("electron");
   import Modal from "./Modal.svelte";
 
   const dispatch = createEventDispatcher();
 
-  let inputValues = [];
-
   const close = () => {
-    for (const osInstruction of $osInstructsData) {
-      ipcRenderer.send("option", osInstruction.var, inputValues[osInstruction]);
-    }
-    setTimeout(() => ipcRenderer.send("install"), 250);
+    ipcRenderer.send("options", $settings);
     dispatch("close");
   };
 </script>
@@ -21,7 +16,7 @@
   <h4 slot="header">Install options</h4>
   <div slot="content">
     <div>
-      {#each $osInstructsData as osInstruction, osInstructsCounter}
+      {#each $osInstructsData as osInstruction}
         <div class="row">
           <label for="" class="col-3 col-form-label">{osInstruction.name}</label
           >
@@ -29,7 +24,7 @@
             {#if osInstruction.type === "select"}
               <select
                 class="form-select"
-                bind:value={inputValues[osInstructsCounter]}
+                bind:value={$settings[osInstruction.var]}
               >
                 {#each osInstruction.values as value}
                   <option value={value.value}>{value.label}</option>
@@ -39,7 +34,7 @@
               <input
                 class="form-check-input"
                 type="checkbox"
-                bind:value={inputValues[osInstructsCounter]}
+                bind:value={$settings[osInstruction.var]}
                 checked={osInstruction.value}
               />
             {/if}
@@ -71,10 +66,8 @@
     </p>
   </div>
   <div slot="actions">
-    <button
-      id="btn-options-close"
-      class="btn btn-default"
-      on:click={() => close()}>Next</button
+    <button id="btn-options-close" class="btn btn-default" on:click={close}
+      >Next</button
     >
   </div>
 </Modal>

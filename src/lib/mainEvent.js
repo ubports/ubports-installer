@@ -106,7 +106,7 @@ mainEvent.on("user:prerequisites", (prerequisites, user_actions, resolve) => {
 // configure
 mainEvent.on("user:configure", (options, resolve) => {
   window.send("user:configure", options);
-  ipcMain.once("option", () => setTimeout(resolve, 250));
+  ipcMain.once("options", (e, settings) => resolve(settings));
 });
 
 // Request user_action

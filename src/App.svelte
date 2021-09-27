@@ -14,7 +14,8 @@
     userActionEventObject,
     actionData,
     deviceName,
-    osInstructsData
+    osInstructsData,
+    settings
   } from "./stores.mjs";
 
   //Header
@@ -106,6 +107,15 @@
 
   ipcRenderer.on("user:configure", (event, osInstructs) => {
     osInstructsData.set(osInstructs);
+    settings.set(
+      osInstructs.reduce(
+        (prev, curr) => ({
+          [curr.var]: curr.values ? curr.values[0].value : curr.value || false,
+          ...prev
+        }),
+        {}
+      )
+    );
     animationType.set("particles");
     push("/working");
     footerData.set({

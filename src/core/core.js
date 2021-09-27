@@ -251,9 +251,10 @@ class Core {
                 mainEvent.emit("user:configure", this.props.os.options, resolve)
               )
           )
-          .then(() =>
-            log.info(`settings: ${JSON.stringify(this.props.settings)}`)
-          )
+          .then(settings => {
+            this.props.settings = settings;
+            log.info(`settings: ${JSON.stringify(this.props.settings)}`);
+          })
       : log.debug("nothing to configure");
   }
 
@@ -409,12 +410,6 @@ class Core {
 }
 
 const core = new Core();
-
-// The user configured the installation
-ipcMain.on(
-  "option",
-  (_, variable, value) => (core.props.settings[variable] = value)
-);
 
 // the user selected an os
 ipcMain.on("os:selected", (_, index) => core.install(index));
