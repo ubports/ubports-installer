@@ -3,7 +3,6 @@
   import { animationType } from "../../stores.mjs";
   import { tsParticles } from "tsparticles";
 
-  console.log($animationType);
   onMount(() => {
     if ($animationType === "particles") {
       tsParticles
