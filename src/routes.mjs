@@ -8,16 +8,10 @@ import ManualDownload from "./ui/views/ManualDownload.svelte";
 
 export default {
   "/": WaitForDevice,
-
   "/done": Done,
-
   "/not-supported": NotSupported,
-
   "/select-os": SelectOs,
-
   "/user-action": UserAction,
-
   "/working": Working,
-
   "/manual-download": ManualDownload
 };
