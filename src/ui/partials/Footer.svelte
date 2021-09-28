@@ -1,8 +1,6 @@
 <script>
   import { onMount } from "svelte";
-
   const { ipcRenderer } = require("electron");
-
   import { footerData } from "../../stores.mjs";
 
   let progressBarWidth = 0;
@@ -73,15 +71,16 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: row;
-    max-height: 0.2rem;
+    height: 0.5rem;
     background-color: #f5f5f5;
     margin: 0;
+    border-radius: 0;
   }
 
   .progress-bar {
     width: var(--progressWidth);
-    height: 0.5rem;
     background-color: #e95420;
+    border-radius: 0 0.25rem 0.25rem 0;
   }
 
   .footer {

@@ -1,67 +1,15 @@
 <script>
-  import { animationType } from "../../stores.mjs";
+  import Animation from "../partials/Animation.svelte";
 </script>
 
-<svelte:head>
-  <script src="./scripts/particleground.js"></script>
-</svelte:head>
+<Animation />
 
-<div class="content">
-  {#if $animationType === "particles"}
-    <div id="particles-background" />
-    <div id="particles-foreground" />
-  {/if}
-  {#if $animationType === "download"}
-    <div class="download-animation" />
-  {/if}
-  {#if $animationType === "push"}
-    <div class="push-animation" />
-  {/if}
-  <div class="loader-circle" />
-  <div class="loader-line-mask">
-    <div class="loader-line" />
-  </div>
+<div class="loader-circle" />
+<div class="loader-line-mask">
+  <div class="loader-line" />
 </div>
 
 <style>
-  .content {
-    display: flex;
-    flex: 1 1 auto;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #particles-background,
-  #particles-foreground {
-    position: absolute;
-    width: 200%;
-    height: 200%;
-    transform: scale3d(0.5, 0.5, 1);
-    z-index: -1;
-  }
-
-  .download-animation,
-  .push-animation {
-    background-repeat: repeat;
-    display: block;
-    position: absolute;
-    top: 60px;
-    right: 0;
-    bottom: 94px;
-    left: 0;
-  }
-
-  .download-animation {
-    background-image: url("../img/arrow-down.png");
-    animation: download-animation 8s linear infinite;
-  }
-
-  .push-animation {
-    background-image: url("../img/arrow-right.png");
-    animation: push-animation 10s linear infinite;
-  }
-
   .loader-circle {
     position: absolute;
     left: 50%;
@@ -102,24 +50,6 @@
     }
     100% {
       transform: rotate(360deg);
-    }
-  }
-
-  @keyframes download-animation {
-    from {
-      background-position: 0 0;
-    }
-    to {
-      background-position: 0 1200px;
-    }
-  }
-
-  @keyframes push-animation {
-    from {
-      background-position: 0 0;
-    }
-    to {
-      background-position: 900px 0px;
     }
   }
 </style>
