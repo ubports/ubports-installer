@@ -72,7 +72,7 @@ class AdbPlugin extends Plugin {
   action__format({ partition }) {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit(
           "user:write:status",
           "Preparing system for installation",
@@ -91,7 +91,7 @@ class AdbPlugin extends Plugin {
    */
   action__sideload({ group, file }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "circuit");
       this.event.emit("user:write:status", `Sideloading ${group}`, true);
       this.event.emit(
         "user:write:under",

@@ -189,7 +189,7 @@ class FastbootPlugin extends Plugin {
    */
   action__erase({ partition }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Cleaning up", true);
       this.event.emit(
         "user:write:under",
@@ -205,7 +205,7 @@ class FastbootPlugin extends Plugin {
    */
   action__format({ partition, type, size }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Cleaning up", true);
       this.event.emit(
         "user:write:under",

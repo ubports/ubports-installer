@@ -3,6 +3,7 @@
   import { animationType } from "../../stores.mjs";
   import { tsParticles } from "tsparticles";
   import CircuitBoard from "./CircuitBoard.svelte";
+  import Squares from "./Squares.svelte";
 
   onMount(updateAnimations);
   animationType.subscribe(updateAnimations);
@@ -57,9 +58,15 @@
   HACK particles can not be conditionally rendered to be reliably shown when transitioning from one working view to the next. We thus hide and show them using css rather than svelte's built-in conditional rendering. Unfortunately, svelte does not yet posess an equivalet to Vue's v-show field.
 -->
 <div id="tsparticles" class="animation" />
+
 {#if $animationType === "circuit"}
   <div class="animation">
     <CircuitBoard />
+  </div>
+{/if}
+{#if $animationType === "squares"}
+  <div class="animation">
+    <Squares />
   </div>
 {/if}
 {#if $animationType === "download"}
