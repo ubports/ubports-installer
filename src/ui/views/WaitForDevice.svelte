@@ -27,14 +27,13 @@
     />
   </div>
   <div class="col-6">
-    <h4>Please connect your device</h4>
+    <h4>Welcome to the UBports Installer</h4>
     <p>
-      Welcome to the UBports Installer! This tool will walk you through the
-      Ubuntu Touch installation process. Don't worry, it's easy!
+      We will walk you through the installation process. Don't worry, it's easy!
     </p>
     <p>
-      Connect your device to the computer and enable developer mode. After that,
-      your device should be detected automatically.
+      With developer mode enabled, connect your phone, tablet, or smartwatch to
+      the computer. Your device should be detected automatically.
     </p>
     <button
       id="btn-modal-dev-mode"
