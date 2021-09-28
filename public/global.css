@@ -53,3 +53,13 @@ h4 {
   background-color: #286090;
   border-color: #204d74;
 }
+a {
+  color: #337ab7;
+}
+a:hover {
+  color: #286090;
+}
+
+.container {
+  max-width: 50rem;
+}
