@@ -1,13 +1,8 @@
 <script>
-  //Electron imports
   const { ipcRenderer, shell } = require("electron");
 
-  ipcRenderer.on("user:report", (_, done) => requestReport(done));
-
-  //Other methods
-  function requestReport(done = false) {
-    showDoNotAskAgainButton = done;
-    showResultModal = true;
+  function requestReport() {
+    ipcRenderer.emit("user:report", false);
   }
 </script>
 

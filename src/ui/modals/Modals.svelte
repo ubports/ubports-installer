@@ -13,6 +13,7 @@
   import UnlockModal from "./specific-modals/UnlockModal.svelte";
   import OptionsModal from "./specific-modals/OptionsModal.svelte";
   import OemLockModal from "./specific-modals/OemLockModal.svelte";
+  import ResultModal from "./specific-modals/ResultModal.svelte";
 
   import {
     showSelectDeviceModal,
@@ -30,11 +31,13 @@
   let showUnlockModal = false;
   let showOptionsModal = false;
   let showOemLockModal = false;
+  let showResultModal = false;
 
   //Modal props
   let errorData;
   let unlockData;
   let oemUnlockData;
+  let showDoNotAskAgainButton;
 
   //Modal related messages
   if (process.platform === "linux" && !process.env.SNAP) {
@@ -42,6 +45,11 @@
       never ? null : setTimeout(() => (showUdevModal = true), 1000);
     });
   }
+
+  ipcRenderer.on("user:report", (_, done) => {
+    showDoNotAskAgainButton = done;
+    showResultModal = true;
+  });
 
   ipcRenderer.on("user:configure", () => {
     showOptionsModal = true;
@@ -118,7 +126,12 @@
 {#if showUnlockModal}
   <UnlockModal {unlockData} on:close={() => (showUnlockModal = false)} />
 {/if}
-<!-- TODO move result here -->
+{#if showResultModal}
+  <ResultModal
+    {showDoNotAskAgainButton}
+    on:close={() => (showResultModal = false)}
+  />
+{/if}
 
 <!-- high prio -->
 {#if showUdevModal}

@@ -31,7 +31,6 @@
 
   //Modals
   import Modals from "./ui/modals/Modals.svelte";
-  import ResultModal from "./ui/modals/specific-modals/ResultModal.svelte";
 
   //Routing
   import Router from "svelte-spa-router";
@@ -42,10 +41,6 @@
   //Global variables
   global.installProperties = remote.getGlobal("installProperties");
   global.packageInfo = remote.getGlobal("packageInfo");
-
-  //Modal variables
-  let showResultModal = false;
-  let showDoNotAskAgainButton;
 
   //Messages
   //Routing messages
@@ -136,12 +131,6 @@
   <div class="view-container container">
     <Router {routes} />
     <Modals />
-    {#if showResultModal}
-      <ResultModal
-        {showDoNotAskAgainButton}
-        on:close={() => (showResultModal = false)}
-      />
-    {/if}
   </div>
   <Footer bind:this={footer} />
   <Yumi bind:this={yumi} />
