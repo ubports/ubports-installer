@@ -66,6 +66,7 @@
   .download-animation,
   .push-animation {
     background-repeat: repeat;
+    opacity: 0.5;
   }
 
   .download-animation {
