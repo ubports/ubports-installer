@@ -44,7 +44,7 @@
       If your problem is not yet known, click the button below to report a new
       bug.
     </p>
-    <pre>{errorData.text}\n</pre>
+    <pre>{errorData}</pre>
     {#if showNotLatestStable}
       <p>
         You are not using the latest stable version of the UBports Installer.

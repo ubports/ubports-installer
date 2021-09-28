@@ -63,7 +63,7 @@
     showNewUpdateModal = true;
   });
 
-  ipcRenderer.on("user:error", (event, error, restart, ignore) => {
+  ipcRenderer.on("user:error", (event, error) => {
     errorData = error;
     showErrorModal = true;
   });
