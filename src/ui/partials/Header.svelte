@@ -6,7 +6,7 @@
 
   //Other methods
   function requestReport(done = false) {
-    done ? (showDoNotAskAgainButton = true) : (showDoNotAskAgainButton = true);
+    showDoNotAskAgainButton = done;
     showResultModal = true;
   }
 </script>
