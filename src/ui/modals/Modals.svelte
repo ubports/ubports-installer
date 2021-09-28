@@ -93,11 +93,40 @@
   });
 </script>
 
+<!-- low prio -->
+{#if $showSelectDeviceModal}
+  <SelectDeviceModal
+    selectOptions={$deviceSelectOptions}
+    on:close={() => showSelectDeviceModal.set(false)}
+  />
+{/if}
+{#if showOemLockModal}
+  <OemLockModal {oemUnlockData} on:close={() => (showOemLockModal = false)} />
+{/if}
+{#if $showDeveloperModeModal}
+  <DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)} />
+{/if}
+{#if showOptionsModal}
+  <OptionsModal on:close={() => (showOptionsModal = false)} />
+{/if}
+
+<!-- medium prio -->
+{#if showUnlockModal}
+  <UnlockModal {unlockData} on:close={() => (showUnlockModal = false)} />
+{/if}
+<!-- TODO move result here -->
+
+<!-- high prio -->
+{#if showUdevModal}
+  <UdevModal on:close={() => (showUdevModal = false)} />
+{/if}
 {#if showNewUpdateModal}
   <NewUpdateModal on:close={() => (showNewUpdateModal = false)} />
 {/if}
-{#if showUdevModal}
-  <UdevModal on:close={() => (showUdevModal = false)} />
+
+<!-- errors -->
+{#if showLowPowerModal}
+  <LowPowerModal on:close={() => (showLowPowerModal = false)} />
 {/if}
 {#if showConnectionLostModal}
   <ConnectionLostModal on:close={() => (showConnectionLostModal = false)} />
@@ -105,30 +134,9 @@
 {#if showNoNetworkModal}
   <NoNetworkModal on:close={() => (showNoNetworkModal = false)} />
 {/if}
-{#if showLowPowerModal}
-  <LowPowerModal on:close={() => (showLowPowerModal = false)} />
-{/if}
 {#if showMsvc2012x86Modal}
   <Msvc2012x86Modal on:close={() => (showMsvc2012x86Modal = false)} />
 {/if}
-{#if $showSelectDeviceModal}
-  <SelectDeviceModal
-    selectOptions={$deviceSelectOptions}
-    on:close={() => showSelectDeviceModal.set(false)}
-  />
-{/if}
-{#if $showDeveloperModeModal}
-  <DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)} />
-{/if}
 {#if showErrorModal}
   <ErrorModal {errorData} on:close={() => (showErrorModal = false)} />
-{/if}
-{#if showUnlockModal}
-  <UnlockModal {unlockData} on:close={() => (showUnlockModal = false)} />
-{/if}
-{#if showOptionsModal}
-  <OptionsModal on:close={() => (showOptionsModal = false)} />
-{/if}
-{#if showOemLockModal}
-  <OemLockModal {oemUnlockData} on:close={() => (showOemLockModal = false)} />
 {/if}
