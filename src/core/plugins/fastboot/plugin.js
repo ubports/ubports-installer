@@ -157,7 +157,7 @@ class FastbootPlugin extends Plugin {
    */
   action__flash({ partitions }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "circuit");
       this.event.emit("user:write:status", "Flashing firmware", true);
       this.event.emit(
         "user:write:under",
