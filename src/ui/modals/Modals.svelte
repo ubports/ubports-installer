@@ -43,6 +43,10 @@
     });
   }
 
+  ipcRenderer.on("user:configure", () => {
+    showOptionsModal = true;
+  });
+
   ipcRenderer.on("user:connection-lost", () => {
     showConnectionLostModal = true;
   });

@@ -31,7 +31,6 @@
 
   //Modals
   import Modals from "./ui/modals/Modals.svelte";
-  import OptionsModal from "./ui/modals/specific-modals/OptionsModal.svelte";
   import ResultModal from "./ui/modals/specific-modals/ResultModal.svelte";
 
   //Routing
@@ -45,7 +44,6 @@
   global.packageInfo = remote.getGlobal("packageInfo");
 
   //Modal variables
-  let showOptionsModal = false;
   let showResultModal = false;
   let showDoNotAskAgainButton;
 
@@ -124,7 +122,6 @@
       waitingDots: false
     });
     yumi.setPosition("center");
-    showOptionsModal = true;
   });
 
   //Error handling
@@ -139,9 +136,6 @@
   <div class="view-container container">
     <Router {routes} />
     <Modals />
-    {#if showOptionsModal}
-      <OptionsModal on:close={() => (showOptionsModal = false)} />
-    {/if}
     {#if showResultModal}
       <ResultModal
         {showDoNotAskAgainButton}
