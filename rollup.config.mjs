@@ -43,13 +43,11 @@ export default {
   },
   plugins: [
     svelte({
-      dev: !production,
-
-      css: css => {
-        css.write("bundle.css");
+      compilerOptions: {
+        dev: !production
       }
     }),
-    css({ output: "./public/build/theme.css" }),
+    css({ name: "theme.css" }),
 
     resolve({
       browser: true,
