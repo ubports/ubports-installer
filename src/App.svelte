@@ -70,9 +70,6 @@
   });
 
   ipcRenderer.on("user:os", (event, installConfig, osSelects) => {
-    global.installConfig = installConfig;
-    global.installConfig.os_to_install = undefined;
-
     footerData.set({
       topText: `${installConfig.name} (${installConfig.codename})`,
       underText: "Please select an operating system for installation",
@@ -107,7 +104,7 @@
     animationType.set("particles");
     push("/working");
     footerData.set({
-      topText: `${installConfig.name} (${installConfig.codename})`,
+      topText: `${$installConfigData.name} (${$installConfigData.codename})`,
       underText: "Please Configure the installation",
       waitingDots: false
     });

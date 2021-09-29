@@ -11,7 +11,6 @@
 
   function handleInstallButton() {
     ipcRenderer.send("os:selected", selectedOs);
-    global.installConfig.os_to_install = selectedOs;
   }
 </script>
 
