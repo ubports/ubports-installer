@@ -19,7 +19,6 @@
 
 const { app, BrowserWindow, ipcMain } = require("electron");
 const packageInfo = require("../package.json");
-global.packageInfo = packageInfo;
 const path = require("path");
 const url = require("url");
 const cli = require("./lib/cli.js");
