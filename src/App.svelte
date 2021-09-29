@@ -1,7 +1,6 @@
 <script>
   //Electron imports
   const { ipcRenderer } = require("electron");
-  global.packageInfo = require("../package.json");
 
   //Store imports
   import {

@@ -3,6 +3,7 @@
   import Modal from "./Modal.svelte";
 
   const { ipcRenderer } = require("electron");
+  const { package: packageType } = require("../package.json");
 
   const dispatch = createEventDispatcher();
   const close = () => dispatch("close");
@@ -16,7 +17,7 @@
       release is recommended for most users. You can still use this version, but
       there might be bugs and issues that do not affect the stable release.
     </p>
-    {#if global.packageInfo.package === "snap"}
+    {#if packageType === "snap"}
       <p>
         Run <code>snap refresh ubports-installer --stable</code> in your terminal
         to install the latest version.
@@ -27,7 +28,7 @@
   </div>
   <div slot="actions">
     <button class="btn btn-default" on:click={close()}>Dismiss</button>
-    {#if global.packageInfo.package !== "snap"}
+    {#if packageType !== "snap"}
       <button
         class="btn btn-primary"
         on:click={() => ipcRenderer.send("update")}>Download</button

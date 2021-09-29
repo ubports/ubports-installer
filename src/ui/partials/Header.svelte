@@ -1,5 +1,6 @@
 <script>
   const { ipcRenderer, shell } = require("electron");
+  const { version } = require("../package.json");
 
   function requestReport() {
     ipcRenderer.emit("user:report", false);
@@ -8,7 +9,7 @@
 
 <div class="header">
   <h1 id="header-text" class="text-muted installer">
-    UBports Installer ({global.packageInfo.version})
+    UBports Installer ({version})
   </h1>
   <div class="header-buttons">
     <button id="help" class="btn btn-primary" on:click={requestReport}
