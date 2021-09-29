@@ -71,6 +71,15 @@ async function createWindow() {
     }
   });
 
+  // Make sure links are opened in browser
+  mainWindow.webContents.on('will-navigate', (e, url) => {
+    // TODO replace all the shell.openExternal calls in the svelte code with href's
+    if (url !== e.sender.getURL()) {
+      e.preventDefault()
+      shell.openExternal(url)
+    }
+  })
+
   // Tasks we need for every start and restart
   mainWindow.webContents.on("did-finish-load", () => core.prepare(cli.file));
 
