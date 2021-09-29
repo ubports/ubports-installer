@@ -11,9 +11,9 @@
   import DeveloperModeModal from "./specific-modals/DeveloperModeModal.svelte";
   import ErrorModal from "./specific-modals/ErrorModal.svelte";
   import UnlockModal from "./specific-modals/UnlockModal.svelte";
-  import OptionsModal from "./specific-modals/OptionsModal.svelte";
   import OemLockModal from "./specific-modals/OemLockModal.svelte";
   import ResultModal from "./specific-modals/ResultModal.svelte";
+  import PromptModals from "./specific-modals/PromptModals.svelte";
 
   import {
     showSelectDeviceModal,
@@ -29,7 +29,6 @@
   let showMsvc2012x86Modal = false;
   let showErrorModal = false;
   let showUnlockModal = false;
-  let showOptionsModal = false;
   let showOemLockModal = false;
   let showResultModal = false;
 
@@ -49,10 +48,6 @@
   ipcRenderer.on("user:report", (_, done) => {
     showDoNotAskAgainButton = done;
     showResultModal = true;
-  });
-
-  ipcRenderer.on("user:configure", () => {
-    showOptionsModal = true;
   });
 
   ipcRenderer.on("user:connection-lost", () => {
@@ -118,9 +113,6 @@
 {#if $showDeveloperModeModal}
   <DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)} />
 {/if}
-{#if showOptionsModal}
-  <OptionsModal on:close={() => (showOptionsModal = false)} />
-{/if}
 
 <!-- medium prio -->
 {#if showUnlockModal}
@@ -154,6 +146,7 @@
 {#if showMsvc2012x86Modal}
   <Msvc2012x86Modal on:close={() => (showMsvc2012x86Modal = false)} />
 {/if}
+<PromptModals />
 {#if showErrorModal}
   <ErrorModal {errorData} on:close={() => (showErrorModal = false)} />
 {/if}

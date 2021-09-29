@@ -63,3 +63,7 @@ a:hover {
 .container {
   max-width: 50rem;
 }
+
+.svelte-modal-content {
+  max-height: 100% !important;
+}

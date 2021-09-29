@@ -22,6 +22,7 @@ const settings = require("./settings.js");
 const window = require("./window.js");
 const { ipcMain } = require("electron");
 const EventEmitter = require("events");
+const { prompt } = require("./prompt.js");
 
 const mainEvent = new EventEmitter();
 
@@ -104,9 +105,13 @@ mainEvent.on("user:prerequisites", (prerequisites, user_actions, resolve) => {
 });
 
 // configure
-mainEvent.on("user:configure", (options, resolve) => {
-  window.send("user:configure", options);
-  ipcMain.once("options", (e, settings) => resolve(settings));
+mainEvent.on("user:configure", (fields, resolve) => {
+  window.send("user:configure");
+  prompt({
+    title: "Installation options",
+    description: "Configure the installation of your new operating system",
+    fields
+  }).then(resolve);
 });
 
 // Request user_action

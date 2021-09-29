@@ -13,9 +13,7 @@
     eventObject,
     userActionEventObject,
     actionData,
-    deviceName,
-    osInstructsData,
-    settings
+    deviceName
   } from "./stores.mjs";
 
   //Header
@@ -90,17 +88,7 @@
     yumi.setPosition("foot");
   });
 
-  ipcRenderer.on("user:configure", (event, osInstructs) => {
-    osInstructsData.set(osInstructs);
-    settings.set(
-      osInstructs.reduce(
-        (prev, curr) => ({
-          [curr.var]: curr.values ? curr.values[0].value : curr.value || false,
-          ...prev
-        }),
-        {}
-      )
-    );
+  ipcRenderer.on("user:configure", () => {
     animationType.set("particles");
     push("/working");
     footerData.set({

@@ -76,11 +76,10 @@ The UBports Foundation maintains a various free- and open-source NPM libraries f
 | `promise-android-tools`  | [![version](https://shields.io/npm/v/promise-android-tools)](https://www.npmjs.com/package/promise-android-tools)   | Extensive wrapper for ADB, Fastboot, Heimdall                          |
 | `android-tools-bin`      | [![version](https://shields.io/npm/v/android-tools-bin)](https://www.npmjs.com/package/android-tools-bin)           | Cross-platform binaries for ADB, Fastboot, Heimdall                    |
 | `open-cuts-reporter`     | [![version](https://shields.io/npm/v/open-cuts-reporter)](https://www.npmjs.com/package/open-cuts-reporter)         | Report test results to [UBports OPEN-CUTS](https://www.open-cuts.org/) |
-| `ubuntu-pastebin`        | [![version](https://shields.io/npm/v/ubuntu-pastebin)](https://www.npmjs.com/package/ubuntu-pastebin)               | Send logs to [Ubuntu Pastebin](https://paste.ubuntu.com)               |
 
 ## License
 
-Original development by [Marius Gripsgård](http://mariogrip.com/) and [Jan Sprinz](https://spri.nz). Copyright (C) 2017-2021 [UBports Foundation](https://ubports.com).
+Original development by [Marius Gripsgård](http://mariogrip.com/) and [J. Sprinz](https://spri.nz). Copyright (C) 2017-2021 [UBports Foundation](https://ubports.com).
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2020-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,9 @@ const { osInfo } = require("systeminformation");
 const { path: cachePath } = require("./cache.js");
 const log = require("./log.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
-const { paste } = require("ubuntu-pastebin");
-const prompt = require("electron-dynamic-prompt");
 const settings = require("./settings.js");
 const core = require("../core/core.js");
+const { prompt } = require("./prompt.js");
 
 /**
  * OPEN-CUTS operating system mapping
@@ -117,11 +116,10 @@ class Reporter {
    * Generate a URL-encoded string to create a GitHub issue
    * @async
    * @param {Object} data - form data
-   * @param {String} logUrl - Ubuntu pastebin URL
    * @param {String} runUrl - OPEN-CUTS run URL
    * @returns {String} url-encoded string to create a GitHub issue
    */
-  async getDebugInfo(data, logUrl, runUrl) {
+  async getDebugInfo(data, runUrl) {
     return encodeURIComponent(
       [
         `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
@@ -130,7 +128,6 @@ class Reporter {
         `Target OS: ${this.getTargetOsString()}`,
         `Settings: \`${this.getSettingsString()}\``,
         `OPEN-CUTS run: ${runUrl}`,
-        `Log: ${logUrl}`,
         "\n",
         data.comment,
         "\n",
@@ -160,16 +157,13 @@ class Reporter {
    */
   async sendBugReport(data, token) {
     const logfile = await log.get();
-    const pasteUrl = paste(logfile, "UBports Installer", "text", "year").catch(
-      () => "*N/A*"
-    );
     const runUrl = this.sendOpenCutsRun(token, data, logfile).catch(
       () => "*N/A*"
     );
     shell.openExternal(
       `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
         data.title
-      )}&body=${await this.getDebugInfo(data, await pasteUrl, await runUrl)}`
+      )}&body=${await this.getDebugInfo(data, await runUrl)}`
     );
     return;
   }
@@ -217,50 +211,33 @@ class Reporter {
 
   /**
    * Get generic form fields
-   * @param {String} result pre-defined result
    * @returns {Array<Object>} generic form fields
    */
-  genericFormFields(result) {
+  genericFormFields() {
     return [
       {
-        id: "device",
-        label: "Device",
-        type: "input",
-        attrs: {
-          placeholder: "Device codename",
-          value: this.getDeviceString(),
-          required: true
-        }
+        var: "device",
+        name: "Device",
+        type: "text",
+        placeholder: "Device codename",
+        value: this.getDeviceString(),
+        required: true
       },
       {
-        id: "package",
-        label: "Package",
-        type: "input",
-        attrs: {
-          placeholder: "What package of the Installer are you using?",
-          value: packageInfo.package || "source",
-          required: true
-        }
+        var: "package",
+        name: "Package",
+        type: "text",
+        placeholder: "What package of the Installer are you using?",
+        value: packageInfo.package || "source",
+        required: true
       },
       {
-        id: "hostOs",
-        label: "Host OS",
-        type: "input",
-        attrs: {
-          placeholder: "What operating system are you using?",
-          value: OPENCUTS_OS[process.platform],
-          required: true
-        }
-      },
-      {
-        id: "result",
-        label: "",
-        type: "input",
-        attrs: {
-          placeholder: "PASS, WONKY, FAIL",
-          value: result,
-          style: "display: none;"
-        }
+        var: "hostOs",
+        name: "Host OS",
+        type: "text",
+        placeholder: "What operating system are you using?",
+        value: OPENCUTS_OS[process.platform],
+        required: true
       }
     ];
   }
@@ -268,58 +245,41 @@ class Reporter {
   /**
    * Prepare form for an error report
    * @param {String} result pre-defined result
-   * @param {String} errorMessage error message
+   * @param {String} error error message
    * @returns {Promise<Object>} error report form
    */
-  async prepareErrorReport(result = "FAIL", errorMessage) {
+  async prepareErrorReport(result = "FAIL", error = "Unknown Error") {
     return {
-      modal: false,
       title: "Report an Error",
-      description: `Sorry to hear that the installer did not work for you. You can help the UBports community fix this issue by reporting your installation result. Edit the information below and click OK to submit. The installer will then automatically report a ${result} run to ubports.open-cuts.org and send a log to paste.ubuntu.com. After that, your webbrowser will open so you can create a bug report on GitHub.`,
-      resizable: true,
-      height: 720,
-      width: 650,
+      description: `Sorry to hear that the installer did not work for you. You can help the UBports community fix this issue by reporting your installation result. Edit the information below and click OK to submit. The installer will then automatically report a ${result} run to [ubports.open-cuts.org](https://ubports.open-cuts.org). After that, your webbrowser will open so you can create a bug report on GitHub.`,
       fields: [
         {
-          id: "title",
-          label: "Title",
-          type: "input",
-          attrs: {
-            required: true,
-            placeholder: "Please summarize your experience in a few words",
-            value: this.getIssueTitle(errorMessage)
-          }
+          var: "title",
+          name: "Title",
+          type: "text",
+          required: true,
+          placeholder: "Please summarize your experience in a few words",
+          value: this.getIssueTitle(error)
         },
         {
-          id: "error",
-          label: "",
-          type: "input",
-          attrs: {
-            placeholder: "Original error",
-            value: errorMessage
-          }
-        },
-        {
-          id: "comment",
-          label: "Comment",
-          type: "input",
-          attrs: {
-            placeholder: "How can we reproduce this issue?",
-            required: true
-          }
+          var: "comment",
+          name: "Comment",
+          type: "text",
+          placeholder: "How can we reproduce this issue?",
+          required: true
         },
         ...this.genericFormFields(result),
         {
-          id: "environment",
-          label: "Environment",
-          type: "input",
-          attrs: {
-            placeholder: "Where are you running the installer?",
-            value: await this.getEnvironment(),
-            required: true
-          }
+          var: "environment",
+          name: "Environment",
+          type: "text",
+          placeholder: "Where are you running the installer?",
+          value: await this.getEnvironment(),
+          required: true
         }
-      ]
+      ],
+      confirm: "Send",
+      extraData: { result, error }
     };
   }
 
@@ -329,26 +289,24 @@ class Reporter {
    */
   async prepareSuccessReport() {
     return {
-      modal: false,
       title: "Report Success",
       description:
-        "You can help the UBports community improve the installer by reporting your installation result. Edit the information below and click OK to automatically submit a run with an attached log to ubports.open-cuts.org.",
-      resizable: true,
-      height: 720,
-      width: 650,
+        "You can help the UBports community improve the installer by reporting your installation result. Edit the information below and click OK to automatically submit a run with an attached log to [ubports.open-cuts.org](https://ubports.open-cuts.org).",
       fields: [
         {
-          id: "comment",
-          label: "Comment",
-          type: "input",
-          attrs: {
-            placeholder: "You can provide detailed information here...",
-            value: `Installed ${this.getTargetOsString()} on ${this.getDeviceString()} from a computer running ${await this.getEnvironment()}.`,
-            required: true
-          }
+          var: "comment",
+          name: "Comment",
+          type: "text",
+          placeholder: "You can provide detailed information here...",
+          value: `Installed ${this.getTargetOsString()} on ${this.getDeviceString()} from a computer running ${await this.getEnvironment()}.`,
+          required: true
         },
-        ...this.genericFormFields("PASS")
-      ]
+        ...this.genericFormFields()
+      ],
+      confirm: "Send",
+      extraData: {
+        result: "PASS"
+      }
     };
   }
 
@@ -356,11 +314,10 @@ class Reporter {
    * Prepare and send a report
    * @param {String} result PASS, WONKY, FAIL
    * @param {String} error error message or object
-   * @param {BrowserWindow} mainWindow electron window
    */
-  async report(result, error, mainWindow) {
+  async report(result, error) {
     if (result !== "PASS") {
-      return prompt(await this.prepareErrorReport(result, error), mainWindow)
+      return prompt(await this.prepareErrorReport(result, error))
         .then(data => {
           if (data) {
             this.sendBugReport(data, settings.get("opencuts_token"));
@@ -368,7 +325,7 @@ class Reporter {
         })
         .catch(e => log.warn(`failed to report: ${e}`));
     } else {
-      return prompt(await this.prepareSuccessReport(), mainWindow)
+      return prompt(await this.prepareSuccessReport())
         .then(data => {
           if (data) {
             this.sendOpenCutsRun(settings.get("opencuts_token"), data).then(
@@ -387,32 +344,26 @@ class Reporter {
 
   /**
    * Open a dialog to set the token
-   * @param {BrowserWindow} mainWindow electron window
    */
-  tokenDialog(mainWindow) {
-    return prompt(
-      {
-        title: "OPEN-CUTS API Token",
-        height: 300,
-        resizable: true,
-        description:
-          "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your OPEN-CUTS account.",
-        fields: [
-          {
-            id: "token",
-            label: "Token",
-            type: "input",
-            attrs: {
-              type: "password",
-              value: settings.get("opencuts_token"),
-              placeholder: "get your token on ubports.open-cuts.org",
-              required: true
-            }
-          }
-        ]
-      },
-      mainWindow
-    )
+  tokenDialog() {
+    return prompt({
+      title: "OPEN-CUTS API Token",
+      description:
+        "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your [OPEN-CUTS account](https://ubports.open-cuts.org/account).",
+      fields: [
+        {
+          var: "token",
+          name: "Token",
+          type: "password",
+          value: settings.get("opencuts_token"),
+          placeholder: "get your token on ubports.open-cuts.org",
+          required: true,
+          tooltip: "You can find this on your account page",
+          link: "https://ubports.open-cuts.org/account"
+        }
+      ],
+      confirm: "Set token"
+    })
       .then(({ token }) => {
         if (token) {
           settings.set("opencuts_token", token.trim());

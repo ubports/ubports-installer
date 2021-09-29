@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,11 +38,12 @@ class Window {
 
   /**
    * try to send an event to the main window's webContents
+   * @param {String} channel channel
    * @param  {...any} args arguments to send
    */
-  send(...args) {
+  send(channel, ...args) {
     const main = this.getMain();
-    if (main) main.send(...args);
+    if (main) main.send(channel, ...args);
   }
 }
 

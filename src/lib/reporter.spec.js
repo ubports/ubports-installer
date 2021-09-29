@@ -2,12 +2,10 @@ process.argv = [null, null, "-vv"];
 const log = require("./log.js");
 jest.mock("./log.js");
 const settings = require("./settings.js");
-const prompt = require("electron-dynamic-prompt");
-jest.mock("electron-dynamic-prompt");
+const { prompt } = require("./prompt.js");
+jest.mock("./prompt.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
 jest.mock("open-cuts-reporter");
-const { paste } = require("ubuntu-pastebin");
-jest.mock("ubuntu-pastebin");
 
 const reporter = require("./reporter.js");
 
@@ -38,20 +36,6 @@ describe("sendBugReport()", () => {
         expect(r).toEqual(undefined);
       });
   });
-  it("should ignore paste errors", () => {
-    log.get.mockResolvedValue("log content");
-    paste.mockRejectedValue("some paste error");
-    jest
-      .spyOn(reporter, "sendOpenCutsRun")
-      .mockRejectedValueOnce("some paste error");
-    return reporter
-      .sendBugReport({
-        title: "wasd"
-      })
-      .then(r => {
-        expect(r).toEqual(undefined);
-      });
-  });
 });
 
 describe("sendOpenCutsRun()", () => {
@@ -68,65 +52,58 @@ describe("sendOpenCutsRun()", () => {
 describe("report()", () => {
   ["PASS", "WONKY", "FAIL"].forEach(result => {
     it(`should show ${result} report dialog`, () => {
-      const mainWindow = jest.fn();
       prompt.mockClear();
       prompt.mockResolvedValue({});
-      return reporter.report(result, null, mainWindow).then(() => {
+      return reporter.report(result, null).then(() => {
         expect(prompt).toHaveBeenCalledTimes(1);
       });
     });
     it(`should show ${result} report dialog with err msg`, () => {
-      const mainWindow = jest.fn();
       prompt.mockClear();
       prompt.mockResolvedValue({});
-      return reporter.report(result, "some error", mainWindow).then(() => {
+      return reporter.report(result, "some error").then(() => {
         expect(prompt).toHaveBeenCalledTimes(1);
       });
     });
     it(`should show ${result} report dialog and survive if closed`, () => {
-      const mainWindow = jest.fn();
       prompt.mockClear();
       prompt.mockResolvedValue();
-      return reporter.report(result, null, mainWindow).then(() => {
+      return reporter.report(result, null).then(() => {
         expect(prompt).toHaveBeenCalledTimes(1);
       });
     });
     it(`should show ${result} report dialog and survive error`, () => {
-      const mainWindow = jest.fn();
       prompt.mockClear();
       prompt.mockRejectedValue("some error");
-      return reporter.report(result, null, mainWindow);
+      return reporter.report(result, null);
     });
   });
 });
 
 describe("tokenDialog()", () => {
   it("should show token dialog and set value", () => {
-    const mainWindow = jest.fn();
     prompt.mockClear();
     prompt.mockResolvedValue({ token: "asdf" });
-    return reporter.tokenDialog(mainWindow).then(() => {
+    return reporter.tokenDialog().then(() => {
       expect(prompt).toHaveBeenCalledTimes(1);
       expect(settings.set).toHaveBeenCalledTimes(1);
       expect(settings.set).toHaveBeenCalledWith("opencuts_token", "asdf");
     });
   });
   it("should fail silently if token unset", () => {
-    const mainWindow = jest.fn();
     prompt.mockClear();
     settings.set.mockClear();
     prompt.mockRejectedValue("some error");
-    return reporter.tokenDialog(mainWindow).then(() => {
+    return reporter.tokenDialog().then(() => {
       expect(prompt).toHaveBeenCalledTimes(1);
       expect(settings.set).toHaveBeenCalledTimes(0);
     });
   });
   it("should fail silently on prompt error", () => {
-    const mainWindow = jest.fn();
     prompt.mockClear();
     settings.set.mockClear();
     prompt.mockResolvedValue({ unxpected: "value" });
-    return reporter.tokenDialog(mainWindow).then(() => {
+    return reporter.tokenDialog().then(() => {
       expect(prompt).toHaveBeenCalledTimes(1);
       expect(settings.set).toHaveBeenCalledTimes(0);
     });

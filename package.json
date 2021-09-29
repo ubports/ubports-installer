@@ -58,7 +58,6 @@
     "bootstrap": "^5.1.1",
     "cancelable-promise": "^3.2.3",
     "commander": "^8.2.0",
-    "electron-dynamic-prompt": "^1.0.3",
     "electron-open-link-in-browser": "^1.0.2",
     "electron-store": "^6.0.1",
     "form-data": "^4.0.0",
@@ -70,9 +69,9 @@
     "promise-android-tools": "^4.0.6",
     "ps-tree": "^1.2.0",
     "sudo-prompt": "^9.2.1",
+    "svelte-markdown": "^0.1.12",
     "systeminformation": "^5.9.4",
     "tsparticles": "^1.35.2",
-    "ubuntu-pastebin": "^1.0.1",
     "winston": "^3.3.3",
     "yaml": "^2.0.0-8"
   },
