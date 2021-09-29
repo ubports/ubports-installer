@@ -10,12 +10,7 @@
   let downloadedFile;
 
   function handleManualDownloadButton() {
-    $eventObject.sender.send(
-      "manual_download:completed",
-      global.packageInfo.package !== "snap"
-        ? downloadedFile.path
-        : downloadedFile
-    );
+    $eventObject.sender.send("manual_download:completed", downloadedFile.path);
   }
 </script>
 
@@ -42,28 +37,13 @@
         >{$manualDownloadFileData.url}</b
       >.
     </p>
-    {#if global.packageInfo.package === "snap"}
-      <p>
-        Once you have it, enter the path and click the button below to continue.
-      </p>
-    {:else}
-      <p>
-        Once you have it, select it in the file picker and click the button
-        below to continue.
-      </p>
-    {/if}
+    <p>
+      Once you have it, select it in the file picker and click the button below
+      to continue.
+    </p>
     <div class="input-group" style="margin-bottom: 1em;">
       <div class="custom-file">
-        <!-- HACK remove once https://github.com/electron/electron/pull/19159 is released -->
-        {#if global.packageInfo.package === "snap"}
-          <input
-            type=""
-            placeholder="enter path here"
-            bind:value={downloadedFile}
-          />
-        {:else}
-          <input type="file" bind:value={downloadedFile} />
-        {/if}
+        <input type="file" bind:value={downloadedFile} />
       </div>
     </div>
     <button
