@@ -40,15 +40,16 @@ cli
   .option(
     "-v, --verbose",
     "Print debugging information. Multiple -v options increase the verbosity",
-    (_, prev) => prev + 1,
+    (_, prev) => Math.min(prev + 1, 3),
     0
   )
   .option(
     "-d, --debug",
-    "Enable electron's web debugger to inspect the frontend"
+    "Enable electron's web debugger to inspect the frontend",
+    false
   )
   .parse(process.argv);
 
-log.setLevel(cli.verbose);
+log.setLevel(cli.opts().verbose || 0);
 
-module.exports = cli;
+module.exports = cli.opts();

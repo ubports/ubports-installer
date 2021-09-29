@@ -1,6 +1,7 @@
 <script>
   //Electron imports
-  const { remote, ipcRenderer } = require("electron");
+  const { ipcRenderer } = require("electron");
+  global.packageInfo = require("../package.json");
 
   //Store imports
   import {
@@ -36,11 +37,6 @@
   import Router from "svelte-spa-router";
   import { push } from "svelte-spa-router";
   import routes from "./routes.mjs";
-
-  //Variables
-  //Global variables
-  global.installProperties = remote.getGlobal("installProperties");
-  global.packageInfo = remote.getGlobal("packageInfo");
 
   //Messages
   //Routing messages

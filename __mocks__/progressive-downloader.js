@@ -1,5 +1,3 @@
-const { speed } = require("jquery");
-
 const dl = {
   checkFile: jest.fn().mockResolvedValue(true),
   download: jest.fn().mockImplementation((files, progress, next, activity) =>

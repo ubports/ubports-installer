@@ -68,8 +68,7 @@ async function createWindow() {
     fullscreen: false,
     webPreferences: {
       contextIsolation: false,
-      nodeIntegration: true,
-      enableRemoteModule: true
+      nodeIntegration: true
     }
   });
 
