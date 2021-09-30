@@ -108,7 +108,7 @@ mainEvent.on("user:update-available", (updateUrl, prerelease) => {
 
 // eula
 mainEvent.on("user:eula", (eula, resolve) => {
-  prompt(eula).then(resolve);
+  prompt({ ...eula, confirm: "I agree" }).then(resolve);
 });
 
 // unlock
@@ -118,9 +118,13 @@ mainEvent.on("user:unlock", (unlock, user_actions, resolve) => {
 });
 
 // prerequisites
-mainEvent.on("user:prerequisites", (prerequisites, user_actions, resolve) => {
-  window.send("user:prerequisites", prerequisites, user_actions);
-  ipcMain.once("user:unlock:ok", resolve);
+mainEvent.on("user:prerequisites", (fields, resolve) => {
+  prompt({
+    title: "",
+    description: "",
+    fields,
+    confirm: "Continue"
+  }).then(resolve);
 });
 
 // configure

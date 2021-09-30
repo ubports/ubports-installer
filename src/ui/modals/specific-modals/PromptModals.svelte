@@ -43,7 +43,9 @@
       {#if link}<a href={link}>More Information...</a>{/if}
       {#each fields as field}
         <div class="row">
-          <label for="" class="col-3 col-form-label">{field.name}</label>
+          <label for="" class="col-3 col-form-label"
+            >{field.name || field.title}</label
+          >
           <div class="col-9 d-flex align-items-center">
             {#if field.type === "select"}
               <select class="form-select" bind:value={formData[id][field.var]}>
@@ -71,16 +73,16 @@
                 bind:value={formData[id][field.var]}
               />
             {:else}
-              {JSON.stringify(field)}
+              <SvelteMarkdown source={field.description} />
             {/if}
           </div>
         </div>
 
-        {#if field.tooltip}
+        {#if field.tooltip || field.link}
           <dl class="row">
             <dt class="col-3" />
             <dd class="col-9">
-              {field.tooltip}
+              {field.tooltip || ""}
               {#if field.link}
                 <a href={field.link}>More...</a>
               {/if}

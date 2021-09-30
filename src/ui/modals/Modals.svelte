@@ -56,11 +56,6 @@
     showUnlockModal = true;
   });
 
-  ipcRenderer.on("user:prerequisites", (_, prerequisites, user_actions) => {
-    unlockData = user_actions;
-    showUnlockModal = true;
-  });
-
   ipcRenderer.on("user:oem-lock", (event, enable = false, url) => {
     oemUnlockData = {
       enable: enable,

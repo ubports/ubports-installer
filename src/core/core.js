@@ -215,8 +215,9 @@ class Core {
       ? new Promise((resolve, reject) =>
           mainEvent.emit(
             "user:prerequisites",
-            this.props.os.prerequisites,
-            this.props.config.user_actions,
+            this.props.os.prerequisites.map(
+              action => this.props.config.user_actions[action]
+            ),
             resolve
           )
         ).then(() => this.delay(500))
