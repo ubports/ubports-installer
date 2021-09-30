@@ -3,7 +3,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,8 @@ cli
   )
   .parse(process.argv);
 
+const opts = cli.opts();
+
 var targetOs;
 var buildConfig = {
   appId: "com.ubports.installer",
@@ -68,12 +70,12 @@ var buildConfig = {
     "node_modules/**/*",
     "build/icons/icon.*",
     // exclude binaries for other operating systems
-    ...PLATFORMS.filter(p => p !== cli.os).map(
+    ...PLATFORMS.filter(p => p !== opts.os).map(
       p => `!node_modules/android-tools-bin/dist/${p}`
     ),
     // exclude binaries for other architectures
     `!node_modules/android-tools-bin/dist/**/${
-      cli.arch.includes("arm") ? "x86" : "arm"
+      opts.arch.includes("arm") ? "x86" : "arm"
     }/**`
   ],
   asarUnpack: [
@@ -89,18 +91,18 @@ var buildConfig = {
     "node_modules/@babel/runtime/**/*" // for android-tools-bin
   ],
   extraMetadata: {
-    package: cli.package === "portable" ? "exe" : cli.package,
-    ...cli.extraMetadata
+    package: opts.package === "portable" ? "exe" : opts.package,
+    ...opts.extraMetadata
   }
 };
 
 const target = {
-  target: cli.package,
-  arch: cli.arch
+  target: opts.package,
+  arch: opts.arch
 };
 
 // Validate and configure operating system
-switch (cli.os) {
+switch (opts.os) {
   case "linux":
     targetOs = builder.Platform.LINUX;
     buildConfig = Object.assign(buildConfig, {
@@ -165,7 +167,7 @@ const build = () =>
     });
 
 // actual work happens here
-console.log("build", cli.package, "for", cli.arch, cli.os, "or die trying");
+console.log("build", opts.package, "for", opts.arch, opts.os, "or die trying");
 build()
   .then(() => console.log("all done!"))
   .catch(e => {
