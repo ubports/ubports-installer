@@ -3,7 +3,6 @@
 
   import NewUpdateModal from "./specific-modals/NewUpdateModal.svelte";
   import UdevModal from "./specific-modals/UdevModal.svelte";
-  import ConnectionLostModal from "./specific-modals/ConnectionLostModal.svelte";
   import NoNetworkModal from "./specific-modals/NoNetworkModal.svelte";
   import Msvc2012x86Modal from "./specific-modals/Msvc2012x86Modal.svelte";
   import SelectDeviceModal from "./specific-modals/SelectDeviceModal.svelte";
@@ -22,7 +21,6 @@
 
   let showNewUpdateModal = false;
   let showUdevModal = false;
-  let showConnectionLostModal = false;
   let showNoNetworkModal = false;
   let showMsvc2012x86Modal = false;
   let showErrorModal = false;
@@ -46,10 +44,6 @@
   ipcRenderer.on("user:report", (_, done) => {
     showDoNotAskAgainButton = done;
     showResultModal = true;
-  });
-
-  ipcRenderer.on("user:connection-lost", () => {
-    showConnectionLostModal = true;
   });
 
   ipcRenderer.on("user:no-network", () => {
@@ -128,9 +122,6 @@
 {/if}
 
 <!-- errors -->
-{#if showConnectionLostModal}
-  <ConnectionLostModal on:close={() => (showConnectionLostModal = false)} />
-{/if}
 {#if showNoNetworkModal}
   <NoNetworkModal on:close={() => (showNoNetworkModal = false)} />
 {/if}

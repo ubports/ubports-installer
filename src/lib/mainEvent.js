@@ -187,8 +187,13 @@ mainEvent.on("user:no-msvc2012x86", () => {
 // Connection to the device was lost
 mainEvent.on("user:connection-lost", reconnect => {
   log.warn("lost connection to device");
-  window.send("user:connection-lost");
-  ipcMain.once("reconnect", () => {
+  prompt({
+    title: "Connection to device lost",
+    description: `The connection to your device was lost. Please make sure your device is still connected and do not disconnect your device again until the installation is finished.
+
+If this continues to happen, you might want to try using a different USB cable. Old cables tend to become less reliable. Please try using a different USB cable and do not touch the device during the installation, unless you are prompted to do so.`,
+    confirm: "Reconnect"
+  }).then(() => {
     if (reconnect) setTimeout(reconnect, 500);
     else mainEvent.emit("restart");
   });
