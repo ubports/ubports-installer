@@ -51,12 +51,6 @@
     showErrorModal = true;
   });
 
-  ipcRenderer.on("user:eula", (_, eula) => {
-    unlockData = eula;
-    showUnlockModal = true;
-    console.log("eula", eula);
-  });
-
   ipcRenderer.on("user:unlock", (_, unlock, user_actions) => {
     unlockData = user_actions;
     showUnlockModal = true;

@@ -228,7 +228,7 @@ class Core {
    * @returns {Promise}
    */
   eula() {
-    return this.props.os.eula // TODO implement eula in unlock modal
+    return this.props.os.eula
       ? new Promise((resolve, reject) =>
           mainEvent.emit("user:eula", this.props.os.eula, resolve)
         ).then(() => this.delay(500))

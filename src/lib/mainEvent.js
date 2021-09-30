@@ -108,8 +108,7 @@ mainEvent.on("user:update-available", (updateUrl, prerelease) => {
 
 // eula
 mainEvent.on("user:eula", (eula, resolve) => {
-  window.send("user:eula", eula);
-  ipcMain.once("user:unlock:ok", resolve);
+  prompt(eula).then(resolve);
 });
 
 // unlock

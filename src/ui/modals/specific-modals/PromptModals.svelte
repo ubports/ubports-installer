@@ -35,11 +35,12 @@
   }
 </script>
 
-{#each $prompts as { id, title, description, fields, confirm, dismissable }}
+{#each $prompts as { id, title, description, link, fields, confirm, dismissable }}
   <Modal on:close={() => close(id)} showCloseButton={dismissable || false}>
     <h4 slot="header">{title}</h4>
     <div slot="content">
       <SvelteMarkdown source={description} />
+      {#if link}<a href={link}>More Information...</a>{/if}
       {#each fields as field}
         <div class="row">
           <label for="" class="col-3 col-form-label">{field.name}</label>
