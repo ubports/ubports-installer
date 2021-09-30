@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  const { shell, ipcRenderer } = require("electron");
+  const { ipcRenderer } = require("electron");
   import Modal from "./Modal.svelte";
 
   const dispatch = createEventDispatcher();
@@ -32,20 +32,12 @@
     </p>
     <p>
       The UBports Community uses <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            "https://ubports.open-cuts.org/system/5e9d746c6346e112514cfec7"
-          )}>OPEN-CUTS, the open crowdsourced user testing suite</a
+        href="https://ubports.open-cuts.org/system/5e9d746c6346e112514cfec7"
+        >OPEN-CUTS, the open crowdsourced user testing suite</a
       >
       to manage manual testing and
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            "https://github.com/ubports/ubports-installer/issues"
-          )}>GitHub</a
-      > to track bugs and feature requests for the UBports Installer. Since the installer
+      <a href="https://github.com/ubports/ubports-installer/issues">GitHub</a> to
+      track bugs and feature requests for the UBports Installer. Since the installer
       developers rarely have access to all the devices the installer supports, it
       is vital for them to also recieve reports about what works.
     </p>

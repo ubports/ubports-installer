@@ -1,5 +1,5 @@
 <script>
-  const { shell, ipcRenderer } = require("electron");
+  const { ipcRenderer } = require("electron");
 
   import {
     osSelectOptions,
@@ -28,18 +28,12 @@
     </h4>
     <p>
       <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            `https://devices.ubuntu-touch.io/device/${$installConfigData.codename}`
-          )}>about this device</a
+        href={`https://devices.ubuntu-touch.io/device/${$installConfigData.codename}`}
+        >about this device</a
       >
       <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            `https://github.com/ubports/installer-configs/blob/master/v1/${$installConfigData.codename}.json`
-          )}>view config file</a
+        href={`https://github.com/ubports/installer-configs/blob/master/v2/devices/${$installConfigData.codename}.yml`}
+        >view config file</a
       >
     </p>
     <p>

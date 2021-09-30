@@ -1,6 +1,6 @@
 <script>
   import { version } from "../../../package.json";
-  const { ipcRenderer, shell } = require("electron");
+  const { ipcRenderer } = require("electron");
 
   function requestReport() {
     ipcRenderer.emit("user:report", false);
@@ -12,14 +12,9 @@
     UBports Installer ({version})
   </h1>
   <div class="header-buttons">
-    <button id="help" class="btn btn-primary" on:click={requestReport}
+    <a class="btn btn-primary" href="https://ubports.com/donate">Donate</a>
+    <button class="btn btn-primary" on:click={requestReport}
       >Report a bug</button
-    >
-    <button
-      id="donate"
-      class="btn btn-primary"
-      on:click|preventDefault={() =>
-        shell.openExternal("https://ubports.com/donate")}>Donate</button
     >
   </div>
 </div>

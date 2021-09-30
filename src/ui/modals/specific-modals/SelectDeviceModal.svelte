@@ -1,6 +1,6 @@
 <script>
   import Modal from "./Modal.svelte";
-  const { shell, ipcRenderer } = require("electron");
+  const { ipcRenderer } = require("electron");
   import { createEventDispatcher } from "svelte";
   import { deviceSelectOptions } from "../../../stores.mjs";
 
@@ -31,26 +31,13 @@
       </div>
     </div>
     <p>
-      Not all <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://devices.ubuntu-touch.io")}
-        >Ubuntu Touch devices</a
-      >
+      Not all <a href="https://devices.ubuntu-touch.io">Ubuntu Touch devices</a>
       are supported by the UBports Installer yet. You can find installation instructions
       for devices not listed here on
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://devices.ubuntu-touch.io")}
-        >devices.ubuntu-touch.io</a
-      >. If you want to help, you can
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            "https://github.com/ubports/installer-configs/blob/master/v1/_device.schema.json"
-          )}>contribute a config file</a
+      <a href="https://devices.ubuntu-touch.io">devices.ubuntu-touch.io</a>. If
+      you want to help, you can
+      <a href="https://github.com/ubports/installer-configs#readme"
+        >contribute a config file</a
       > for any device and operating system!
     </p>
     <p>

@@ -1,5 +1,5 @@
 <script>
-  const { ipcRenderer, shell } = require("electron");
+  const { ipcRenderer } = require("electron");
 </script>
 
 <div class="row">
@@ -20,30 +20,23 @@
     </p>
     <p>
       Found something you don't like? <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://github.com/ubports/ubports-touch")}
-        >Tell us</a
+        href="https://github.com/ubports/ubports-touch">Tell us</a
       >, or help us change it!
     </p>
     <p>
-      Development of Ubuntu Touch is driven by the <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://ubports.com")}>UBports Community</a
-      >. Donate now to allow us to continue our mission!
-      <button
+      Development of Ubuntu Touch is driven by the <a href="https://ubports.com"
+        >UBports Community</a
+      >. <a href="https://ubports.com/donate">Donate</a> now to allow us to
+      continue our mission!
+      <a
         class="btn btn-default"
         style="width: 49%; margin-bottom: 10px; margin-right: 5px"
-        on:click|preventDefault={() =>
-          shell.openExternal("https://ubports.com/join-us")}
-        >Get involved</button
+        href="https://ubports.com/join-us">Get involved</a
       >
-      <button
+      <a
         class="btn btn-primary"
         style="width: 49%; margin-bottom: 10px;"
-        on:click|preventDefault={() =>
-          shell.openExternal("https://ubports.com/donate")}>Donate</button
+        href="https://ubports.com/donate">Donate</a
       >
     </p>
     <p>

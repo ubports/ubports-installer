@@ -2,7 +2,7 @@
   import { createEventDispatcher } from "svelte";
   import Modal from "./Modal.svelte";
 
-  const { shell, ipcRenderer } = require("electron");
+  const { ipcRenderer } = require("electron");
 
   const dispatch = createEventDispatcher();
   const close = () => dispatch("close");
@@ -27,11 +27,8 @@
       <br />
       Alternatively, you can choose to do this
       <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            "https://docs.ubports.com/en/latest/userguide/install.html#missing-udev-rules"
-          )}>manually</a
+        href="https://docs.ubports.com/en/latest/userguide/install.html#missing-udev-rules"
+        >manually</a
       > through the command-line.
     </p>
   </div>

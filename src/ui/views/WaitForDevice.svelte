@@ -1,5 +1,5 @@
 <script>
-  const { shell, ipcRenderer } = require("electron");
+  const { ipcRenderer } = require("electron");
 
   import {
     deviceSelectOptions,
@@ -45,12 +45,7 @@
     <p>
       If your device is not detected automatically, you can select it manually
       to proceed. Please note that the UBports Installer will only work on
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("http://devices.ubuntu-touch.io")}
-        >supported devices</a
-      >.
+      <a href="http://devices.ubuntu-touch.io">supported devices</a>.
     </p>
     <button
       id="btn-modal-select-device"

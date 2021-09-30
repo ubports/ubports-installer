@@ -1,6 +1,4 @@
 <script>
-  const { shell } = require("electron");
-
   import {
     manualDownloadFileData,
     manualDownloadGroup,
@@ -31,11 +29,7 @@
     </p>
     <p>
       Please download the file <b>{$manualDownloadFileData.name}</b> from
-      <b
-        on:click|preventDefault={() =>
-          shell.openExternal($manualDownloadFileData.url)}
-        >{$manualDownloadFileData.url}</b
-      >.
+      <a href={$manualDownloadFileData.url}>{$manualDownloadFileData.url}</a>.
     </p>
     <p>
       Once you have it, select it in the file picker and click the button below

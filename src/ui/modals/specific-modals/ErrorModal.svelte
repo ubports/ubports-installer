@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  const { shell, ipcRenderer } = require("electron");
+  const { ipcRenderer } = require("electron");
   import Modal from "./Modal.svelte";
 
   const dispatch = createEventDispatcher();
@@ -33,11 +33,8 @@
     </p>
     <p>
       If this continues to happen, please check if you are affected by <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            "https://github.com/ubports/ubports-installer/issues"
-          )}>a known bug</a
+        href="https://github.com/ubports/ubports-installer/issues"
+        >a known bug</a
       >.
     </p>
     <p>
@@ -53,11 +50,8 @@
     {#if showGenericUpdateInstructionsError}
       <p>
         You can <a
-          href
-          on:click|preventDefault={() =>
-            shell.openExternal(
-              "https://github.com/ubports/ubports-installer/releases/latest"
-            )}>download the latest version from GitHub</a
+          href="https://github.com/ubports/ubports-installer/releases/latest"
+          >download the latest version from GitHub</a
         >.
       </p>
     {/if}
@@ -69,38 +63,16 @@
     {/if}
     <p>
       If you need help, you can join UBports' support channels on
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://t.me/WelcomePlus")}>telegram</a
-      >
+      <a href="https://t.me/WelcomePlus">telegram</a>
       or
       <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal(
-            "https://matrix.to/#/!KwdniMNeTmClpgHkND:matrix.org?via=matrix.org&via=ubports.chat&via=disroot.org"
-          )}>matrix</a
+        href="https://matrix.to/#/!KwdniMNeTmClpgHkND:matrix.org?via=matrix.org&via=ubports.chat&via=disroot.org"
+        >matrix</a
       >
       or ask a question
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://forums.ubports.com")}>in the forum</a
-      >
+      <a href="https://forums.ubports.com">in the forum</a>
       or on
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://askubuntu.com")}>askubuntu</a
-      >. As a last resort, we also have
-      <a
-        href
-        on:click|preventDefault={() =>
-          shell.openExternal("https://devices.ubuntu-touch.io")}
-        >manual installation instructions for every device</a
-      >, that you can follow if you want to install without using the UBports
-      Installer.
+      <a href="https://askubuntu.com">askubuntu</a>.
     </p>
   </div>
   <div slot="actions">
