@@ -85,10 +85,14 @@ async function createWindow() {
 
   // Task we need only on the first start
   mainWindow.webContents.once("did-finish-load", () => {
-    updater
-      .isOutdated()
-      .then(updateUrl => {
-        if (updateUrl) mainEvent.emit("user:update-available", updateUrl);
+    Promise.all([updater.isOutdated(), updater.isPrerelease()])
+      .then(([updateUrl, prerelease]) => {
+        if (updateUrl || prerelease)
+          mainEvent.emit(
+            "user:update-available",
+            updateUrl || prerelease,
+            prerelease
+          );
       })
       .catch(e => log.debug(e)); // Ignore errors, since this is non-essential
   });

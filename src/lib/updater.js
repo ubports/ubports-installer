@@ -19,7 +19,6 @@
 
 const axios = require("axios");
 const packageInfo = require("../../package.json");
-const { ipcMain } = require("electron");
 
 /**
  * UBports Installer version management
@@ -81,14 +80,5 @@ class Updater {
     );
   }
 }
-
-// The user requested an update
-ipcMain.on("update", () => {
-  shell.openExternal(
-    `https://devices.ubuntu-touch.io/installer/${
-      packageInfo.package ? "?package=" + packageInfo.package : ""
-    }`
-  );
-});
 
 module.exports = new Updater();

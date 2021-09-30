@@ -1,7 +1,6 @@
 <script>
   const { ipcRenderer } = require("electron");
 
-  import NewUpdateModal from "./specific-modals/NewUpdateModal.svelte";
   import UdevModal from "./specific-modals/UdevModal.svelte";
   import NoNetworkModal from "./specific-modals/NoNetworkModal.svelte";
   import SelectDeviceModal from "./specific-modals/SelectDeviceModal.svelte";
@@ -18,7 +17,6 @@
     deviceSelectOptions
   } from "../../stores.mjs";
 
-  let showNewUpdateModal = false;
   let showUdevModal = false;
   let showNoNetworkModal = false;
   let showErrorModal = false;
@@ -46,10 +44,6 @@
 
   ipcRenderer.on("user:no-network", () => {
     showNoNetworkModal = true;
-  });
-
-  ipcRenderer.on("user:update-available", () => {
-    showNewUpdateModal = true;
   });
 
   ipcRenderer.on("user:error", (event, error) => {
@@ -110,9 +104,6 @@
 <!-- high prio -->
 {#if showUdevModal}
   <UdevModal on:close={() => (showUdevModal = false)} />
-{/if}
-{#if showNewUpdateModal}
-  <NewUpdateModal on:close={() => (showNewUpdateModal = false)} />
 {/if}
 
 <!-- errors -->

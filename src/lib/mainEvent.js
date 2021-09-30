@@ -20,9 +20,10 @@
 const log = require("./log.js");
 const settings = require("./settings.js");
 const window = require("./window.js");
-const { ipcMain } = require("electron");
+const { ipcMain, shell } = require("electron");
 const EventEmitter = require("events");
 const { prompt } = require("./prompt.js");
+const packageInfo = require("../../package.json");
 
 const mainEvent = new EventEmitter();
 
@@ -81,9 +82,28 @@ mainEvent.on("user:oem-lock", (enable = false, code_url, unlock) => {
 });
 
 // update
-mainEvent.on("user:update-available", updateUrl => {
-  log.warn(`Please update: ${updateUrl}`);
-  window.send("user:update-available", updateUrl);
+mainEvent.on("user:update-available", (updateUrl, prerelease) => {
+  log.warn(
+    "Please update: " +
+      (packageInfo.package === "snap"
+        ? "snap refresh ubports-installer --stable"
+        : updateUrl)
+  );
+  prompt({
+    title: prerelease
+      ? `Prerelease ${packageInfo.version}`
+      : "Update available!",
+    dismissable: true,
+    description:
+      "You are " +
+      (prerelease ? "running a prerelease" : "not running the latest stable") +
+      " version. Using the latest stable release is recommended for most users. You can still use this version, but there might be bugs and issues that do not affect the stable release.\n\n" +
+      (packageInfo.package === "snap"
+        ? "Run `snap refresh ubports-installer --stable` in your terminal to install the latest version"
+        : `Please download the [latest version](${updateUrl})`) +
+      (prerelease ? ", unless you know what you're doing." : "."),
+    confirm: "Download"
+  }).then(() => shell.openExternal(updateUrl));
 });
 
 // eula
