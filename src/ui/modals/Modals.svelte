@@ -5,7 +5,6 @@
   import UdevModal from "./specific-modals/UdevModal.svelte";
   import ConnectionLostModal from "./specific-modals/ConnectionLostModal.svelte";
   import NoNetworkModal from "./specific-modals/NoNetworkModal.svelte";
-  import LowPowerModal from "./specific-modals/LowPowerModal.svelte";
   import Msvc2012x86Modal from "./specific-modals/Msvc2012x86Modal.svelte";
   import SelectDeviceModal from "./specific-modals/SelectDeviceModal.svelte";
   import DeveloperModeModal from "./specific-modals/DeveloperModeModal.svelte";
@@ -25,7 +24,6 @@
   let showUdevModal = false;
   let showConnectionLostModal = false;
   let showNoNetworkModal = false;
-  let showLowPowerModal = false;
   let showMsvc2012x86Modal = false;
   let showErrorModal = false;
   let showUnlockModal = false;
@@ -56,10 +54,6 @@
 
   ipcRenderer.on("user:no-network", () => {
     showNoNetworkModal = true;
-  });
-
-  ipcRenderer.on("user:low-power", callback => {
-    showLowPowerModal = true;
   });
 
   ipcRenderer.on("user:no-msvc2012x86", () => {
@@ -134,9 +128,6 @@
 {/if}
 
 <!-- errors -->
-{#if showLowPowerModal}
-  <LowPowerModal on:close={() => (showLowPowerModal = false)} />
-{/if}
 {#if showConnectionLostModal}
   <ConnectionLostModal on:close={() => (showConnectionLostModal = false)} />
 {/if}

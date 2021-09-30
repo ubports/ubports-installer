@@ -109,6 +109,7 @@ mainEvent.on("user:configure", (fields, resolve) => {
   window.send("user:configure");
   prompt({
     title: "Installation options",
+    dismissable: false,
     description: "Configure the installation of your new operating system",
     fields
   }).then(resolve);
@@ -195,7 +196,13 @@ mainEvent.on("user:connection-lost", reconnect => {
 
 // The device battery is too low to install
 mainEvent.on("user:low-power", () => {
-  window.send("user:low-power");
+  prompt({
+    title: "Low Power",
+    description: `The battery of your device is critically low. This can cause severe Problems while flashing.
+
+Please let your device charge for a while and try again.`,
+    confirm: "Try again"
+  }).then(() => mainEvent.emit("restart"));
 });
 
 module.exports = mainEvent;
