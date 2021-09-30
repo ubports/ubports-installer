@@ -1,6 +1,6 @@
 <script>
+  import { version } from "../../../package.json";
   const { ipcRenderer, shell } = require("electron");
-  const { version } = require("../package.json");
 
   function requestReport() {
     ipcRenderer.emit("user:report", false);

@@ -3,7 +3,7 @@
   import Modal from "./Modal.svelte";
 
   const { ipcRenderer } = require("electron");
-  const { package: packageType } = require("../package.json");
+  const { package: packageType } = require("../package.json"); // needs to be dynamic, because this injected into package.json while packaging and will not yet be set at compile time
 
   const dispatch = createEventDispatcher();
   const close = () => dispatch("close");

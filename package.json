@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
     "arkit": "^1.6.4",
     "electron": "^15.0.0",

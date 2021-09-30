@@ -1,4 +1,5 @@
 import svelte from "rollup-plugin-svelte";
+import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import livereload from "rollup-plugin-livereload";
@@ -48,17 +49,14 @@ export default {
       }
     }),
     css({ name: "theme.css" }),
-
     resolve({
       browser: true,
       dedupe: ["svelte"]
     }),
     commonjs(),
-
+    json(),
     !production && serve(),
-
     !production && livereload("public"),
-
     production && terser()
   ],
   watch: {
