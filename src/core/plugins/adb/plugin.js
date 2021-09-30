@@ -200,7 +200,7 @@ class AdbPlugin extends Plugin {
   action__preparesystemimage() {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", "Preparing system image", true);
         this.event.emit("user:write:under", "Mounting partitions...");
       })
