@@ -204,7 +204,13 @@ mainEvent.on("user:device-unsupported", device => {
 
 // No internet connection
 mainEvent.on("user:no-network", () => {
-  window.send("user:no-network");
+  prompt({
+    title: "Internet connection lost",
+    dismissable: true,
+    description:
+      "The installer failed to connect to the UBports servers. Are you connected to the internet? If you're using a proxy, you might have to [configure it](https://www.golinuxcloud.com/set-up-proxy-http-proxy-environment-variable/) by setting the **https_proxy** environment variable.",
+    confirm: "Try again"
+  }).then(() => mainEvent.emit("restart"));
 });
 
 // Visual C++ 2012 Redistributables x86 are not installed

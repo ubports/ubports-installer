@@ -98,7 +98,7 @@ class Core {
           })
           .catch(e => {
             log.error("getDeviceSelects error: " + e);
-            window.send("user:no-network");
+            mainEvent.emit("user:no-network");
           });
       }
     });

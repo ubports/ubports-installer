@@ -2,7 +2,6 @@
   const { ipcRenderer } = require("electron");
 
   import UdevModal from "./specific-modals/UdevModal.svelte";
-  import NoNetworkModal from "./specific-modals/NoNetworkModal.svelte";
   import SelectDeviceModal from "./specific-modals/SelectDeviceModal.svelte";
   import DeveloperModeModal from "./specific-modals/DeveloperModeModal.svelte";
   import ErrorModal from "./specific-modals/ErrorModal.svelte";
@@ -17,7 +16,6 @@
   } from "../../stores.mjs";
 
   let showUdevModal = false;
-  let showNoNetworkModal = false;
   let showErrorModal = false;
   let showOemLockModal = false;
   let showResultModal = false;
@@ -37,10 +35,6 @@
   ipcRenderer.on("user:report", (_, done) => {
     showDoNotAskAgainButton = done;
     showResultModal = true;
-  });
-
-  ipcRenderer.on("user:no-network", () => {
-    showNoNetworkModal = true;
   });
 
   ipcRenderer.on("user:error", (event, error) => {
@@ -85,9 +79,6 @@
 {/if}
 
 <!-- errors -->
-{#if showNoNetworkModal}
-  <NoNetworkModal on:close={() => (showNoNetworkModal = false)} />
-{/if}
 <PromptModals />
 {#if showErrorModal}
   <ErrorModal {errorData} on:close={() => (showErrorModal = false)} />
