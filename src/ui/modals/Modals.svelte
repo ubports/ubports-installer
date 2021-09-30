@@ -4,7 +4,6 @@
   import NewUpdateModal from "./specific-modals/NewUpdateModal.svelte";
   import UdevModal from "./specific-modals/UdevModal.svelte";
   import NoNetworkModal from "./specific-modals/NoNetworkModal.svelte";
-  import Msvc2012x86Modal from "./specific-modals/Msvc2012x86Modal.svelte";
   import SelectDeviceModal from "./specific-modals/SelectDeviceModal.svelte";
   import DeveloperModeModal from "./specific-modals/DeveloperModeModal.svelte";
   import ErrorModal from "./specific-modals/ErrorModal.svelte";
@@ -22,7 +21,6 @@
   let showNewUpdateModal = false;
   let showUdevModal = false;
   let showNoNetworkModal = false;
-  let showMsvc2012x86Modal = false;
   let showErrorModal = false;
   let showUnlockModal = false;
   let showOemLockModal = false;
@@ -48,10 +46,6 @@
 
   ipcRenderer.on("user:no-network", () => {
     showNoNetworkModal = true;
-  });
-
-  ipcRenderer.on("user:no-msvc2012x86", () => {
-    showMsvc2012x86Modal = true;
   });
 
   ipcRenderer.on("user:update-available", () => {
@@ -124,9 +118,6 @@
 <!-- errors -->
 {#if showNoNetworkModal}
   <NoNetworkModal on:close={() => (showNoNetworkModal = false)} />
-{/if}
-{#if showMsvc2012x86Modal}
-  <Msvc2012x86Modal on:close={() => (showMsvc2012x86Modal = false)} />
 {/if}
 <PromptModals />
 {#if showErrorModal}

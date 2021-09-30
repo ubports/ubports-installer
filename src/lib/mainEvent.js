@@ -181,7 +181,16 @@ mainEvent.on("user:no-network", () => {
 
 // Visual C++ 2012 Redistributables x86 are not installed
 mainEvent.on("user:no-msvc2012x86", () => {
-  window.send("user:no-msvc2012x86");
+  prompt({
+    title: "Missing Dependencies",
+    dismissable: true,
+    description: `Your computer is missing the Visual C++ 2012 32-bit libraries. The installer will be unable to detect or flash Samsung devices.
+
+Please download and install \`vcredist_x86.exe\` from [Microsoft's download page](https://www.microsoft.com/en-us/download/details.aspx?id=30679) and try again.
+
+If you will not be installing on a Samsung device, you can continue without Samsung device support.`,
+    confirm: "Try again"
+  }).then(() => mainEvent.emit("restart"));
 });
 
 // Connection to the device was lost
