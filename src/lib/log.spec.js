@@ -26,9 +26,7 @@ describe("get()", () => {
   it("should reject on parsing error", () => {
     const log = require("./log.js");
     log.winston.query.mockImplementation((opts, cb) => cb());
-    return expect(log.get()).rejects.toThrow(
-      "Failed to read log: TypeError: Cannot read property 'file' of undefined"
-    );
+    return expect(log.get()).rejects.toThrow("Failed to read log: TypeError");
   });
 });
 
