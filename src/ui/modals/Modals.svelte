@@ -5,7 +5,6 @@
   import SelectDeviceModal from "./specific-modals/SelectDeviceModal.svelte";
   import DeveloperModeModal from "./specific-modals/DeveloperModeModal.svelte";
   import ErrorModal from "./specific-modals/ErrorModal.svelte";
-  import OemLockModal from "./specific-modals/OemLockModal.svelte";
   import ResultModal from "./specific-modals/ResultModal.svelte";
   import PromptModals from "./specific-modals/PromptModals.svelte";
 
@@ -17,12 +16,10 @@
 
   let showUdevModal = false;
   let showErrorModal = false;
-  let showOemLockModal = false;
   let showResultModal = false;
 
   //Modal props
   let errorData;
-  let oemUnlockData;
   let showDoNotAskAgainButton;
 
   //Modal related messages
@@ -41,14 +38,6 @@
     errorData = error;
     showErrorModal = true;
   });
-
-  ipcRenderer.on("user:oem-lock", (event, enable = false, url) => {
-    oemUnlockData = {
-      enable: enable,
-      url: url
-    };
-    showOemLockModal = true;
-  });
 </script>
 
 <!-- low prio -->
@@ -57,9 +46,6 @@
     selectOptions={$deviceSelectOptions}
     on:close={() => showSelectDeviceModal.set(false)}
   />
-{/if}
-{#if showOemLockModal}
-  <OemLockModal {oemUnlockData} on:close={() => (showOemLockModal = false)} />
 {/if}
 {#if $showDeveloperModeModal}
   <DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)} />

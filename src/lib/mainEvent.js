@@ -69,8 +69,33 @@ mainEvent.on("user:error", (error, restart, ignore) => {
 
 // The device's bootloader is locked, prompt the user to unlock it
 mainEvent.on("user:oem-lock", (enable = false, code_url, unlock) => {
-  window.send("user:oem-lock", enable, code_url);
-  ipcMain.once("user:oem-lock:ok", (_, code) => {
+  prompt({
+    title: enable ? "Failed to unlock bootloader" : "Bootloader locked",
+    description:
+      (enable
+        ? `Your device could not be unlocked. Please make sure OEM unlocking is enabled in the devices [developer options](https://www.thecustomdroid.com/enable-oem-unlocking-on-android/). After that, you can select the button below to continue the installation.`
+        : `Your device's bootloader is locked, that means installation of third party operating systems like Ubuntu Touch is disabled.
+
+**Removing this lock might void the warranty. If you want to be sure, please ask your manufacturer or vendor if they allow this. UBports is not responsible and won't replace devices in case of warranty loss. You are responsible for your own actions.**
+
+Do you want to unlock your device now?
+
+You might see a confirmation dialog on your device next.`) +
+      (code_url
+        ? `\n\nYou have to obtain an unlocking code from [your vendor](${code_url}). Please enter the code below and click the button to continue.`
+        : ""),
+    fields: code_url
+      ? [
+          {
+            var: "code",
+            name: "Code",
+            type: "text",
+            placeholder: "unlock code",
+            link: code_url
+          }
+        ]
+      : []
+  }).then(({ code }) => {
     mainEvent.emit("user:write:working", "particles");
     mainEvent.emit("user:write:status", "Unlocking", true);
     mainEvent.emit(

@@ -64,12 +64,14 @@
               <input
                 class="form-input"
                 type="text"
+                placeholder={field.placeholder}
                 bind:value={formData[id][field.var]}
               />
             {:else if field.type === "password"}
               <input
                 class="form-input"
                 type="password"
+                placeholder={field.placeholder}
                 bind:value={formData[id][field.var]}
               />
             {:else}
