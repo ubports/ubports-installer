@@ -62,11 +62,12 @@ var targetOs;
 var buildConfig = {
   appId: "com.ubports.installer",
   productName: "ubports-installer",
-  copyright: "Copyright © 2017-2020 UBports Foundation",
+  copyright: `Copyright © 2017-${new Date().getFullYear()} UBports Foundation`,
   artifactName: "${name}_${version}_${os}_${arch}.${ext}",
   publish: [],
   files: [
     "src/**/*",
+    "public/**/*",
     "node_modules/**/*",
     "build/icons/icon.*",
     // exclude binaries for other operating systems

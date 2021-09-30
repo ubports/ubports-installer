@@ -111,6 +111,7 @@ jobs:
       - name: prepare build
         run: |
           npm install
+          npm run build
 
       - name: build linux
         if: contains(runner.os, 'Linux')
