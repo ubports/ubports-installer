@@ -177,8 +177,9 @@ class Core {
       ? new Promise((resolve, reject) =>
           mainEvent.emit(
             "user:unlock",
-            this.props.config.unlock,
-            this.props.config.user_actions,
+            this.props.config.unlock.map(
+              action => this.props.config.user_actions[action]
+            ),
             resolve
           )
         )

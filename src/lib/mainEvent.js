@@ -112,16 +112,21 @@ mainEvent.on("user:eula", (eula, resolve) => {
 });
 
 // unlock
-mainEvent.on("user:unlock", (unlock, user_actions, resolve) => {
-  window.send("user:unlock", unlock, user_actions);
-  ipcMain.once("user:unlock:ok", resolve);
+mainEvent.on("user:unlock", (fields, resolve) => {
+  prompt({
+    title: "Unlock your device",
+    description:
+      "The following actions are required for the installer to work.",
+    fields,
+    confirm: "My device is unlocked"
+  }).then(resolve);
 });
 
 // prerequisites
 mainEvent.on("user:prerequisites", (fields, resolve) => {
   prompt({
-    title: "",
-    description: "",
+    title: "Prerequisites",
+    description: "The following actions are required to install this OS.",
     fields,
     confirm: "Continue"
   }).then(resolve);
