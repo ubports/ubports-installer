@@ -49,6 +49,7 @@ parts:
       - libusb-1.0-0
       - libnotify4
       - libappindicator1
+      - libxshmfence1
       - libxtst6
       - libnss3
       - libxss1
