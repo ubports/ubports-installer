@@ -69,7 +69,7 @@ parts:
       echo "http_proxy: " $http_proxy
       echo "updating npm" && npm install npm@latest -g
       echo "installing dependencies" && npx cross-env ELECTRON_GET_USE_PROXY=true GLOBAL_AGENT_HTTPS_PROXY=$https_proxy npm install || sleep 15 && npx cross-env ELECTRON_GET_USE_PROXY=true GLOBAL_AGENT_HTTPS_PROXY=$https_proxy npm install
-      echo "prerendering" && npm run prerender
+      echo "rollup" && npm run build
       [ `uname -m` == "aarch64" ] && UBPORTS_ARCH=arm64 || UBPORTS_ARCH=x64
       [ `uname -m` == "aarch64" ] && UBPORTS_DISTDIR=linux-arm64-unpacked || UBPORTS_DISTDIR=linux-unpacked
       ELECTRON_GET_USE_PROXY=true
