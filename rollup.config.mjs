@@ -48,7 +48,7 @@ export default {
         dev: !production
       }
     }),
-    css({ name: "theme.css" }),
+    css({ output: "theme.css" }),
     resolve({
       browser: true,
       dedupe: ["svelte"]
