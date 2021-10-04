@@ -158,7 +158,8 @@ class Reporter {
   async sendBugReport(data, token) {
     const logfile = await log.get();
     const runUrl = this.sendOpenCutsRun(token, data, logfile).catch(
-      () => "*N/A*"
+      () =>
+        "*N/A* <!-- Uploading logs failed. Please add them manually: https://github.com/ubports/ubports-installer#logs -->"
     );
     shell.openExternal(
       `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
