@@ -18,23 +18,14 @@ base: core20
 apps:
   ubports-installer:
     command: ./app/ubports-installer --no-sandbox
+    extensions:
+      - gnome-3-38
     plugs:
       - home
-      - unity7
       - browser-support
       - network
-      - gsettings
-      - opengl
       - adb-support
       - raw-usb
-      - desktop
-      - desktop-legacy
-      - wayland
-    environment:
-      "FONTCONFIG_PATH": "$SNAP/etc/fonts"
-      "FONTCONFIG_FILE": "$SNAP/etc/fonts/fonts.conf"
-      "XDG_DATA_HOME": "$SNAP/usr/share"
-      "LD_LIBRARY_PATH": "$SNAP_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu/"
 
 parts:
   ubports-installer:
@@ -47,20 +38,7 @@ parts:
       - libgconf-2-4
     stage-packages:
       - libusb-1.0-0
-      - libnotify4
-      - libappindicator1
-      - libxshmfence1
-      - libxtst6
       - libnss3
-      - libxss1
-      - fontconfig-config
-      - gconf2
-      - libasound2
-      - libgtk-3-0
-      - libx11-xcb-dev
-      - libdrm-common
-      - libgbm1
-      - libxcb-dri3-0
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
