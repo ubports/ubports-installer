@@ -21,6 +21,7 @@ const sudo = require("sudo-prompt");
 const path = require("path");
 const log = require("./log.js");
 const { ipcMain } = require("electron");
+const branding = require("../../branding.json");
 
 const vendorIds = [
   "03f0",
@@ -128,7 +129,7 @@ class Udev {
     sudo.exec(
       udevCommand,
       {
-        name: "UBports Installer",
+        name: branding.appname,
         icns: path.join(__dirname, "../../build/icons/icon.icns")
       },
       error => {

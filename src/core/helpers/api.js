@@ -18,19 +18,20 @@
  */
 
 const axios = require("axios");
+const branding = require("../../../branding.json");
 
 /** @module api */
 
 const api = axios.create({
-  baseURL: "https://ubports.github.io/installer-configs/v2/",
-  timeout: 15000
+  baseURL: branding["config-repo"],
+  timeout: 30000
 });
 
 /**
  * get device index
  * @returns {Promise<Array<Object>>}
  */
-const getIndex = () => api.get("/").then(({ data }) => data);
+const getIndex = () => api.get("/index.json").then(({ data }) => data);
 
 /**
  * get device selects object array

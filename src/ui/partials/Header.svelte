@@ -1,5 +1,6 @@
 <script>
   import { version } from "../../../package.json";
+  import branding from "../../../branding.json";
   const { ipcRenderer } = require("electron");
 
   function requestReport() {
@@ -9,13 +10,17 @@
 
 <div class="header">
   <h1 id="header-text" class="text-muted installer">
-    UBports Installer ({version})
+    {branding["header-text"].replace("{version}", version)}
   </h1>
   <div class="header-buttons">
-    <a class="btn btn-primary" href="https://ubports.com/donate">Donate</a>
-    <button class="btn btn-primary" on:click={requestReport}
-      >Report a bug</button
-    >
+    {#if branding["donate-url"]}
+      <a class="btn btn-primary" href={branding["donate-url"]}>Donate</a>
+    {/if}
+    {#if branding["allow-reporting"]}
+      <button class="btn btn-primary" on:click={requestReport}>
+        Report a bug
+      </button>
+    {/if}
   </div>
 </div>
 

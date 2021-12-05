@@ -20,6 +20,7 @@
 const winston = require("winston");
 const path = require("path");
 const { path: cachePath } = require("./cache.js");
+const branding = require("../../branding.json");
 
 const levels = {
   error: 0,
@@ -48,7 +49,7 @@ class Logger {
     });
 
     this.logfile = new winston.transports.File({
-      filename: path.join(cachePath, "ubports-installer.log"),
+      filename: path.join(cachePath, branding.logfile),
       options: { flags: "w" },
       level: "command"
     });

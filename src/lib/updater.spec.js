@@ -5,6 +5,7 @@ const axios = require("axios");
 jest.mock("axios");
 axios.create.mockReturnValue(axios);
 const packageInfo = require("../../package.json");
+const branding = require("../../branding.json");
 jest.mock("../../package.json");
 packageInfo.version = "0.8.9-beta";
 
@@ -28,7 +29,7 @@ describe("getLatestVersion()", () => {
     expect.assertions(1);
     return updater.getLatestVersion().catch(e => {
       expect(e.message).toMatch(
-        "Failed to get latest version of the UBports Installer"
+        `Failed to get latest version of the ${branding.appname}`
       );
     });
   });

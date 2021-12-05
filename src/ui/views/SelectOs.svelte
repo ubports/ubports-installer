@@ -1,5 +1,6 @@
 <script>
   const { ipcRenderer } = require("electron");
+  const branding = require("../../../branding.json");
 
   import {
     osSelectOptions,
@@ -27,14 +28,18 @@
       {$installConfigData.name} ({$installConfigData.codename})
     </h4>
     <p>
-      <a
-        href={`https://devices.ubuntu-touch.io/device/${$installConfigData.codename}`}
-        >about this device</a
-      >
-      <a
-        href={`https://github.com/ubports/installer-configs/blob/master/v2/devices/${$installConfigData.codename}.yml`}
-        >view config file</a
-      >
+      {#if branding["device-info-prefix"]}
+        <a
+          href={branding["device-info-prefix"]}{$installConfigData.codename}
+          >about this device</a
+        >
+      {/if}
+      {#if branding["config-repo-prefix"]}
+        <a
+          href={branding["config-repo-prefix"]}{$installConfigData.codename}.yml
+          >view config file</a
+        >
+      {/if}
     </p>
     <p>
       Please make sure you enabled <a

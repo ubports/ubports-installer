@@ -28,6 +28,7 @@ const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
+const branding = require("../branding.json");
 
 // Enable live reload for Electron
 if (process.env.ROLLUP_WATCH) {
@@ -47,14 +48,14 @@ ipcMain.on("reportResult", async (event, result, error) => {
 // Restart the installer
 // FIXME move after a better way to access mainWindow has been found
 mainEvent.on("restart", () => {
-  log.info("UBports Installer restarting...");
+  log.info(`${branding.appname} restarting...`);
   core.kill();
   mainWindow.reload();
 });
 
 async function createWindow() {
   log.info(
-    "Welcome to the UBports Installer version " + packageInfo.version + "!"
+    `Welcome to the ${branding.appname} version ${packageInfo.version}!`
   );
   log.verbose("Versions: " + JSON.stringify(process.versions));
 
@@ -64,7 +65,7 @@ async function createWindow() {
     height: 750,
     minHeight: 600,
     icon: path.join(__dirname, "../build/icons/icon.png"),
-    title: "UBports Installer (" + packageInfo.version + ")",
+    title: branding.appname,
     kiosk: false,
     fullscreen: false,
     webPreferences: {

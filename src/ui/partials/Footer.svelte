@@ -2,13 +2,14 @@
   import { onMount } from "svelte";
   const { ipcRenderer } = require("electron");
   import { footerData } from "../../stores.mjs";
+  import branding from "../../../branding.json";
 
   let progressBarWidth = 0;
   let wait = "";
 
   onMount(() => {
     footerData.set({
-      topText: "UBports Installer is starting up",
+      topText: branding.appname + " is starting up",
       underText: "Starting adb service"
     });
   });

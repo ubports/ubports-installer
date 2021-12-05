@@ -24,6 +24,7 @@ const { ipcMain, shell } = require("electron");
 const EventEmitter = require("events");
 const { prompt } = require("./prompt.js");
 const packageInfo = require("../../package.json");
+const branding = require("../../branding.json");
 
 const mainEvent = new EventEmitter();
 
@@ -203,9 +204,9 @@ mainEvent.on("user:write:done", () => {
   window.send("user:write:done");
   window.send("user:write:speed");
   log.info(
-    "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
+    `All done! Your device will now reboot; follow the steps on your device to complete the installation. Enjoy using ${branding.os}!`
   );
-  if (!settings.get("never.opencuts")) {
+  if (branding["allow-reporting"] && !settings.get("never.opencuts")) {
     setTimeout(() => {
       window.send("user:report", true);
     }, 1500);

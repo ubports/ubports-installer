@@ -21,6 +21,8 @@
 
 const builder = require("electron-builder");
 const cli = require("commander");
+const branding = require("./branding.json");
+
 
 const PLATFORMS = ["darwin", "win32", "linux"];
 const PACKAGES = ["deb", "snap", "AppImage", "dmg", "portable", "dir"];
@@ -60,8 +62,8 @@ const opts = cli.opts();
 
 var targetOs;
 var buildConfig = {
-  appId: "com.ubports.installer",
-  productName: "ubports-installer",
+  appId: branding["app-id"],
+  productName: branding.executable,
   copyright: `Copyright © 2017-${new Date().getFullYear()} UBports Foundation`,
   artifactName: "${name}_${version}_${os}_${arch}.${ext}",
   publish: [],
@@ -70,6 +72,7 @@ var buildConfig = {
     "public/**/*",
     "node_modules/**/*",
     "build/icons/icon.*",
+    "branding.json",
     // exclude binaries for other operating systems
     ...PLATFORMS.filter(p => p !== opts.os).map(
       p => `!node_modules/android-tools-bin/dist/${p}`
@@ -110,7 +113,7 @@ switch (opts.os) {
       linux: {
         target,
         icon: "build/icons",
-        synopsis: "Install Ubuntu Touch on UBports devices",
+        synopsis: `Install ${branding.os} on your device device`,
         category: "Utility"
       },
       deb: {
