@@ -8,7 +8,10 @@
   let downloadedFile;
 
   function handleManualDownloadButton() {
-    $eventObject.sender.send("manual_download:completed", downloadedFile.path);
+    $eventObject.sender.send(
+      "manual_download:completed",
+      downloadedFile[0].path
+    );
   }
 </script>
 
@@ -37,13 +40,14 @@
     </p>
     <div class="input-group" style="margin-bottom: 1em;">
       <div class="custom-file">
-        <input type="file" bind:value={downloadedFile} />
+        <input type="file" bind:files={downloadedFile} />
       </div>
     </div>
     <button
       id="manual-download-button"
       class="btn btn-primary"
-      on:click={() => handleManualDownloadButton}>Continue</button
+      disabled={!downloadedFile}
+      on:click={() => handleManualDownloadButton()}>Continue</button
     >
   </div>
 </div>
