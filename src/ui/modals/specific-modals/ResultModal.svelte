@@ -25,7 +25,7 @@
   <div slot="content">
     <p>
       To fix issues in the UBports Installer, it is vital that the developers
-      recieve detailed feedback. To make this easier, the installer automates
+      receive detailed feedback. To make this easier, the installer automates
       the reporting process. If you're interested in helping us make the UBports
       Installer better, keep reading! If not, click the button below and we will
       not bother you again.
@@ -39,7 +39,7 @@
       <a href="https://github.com/ubports/ubports-installer/issues">GitHub</a> to
       track bugs and feature requests for the UBports Installer. Since the installer
       developers rarely have access to all the devices the installer supports, it
-      is vital for them to also recieve reports about what works.
+      is vital for them to also receive reports about what works.
     </p>
     <p>
       Select a result from the buttons below. You will see another window where
