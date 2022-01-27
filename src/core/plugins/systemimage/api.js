@@ -23,6 +23,7 @@ const path = require("path");
 /** @module systemimage */
 
 const baseURL = "https://system-image.ubports.com/";
+const showHidden = process.env.SHOW_HIDDEN_CHANNELS === "yes";
 
 const api = axios.create({ baseURL, timeout: 15000 });
 
@@ -99,7 +100,7 @@ const getChannels = device =>
             !(
               (
                 !properties ||
-                properties.hidden ||
+                (!showHidden && properties.hidden) ||
                 properties.redirect ||
                 !properties.devices
               ) // remove invalid channels
