@@ -51,13 +51,6 @@ describe("sendOpenCutsRun()", () => {
 
 describe("report()", () => {
   ["PASS", "WONKY", "FAIL"].forEach(result => {
-    it(`should show ${result} report dialog`, () => {
-      prompt.mockClear();
-      prompt.mockResolvedValue({});
-      return reporter.report(result, null).then(() => {
-        expect(prompt).toHaveBeenCalledTimes(1);
-      });
-    });
     it(`should show ${result} report dialog with err msg`, () => {
       prompt.mockClear();
       prompt.mockResolvedValue({});
