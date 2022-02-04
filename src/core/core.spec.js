@@ -1,6 +1,6 @@
 process.argv = [null, null, "-vv"];
 const mainEvent = require("../lib/mainEvent.js");
-jest.useFakeTimers();
+jest.useFakeTimers("legacy");
 
 const log = require("../lib/log.js");
 const errors = require("../lib/errors.js");

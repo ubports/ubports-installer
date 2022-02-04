@@ -25,14 +25,14 @@ describe("asteroid_os api", () => {
     });
     it("should reject on 404", done => {
       axios.get.mockRejectedValueOnce({ response: { status: 404 } });
-      return api.getImages("1.0", "lenok").catch(e => {
+      api.getImages("1.0", "lenok").catch(e => {
         expect(e.message).toEqual("404");
         done();
       });
     });
     it("should reject on network error", done => {
       axios.get.mockRejectedValueOnce({ response: {} });
-      return api.getImages("1.0", "lenok").catch(e => {
+      api.getImages("1.0", "lenok").catch(e => {
         expect(e.message).toEqual("no network");
         done();
       });
@@ -49,7 +49,7 @@ describe("asteroid_os api", () => {
     it("should reject on error", done => {
       axios.get.mockResolvedValue({ data: "123 a\n456 b\n" });
       axios.get.mockRejectedValueOnce({ response: {} });
-      return api.getChannels("lenok").catch(r => {
+      api.getChannels("lenok").catch(r => {
         expect(r.message).toEqual("no network");
         done();
       });

@@ -96,14 +96,14 @@ unmount system",
       });
       it("should reject on 404", done => {
         axios.get.mockRejectedValueOnce({ response: { status: 404 } });
-        return api.getImages("1.0", "lenok").catch(e => {
+        api.getImages("1.0", "lenok").catch(e => {
           expect(e.message).toEqual("404");
           done();
         });
       });
       it("should reject on network error", done => {
         axios.get.mockRejectedValueOnce({ response: {} });
-        return api.getImages("1.0", "lenok").catch(e => {
+        api.getImages("1.0", "lenok").catch(e => {
           expect(e.message).toEqual("no network");
           done();
         });

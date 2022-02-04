@@ -29,7 +29,7 @@ describe("lineage_os api", () => {
     });
     it("should reject on network error", done => {
       axios.get.mockRejectedValueOnce(new Error("no network"));
-      return api.getLatestBuild("1.0", "lenok").catch(e => {
+      api.getLatestBuild("1.0", "lenok").catch(e => {
         expect(e.message).toEqual("no network");
         done();
       });
@@ -44,7 +44,7 @@ describe("lineage_os api", () => {
     });
     it("should reject on error", done => {
       axios.get.mockRejectedValueOnce(new Error("no network"));
-      return api.getChannels("lenok").catch(r => {
+      api.getChannels("lenok").catch(r => {
         expect(r.message).toEqual("no network");
         done();
       });

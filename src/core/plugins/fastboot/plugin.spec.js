@@ -68,7 +68,7 @@ describe("fastboot plugin", () => {
       jest
         .spyOn(fastbootPlugin.fastboot, "flashingUnlock")
         .mockRejectedValue("ono");
-      return fastbootPlugin.action__flashing_unlock().catch(e => {
+      fastbootPlugin.action__flashing_unlock().catch(e => {
         expect(e).toEqual("ono");
         fastbootPlugin.fastboot.flashingUnlock.mockRestore();
         done();
