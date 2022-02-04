@@ -124,7 +124,12 @@ class Reporter {
       [
         `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
         `Environment: \`${data.environment}\``,
-        `Device: ${data.device}`,
+        ...(data.device in ["unknown", "(device not yet detected)"]
+          ? [`Device: ${data.device}`]
+          : [
+              `Device: [${data.device}]`,
+              `(https://devices.ubuntu-touch.io/device/${data.device})`
+            ]),
         `Target OS: ${this.getTargetOsString()}`,
         `Settings: \`${this.getSettingsString()}\``,
         `OPEN-CUTS run: ${runUrl}`,
