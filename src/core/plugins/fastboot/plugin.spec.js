@@ -1,7 +1,19 @@
+const path = require("path");
 const mainEvent = { emit: jest.fn() };
 beforeEach(() => mainEvent.emit.mockReset());
 
-const fastbootPlugin = new (require("./plugin.js"))({}, "a", mainEvent);
+const CODENAME = "CODENAME";
+const CACHE_PATH = "CACHE_PATH";
+
+const fastbootPlugin = new (require("./plugin.js"))(
+  {
+    config: {
+      codename: CODENAME
+    }
+  },
+  CACHE_PATH,
+  mainEvent
+);
 
 describe("fastboot plugin", () => {
   describe("kill()", () => {
@@ -73,6 +85,55 @@ describe("fastboot plugin", () => {
         fastbootPlugin.fastboot.flashingUnlock.mockRestore();
         done();
       });
+    });
+  });
+  describe("reboot_recovery()", () => {
+    it("should reboot into recovery", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "rebootRecovery").mockResolvedValue();
+      return fastbootPlugin.action__reboot_recovery().then(() => {
+        expect(fastbootPlugin.fastboot.rebootRecovery).toHaveBeenCalledTimes(1);
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("recovery")
+        );
+        fastbootPlugin.fastboot.rebootRecovery.mockRestore();
+      });
+    });
+  });
+  describe("reboot_fastboot()", () => {
+    it("should reboot into fastbootd", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "rebootFastboot").mockResolvedValue();
+      return fastbootPlugin.action__reboot_fastboot().then(() => {
+        expect(fastbootPlugin.fastboot.rebootFastboot).toHaveBeenCalledTimes(1);
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("fastbootd")
+        );
+        fastbootPlugin.fastboot.rebootFastboot.mockRestore();
+      });
+    });
+  });
+  describe("wipe_super()", () => {
+    it("should wipe super", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "wipeSuper").mockResolvedValue();
+      return fastbootPlugin
+        .action__wipe_super({
+          image: {
+            group: "group",
+            file: "file"
+          }
+        })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.wipeSuper).toHaveBeenCalledWith(
+            path.join(CACHE_PATH, CODENAME, "group", "file")
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            expect.stringMatching("super"),
+            true
+          );
+          fastbootPlugin.fastboot.wipeSuper.mockRestore();
+        });
     });
   });
 });
