@@ -113,6 +113,32 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
+   * fastboot:reboot_fastboot action
+   * @returns {Promise}
+   */
+  action__reboot_fastboot() {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:status", "Rebooting", true);
+      this.event.emit("user:write:under", "Rebooting to fastbootd");
+      return this.fastboot.rebootFastboot();
+    });
+  }
+
+  /**
+   * fastboot:reboot_recovery action
+   * @returns {Promise}
+   */
+  action__reboot_recovery() {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:status", "Rebooting", true);
+      this.event.emit("user:write:under", "Rebooting to recovery");
+      return this.fastboot.rebootRecovery();
+    });
+  }
+
+  /**
    * fastboot:reboot action
    * @returns {Promise}
    */
