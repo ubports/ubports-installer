@@ -210,6 +210,29 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
+   * fastboot:wipe_super action
+   * @returns {Promise}
+   */
+  action__wipe_super({ image }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "circuit");
+      this.event.emit("user:write:status", "Wiping super", true);
+      this.event.emit(
+        "user:write:under",
+        "Wiping and repartitioning super partition using fastbootd"
+      );
+      return this.fastboot.wipeSuper(
+        path.join(
+          this.cachePath,
+          this.props.config.codename,
+          image.group,
+          image.file
+        )
+      );
+    });
+  }
+
+  /**
    * fastboot:erase action
    * @returns {Promise}
    */
