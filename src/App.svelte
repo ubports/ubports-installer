@@ -93,7 +93,7 @@
     push("/working");
     footerData.set({
       topText: `${$installConfigData.name} (${$installConfigData.codename})`,
-      underText: "Please Configure the installation",
+      underText: "Please configure the installation",
       waitingDots: false
     });
     yumi.setPosition("center");

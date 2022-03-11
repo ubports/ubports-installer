@@ -6,6 +6,8 @@ const { prompt } = require("./prompt.js");
 jest.mock("./prompt.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
 jest.mock("open-cuts-reporter");
+const { osInfo } = require("systeminformation");
+jest.mock("systeminformation");
 
 const reporter = require("./reporter.js");
 
