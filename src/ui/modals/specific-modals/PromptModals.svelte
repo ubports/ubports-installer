@@ -57,8 +57,7 @@
               <input
                 class="form-check-input"
                 type="checkbox"
-                bind:value={formData[id][field.var]}
-                checked={field.value}
+                bind:checked={formData[id][field.var]}
               />
             {:else if field.type === "text"}
               <input
