@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,8 @@ async function createWindow() {
   log.info(
     "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
+  log.verbose("Versions: " + JSON.stringify(process.versions));
+
   mainWindow = new BrowserWindow({
     width: cli.debug ? 1400 : 1000,
     minWidth: 800,
@@ -76,7 +78,9 @@ async function createWindow() {
     // TODO replace all the shell.openExternal calls in the svelte code with href's
     if (url !== e.sender.getURL()) {
       e.preventDefault();
-      shell.openExternal(url);
+      shell.openExternal(url).then(() => {
+        log.verbose("Opened external: " + url);
+      });
     }
   });
 
