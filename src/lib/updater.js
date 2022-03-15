@@ -27,7 +27,9 @@ const packageInfo = require("../../package.json");
 class Updater {
   constructor() {
     this.cache = {};
-    this.updateUrl = `https://devices.ubuntu-touch.io/installer/`;
+    this.updateUrl = `https://devices.ubuntu-touch.io/installer/${
+      packageInfo.package ? "?package=" + packageInfo.package : ""
+    }`;
   }
 
   /**
