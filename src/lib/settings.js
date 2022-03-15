@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ const Store = require("electron-store");
  * permanent UBports Installer settings
  */
 const settings = new Store({
-  schema: {
+  options: {
     animations: {
       type: "boolean",
       default: true
