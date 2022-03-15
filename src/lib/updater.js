@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,7 @@ const packageInfo = require("../../package.json");
 class Updater {
   constructor() {
     this.cache = {};
-    this.updateUrl = `https://devices.ubuntu-touch.io/installer/${
-      packageInfo.package ? "?package=" + packageInfo.package : ""
-    }`;
+    this.updateUrl = `https://devices.ubuntu-touch.io/installer/`;
   }
 
   /**
