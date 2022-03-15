@@ -78,7 +78,9 @@ async function createWindow() {
     // TODO replace all the shell.openExternal calls in the svelte code with href's
     if (url !== e.sender.getURL()) {
       e.preventDefault();
-      shell.openExternal(url);
+      shell.openExternal(url).then(() => {
+        log.verbose("Opened external: " + url);
+      });
     }
   });
 
