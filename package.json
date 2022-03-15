@@ -37,7 +37,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.1.3",
     "arkit": "^1.6.4",
-    "electron": "^15.4.1",
+    "electron": "^16.1.0",
     "electron-builder": "^22.14.13",
     "electron-packager": "^15.4.0",
     "electron-reload": "^1.5.0",
