@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const mainEvent = { emit: jest.fn() };
 const log = { error: jest.fn(), debug: jest.fn(), info: jest.fn() };
 beforeEach(() => {
