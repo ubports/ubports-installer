@@ -78,14 +78,19 @@ class SystemimagePlugin extends Plugin {
    * @returns {Promise<Array<Object>>}
    */
   remote_values__channels() {
-    return api.getChannels(this.props.config.codename).then(channels =>
-      channels
-        .map(channel => ({
-          value: channel,
-          label: channel.replace("ubports-touch/", "")
-        }))
-        .reverse()
-    );
+    return api
+      .getChannels(this.props.config.codename)
+      .then(channels => ({
+        visible: channels.filter(({ hidden }) => !hidden).reverse(),
+        hidden: channels.filter(({ hidden }) => hidden)
+      }))
+      .then(({ visible, hidden }) => [
+        ...visible.map(({ value, label }) => ({ value, label })),
+        ...(hidden.length
+          ? [{ label: "--- hidden channels ---", disabled: true }]
+          : []),
+        ...hidden.map(({ value, label }) => ({ value, label }))
+      ]);
   }
 }
 

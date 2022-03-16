@@ -50,7 +50,9 @@
             {#if field.type === "select"}
               <select class="form-select" bind:value={formData[id][field.var]}>
                 {#each field.values as value}
-                  <option value={value.value}>{value.label}</option>
+                  <option disabled={value.disabled} value={value.value}
+                    >{value.label}</option
+                  >
                 {/each}
               </select>
             {:else if field.type === "checkbox"}

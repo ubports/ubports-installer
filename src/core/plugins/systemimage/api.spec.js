@@ -113,15 +113,31 @@ unmount system",
       it("should resolve channels", () => {
         axios.get.mockResolvedValue({
           data: {
-            "16.04/stable": { devices: { bacon: "a" } },
+            "ubports-touch/16.04/stable": { devices: { bacon: "a" } },
+            "16.04/stable": {
+              devices: { bacon: "a" },
+              hidden: true,
+              alias: "ubports-touch/16.04/stable"
+            },
             "17.04/stable": { devices: { bacon: "a" }, hidden: true },
             "18.04/stable": { devices: { bacon: "a" }, redirect: "asdf" },
             "19.04/stable": { devices: { hamburger: "a" } }
           }
         });
-        return api
-          .getChannels("bacon")
-          .then(r => expect(r).toEqual(["16.04/stable"]));
+        return api.getChannels("bacon").then(r =>
+          expect(r).toEqual([
+            {
+              hidden: false,
+              label: "16.04/stable",
+              value: "ubports-touch/16.04/stable"
+            },
+            {
+              hidden: true,
+              label: "17.04/stable",
+              value: "17.04/stable"
+            }
+          ])
+        );
       });
     });
   });

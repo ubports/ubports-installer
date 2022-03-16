@@ -4,10 +4,6 @@ api.getImages.mockResolvedValue({
   files: [{ url: "a/s/d/f" }],
   commands: "here be dragons"
 });
-api.getChannels.mockResolvedValue([
-  "ubports-touch/16.04/devel",
-  "ubports-touch/16.04/stable"
-]);
 const systemimage = new (require("./plugin.js"))({
   os: { name: "Ubuntu Touch" },
   config: { codename: "bacon" },
@@ -50,13 +46,43 @@ describe("systemimage plugin", () => {
   });
   describe("remote_values", () => {
     describe("channels", () => {
-      it("should resolve channels", () =>
+      it("should resolve channels", () => {
+        api.getChannels.mockResolvedValueOnce([
+          {
+            hidden: false,
+            label: "16.04/stable",
+            value: "ubports-touch/16.04/stable"
+          },
+          {
+            hidden: true,
+            label: "17.04/stable",
+            value: "17.04/stable"
+          }
+        ]);
         systemimage.remote_values__channels().then(r =>
           expect(r).toEqual([
             { label: "16.04/stable", value: "ubports-touch/16.04/stable" },
-            { label: "16.04/devel", value: "ubports-touch/16.04/devel" }
+            { label: "--- hidden channels ---", disabled: true },
+            { label: "17.04/stable", value: "17.04/stable" }
           ])
-        ));
+        );
+      });
+      it("should not include hidden channels separator if none specified", () => {
+        api.getChannels.mockResolvedValueOnce([
+          {
+            hidden: false,
+            label: "16.04/stable",
+            value: "ubports-touch/16.04/stable"
+          }
+        ]);
+        systemimage
+          .remote_values__channels()
+          .then(r =>
+            expect(r).toEqual([
+              { label: "16.04/stable", value: "ubports-touch/16.04/stable" }
+            ])
+          );
+      });
     });
   });
 });
