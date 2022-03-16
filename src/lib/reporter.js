@@ -26,6 +26,7 @@ const { OpenCutsReporter } = require("open-cuts-reporter");
 const settings = require("./settings.js");
 const core = require("../core/core.js");
 const { prompt } = require("./prompt.js");
+const { paste } = require("./paste.js");
 
 /**
  * OPEN-CUTS operating system mapping
@@ -36,6 +37,9 @@ const OPENCUTS_OS = {
   linux: "Linux",
   win32: "Windows"
 };
+
+const MISSING_LOG =
+  "*N/A* <!-- Uploading logs failed. Please add them manually: https://github.com/ubports/ubports-installer#logs -->";
 
 /**
  * report errors or successes
@@ -117,9 +121,10 @@ class Reporter {
    * @async
    * @param {Object} data - form data
    * @param {String} runUrl - OPEN-CUTS run URL
+   * @param {String} logUrl - pastbin URL
    * @returns {String} url-encoded string to create a GitHub issue
    */
-  async getDebugInfo(data, runUrl) {
+  async getDebugInfo(data, runUrl, logUrl) {
     return encodeURIComponent(
       [
         `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
@@ -132,7 +137,8 @@ class Reporter {
             ]),
         `Target OS: ${this.getTargetOsString()}`,
         `Settings: \`${this.getSettingsString()}\``,
-        `OPEN-CUTS run: ${runUrl}`,
+        `OPEN-CUTS run: ${runUrl || MISSING_LOG}`,
+        `Pastebin: ${logUrl || MISSING_LOG}`,
         "\n",
         data.comment,
         "\n",
@@ -162,14 +168,12 @@ class Reporter {
    */
   async sendBugReport(data, token) {
     const logfile = await log.get();
-    const runUrl = this.sendOpenCutsRun(token, data, logfile).catch(
-      () =>
-        "*N/A* <!-- Uploading logs failed. Please add them manually: https://github.com/ubports/ubports-installer#logs -->"
-    );
+    const runUrl = this.sendOpenCutsRun(token, data, logfile).catch(() => null);
+    const logUrl = paste(logfile);
     shell.openExternal(
       `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
         data.title
-      )}&body=${await this.getDebugInfo(data, await runUrl)}`
+      )}&body=${await this.getDebugInfo(data, await runUrl, await logUrl)}`
     );
     return;
   }
