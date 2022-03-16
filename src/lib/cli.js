@@ -48,6 +48,11 @@ cli
     "Enable electron's web debugger to inspect the frontend",
     false
   )
+  .option(
+    "--systemimage <url>",
+    "Set a custom systemimage server url",
+    "https://system-image.ubports.com/"
+  )
   .parse(process.argv);
 
 log.setLevel(cli.opts().verbose || 0);
