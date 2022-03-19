@@ -22,6 +22,7 @@ const { CancelablePromise } = require("cancelable-promise");
 const AdbPlugin = require("./adb/plugin.js");
 const AsteroidOsPlugin = require("./asteroid_os/plugin.js");
 const LineageOSPlugin = require("./lineage_os/plugin.js");
+const PostmarketOSPlugin = require("./postmarketos/plugin.js");
 const CorePlugin = require("./core/plugin.js");
 const FastbootPlugin = require("./fastboot/plugin.js");
 const HeimdallPlugin = require("./heimdall/plugin.js");
@@ -34,6 +35,7 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
  * @property {AdbPlugin} plugins.adb adb plugin
  * @property {AsteroidOsPlugin} plugins.asteroid_os AteroidOS plugin
  * @property {LineageOSPlugin} plugins.lineage_os LineageOS plugin
+ * @property {PostmarketOSPlugin} plugins.postmarketos postmarketOS plugin
  * @property {CorePlugin} plugins.core core plugin
  * @property {FastbootPlugin} plugins.fastboot fastboot plugin
  * @property {HeimdallPlugin} plugins.heimdall heimdall plugin
@@ -50,6 +52,7 @@ class PluginIndex {
       adb: new AdbPlugin(...pluginArgs),
       asteroid_os: new AsteroidOsPlugin(...pluginArgs),
       lineage_os: new LineageOSPlugin(...pluginArgs),
+      postmarketos: new PostmarketOSPlugin(...pluginArgs),
       core: new CorePlugin(...pluginArgs),
       fastboot: new FastbootPlugin(...pluginArgs),
       heimdall: new HeimdallPlugin(...pluginArgs),

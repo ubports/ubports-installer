@@ -150,6 +150,7 @@ class Core {
   }
 
   readConfigFile(file) {
+    log.verbose("Reading config file: " + file);
     return file
       ? Promise.resolve(
           path.isAbsolute(file) ? file : path.join(process.cwd(), file)

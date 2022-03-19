@@ -101,7 +101,7 @@ describe("PluginIndex", () => {
   });
   describe("getPluginMappable()", () => {
     it("should return plugin array", () =>
-      expect(pluginIndex.getPluginMappable()).toHaveLength(7));
+      expect(pluginIndex.getPluginMappable()).toHaveLength(8));
   });
   ["init", "kill"].forEach(target =>
     describe(`${target}()`, () => {
