@@ -147,6 +147,17 @@ mainEvent.on("user:unlock", (fields, resolve) => {
   }).then(resolve);
 });
 
+// installer_version
+mainEvent.on("user:installer_version", (version, resolve) => {
+  log.warn(`Incompatible UBports Installer version! Required: ${version}`);
+  prompt({
+    title: "Incompatible installer version",
+    dismissable: false,
+    description: `This installation procedure requires UBports Installer \`${version}\`. You are running \`${packageInfo.version}\`. Please use a [compatible installer](https://github.com/ubports/ubports-installer/releases). You might also ignore this warning, but there is no guarantee the installer will work as expected.`,
+    confirm: "I know what I'm doing, ignore warning and continue"
+  }).then(() => resolve(log.warn("Installer version constraint ignored")));
+});
+
 // prerequisites
 mainEvent.on("user:prerequisites", (fields, resolve) => {
   prompt({

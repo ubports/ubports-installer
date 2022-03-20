@@ -26,7 +26,16 @@ const user_actions = {};
 const handlers = {
   fastboot_lock: {}
 };
-core.props.config = { user_actions, handlers };
+const operating_systems = [
+  {
+    name: "Ubuntu Touch",
+    compatible_installer: ">=9.9.9",
+    steps: [{}]
+  }
+];
+core.props.config = { user_actions, handlers, operating_systems };
+
+beforeEach(() => jest.restoreAllMocks());
 
 describe("Core module", () => {
   describe("prepare()", () => {
@@ -187,6 +196,15 @@ describe("Core module", () => {
       core.prepare("a");
     });
   });
+
+  describe("reset()", () => {
+    it.todo("should reset props");
+  });
+
+  describe("prepare()", () => {
+    it.todo("should run preparations");
+  });
+
   describe("kill()", () => {
     it("should kill", () => {
       jest.spyOn(core, "reset").mockReturnValue();
@@ -199,6 +217,7 @@ describe("Core module", () => {
       });
     });
   });
+
   describe("setConfig()", () => {
     it("should set config", () => {
       const old = core.props.config;
@@ -208,6 +227,7 @@ describe("Core module", () => {
       });
     });
   });
+
   describe("setDevice()", () => {
     it("should set Device", () => {
       jest.spyOn(mainEvent, "emit").mockReturnValue();
@@ -239,6 +259,69 @@ describe("Core module", () => {
       });
     });
   });
+
+  describe("readConfigFile()", () => {
+    it.todo("should read config file");
+  });
+
+  describe("selectOs()", () => {
+    it.todo("should propmpt os selection");
+  });
+
+  describe("unlock()", () => {
+    it.todo("should run unlock steps");
+  });
+
+  describe("install()", () => {
+    it("should start installation", () => {
+      core.props.config = { user_actions, handlers, operating_systems };
+      jest.spyOn(core, "installer_version").mockResolvedValueOnce();
+      jest.spyOn(core, "prerequisites").mockResolvedValueOnce();
+      jest.spyOn(core, "eula").mockResolvedValueOnce();
+      jest.spyOn(core, "configure").mockRejectedValueOnce();
+      jest.spyOn(core, "handle").mockResolvedValueOnce();
+      jest.spyOn(core, "run").mockResolvedValueOnce();
+      return core.install(0).then(() => {
+        expect(core.prerequisites).toHaveBeenCalledTimes(1);
+        expect(core.eula).toHaveBeenCalledTimes(1);
+        expect(core.configure).toHaveBeenCalledTimes(1);
+        expect(core.run).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe("installer_version()", () => {
+    it("should pass if not specified", () => {
+      core.props.os.compatible_installer = null;
+      return core.installer_version();
+    });
+    it("should ensure installer version", done => {
+      core.props.os.compatible_installer = ">=9.9.9";
+      jest.spyOn(mainEvent, "emit").mockImplementation(m => {
+        expect(m).toEqual("user:installer_version");
+        mainEvent.emit.mockRestore();
+        done();
+      });
+      core.installer_version();
+    });
+  });
+
+  describe("prerequisites()", () => {
+    it.todo("should ensure prerequisites");
+  });
+
+  describe("eula()", () => {
+    it.todo("should ensure eula");
+  });
+
+  describe("configure()", () => {
+    it.todo("should configure install");
+  });
+
+  describe("setRemoteValues()", () => {
+    it.todo("should set remote values");
+  });
+
   describe("run", () => {
     const steps = [
       { actions: [{ "a:x": null }, { "b:y": null }] },
