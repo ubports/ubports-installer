@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const api = require("./api.js");
 jest.mock("./api.js");
 api.getImages.mockResolvedValue({

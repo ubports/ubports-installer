@@ -1,3 +1,4 @@
+process.argv = [null, null, "-vv"];
 const { plugins } = require("../core.js");
 
 const log = {

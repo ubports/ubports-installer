@@ -40,11 +40,13 @@ The easy way to install Ubuntu Touch on UBports devices. A friendly cross-platfo
 https://devices.ubuntu-touch.io
 
 Options:
-  -V, --version      output the version number
-  -f, --file <file>  Override the official config by loading a local file
-  -v, --verbose      Print debugging information. Multiple -v options increase the verbosity
-  -d, --debug        Enable electron's web debugger to inspect the frontend
-  -h, --help         output usage information
+  -V, --version        output the version number
+  -f, --file <file>    Override the official config by loading a YAML local file
+  -v, --verbose        Print debugging information. Multiple -v options increase the verbosity
+  -d, --debug          Enable electron's web debugger to inspect the frontend (default: false)
+  --systemimage <url>  Set a custom systemimage server url (default:
+                       "https://system-image.ubports.com/")
+  -h, --help           display help for command
 ```
 
 ### Lint
