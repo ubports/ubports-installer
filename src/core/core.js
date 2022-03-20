@@ -28,6 +28,8 @@ const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
 const api = require("./helpers/api.js");
 const PluginIndex = require("./plugins/index.js");
+const packageInfo = require("../../package.json");
+const semver = require("semver");
 
 /**
  * properties
@@ -198,6 +200,7 @@ class Core {
           `Installing ${this.props.os.name} on your ${this.props.config.name} (${this.props.config.codename})`
         )
       )
+      .then(() => this.installer_version())
       .then(() => this.prerequisites())
       .then(() => this.eula())
       .then(() => this.configure())
@@ -205,6 +208,26 @@ class Core {
       .then(() =>
         this.run([...this.props.os.steps, { actions: [{ "core:end": null }] }])
       );
+  }
+
+  /**
+   * ensure the required installer version is fulfilled
+   * @returns {Promise}
+   */
+  installer_version() {
+    return new Promise((resolve, reject) =>
+      semver.satisfies(
+        packageInfo.version,
+        this.props.os.compatible_installer || "*",
+        { includePrerelease: true }
+      )
+        ? resolve()
+        : mainEvent.emit(
+            "user:installer_version",
+            this.props.os.compatible_installer,
+            resolve
+          )
+    );
   }
 
   /**
