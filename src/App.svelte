@@ -5,7 +5,7 @@
   //Store imports
   import {
     animationType,
-    animationHidden,
+    animationVisible,
     footerData,
     osSelectOptions,
     installConfigData,
@@ -40,9 +40,9 @@
   //Settings messages
   ipcRenderer
     .invoke("getSettingsValue", "never.udev")
-    .then(show => animationHidden.set(!show));
+    .then(show => animationVisible.set(show));
   ipcRenderer.on("settings:animations", (e, show) =>
-    animationHidden.set(!show)
+    animationVisible.set(show)
   );
 
   //Routing messages

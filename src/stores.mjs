@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 
 //working view
 export const animationType = writable("");
-export const animationHidden = writable(false);
+export const animationVisible = writable(true);
 
 //wait for device view
 export const deviceSelectOptions = writable([]);
