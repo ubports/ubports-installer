@@ -8,7 +8,9 @@ const log = {
   error: jest.fn()
 };
 
-const pluginArgs = [{}, "a", {}, log];
+const settings = {};
+
+const pluginArgs = [{}, "a", {}, log, settings];
 
 const pluginIndex = new (require("./index.js"))(...pluginArgs);
 const originalPluginList = pluginIndex.plugins;

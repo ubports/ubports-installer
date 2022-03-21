@@ -99,13 +99,17 @@ const getChannels = device =>
             !(
               (
                 !properties ||
-                properties.hidden ||
                 properties.redirect ||
+                (properties.alias && properties.hidden) ||
                 !properties.devices
               ) // remove invalid channels
             ) && properties.devices[device] // remove channels that don't serve this device
         )
-        .map(([name]) => name)
+        .map(([name, properties]) => ({
+          value: name,
+          label: name.replace("ubports-touch/", ""),
+          hidden: properties.hidden || false
+        }))
     );
 
 module.exports = { getImages, getChannels };

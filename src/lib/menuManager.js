@@ -137,6 +137,16 @@ class MenuManager {
             }
           },
           {
+            label: "Show hidden System-Image Channels",
+            checked: settings.get("systemimage.showHiddenChannels"),
+            type: "checkbox",
+            click: () =>
+              settings.set(
+                "systemimage.showHiddenChannels",
+                !settings.get("systemimage.showHiddenChannels")
+              )
+          },
+          {
             label: "Never ask for udev rules",
             checked: settings.get("never.udev"),
             visible:
