@@ -34,12 +34,14 @@ class Plugin {
    * @param {String} cachePath cache path
    * @param {EventEmitter} event event
    * @param {Object} log logger
+   * @param {Object} settings settings manager
    */
-  constructor(props, cachePath, event, log) {
+  constructor(props, cachePath, event, log, settings) {
     this.props = props;
     this.cachePath = cachePath;
     this.event = event;
     this.log = log;
+    this.settings = settings;
   }
 
   /**

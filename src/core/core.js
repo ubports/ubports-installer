@@ -24,6 +24,7 @@ const YAML = require("yaml");
 const mainEvent = require("../lib/mainEvent.js");
 const { path: cachePath } = require("../lib/cache.js");
 const log = require("../lib/log.js");
+const settings = require("../lib/settings.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
 const api = require("./helpers/api.js");
@@ -46,7 +47,13 @@ class Core {
   constructor() {
     this.props = {};
     this.reset();
-    this.plugins = new PluginIndex(this.props, cachePath, mainEvent, log);
+    this.plugins = new PluginIndex(
+      this.props,
+      cachePath,
+      mainEvent,
+      log,
+      settings
+    );
   }
 
   /**

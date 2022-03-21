@@ -10,6 +10,12 @@ const systemimage = new (require("./plugin.js"))({
   settings: { channel: "ubports-touch/16.04/stable" }
 });
 
+systemimage.settings = {
+  get: jest.fn()
+};
+
+beforeEach(() => jest.clearAllMocks());
+
 describe("systemimage plugin", () => {
   describe("actions", () => {
     describe("download", () => {
@@ -47,6 +53,7 @@ describe("systemimage plugin", () => {
   describe("remote_values", () => {
     describe("channels", () => {
       it("should resolve channels", () => {
+        systemimage.settings.get.mockReturnValueOnce(false);
         api.getChannels.mockResolvedValueOnce([
           {
             hidden: false,
@@ -59,13 +66,35 @@ describe("systemimage plugin", () => {
             value: "17.04/stable"
           }
         ]);
-        systemimage.remote_values__channels().then(r =>
+        return systemimage.remote_values__channels().then(r => {
+          expect(r).toEqual([
+            { label: "16.04/stable", value: "ubports-touch/16.04/stable" }
+          ]);
+          expect(systemimage.settings.get).toHaveBeenCalledTimes(1);
+        });
+      });
+      it("should resolve channels including hidden channels if set", () => {
+        systemimage.settings.get.mockReturnValueOnce(true);
+        api.getChannels.mockResolvedValueOnce([
+          {
+            hidden: false,
+            label: "16.04/stable",
+            value: "ubports-touch/16.04/stable"
+          },
+          {
+            hidden: true,
+            label: "17.04/stable",
+            value: "17.04/stable"
+          }
+        ]);
+        return systemimage.remote_values__channels().then(r => {
           expect(r).toEqual([
             { label: "16.04/stable", value: "ubports-touch/16.04/stable" },
             { label: "--- hidden channels ---", disabled: true },
             { label: "17.04/stable", value: "17.04/stable" }
-          ])
-        );
+          ]);
+          expect(systemimage.settings.get).toHaveBeenCalledTimes(1);
+        });
       });
       it("should not include hidden channels separator if none specified", () => {
         api.getChannels.mockResolvedValueOnce([

@@ -45,6 +45,12 @@ const settings = new Store({
         type: "boolean",
         default: false
       }
+    },
+    systemimage: {
+      showHiddenChannels: {
+        type: "boolean",
+        default: false
+      }
     }
   }
 });

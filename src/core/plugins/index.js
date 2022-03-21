@@ -40,11 +40,12 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
  * @property {SystemimagePlugin} plugins.systemimage systemimage plugin
  */
 class PluginIndex {
-  constructor(props, cachePath, mainEvent, log) {
+  constructor(props, cachePath, mainEvent, log, settings) {
     this.props = props;
     this.log = log;
+    this.settings = settings;
     this.event = mainEvent;
-    const pluginArgs = [props, cachePath, this.event, log];
+    const pluginArgs = [props, cachePath, this.event, log, settings];
     this.plugins = {
       adb: new AdbPlugin(...pluginArgs),
       asteroid_os: new AsteroidOsPlugin(...pluginArgs),

@@ -82,7 +82,9 @@ class SystemimagePlugin extends Plugin {
       .getChannels(this.props.config.codename)
       .then(channels => ({
         visible: channels.filter(({ hidden }) => !hidden).reverse(),
-        hidden: channels.filter(({ hidden }) => hidden)
+        hidden: this.settings.get("systemimage.showHiddenChannels")
+          ? channels.filter(({ hidden }) => hidden)
+          : []
       }))
       .then(({ visible, hidden }) => [
         ...visible.map(({ value, label }) => ({ value, label })),
