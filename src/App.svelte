@@ -5,6 +5,7 @@
   //Store imports
   import {
     animationType,
+    animationHidden,
     footerData,
     osSelectOptions,
     installConfigData,
@@ -36,6 +37,14 @@
   import routes from "./routes.mjs";
 
   //Messages
+  //Settings messages
+  ipcRenderer
+    .invoke("getSettingsValue", "never.udev")
+    .then(show => animationHidden.set(!show));
+  ipcRenderer.on("settings:animations", (e, show) =>
+    animationHidden.set(!show)
+  );
+
   //Routing messages
   ipcRenderer.on("user:write:working", (e, animation) => {
     animationType.set(animation);
