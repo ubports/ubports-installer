@@ -1,16 +1,18 @@
 <script>
   import { onMount } from "svelte";
-  import { animationType } from "../../stores.mjs";
+  import { animationType, animationVisible } from "../../stores.mjs";
   import { tsParticles } from "tsparticles";
   import CircuitBoard from "./CircuitBoard.svelte";
   import Squares from "./Squares.svelte";
 
   onMount(updateAnimations);
   animationType.subscribe(updateAnimations);
+  animationVisible.subscribe(updateAnimations);
 
   function updateAnimations() {
     if (
       $animationType === "particles" &&
+      $animationVisible &&
       document.getElementById("tsparticles")
     ) {
       document.getElementById("tsparticles").style = "display: inherit";
@@ -59,20 +61,20 @@
 -->
 <div id="tsparticles" class="animation" />
 
-{#if $animationType === "circuit"}
+{#if $animationVisible && $animationType === "circuit"}
   <div class="animation">
     <CircuitBoard />
   </div>
 {/if}
-{#if $animationType === "squares"}
+{#if $animationVisible && $animationType === "squares"}
   <div class="animation">
     <Squares />
   </div>
 {/if}
-{#if $animationType === "download"}
+{#if $animationVisible && $animationType === "download"}
   <div class="download-animation animation" />
 {/if}
-{#if $animationType === "push"}
+{#if $animationVisible && $animationType === "push"}
   <div class="push-animation animation" />
 {/if}
 

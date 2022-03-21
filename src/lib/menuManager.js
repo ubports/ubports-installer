@@ -132,10 +132,8 @@ class MenuManager {
             checked: settings.get("animations"),
             type: "checkbox",
             click: () => {
-              if (settings.get("animations")) {
-                window.send("animations:hide");
-              }
               settings.set("animations", !settings.get("animations"));
+              window.send("settings:animations", settings.get("animations"));
             }
           },
           {
