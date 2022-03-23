@@ -79,7 +79,11 @@ class Reporter {
   getDeviceLinkMarkdown(codename) {
     return (
       ((core?.props?.config?.codename &&
-        `[\`${core?.props?.config?.codename}\`](https://github.com/ubports/installer-configs/blob/master/v2/devices/${core?.props?.config?.codename}.yml)` +
+        `[\`${
+          core?.props?.config?.codename
+        }\`](https://github.com/ubports/installer-configs/blob/${
+          core?.props?.config?.sha || "master"
+        }/v2/devices/${core?.props?.config?.codename}.yml)` +
           ((core?.props?.config?.name &&
             core?.props?.os?.name === "Ubuntu Touch" &&
             ` ([${core?.props?.config?.name}](https://devices.ubuntu-touch.io/device/${core?.props?.config?.codename}/))`) ||
