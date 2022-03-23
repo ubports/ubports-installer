@@ -170,28 +170,18 @@ class PluginIndex {
   }
 
   __pluginErrorHandler(name, error) {
-    const errorJson = {};
-    if (error.message) {
-      try {
-        errorJson = JSON.parse(error.message);
-      } catch (e) {
-        errorJson.message = error.message;
-        if (e instanceof SyntaxError) {
-          // pass
-        } else {
-          this.log.warn(
-            `Plugin error handler for plugin ${name} failed to parse error message: ${e}`
-          );
-        }
-      }
-    } else {
-      this.log.error(
-        `Plugin error handler for plugin ${name} failed to parse error: ${error}`
-      );
-      errorJson.message = error;
+    try {
+      error.message = JSON.stringify({
+        message: JSON.parse(error.message)?.message || error.message,
+        name
+      });
+    } catch (e) {
+      error.message = JSON.stringify({
+        message: error.message,
+        name
+      });
     }
-    errorJson.name = name;
-    throw new Error(JSON.stringify(errorJson));
+    throw error;
   }
 }
 
