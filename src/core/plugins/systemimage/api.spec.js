@@ -94,6 +94,13 @@ unmount system",
             })
           );
       });
+      it("should reject if there are no images", done => {
+        axios.get.mockResolvedValueOnce({ data: { images: [] } });
+        api.getImages("stable", "lenok").catch(e => {
+          expect(e.message).toEqual("no image on channel stable");
+          done();
+        });
+      });
       it("should reject on 404", done => {
         axios.get.mockRejectedValueOnce({ response: { status: 404 } });
         api.getImages("1.0", "lenok").catch(e => {

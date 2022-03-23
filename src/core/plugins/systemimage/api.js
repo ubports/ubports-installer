@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2021 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2021-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,9 +43,17 @@ const gpgFiles = [
 const getImages = (channel, device, wipe, enable = [], disable = []) =>
   api
     .get(`${channel}/${device}/index.json`)
-    .then(({ data }) => data.images.filter(({ type }) => type === "full"))
-    .then(images => ({
-      files: images[images.length - 1].files
+    .catch(error => {
+      if (error?.response?.status === 404) throw new Error("404");
+      else throw new Error("no network");
+    })
+    .then(({ data }) => data.images.filter(({ type }) => type === "full").pop())
+    .then(image => {
+      if (image) return image;
+      else throw new Error(`no image on channel ${channel}`);
+    })
+    .then(image => ({
+      files: image.files
         .map(({ path, checksum, signature }) => [
           {
             url: `${baseURL}${path}`,
@@ -66,21 +74,15 @@ const getImages = (channel, device, wipe, enable = [], disable = []) =>
         "load_keyring image-signing.tar.xz image-signing.tar.xz.asc",
         "mount system",
         wipe ? "format data" : "",
-        ...images[images.length - 1].files.map(
-          file =>
-            `update ${path.basename(file.path)} ${path.basename(
-              file.signature
-            )}`
+        ...image.files.map(
+          ({ path: file, signature }) =>
+            `update ${path.basename(file)} ${path.basename(signature)}`
         ),
         ...enable.map(feature => `enable ${feature}`),
         ...disable.map(feature => `disable ${feature}`),
         "unmount system"
       ].join("\n")
-    }))
-    .catch(error => {
-      if (error?.response?.status === 404) throw new Error("404");
-      else throw new Error("no network");
-    });
+    }));
 
 /**
  * get channels from api
