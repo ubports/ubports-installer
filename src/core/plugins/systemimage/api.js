@@ -44,8 +44,7 @@ const getImages = (channel, device, wipe, enable = [], disable = []) =>
   api
     .get(`${channel}/${device}/index.json`)
     .catch(error => {
-      if (error?.response?.status === 404) throw new Error("404");
-      else throw new Error("no network");
+      throw new Error(error?.response?.status || "no network");
     })
     .then(({ data }) => data.images.filter(({ type }) => type === "full").pop())
     .then(image => {

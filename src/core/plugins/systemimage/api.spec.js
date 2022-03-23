@@ -109,7 +109,7 @@ unmount system",
         });
       });
       it("should reject on network error", done => {
-        axios.get.mockRejectedValueOnce({ response: {} });
+        axios.get.mockRejectedValueOnce();
         api.getImages("1.0", "lenok").catch(e => {
           expect(e.message).toEqual("no network");
           done();
