@@ -221,6 +221,24 @@ class AdbPlugin extends Plugin {
       })
       .then(() => null); // ensure null is returned
   }
+
+  /**
+   * adb:assert_prop action
+   * @returns {Promise}
+   */
+  action__assert_prop({ prop, value: expectedValue }) {
+    return Promise.resolve()
+      .then(() => {
+        this.event.emit("user:write:under", `Asserting ${prop} property`);
+      })
+      .then(() => this.adb.getprop(prop))
+      .then(actualValue => {
+        if (actualValue !== expectedValue)
+          throw new Error(
+            `Assertion error: property ${prop} to be ${expectedValue} but got ${actualValue}`
+          );
+      });
+  }
 }
 
 module.exports = AdbPlugin;

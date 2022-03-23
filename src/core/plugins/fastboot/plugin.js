@@ -318,6 +318,27 @@ class FastbootPlugin extends Plugin {
       .then(() => this.fastboot.wait())
       .then(() => null); // ensure null is returned
   }
+
+  /**
+   * fastboot:wait action
+   * @returns {Promise}
+   */
+  action__assert_var({ variable, value: expectedValue }) {
+    return Promise.resolve()
+      .then(() => {
+        this.event.emit(
+          "user:write:under",
+          `Asserting ${variable} bootloader variable`
+        );
+      })
+      .then(() => this.fastboot.getvar(variable))
+      .then(actualValue => {
+        if (actualValue !== expectedValue)
+          throw new Error(
+            `Assertion error: expected bootloader variable ${variable} to be ${expectedValue} but got ${actualValue}`
+          );
+      });
+  }
 }
 
 module.exports = FastbootPlugin;

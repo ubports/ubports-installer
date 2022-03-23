@@ -169,4 +169,44 @@ describe("adb plugin", () => {
       });
     });
   });
+
+  describe("action__assert_prop()", () => {
+    it("should assert prop", () => {
+      jest.spyOn(adbPlugin.adb, "getprop").mockResolvedValue("asdf");
+      return adbPlugin
+        .action__assert_prop({
+          prop: "somevar",
+          value: "asdf"
+        })
+        .then(r => {
+          expect(r).not.toBeDefined();
+          expect(adbPlugin.adb.getprop).toHaveBeenCalledWith("somevar");
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "Asserting somevar property"
+          );
+          adbPlugin.adb.getprop.mockRestore();
+        });
+    });
+    it("should fail assertion", done => {
+      jest.spyOn(adbPlugin.adb, "getprop").mockResolvedValue("wasd");
+      adbPlugin
+        .action__assert_prop({
+          prop: "somevar",
+          value: "asdf"
+        })
+        .catch(e => {
+          expect(e.message).toEqual(
+            "Assertion error: property somevar to be asdf but got wasd"
+          );
+          expect(adbPlugin.adb.getprop).toHaveBeenCalledWith("somevar");
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "Asserting somevar property"
+          );
+          adbPlugin.adb.getprop.mockRestore();
+          done();
+        });
+    });
+  });
 });

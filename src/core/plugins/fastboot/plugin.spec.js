@@ -136,4 +136,47 @@ describe("fastboot plugin", () => {
         });
     });
   });
+  describe("assert_var()", () => {
+    it("should assert var", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "getvar").mockResolvedValue("asdf");
+      return fastbootPlugin
+        .action__assert_var({
+          variable: "somevar",
+          value: "asdf"
+        })
+        .then(r => {
+          expect(r).not.toBeDefined();
+          expect(fastbootPlugin.fastboot.getvar).toHaveBeenCalledWith(
+            "somevar"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "Asserting somevar bootloader variable"
+          );
+          fastbootPlugin.fastboot.getvar.mockRestore();
+        });
+    });
+    it("should fail assertion", done => {
+      jest.spyOn(fastbootPlugin.fastboot, "getvar").mockResolvedValue("wasd");
+      fastbootPlugin
+        .action__assert_var({
+          variable: "somevar",
+          value: "asdf"
+        })
+        .catch(e => {
+          expect(e.message).toEqual(
+            "Assertion error: expected bootloader variable somevar to be asdf but got wasd"
+          );
+          expect(fastbootPlugin.fastboot.getvar).toHaveBeenCalledWith(
+            "somevar"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            "Asserting somevar bootloader variable"
+          );
+          fastbootPlugin.fastboot.getvar.mockRestore();
+          done();
+        });
+    });
+  });
 });
