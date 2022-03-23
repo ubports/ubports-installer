@@ -224,28 +224,44 @@ describe("PluginIndex", () => {
     });
   });
   describe("__pluginErrorHandler()", () => {
-    it("should handle json-encoded errors", () => {
-      const error = new Error("{'my': 'problem'}");
-      expect(() =>
-        pluginIndex.__pluginErrorHandler("jsonencoded", error)
-      ).toThrow(
-        // Make sure the important parts come out in any order: The plugin name
-        // and the original error message
-        /^(?=.*jsonencoded)(?=.*{'my': 'problem'}).*$/
-      );
+    it("should handle json-encoded errors", done => {
+      const error = new Error('{"my": "problem"}');
+      try {
+        pluginIndex.__pluginErrorHandler("jsonencoded", error);
+      } catch (e) {
+        expect(e).toBe(error);
+        expect(JSON.parse(e.message)).toEqual({
+          message: '{"my": "problem"}',
+          name: "jsonencoded"
+        });
+        done();
+      }
     });
-    it("should handle errors that are just strings", () => {
-      const error = new Error("AAAAAAAAAH");
-      expect(() => pluginIndex.__pluginErrorHandler("string", error)).toThrow(
-        '{"message":"AAAAAAAAAH","name":"string"}'
-      );
+    it("should handle json-encoded errors with message", done => {
+      const error = new Error('{"message": "problem"}');
+      try {
+        pluginIndex.__pluginErrorHandler("jsonencoded", error);
+      } catch (e) {
+        expect(e).toBe(error);
+        expect(JSON.parse(e.message)).toEqual({
+          message: "problem",
+          name: "jsonencoded"
+        });
+        done();
+      }
     });
-    it("should log when it can't handle the error input", () => {
-      const error = () => {};
-      expect(() =>
-        pluginIndex.__pluginErrorHandler("whatTheHeck", error)
-      ).toThrow('{"name":"whatTheHeck"}');
-      expect(log.error).toHaveBeenCalledTimes(1);
+    it("should handle string errors", done => {
+      const error = new Error("problem");
+      try {
+        pluginIndex.__pluginErrorHandler("str", error);
+      } catch (e) {
+        expect(e).toBe(error);
+        expect(JSON.parse(e.message)).toEqual({
+          message: "problem",
+          name: "str"
+        });
+        done();
+      }
     });
   });
 });
