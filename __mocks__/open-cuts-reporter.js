@@ -1,7 +1,7 @@
-const ubuntuPastebin = {
+const openCutsReporter = {
   OpenCutsReporter: jest.fn().mockReturnValue({
     smartRun: jest.fn()
   })
 };
 
-module.exports = ubuntuPastebin;
+module.exports = openCutsReporter;

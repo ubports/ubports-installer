@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2020-2021 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2020-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ const { path: cachePath } = require("./cache.js");
 const log = require("./log.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
 const settings = require("./settings.js");
+const cli = require("./cli.js");
 const core = require("../core/core.js");
 const { prompt } = require("./prompt.js");
 const { paste } = require("./paste.js");
@@ -46,74 +47,46 @@ const MISSING_LOG =
  */
 class Reporter {
   /**
-   * Get device string
-   * @returns {String} codename of the device to install or a string indicating its absence
-   */
-  getDeviceString() {
-    try {
-      return core.props && core.props.config && core.props.config.codename
-        ? `${core.props.config.codename}`
-        : "(device not yet detected)";
-    } catch (e) {
-      return "unknown";
-    }
-  }
-
-  /**
-   * Get target os string
-   * @returns {String} codename of the os to install or a string indicating its absence
-   */
-  getTargetOsString() {
-    try {
-      return core.props && core.props.os
-        ? core.props.os.name
-        : "(target os not yet set)";
-    } catch (e) {
-      return "unknown";
-    }
-  }
-
-  /**
-   * Get settings string
-   * @returns {String} install settings string or a string indicating its absence
-   */
-  getSettingsString() {
-    try {
-      `\`${JSON.stringify(core.props.settings || {})}\``;
-    } catch (e) {
-      return "unknown";
-    }
-  }
-
-  /**
    * Get information about the os the installer is running on
    * @async
    * @returns {String} environment information
    */
   async getEnvironment() {
-    return new Promise(function (resolve, reject) {
-      try {
-        osInfo(hostOs =>
-          resolve(
-            [
-              hostOs.distro,
-              hostOs.release,
-              hostOs.codename,
-              hostOs.platform,
-              hostOs.kernel,
-              hostOs.arch,
-              hostOs.build,
-              hostOs.servicepack,
-              `NodeJS ${process.version}`
-            ]
-              .filter(i => i)
-              .join(" ")
-          )
-        );
-      } catch (error) {
-        return process.platform;
-      }
-    });
+    return osInfo()
+      .then(r =>
+        [
+          r.distro,
+          r.release,
+          r.codename,
+          r.platform,
+          r.kernel,
+          r.arch,
+          r.build,
+          r.servicepack,
+          `NodeJS ${process.version}`
+        ]
+          .filter(i => i)
+          .join(" ")
+      )
+      .catch(() => process.platform);
+  }
+
+  /**
+   * get device link markdown from codename
+   * @param {String} codename device codename, not necessarily canonical
+   * @returns {String} device link markdown
+   */
+  getDeviceLinkMarkdown(codename) {
+    return (
+      ((core?.props?.config?.codename &&
+        `[\`${core?.props?.config?.codename}\`](https://github.com/ubports/installer-configs/blob/master/v2/devices/${core?.props?.config?.codename}.yml)` +
+          ((core?.props?.config?.name &&
+            core?.props?.os?.name === "Ubuntu Touch" &&
+            ` ([${core?.props?.config?.name}](https://devices.ubuntu-touch.io/device/${core?.props?.config?.codename}/))`) ||
+            ` (${core?.props?.config?.name})`)) ||
+        (codename && `\`${codename}\``) ||
+        "(not device dependent)") + (cli.file ? " with local config file" : "")
+    );
   }
 
   /**
@@ -129,20 +102,15 @@ class Reporter {
       [
         `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
         `Environment: \`${data.environment}\``,
-        ...(data.device in ["unknown", "(device not yet detected)"]
-          ? [`Device: ${data.device}`]
-          : [
-              `Device: [${data.device}]`,
-              `(https://devices.ubuntu-touch.io/device/${data.device})`
-            ]),
-        `Target OS: ${this.getTargetOsString()}`,
-        `Settings: \`${this.getSettingsString()}\``,
+        `Device: ${this.getDeviceLinkMarkdown(data.device)}`,
+        `Target OS: ${core?.props?.os?.name}`,
+        `Settings: \`${JSON.stringify(core?.props?.settings || {})}\``,
         `OPEN-CUTS run: ${runUrl || MISSING_LOG}`,
         `Pastebin: ${logUrl || MISSING_LOG}`,
-        "\n",
-        data.comment,
-        "\n",
-        ...(data.error ? ["**Error:**", "```", data.error, "```"] : []),
+        data.comment && `\n${data.comment?.trim()}\n`,
+        ...(data.error && data.error !== "Unknown Error"
+          ? ["**Error:**", "```", data.error, "```"]
+          : []),
         "<!-- thank you for reporting! -->\n"
       ]
         .filter(i => i)
@@ -230,7 +198,7 @@ class Reporter {
         name: "Device",
         type: "text",
         placeholder: "Device codename",
-        value: this.getDeviceString(),
+        value: core?.props?.config?.codename || "",
         required: true
       },
       {
@@ -308,7 +276,9 @@ class Reporter {
           name: "Comment",
           type: "text",
           placeholder: "You can provide detailed information here...",
-          value: `Installed ${this.getTargetOsString()} on ${this.getDeviceString()} from a computer running ${await this.getEnvironment()}.`,
+          value: `Installed ${core?.props?.os?.name} on ${
+            core?.props?.config?.codename
+          } from a computer running ${await this.getEnvironment()}.`,
           required: true
         },
         ...this.genericFormFields()
