@@ -19,8 +19,8 @@ beforeEach(() => jest.clearAllMocks());
 
 describe("systemimage plugin", () => {
   describe("actions", () => {
-    describe("download", () => {
-      it("should create download steps", () =>
+    describe("install", () => {
+      it("should create install actions", () =>
         systemimage.action__install().then(r => {
           expect(r).toHaveLength(1);
           expect(r[0].actions).toHaveLength(5);
@@ -47,6 +47,14 @@ describe("systemimage plugin", () => {
               files: ["f", "ubuntu_command"],
               group: "Ubuntu Touch"
             }
+          });
+        }));
+      it("should verify recovery", () =>
+        systemimage.action__install({ verify_recovery: true }).then(r => {
+          expect(r).toHaveLength(1);
+          expect(r[0].actions).toHaveLength(6);
+          expect(r[0].actions).toContainEqual({
+            "adb:assert_prop": { prop: "ro.ubuntu.recovery", value: "true" }
           });
         }));
     });
