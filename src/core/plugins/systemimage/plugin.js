@@ -30,7 +30,7 @@ class SystemimagePlugin extends Plugin {
    * systemimage:install action
    * @returns {Promise<Array<Object>>}
    */
-  action__install() {
+  action__install({ verify_recovery } = {}) {
     return api
       .getImages(
         this.props.settings.channel,
@@ -56,6 +56,16 @@ class SystemimagePlugin extends Plugin {
             {
               "adb:wait": null
             },
+            ...(verify_recovery
+              ? [
+                  {
+                    "adb:assert_prop": {
+                      prop: "ro.ubuntu.recovery",
+                      value: "true"
+                    }
+                  }
+                ]
+              : []),
             {
               "adb:preparesystemimage": null
             },
