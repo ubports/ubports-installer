@@ -1,4 +1,5 @@
 <script>
+  import { Accordion, AccordionItem } from "sveltestrap";
   import { createEventDispatcher } from "svelte";
   import Modal from "./Modal.svelte";
 
@@ -13,9 +14,8 @@
       Please select the operating system that is currently installed on your
       device to learn how to enable developer mode.
     </p>
-    <div class="card">
-      <div class="card-body">
-        <h4 class="card-title">Ubuntu Touch</h4>
+    <Accordion>
+      <AccordionItem header="Ubuntu Touch">
         <div class="row">
           <div class="col-6">
             <p>
@@ -47,11 +47,8 @@
             />
           </div>
         </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-body">
-        <h4 class="card-title">Android</h4>
+      </AccordionItem>
+      <AccordionItem header="Android">
         <div class="row">
           <div class="col-6">
             <p>
@@ -89,7 +86,7 @@
             />
           </div>
         </div>
-      </div>
-    </div>
+      </AccordionItem>
+    </Accordion>
   </div>
 </Modal>
