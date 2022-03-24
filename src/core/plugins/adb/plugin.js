@@ -226,16 +226,24 @@ class AdbPlugin extends Plugin {
    * adb:assert_prop action
    * @returns {Promise}
    */
-  action__assert_prop({ prop, value: expectedValue }) {
+  action__assert_prop({ prop, value: expectedValue, regex }) {
     return Promise.resolve()
       .then(() => {
         this.event.emit("user:write:under", `Asserting ${prop} property`);
       })
       .then(() => this.adb.getprop(prop))
       .then(actualValue => {
-        if (actualValue !== expectedValue)
+        if (
+          !(regex
+            ? actualValue.match(new RegExp(regex.pattern, regex.flags))
+            : actualValue === expectedValue)
+        )
           throw new Error(
-            `Assertion error: property ${prop} to be ${expectedValue} but got ${actualValue}`
+            `Assertion error: expected property ${prop} to ${
+              regex
+                ? `match /${regex.pattern}/${regex.flags || ""}`
+                : `be ${expectedValue}`
+            } but got ${actualValue}`
           );
       });
   }

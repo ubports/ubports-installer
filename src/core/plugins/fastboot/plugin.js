@@ -320,10 +320,10 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
-   * fastboot:wait action
+   * fastboot:assert_var action
    * @returns {Promise}
    */
-  action__assert_var({ variable, value: expectedValue }) {
+  action__assert_var({ variable, value: expectedValue, regex }) {
     return Promise.resolve()
       .then(() => {
         this.event.emit(
@@ -333,9 +333,17 @@ class FastbootPlugin extends Plugin {
       })
       .then(() => this.fastboot.getvar(variable))
       .then(actualValue => {
-        if (actualValue !== expectedValue)
+        if (
+          !(regex
+            ? actualValue.match(new RegExp(regex.pattern, regex.flags))
+            : actualValue === expectedValue)
+        )
           throw new Error(
-            `Assertion error: expected bootloader variable ${variable} to be ${expectedValue} but got ${actualValue}`
+            `Assertion error: expected bootloader variable ${variable} to ${
+              regex
+                ? `match /${regex.pattern}/${regex.flags || ""}`
+                : `be ${expectedValue}`
+            } but got ${actualValue}`
           );
       });
   }

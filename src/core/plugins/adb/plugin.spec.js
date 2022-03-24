@@ -171,42 +171,70 @@ describe("adb plugin", () => {
   });
 
   describe("action__assert_prop()", () => {
-    it("should assert prop", () => {
-      jest.spyOn(adbPlugin.adb, "getprop").mockResolvedValue("asdf");
-      return adbPlugin
-        .action__assert_prop({
+    [
+      {
+        comment: "value",
+        arg: {
           prop: "somevar",
           value: "asdf"
-        })
-        .then(r => {
+        }
+      },
+      {
+        comment: "regex w/ flags",
+        arg: {
+          prop: "somevar",
+          regex: {
+            pattern: "a[s,d]*f",
+            flags: "i"
+          }
+        }
+      },
+      {
+        comment: "regex w/o flags",
+        arg: {
+          prop: "somevar",
+          regex: {
+            pattern: "a[s,d]*f"
+          }
+        }
+      },
+      {
+        comment: "string in regex",
+        arg: {
+          prop: "somevar",
+          regex: {
+            pattern: "asdf"
+          }
+        }
+      }
+    ].forEach(({ comment, arg }) => {
+      it(`should assert and pass prop from ${comment}`, () => {
+        jest.spyOn(adbPlugin.adb, "getprop").mockResolvedValue("asdf");
+        return adbPlugin.action__assert_prop(arg).then(r => {
           expect(r).not.toBeDefined();
-          expect(adbPlugin.adb.getprop).toHaveBeenCalledWith("somevar");
+          expect(adbPlugin.adb.getprop).toHaveBeenCalledWith(arg.prop);
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:under",
-            "Asserting somevar property"
+            expect.stringMatching(/Asserting .* property/)
           );
           adbPlugin.adb.getprop.mockRestore();
         });
-    });
-    it("should fail assertion", done => {
-      jest.spyOn(adbPlugin.adb, "getprop").mockResolvedValue("wasd");
-      adbPlugin
-        .action__assert_prop({
-          prop: "somevar",
-          value: "asdf"
-        })
-        .catch(e => {
-          expect(e.message).toEqual(
-            "Assertion error: property somevar to be asdf but got wasd"
+      });
+      it(`should assert and fail prop from ${comment}`, done => {
+        jest.spyOn(adbPlugin.adb, "getprop").mockResolvedValue("wasd");
+        adbPlugin.action__assert_prop(arg).catch(e => {
+          expect(e.message).toMatch(
+            /Assertion error: expected property .* to (be|match) .* but got wasd/
           );
-          expect(adbPlugin.adb.getprop).toHaveBeenCalledWith("somevar");
+          expect(adbPlugin.adb.getprop).toHaveBeenCalledWith(arg.prop);
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:under",
-            "Asserting somevar property"
+            expect.stringMatching(/Asserting .* property/)
           );
           adbPlugin.adb.getprop.mockRestore();
           done();
         });
+      });
     });
   });
 });
