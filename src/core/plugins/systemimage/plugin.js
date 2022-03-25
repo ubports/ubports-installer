@@ -30,7 +30,7 @@ class SystemimagePlugin extends Plugin {
    * systemimage:install action
    * @returns {Promise<Array<Object>>}
    */
-  action__install({ verify_recovery } = {}) {
+  action__install(arg) {
     return api
       .getImages(
         this.props.settings.channel,
@@ -56,7 +56,7 @@ class SystemimagePlugin extends Plugin {
             {
               "adb:wait": null
             },
-            ...(verify_recovery
+            ...(arg?.verify_recovery
               ? [
                   {
                     "adb:assert_prop": {
