@@ -21,7 +21,7 @@ describe("systemimage plugin", () => {
   describe("actions", () => {
     describe("install", () => {
       it("should create install actions", () =>
-        systemimage.action__install().then(r => {
+        systemimage.action__install(null).then(r => {
           expect(r).toHaveLength(1);
           expect(r[0].actions).toHaveLength(5);
           expect(r[0].actions).toContainEqual({
