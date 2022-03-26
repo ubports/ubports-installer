@@ -306,7 +306,7 @@ class Core {
    * @returns {Promise}
    */
   run(steps) {
-    if (!(steps && steps.length)) return Promise.resolve();
+    if (!(steps && Array.isArray(steps))) return Promise.resolve();
     return steps
       .map(step => () => this.step(step))
       .reduce((chain, next) => chain.then(next), Promise.resolve())

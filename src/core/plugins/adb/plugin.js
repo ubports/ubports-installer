@@ -168,6 +168,7 @@ class AdbPlugin extends Plugin {
       .then(() => this.adb.reconnect())
       .catch(() => this.adb.reconnect())
       .catch(() => this.adb.reconnect())
+      .then(() => null) // ensure null is resolved
       .catch(
         () =>
           new Promise((resolve, reject) =>
