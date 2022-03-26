@@ -37,6 +37,16 @@ describe("fastboot plugin", () => {
       });
     });
   });
+  describe("update()", () => {
+    it("should update", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "update").mockResolvedValue();
+      return fastbootPlugin.action__update({group: "group", file: "image"}).then(() => {
+        expect(fastbootPlugin.fastboot.update).toHaveBeenCalledTimes(1);
+        expect(fastbootPlugin.fastboot.update).toHaveBeenCalledWith(expect.stringMatching(/.*group.image/), undefined);
+        fastbootPlugin.fastboot.update.mockRestore();
+      });
+    });
+  });
   describe("oem_unlock()", () => {
     it("should unlock", () => {
       mainEvent.emit.mockImplementation((m, d, a, cb) => cb());
