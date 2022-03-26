@@ -284,7 +284,7 @@ class FastbootPlugin extends Plugin {
    * fastboot:update action
    * @returns {Promise}
    */
-  action__update({ group, file, partition }) {
+  action__update({ group, file }) {
     return Promise.resolve().then(() => {
       this.event.emit("user:write:working", "particles");
       this.event.emit("user:write:status", "Updating system", true);
@@ -293,13 +293,8 @@ class FastbootPlugin extends Plugin {
         "Applying fastboot update zip. This may take a while..."
       );
       return this.fastboot.update(
-        path.join(
-          this.cachePath,
-          this.props.config.codename,
-          step.group,
-          step.file
-        ),
-        this.props.settings.wipe
+        path.join(this.cachePath, this.props.config.codename, group, file),
+        this?.props?.settings?.wipe
       );
     });
   }
