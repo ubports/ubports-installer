@@ -101,11 +101,14 @@ describe("adb plugin", () => {
   });
 
   describe("action__shell()", () => {
-    it("should run shell command", () => {
-      jest.spyOn(adbPlugin.adb, "shell").mockResolvedValueOnce();
-      return adbPlugin
-        .action__shell({ args: ["echo", "hello", "world"] })
-        .then(r => {
+    const args = ["echo", "hello", "world"];
+    [
+      { comment: "array", args },
+      { comment: "object", args: { args } }
+    ].forEach(({ comment, args }) =>
+      it(`should run shell command when called with ${comment}`, () => {
+        jest.spyOn(adbPlugin.adb, "shell").mockResolvedValueOnce();
+        return adbPlugin.action__shell(args).then(r => {
           expect(r).toEqual(null);
           expect(adbPlugin.adb.shell).toHaveBeenCalledTimes(1);
           expect(adbPlugin.adb.shell).toHaveBeenCalledWith(
@@ -115,7 +118,8 @@ describe("adb plugin", () => {
           );
           adbPlugin.adb.shell.mockRestore();
         });
-    });
+      })
+    );
   });
 
   describe("action__reboot()", () => {

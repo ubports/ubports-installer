@@ -134,8 +134,11 @@ class AdbPlugin extends Plugin {
    * adb:shell action
    * @returns {Promise}
    */
-  action__shell({ args }) {
-    return this.adb.shell(...args).then(() => null); // ensure null is returned
+  action__shell(args) {
+    // TODO 0.10.0: deprecate option to call with an object
+    return this.adb
+      .shell(...(Array.isArray(args) ? args : args.args))
+      .then(() => null); // ensure null is returned
   }
 
   /**
