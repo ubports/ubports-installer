@@ -137,7 +137,7 @@ describe("adb plugin", () => {
       jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
       jest.spyOn(adbPlugin.adb, "reconnect").mockResolvedValueOnce();
       return adbPlugin.action__reconnect().then(r => {
-        expect(r).toEqual(undefined);
+        expect(r).toEqual(null);
         expect(adbPlugin.event.emit).toHaveBeenCalledTimes(3);
         expect(adbPlugin.adb.reconnect).toHaveBeenCalledTimes(1);
         adbPlugin.adb.reconnect.mockRestore();

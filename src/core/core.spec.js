@@ -336,6 +336,7 @@ describe("Core module", () => {
         core.step.mockRestore();
       });
     });
+    it("should resolve if called with non-array", () => core.run(true));
     it("should fail silently", () => {
       jest.spyOn(core, "step").mockRejectedValue();
       return core.run(steps).then(() => {
