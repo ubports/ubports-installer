@@ -29,6 +29,12 @@ const reporter = require("./lib/reporter.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
 
+// Do not lower priority of rendering when in background
+// - See: https://www.electronjs.org/de/docs/latest/api/command-line-switches#--disable-renderer-backgrounding
+if (typeof app.commandLine !== "undefined") {
+  app.commandLine.appendSwitch("disable-renderer-backgrounding");
+}
+
 // Enable live reload for Electron
 if (process.env.ROLLUP_WATCH) {
   require("electron-reload")(path.resolve("./public"), {
