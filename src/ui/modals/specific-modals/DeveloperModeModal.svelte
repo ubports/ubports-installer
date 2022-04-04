@@ -3,11 +3,13 @@
   import { createEventDispatcher } from "svelte";
   import Modal from "./Modal.svelte";
 
+  export let isOpen;
+
   const dispatch = createEventDispatcher();
   const close = () => dispatch("close");
 </script>
 
-<Modal on:close={close}>
+<Modal {isOpen} on:close={close}>
   <h4 slot="header">How to enable developer mode</h4>
   <div slot="content" style="overflow-y: auto">
     <p>

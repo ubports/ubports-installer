@@ -4,6 +4,8 @@
   import { createEventDispatcher } from "svelte";
   import { deviceSelectOptions } from "../../../stores.mjs";
 
+  export let isOpen;
+
   let selectedDevice;
 
   function selectDevice(device) {
@@ -15,7 +17,7 @@
   const close = () => dispatch("close");
 </script>
 
-<Modal on:close={close}>
+<Modal {isOpen} on:close={close}>
   <h2 slot="header">Select your device</h2>
   <div slot="content">
     <div id="device-form" class="row mb-3">
