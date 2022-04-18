@@ -69,9 +69,13 @@ var buildConfig = {
   publish: [],
   files: [
     "src/**/*",
-    "public/**/*",
+    "public/*",
+    "public/build/**/*",
+    "public/fonts/**/*",
+    `${branding.screens}/**/*`,
+    `${branding.images}/**/*`,
     "node_modules/**/*",
-    "build/icons/icon.*",
+    `${branding.icons}/icon.*`,
     "branding.json",
     // exclude binaries for other operating systems
     ...PLATFORMS.filter(p => p !== opts.os).map(

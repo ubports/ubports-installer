@@ -1,4 +1,6 @@
 <script>
+  import branding from "../../../branding.json";
+
   let ubpRobotFoot = true;
   let ubpRobotSide = false;
 
@@ -26,7 +28,7 @@
 </script>
 
 <img
-  src="./img/yumi.svg"
+  src="../{branding.images}/{branding.logo}"
   alt="yumi"
   class="yumi"
   class:yumi-foot={ubpRobotFoot}

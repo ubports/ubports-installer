@@ -4,6 +4,7 @@
   import { tsParticles } from "tsparticles";
   import CircuitBoard from "./CircuitBoard.svelte";
   import Squares from "./Squares.svelte";
+  import branding from "../../../branding.json";
 
   onMount(updateAnimations);
   animationType.subscribe(updateAnimations);
@@ -98,12 +99,12 @@
   }
 
   .download-animation {
-    background-image: url("../img/arrow-down.png");
+    background-image: url("../../{branding.images}/arrow-down.png");
     animation: download-animation 8s linear infinite;
   }
 
   .push-animation {
-    background-image: url("../img/arrow-right.png");
+    background-image: url("../../{branding.images}/arrow-right.png");
     animation: push-animation 10s linear infinite;
   }
 

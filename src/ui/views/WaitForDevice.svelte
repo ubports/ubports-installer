@@ -22,7 +22,7 @@
 <div class="row">
   <div class="col-6">
     <img
-      src="./screens/Screen1.jpg"
+      src="../{branding.screens}/Screen1.jpg"
       alt="screen1"
       style="height: 350px; margin: auto;"
     />

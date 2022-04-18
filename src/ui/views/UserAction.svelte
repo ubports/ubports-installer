@@ -1,13 +1,14 @@
 <script>
   import { userActionEventObject, actionData } from "../../stores.mjs";
+  import branding from "../../../branding.json";
 </script>
 
 <div class="row">
   <div class="col-6">
     <img
       src={$actionData.image
-        ? `./img/${$actionData.image}.jpg`
-        : "./screens/Screen6.jpg"}
+        ? `../${branding.images}/${$actionData.image}.jpg`
+        : `../${branding.screens}/Screen6.jpg`}
       alt="Screen6"
       style="height: 350px; margin: auto; display: block;"
     />
