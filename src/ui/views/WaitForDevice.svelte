@@ -56,9 +56,9 @@
       on:click={() => showSelectDeviceModal.set(true)}
     >
       {#if initialized}
-         Select device manually
+        Select device manually
       {:else}
-         Loading device list...
+        Loading device list...
       {/if}
     </button>
   </div>
