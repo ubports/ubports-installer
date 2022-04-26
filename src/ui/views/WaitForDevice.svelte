@@ -45,8 +45,11 @@
     </button>
     <p>
       If your device is not detected automatically, you can select it manually
-      to proceed. Please note that the {branding.appname} will only work on
-      <a href={branding["supported-devices"]}>supported devices</a>.
+      to proceed.
+	    {#if branding["supported-devices"]}
+         Please note that the {branding.appname} will only work on
+         <a href={branding["supported-devices"]}>supported devices</a>.
+	    {/if}
     </p>
     <button
       id="btn-modal-select-device"

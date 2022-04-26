@@ -27,8 +27,13 @@
       </p>
     {/if}
     <p>
-      Development of Ubuntu Touch and this installer is driven by the
-      <a href="https://ubports.com">UBports Community</a>.
+      {#if branding.os === "Ubuntu Touch"}
+         Development of Ubuntu Touch and this installer is driven by the
+         <a href="https://ubports.com">UBports Community</a>.
+      {:else}
+         Development of this installer is driven by the
+         <a href="https://ubports.com">UBports Community</a>.
+      {/if}
       {#if branding["donate-url"]}
         <a href={branding["donate-url"]}>Donate</a> now to allow us to
         continue our mission!
