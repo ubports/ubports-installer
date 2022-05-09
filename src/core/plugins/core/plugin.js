@@ -22,6 +22,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
 const { unpack } = require("../../helpers/asarLibs.js");
+const window = require("../../../lib/window.js");
 
 /**
  * core plugin
@@ -276,6 +277,7 @@ class CorePlugin extends Plugin {
               )
             )
             .then(ok => {
+              window.send("user:manual_download:check", ok);
               if (ok) {
                 return ok;
               } else {
