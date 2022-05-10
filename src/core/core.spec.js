@@ -619,6 +619,7 @@ describe("Core module", () => {
 
   describe("delay()", () => {
     it("should resolve after delay", done => {
+      jest.spyOn(global, "setTimeout");
       core.delay(100).then(() => {
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 100);
         done();
@@ -626,6 +627,7 @@ describe("Core module", () => {
       jest.runOnlyPendingTimers();
     });
     it("should resolve after 250 if nothing is specified", done => {
+      jest.spyOn(global, "setTimeout");
       core.delay().then(() => {
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 250);
         done();

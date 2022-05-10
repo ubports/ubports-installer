@@ -1,7 +1,8 @@
 <script>
   import { onMount } from "svelte";
   import { animationType, animationVisible } from "../../stores.mjs";
-  import { tsParticles } from "tsparticles";
+  import { tsParticles } from "tsparticles-engine";
+  import { loadFull } from "tsparticles";
   import CircuitBoard from "./CircuitBoard.svelte";
   import Squares from "./Squares.svelte";
 
@@ -16,6 +17,7 @@
       document.getElementById("tsparticles")
     ) {
       document.getElementById("tsparticles").style = "display: inherit";
+      loadFull(tsParticles);
       tsParticles
         .load("tsparticles", {
           particles: {

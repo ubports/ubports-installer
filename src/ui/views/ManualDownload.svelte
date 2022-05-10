@@ -47,7 +47,9 @@
     </p>
     <div class="input-group" style="margin-bottom: 1em;">
       <div class="custom-file">
-        <input type="file" bind:files={downloadedFile}
+        <input
+          type="file"
+          bind:files={downloadedFile}
           disabled={checkingFile}
         />
       </div>
@@ -56,7 +58,8 @@
       id="manual-download-button"
       class="btn btn-primary"
       disabled={!downloadedFile || checkingFile}
-      on:click={() => handleManualDownloadButton()}>
+      on:click={() => handleManualDownloadButton()}
+    >
       {#if checkingFile}
         Checking file...
       {:else}
