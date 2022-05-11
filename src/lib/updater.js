@@ -19,6 +19,7 @@
 
 const axios = require("axios");
 const packageInfo = require("../../package.json");
+const branding = require("../../branding.json");
 
 /**
  * UBports Installer version management
@@ -42,7 +43,7 @@ class Updater {
     } else {
       return axios
         .get(
-          "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
+          branding["update-url"],
           {
             json: true,
             headers: { "User-Agent": "axios" }
@@ -54,7 +55,7 @@ class Updater {
         })
         .catch(e => {
           throw new Error(
-            `Failed to get latest version of the UBports Installer: ${e}`
+            `Failed to get latest version of the ${branding.appname}: ${e}`
           );
         });
     }

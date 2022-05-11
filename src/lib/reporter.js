@@ -28,6 +28,7 @@ const cli = require("./cli.js");
 const core = require("../core/core.js");
 const { prompt } = require("./prompt.js");
 const { paste } = require("./paste.js");
+const branding = require("../../branding.json");
 
 /**
  * OPEN-CUTS operating system mapping
@@ -104,7 +105,7 @@ class Reporter {
   async getDebugInfo(data, runUrl, logUrl) {
     return encodeURIComponent(
       [
-        `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
+        `**${branding.appname} \`${packageInfo.version}\` (${data.package})**`,
         `Environment: \`${data.environment}\``,
         `Device: ${this.getDeviceLinkMarkdown(data.device)}`,
         `Target OS: ${core?.props?.os?.name}`,

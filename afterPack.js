@@ -19,6 +19,7 @@
 
 const fs = require("fs-extra");
 const path = require("path");
+const branding = require("./branding.json");
 
 /**
  * Wrap the packaged application to avoid having to use double dashes -- before passing command-line arguments
@@ -30,11 +31,11 @@ module.exports = async function (context) {
 
   if (context.targets.find(target => target.name === "deb")) {
     wrapperScript = `#!/bin/bash
-      /opt/ubports-installer/ubports-installer.bin --no-sandbox "$@"
+      /opt/${branding.executable}/${branding.executable}.bin --no-sandbox "$@"
     `;
   } else if (context.targets.find(target => target.name === "appImage")) {
     wrapperScript = `#!/bin/bash
-      "\${BASH_SOURCE%/*}"/ubports-installer.bin --no-sandbox "$@"
+      "\${BASH_SOURCE%/*}"/${branding.executable}.bin --no-sandbox "$@"
     `;
   } else {
     console.log("no wrapper needed");
@@ -42,9 +43,9 @@ module.exports = async function (context) {
   }
 
   fs.moveSync(
-    path.join(distDir, "ubports-installer"),
-    path.join(distDir, "ubports-installer.bin")
+    path.join(distDir, `${branding.executable}`),
+    path.join(distDir, `${branding.executable}.bin`)
   );
-  fs.writeFileSync(path.join(distDir, "ubports-installer"), wrapperScript);
-  fs.chmodSync(path.join(distDir, "ubports-installer"), 0o765);
+  fs.writeFileSync(path.join(distDir, branding.executable), wrapperScript);
+  fs.chmodSync(path.join(distDir, branding.executable), 0o765);
 };

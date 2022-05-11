@@ -1,11 +1,16 @@
 <script>
   import { showSelectDeviceModal, deviceName } from "../../stores.mjs";
+  import branding from "../../../branding.json";
+
+  let supported = branding["supported-devices"]
+    .replace(/(^\w+:|^)\/\//, '')
+    .replace(/\/.*$/, '');
 </script>
 
 <div class="row">
   <div class="col-6">
     <img
-      src="./screens/Screen5.jpg"
+      src="../{branding.screens}/Screen5.jpg"
       alt="Screen5"
       style="height: 350px; margin: auto; display: block;"
     />
@@ -22,7 +27,7 @@
     </p>
     <p>
       See
-      <a href="http://devices.ubuntu-touch.io">devices.ubuntu-touch.io</a>
+      <a href={branding["supported-devices"]}>{supported}</a>
       for more info
     </p>
     <hr />
@@ -30,7 +35,7 @@
     <p>
       You can try selecting your device manually, but please only do so if
       you're sure that your exact model is actually supported! You might also
-      want to <a href="http://devices.ubuntu-touch.io">file a bug</a>.
+      want to <a href={branding["supported-devices"]}>file a bug</a>.
     </p>
     <button
       class="btn btn-default"

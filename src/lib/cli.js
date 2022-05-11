@@ -20,8 +20,9 @@
 const cli = require("commander");
 const log = require("./log.js");
 const packageInfo = require("../../package.json");
+const branding = require("../../branding.json");
 
-const description = `UBports Installer (${packageInfo.version}) ${
+const description = `${branding["header-text"]} (${packageInfo.version}) ${
   packageInfo.package || "source"
 } for ${process.platform}
 ${packageInfo.license} ${packageInfo.author}

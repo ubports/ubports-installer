@@ -24,6 +24,7 @@ const udev = require("./udev.js");
 const settings = require("./settings.js");
 const cache = require("./cache.js");
 const reporter = require("./reporter.js");
+const branding = require("../../branding.json");
 
 class MenuManager {
   /**
@@ -36,22 +37,26 @@ class MenuManager {
         label: "About",
         submenu: [
           {
-            label: "About the UBports Foundation...",
-            click: () => shell.openExternal("https://ubports.com")
+            label: `About ${branding["organisation-name"]}...`,
+            visible: !!branding["organisation-url"],
+            click: () => shell.openExternal(branding["organisation-url"])
           },
           {
-            label: "About Ubuntu Touch...",
-            click: () => shell.openExternal("https://ubuntu-touch.io")
+            label: `About ${branding.os}...`,
+            visible: !!branding["info-url"],
+            click: () => shell.openExternal(branding["info-url"])
           },
           {
             label: "Donate",
-            click: () => shell.openExternal("https://ubports.com/donate")
+            visible: !!branding["donate-url"],
+            click: () => shell.openExternal(branding["donate-url"])
           },
           {
             label: "Source",
+            visible: !!branding["installer-source"],
             click: () =>
               shell.openExternal(
-                "https://github.com/ubports/ubports-installer/tree/" +
+                branding["installer-source"] +
                   packageInfo.version
               )
           },
@@ -59,7 +64,7 @@ class MenuManager {
             label: "License",
             click: () =>
               shell.openExternal(
-                "https://github.com/ubports/ubports-installer/blob/" +
+                branding["licence-url"] +
                   packageInfo.version +
                   "/LICENSE"
               )
@@ -98,6 +103,7 @@ class MenuManager {
           },
           {
             label: "Report a bug",
+            visible: branding["allow-reporting"],
             click: () => window.send("user:report")
           },
           {
@@ -167,6 +173,7 @@ class MenuManager {
           },
           {
             label: "Never ask for OPEN-CUTS automatic reporting",
+            visible: branding["allow-reporting"],
             checked: settings.get("never.opencuts"),
             type: "checkbox",
             click: () =>
@@ -174,6 +181,7 @@ class MenuManager {
           },
           {
             label: "OPEN-CUTS API Token",
+            visible: branding["allow-reporting"],
             click: () => reporter.tokenDialog(mainWindow)
           }
         ]
@@ -183,36 +191,44 @@ class MenuManager {
         submenu: [
           {
             label: "Bug tracker",
+            visible: !!branding["bug-tracker"],
             click: () =>
               shell.openExternal(
-                "https://github.com/ubports/ubports-installer/issues"
+                branding["bug-tracker"]
               )
           },
           {
             label: "Report a bug",
+            visible: branding["allow-reporting"],
             click: () => window.send("user:report")
           },
           {
             label: "Troubleshooting",
+            visible: !!branding["troubleshooting"],
             click: () =>
               shell.openExternal(
-                "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
+                branding["troubleshooting"]
               )
           },
           {
-            label: "UBports Forums",
-            click: () => shell.openExternal("https://forums.ubports.com")
+            label: branding["forum-name"],
+            visible: !!branding["forum-url"],
+            click: () => shell.openExternal(branding["forum-url"])
           },
           {
-            label: "AskUbuntu",
+            label: branding["support-name"],
+            visible: !!branding["support-url"],
             click: () =>
               shell.openExternal(
-                "https://askubuntu.com/questions/tagged/ubuntu-touch"
+                branding["support-url"]
               )
           },
           {
-            label: "Telegram",
-            click: () => shell.openExternal("https://t.me/WelcomePlus")
+           label: branding["contact-name"],
+           visible: !!branding["contact-url"],
+           click: () => shell.openExternal(
+             branding["contact-url"]
+           )
           }
         ]
       }

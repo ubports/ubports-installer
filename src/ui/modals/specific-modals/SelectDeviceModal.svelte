@@ -3,8 +3,13 @@
   const { ipcRenderer } = require("electron");
   import { createEventDispatcher } from "svelte";
   import { deviceSelectOptions } from "../../../stores.mjs";
+  import branding from "../../../../branding.json";
 
   let selectedDevice;
+
+  let supported = branding["supported-devices"]
+    .replace(/(^\w+:|^)\/\//, '')
+    .replace(/\/.*$/, '');
 
   function selectDevice(device) {
     ipcRenderer.send("device:selected", device);
@@ -30,16 +35,18 @@
         </select>
       </div>
     </div>
-    <p>
-      Not all <a href="https://devices.ubuntu-touch.io">Ubuntu Touch devices</a>
-      are supported by the UBports Installer yet. You can find installation instructions
-      for devices not listed here on
-      <a href="https://devices.ubuntu-touch.io">devices.ubuntu-touch.io</a>. If
-      you want to help, you can
-      <a href="https://github.com/ubports/installer-configs#readme"
-        >contribute a config file</a
-      > for any device and operating system!
-    </p>
+    {#if !branding["all-devices-supported"]}
+      <p>
+        Not all <a href={branding["supported-devices"]}>{branding.os} devices</a>
+        are supported by the {branding.appname} yet. You can find installation instructions
+        for devices not listed here on
+        <a href={branding["supported-devices"]}>{supported}</a>. If
+        you want to help, you can
+        <a href="https://github.com/ubports/installer-configs#readme"
+          >contribute a config file</a
+        > for any device and operating system!
+      </p>
+    {/if}
     <p>
       Please do not try to install other devices images on your device. <b
         >It will not work!</b

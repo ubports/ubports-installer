@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from "svelte";
   import Modal from "./Modal.svelte";
+  import branding from "../../../../branding.json";
 
   const dispatch = createEventDispatcher();
   const close = () => dispatch("close");
@@ -41,7 +42,7 @@
           </div>
           <div class="col-6">
             <img
-              src="./screens/ubuntu-dev-mode.gif"
+              src="../{branding.screens}/ubuntu-dev-mode.gif"
               alt="ubuntu-dev-mode"
               style="width: 100%"
             />
@@ -83,7 +84,7 @@
           </div>
           <div class="col-6">
             <img
-              src="./screens/android-dev-mode.gif"
+              src="../{branding.screens}/android-dev-mode.gif"
               alt="android-dev-mode"
               style="width: 100%"
             />
