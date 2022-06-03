@@ -88,10 +88,12 @@ describe("getDeviceLinkMarkdown()", () => {
 describe("getDebugInfo()", () => {
   it("should resolve debug without error", () => {
     return reporter
-      .getDebugInfo({ error: "Everything exploded" })
+      .getDebugInfo({ error: "Everything exploded", comment: "oh no" })
       .then(decodeURIComponent)
       .then(r =>
-        expect(r).toContain("**Error:**\n```\nEverything exploded\n```")
+        expect(r).toContain(
+          "\noh no\n\n" + "**Error:**\n```\nEverything exploded\n```"
+        )
       );
   });
   it("should resolve debug without error on unknown", () => {
@@ -110,6 +112,7 @@ describe("getDebugInfo()", () => {
 
 describe("prepareErrorReport()", () => {
   it("should return error report object", () => {
+    core.props = {};
     return reporter.prepareErrorReport().then(r => expect(r).toBeDefined);
   });
 });
@@ -123,13 +126,15 @@ describe("prepareSuccessReport()", () => {
 describe("sendBugReport()", () => {
   it("should send bug report", () => {
     log.get.mockResolvedValue("log content");
+    jest.spyOn(reporter, "sendOpenCutsRun").mockRejectedValueOnce();
     return reporter
       .sendBugReport({
         title: "wasd"
       })
       .then(r => {
         expect(r).toEqual(undefined);
-      });
+      })
+      .finally(() => jest.restoreAllMocks());
   });
 });
 
