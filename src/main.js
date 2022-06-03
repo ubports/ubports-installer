@@ -55,9 +55,9 @@ ipcMain.on("reportResult", async (event, result, error) => {
 // FIXME move after a better way to access mainWindow has been found
 mainEvent.on("restart", () => {
   log.info("UBports Installer restarting...");
-  window.send("user:restart")
+  window.send("user:restart");
   core.reset();
-  core.prepare(cli.file, true)
+  core.prepare(cli.file, true);
 });
 
 async function createWindow() {
