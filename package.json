@@ -71,6 +71,7 @@
     "semver": "^7.3.7",
     "sudo-prompt": "^9.2.1",
     "svelte-markdown": "^0.2.2",
+    "sveltestrap": "^5.9.0",
     "systeminformation": "^5.11.16",
     "tsparticles": "^2.0.6",
     "tsparticles-engine": "^2.0.6",

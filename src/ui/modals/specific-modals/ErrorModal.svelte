@@ -5,6 +5,7 @@
 
   const dispatch = createEventDispatcher();
 
+  export let isOpen;
   export let errorData;
 
   let showNotLatestStable;
@@ -24,7 +25,7 @@
   const close = () => dispatch("close");
 </script>
 
-<Modal on:close={close} showCloseButton={false}>
+<Modal {isOpen} on:close={close} showCloseButton={false}>
   <h4 slot="header">Yikes!</h4>
   <div slot="content">
     <p>

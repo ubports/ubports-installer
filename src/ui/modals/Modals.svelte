@@ -41,31 +41,30 @@
 </script>
 
 <!-- low prio -->
-{#if $showSelectDeviceModal}
-  <SelectDeviceModal
-    selectOptions={$deviceSelectOptions}
-    on:close={() => showSelectDeviceModal.set(false)}
-  />
-{/if}
-{#if $showDeveloperModeModal}
-  <DeveloperModeModal on:close={() => showDeveloperModeModal.set(false)} />
-{/if}
+<SelectDeviceModal
+  isOpen={$showSelectDeviceModal}
+  selectOptions={$deviceSelectOptions}
+  on:close={() => showSelectDeviceModal.set(false)}
+/>
+<DeveloperModeModal
+  isOpen={$showDeveloperModeModal}
+  on:close={() => showDeveloperModeModal.set(false)}
+/>
 
 <!-- medium prio -->
-{#if showResultModal}
-  <ResultModal
-    {showDoNotAskAgainButton}
-    on:close={() => (showResultModal = false)}
-  />
-{/if}
+<ResultModal
+  isOpen={showResultModal}
+  {showDoNotAskAgainButton}
+  on:close={() => (showResultModal = false)}
+/>
 
 <!-- high prio -->
-{#if showUdevModal}
-  <UdevModal on:close={() => (showUdevModal = false)} />
-{/if}
+<UdevModal isOpen={showUdevModal} on:close={() => (showUdevModal = false)} />
 
 <!-- errors -->
 <PromptModals />
-{#if showErrorModal}
-  <ErrorModal {errorData} on:close={() => (showErrorModal = false)} />
-{/if}
+<ErrorModal
+  isOpen={showErrorModal}
+  {errorData}
+  on:close={() => (showErrorModal = false)}
+/>

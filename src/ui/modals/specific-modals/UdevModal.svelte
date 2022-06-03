@@ -7,6 +7,8 @@
   const dispatch = createEventDispatcher();
   const close = () => dispatch("close");
 
+  export let isOpen;
+
   function dismissUdev(set) {
     ipcRenderer.invoke("setSettingsValue", "never.udev", true);
     if (set) {
@@ -16,7 +18,7 @@
   }
 </script>
 
-<Modal showCloseButton={false} on:close={close}>
+<Modal {isOpen} showCloseButton={false} on:close={close}>
   <h4 slot="header">Warning!</h4>
   <div slot="content">
     <p>

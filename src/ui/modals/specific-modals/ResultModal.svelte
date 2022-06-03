@@ -5,6 +5,7 @@
 
   const dispatch = createEventDispatcher();
 
+  export let isOpen;
   export let showDoNotAskAgainButton;
 
   function report(result) {
@@ -20,7 +21,7 @@
   const close = () => dispatch("close");
 </script>
 
-<Modal on:close={close} showCloseButton={false}>
+<Modal {isOpen} on:close={close} showCloseButton={false}>
   <h4 slot="header">Report your result</h4>
   <div slot="content">
     <p>
