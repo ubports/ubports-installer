@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,12 +72,14 @@ class Core {
   /**
    * prepare the installer: start adb server and get device selects or read config
    * @param {String} [file] config file
+   * @param {Boolean} [restart] set to true to skip adb start
    * @returns {Promise}
    */
-  prepare(file) {
+  prepare(file, restart = false) {
     return Promise.all([
       this.readConfigFile(file),
-      this.plugins.init().catch(e => errors.toUser(e, "initializing plugins"))
+      !restart &&
+        this.plugins.init().catch(e => errors.toUser(e, "initializing plugins"))
     ]).then(() => {
       if (this.props.config) {
         this.selectOs();

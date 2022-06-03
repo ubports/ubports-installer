@@ -1,4 +1,5 @@
 <script>
+  const { ipcRenderer } = require("electron");
   import {
     manualDownloadFileData,
     manualDownloadGroup,
@@ -6,8 +7,14 @@
   } from "../../stores.mjs";
 
   let downloadedFile;
+  let checkingFile = false;
 
   function handleManualDownloadButton() {
+    checkingFile = true;
+    ipcRenderer.once("user:manual_download:check", (event, ok) => {
+      checkingFile = false;
+    });
+
     $eventObject.sender.send(
       "manual_download:completed",
       downloadedFile[0].path
@@ -40,14 +47,24 @@
     </p>
     <div class="input-group" style="margin-bottom: 1em;">
       <div class="custom-file">
-        <input type="file" bind:files={downloadedFile} />
+        <input
+          type="file"
+          bind:files={downloadedFile}
+          disabled={checkingFile}
+        />
       </div>
     </div>
     <button
       id="manual-download-button"
       class="btn btn-primary"
-      disabled={!downloadedFile}
-      on:click={() => handleManualDownloadButton()}>Continue</button
+      disabled={!downloadedFile || checkingFile}
+      on:click={() => handleManualDownloadButton()}
     >
+      {#if checkingFile}
+        Checking file...
+      {:else}
+        Continue
+      {/if}
+    </button>
   </div>
 </div>

@@ -28,6 +28,13 @@ const mainEvent = require("./lib/mainEvent.js");
 const reporter = require("./lib/reporter.js");
 const menuManager = require("./lib/menuManager.js");
 const core = require("./core/core.js");
+const window = require("./lib/window.js");
+
+// Do not lower priority of rendering when in background
+// - See: https://www.electronjs.org/de/docs/latest/api/command-line-switches#--disable-renderer-backgrounding
+if (typeof app.commandLine !== "undefined") {
+  app.commandLine.appendSwitch("disable-renderer-backgrounding");
+}
 
 // Enable live reload for Electron
 if (process.env.ROLLUP_WATCH) {
@@ -48,8 +55,9 @@ ipcMain.on("reportResult", async (event, result, error) => {
 // FIXME move after a better way to access mainWindow has been found
 mainEvent.on("restart", () => {
   log.info("UBports Installer restarting...");
-  core.kill();
-  mainWindow.reload();
+  window.send("user:restart");
+  core.reset();
+  core.prepare(cli.file, true);
 });
 
 async function createWindow() {

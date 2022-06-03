@@ -27,6 +27,10 @@ case "${distro}" in
         fi
         packages="npm nodejs"
         ;;
+    "VoidLinux")
+        packageCommand="xbps-install"
+        packages="nodejs"
+        ;;
     "*")
         packages="npm nodejs-legacy"
         echo "Distro could not be identified. Please add yours to the script."

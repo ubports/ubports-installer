@@ -58,8 +58,8 @@
         {$footerData.underText}
       </span>
       {#if $footerData.speedText}
-        <span>
-          {$footerData.speedText}
+        <span class="text-muted">
+          at {$footerData.speedText} MB/s
         </span>
       {/if}
     </p>
