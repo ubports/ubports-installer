@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ const window = require("./window.js");
 const udev = require("./udev.js");
 const settings = require("./settings.js");
 const cache = require("./cache.js");
+const mainEvent = require("./mainEvent.js");
 const reporter = require("./reporter.js");
 
 class MenuManager {
@@ -121,6 +122,12 @@ class MenuManager {
               settings.clear();
             },
             visible: settings.size
+          },
+          {
+            label: "Restart UBports Installer",
+            click: () => {
+              mainEvent.emit("restart");
+            }
           }
         ]
       },
