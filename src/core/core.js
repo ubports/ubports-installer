@@ -72,12 +72,13 @@ class Core {
   /**
    * prepare the installer: start adb server and get device selects or read config
    * @param {String} [file] config file
+   * @param {Boolean} [restart] set to true to skip adb start
    * @returns {Promise}
    */
-  prepare(file) {
+  prepare(file, restart = false) {
     return Promise.all([
       this.readConfigFile(file),
-      this.plugins.init().catch(e => errors.toUser(e, "initializing plugins"))
+      !restart && this.plugins.init().catch(e => errors.toUser(e, "initializing plugins"))
     ]).then(() => {
       if (this.props.config) {
         this.selectOs();

@@ -39,15 +39,29 @@ beforeEach(() => jest.restoreAllMocks());
 
 describe("Core module", () => {
   describe("prepare()", () => {
-    it("should prepare and read config", () => {
+    it("should prepare and read config at start", () => {
       jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
       jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
       jest.spyOn(core, "selectOs").mockResolvedValueOnce();
-      return core.prepare("a").then(() => {
+      return core.prepare("a", false).then(() => {
         expect(core.readConfigFile).toHaveBeenCalledWith("a");
         expect(core.readConfigFile).toHaveBeenCalledTimes(1);
         core.readConfigFile.mockRestore();
         expect(core.plugins.init).toHaveBeenCalledTimes(1);
+        core.plugins.init.mockRestore();
+        expect(core.selectOs).toHaveBeenCalledTimes(1);
+        core.selectOs.mockRestore();
+      });
+    });
+    it("should prepare and read config at restart", () => {
+      jest.spyOn(core, "readConfigFile").mockResolvedValueOnce();
+      jest.spyOn(core.plugins, "init").mockResolvedValueOnce();
+      jest.spyOn(core, "selectOs").mockResolvedValueOnce();
+      return core.prepare("a", true).then(() => {
+        expect(core.readConfigFile).toHaveBeenCalledWith("a");
+        expect(core.readConfigFile).toHaveBeenCalledTimes(1);
+        core.readConfigFile.mockRestore();
+        expect(core.plugins.init).toHaveBeenCalledTimes(0);
         core.plugins.init.mockRestore();
         expect(core.selectOs).toHaveBeenCalledTimes(1);
         core.selectOs.mockRestore();

@@ -108,6 +108,16 @@
     yumi.setPosition("center");
   });
 
+  ipcRenderer.on("user:restart", () => {
+    push("/");
+    footerData.set({
+      topText: "Restarting",
+      underText: `UBports Installer is restarting`,
+      waitingDots: true
+    });
+    yumi.setPosition("foot");
+  });
+
   //Error handling
   // Catch all unhandled errors in rendering process
   window.onerror = (err, url, line) => {
