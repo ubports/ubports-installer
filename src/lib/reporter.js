@@ -25,6 +25,7 @@ const log = require("./log.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
 const settings = require("./settings.js");
 const cli = require("./cli.js");
+const errors = require("./errors.js");
 const core = require("../core/core.js");
 const { prompt } = require("./prompt.js");
 const { paste } = require("./paste.js");
@@ -115,6 +116,13 @@ class Reporter {
         ...(data.error && data.error !== "Unknown Error"
           ? ["**Error:**", "```", data.error, "```"]
           : []),
+        ...(errors.errors?.length
+          ? [
+              "\n**Previous Errors:**\n```",
+              errors.errors.join("\n```\n```\n"),
+              "```"
+            ]
+          : []),
         "<!-- thank you for reporting! -->\n"
       ]
         .filter(i => i)
@@ -185,7 +193,10 @@ class Reporter {
           {
             name: "ubports-installer.log",
             content: await logfile
-          }
+          },
+          ...(errors.errors?.length
+            ? [{ name: "ignored errors", content: errors.errors.join("\n\n") }]
+            : [])
         ]
       }
     );
@@ -289,7 +300,8 @@ class Reporter {
       ],
       confirm: "Send",
       extraData: {
-        result: "PASS"
+        // HACK: Set WONKY if errors had been ignored, even if PASS was specified
+        result: errors.errors?.length ? "WONKY" : "PASS"
       }
     };
   }

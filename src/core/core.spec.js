@@ -523,9 +523,7 @@ describe("Core module", () => {
       }
     });
     it("should let the user ignore the error", () => {
-      jest
-        .spyOn(errors, "toUser")
-        .mockImplementation((e, l, again, ignore) => ignore());
+      jest.spyOn(errors, "toUser").mockResolvedValueOnce(null);
       return core
         .handle(new Error("some error"), "a:x", { actions: [{ "a:x": null }] })
         .then(r => expect(r).toEqual(null));

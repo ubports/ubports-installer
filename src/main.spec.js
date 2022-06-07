@@ -4,7 +4,6 @@ const { ipcMain } = require("electron");
 jest.mock("electron");
 process.argv = [];
 const mainEvent = require("./lib/mainEvent.js");
-jest.mock("./lib/mainEvent.js");
 const { main } = require("./main.js");
 const window = require("./lib/window.js");
 jest.mock("./lib/window.js");

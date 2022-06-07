@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2020 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,13 @@ const mainEvent = require("./mainEvent.js");
 
 /**
  * error handling
+ * @property {Array<Error>} errors all escalated errors
  */
 class ErrorHandler {
+  constructor() {
+    this.errors = [];
+  }
+
   /**
    * die. expire. succumb. perish. decease. depart.
    * @param {Error} error error or message
@@ -43,16 +48,23 @@ class ErrorHandler {
    * @param {Function} restart callback
    * @param {Function} ignore callback
    */
-  toUser(error, errorLocation, restart, ignore) {
-    const errorString = `Error: ${errorLocation || "Unknown"}: ${error}`;
-    log.error(
-      errorString + (error.stack ? "\nstack trace: " + error.stack : "")
-    );
-    if (window.getMain()) {
-      mainEvent.emit("user:error", errorString, restart, ignore);
-    } else {
-      errorHandler.die(error);
-    }
+  async toUser(error, errorLocation, restart, ignore) {
+    if (!window.getMain()) return errorHandler.die(error);
+    return new Promise(resolve => {
+      const message = `Error: ${errorLocation || "Unknown"}: ${error}`;
+      const stack = error.stack ? "\nstack trace: " + error.stack : "";
+      log.error(message + stack);
+      const cont = continuePromise => {
+        this.errors.push(message + stack);
+        resolve(continuePromise ? continuePromise() : null);
+      };
+      mainEvent.emit(
+        "user:error",
+        message,
+        () => cont(restart),
+        () => cont(ignore)
+      );
+    });
   }
 }
 

@@ -1,6 +1,8 @@
 process.argv = [null, null, "-vv"];
 const log = require("./log.js");
 jest.mock("./log.js");
+const errors = require("./errors.js");
+jest.mock("./errors.js");
 const { paste } = require("./paste.js");
 jest.mock("./paste.js");
 const cli = require("./cli.js");
@@ -87,29 +89,45 @@ describe("getDeviceLinkMarkdown()", () => {
 
 describe("getDebugInfo()", () => {
   it("should resolve debug without error", () => {
+    errors.errors = ["error one"];
     return reporter
-      .getDebugInfo({ error: "Everything exploded" })
+      .getDebugInfo({ error: "Everything exploded", comment: "oh no" })
       .then(decodeURIComponent)
-      .then(r =>
-        expect(r).toContain("**Error:**\n```\nEverything exploded\n```")
+      .then(
+        r =>
+          expect(r).toContain("\noh no\n\n") &&
+          expect(r).toContain("**Error:**\n```\nEverything exploded\n```")
       );
   });
   it("should resolve debug without error on unknown", () => {
+    errors.errors = [];
     return reporter
       .getDebugInfo({ error: "Unknown Error" })
       .then(decodeURIComponent)
-      .then(r => expect(r).not.toContain("**Error:**"));
+      .then(
+        r =>
+          expect(r).not.toContain("**Error:**") &&
+          expect(r).not.toContain("**Previous Errors:**")
+      );
   });
   it("should resolve debug without error on null", () => {
+    errors.errors = ["error one", "error two"];
     return reporter
       .getDebugInfo({})
       .then(decodeURIComponent)
-      .then(r => expect(r).not.toContain("**Error:**"));
+      .then(
+        r =>
+          expect(r).not.toContain("**Error:**") &&
+          expect(r).toContain("**Previous Errors:**") &&
+          expect(r).toContain("error one") &&
+          expect(r).toContain("error two")
+      );
   });
 });
 
 describe("prepareErrorReport()", () => {
   it("should return error report object", () => {
+    core.props = {};
     return reporter.prepareErrorReport().then(r => expect(r).toBeDefined);
   });
 });
@@ -123,24 +141,81 @@ describe("prepareSuccessReport()", () => {
 describe("sendBugReport()", () => {
   it("should send bug report", () => {
     log.get.mockResolvedValue("log content");
+    jest.spyOn(reporter, "sendOpenCutsRun").mockRejectedValueOnce();
     return reporter
       .sendBugReport({
         title: "wasd"
       })
       .then(r => {
         expect(r).toEqual(undefined);
-      });
+      })
+      .finally(() => jest.restoreAllMocks());
   });
 });
 
 describe("sendOpenCutsRun()", () => {
   it("should send open-cuts run", () => {
     log.get.mockResolvedValue("log content");
+    errors.errors = ["error one", "error two"];
+    const smartRun = jest.fn();
+    OpenCutsReporter.mockImplementation(() => ({
+      smartRun
+    }));
+    return reporter
+      .sendOpenCutsRun(null, {
+        result: "FAIL"
+      })
+      .then(r => {
+        expect(r).toEqual(undefined);
+        expect(smartRun).toHaveBeenCalledTimes(1);
+        expect(smartRun).toHaveBeenCalledWith(
+          "5e9d746c6346e112514cfec7",
+          "5e9d75406346e112514cfeca",
+          expect.any(String),
+          {
+            combination: [
+              { value: undefined, variable: "Environment" },
+              { value: undefined, variable: "Package" }
+            ],
+            comment: undefined,
+            logs: [
+              { content: "log content", name: "ubports-installer.log" },
+              { content: "error one\n\nerror two", name: "ignored errors" }
+            ],
+            result: "FAIL"
+          }
+        );
+      });
+  });
+  it("should send open-cuts run", () => {
+    log.get.mockResolvedValue("log content");
+    errors.errors = [];
+    const smartRun = jest.fn();
+    OpenCutsReporter.mockImplementation(() => ({
+      smartRun
+    }));
     return reporter
       .sendOpenCutsRun(null, {
         result: "PASS"
       })
-      .then(r => expect(r).toEqual(undefined));
+      .then(r => {
+        expect(r).toEqual(undefined);
+        expect(smartRun).toHaveBeenCalledTimes(1);
+        expect(smartRun).toHaveBeenCalledWith(
+          "5e9d746c6346e112514cfec7",
+          "5e9d75406346e112514cfeca",
+          expect.any(String),
+          {
+            combination: [
+              { value: undefined, variable: "Environment" },
+              { value: undefined, variable: "Package" }
+            ],
+            comment: undefined,
+            logs: [{ content: "log content", name: "ubports-installer.log" }],
+            result: "PASS"
+          }
+        );
+      });
   });
 });
 
