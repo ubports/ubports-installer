@@ -193,7 +193,10 @@ class Reporter {
           {
             name: "ubports-installer.log",
             content: await logfile
-          }
+          },
+          ...(errors.errors?.length
+            ? [{ name: "ignored errors", content: errors.errors.join("\n\n") }]
+            : [])
         ]
       }
     );
@@ -297,7 +300,8 @@ class Reporter {
       ],
       confirm: "Send",
       extraData: {
-        result: "PASS"
+        // HACK: Set WONKY if errors had been ignored, even if PASS was specified
+        result: errors.errors?.length ? "WONKY" : "PASS"
       }
     };
   }

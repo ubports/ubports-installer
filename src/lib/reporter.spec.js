@@ -156,11 +156,66 @@ describe("sendBugReport()", () => {
 describe("sendOpenCutsRun()", () => {
   it("should send open-cuts run", () => {
     log.get.mockResolvedValue("log content");
+    errors.errors = ["error one", "error two"];
+    const smartRun = jest.fn();
+    OpenCutsReporter.mockImplementation(() => ({
+      smartRun
+    }));
+    return reporter
+      .sendOpenCutsRun(null, {
+        result: "FAIL"
+      })
+      .then(r => {
+        expect(r).toEqual(undefined);
+        expect(smartRun).toHaveBeenCalledTimes(1);
+        expect(smartRun).toHaveBeenCalledWith(
+          "5e9d746c6346e112514cfec7",
+          "5e9d75406346e112514cfeca",
+          expect.any(String),
+          {
+            combination: [
+              { value: undefined, variable: "Environment" },
+              { value: undefined, variable: "Package" }
+            ],
+            comment: undefined,
+            logs: [
+              { content: "log content", name: "ubports-installer.log" },
+              { content: "error one\n\nerror two", name: "ignored errors" }
+            ],
+            result: "FAIL"
+          }
+        );
+      });
+  });
+  it("should send open-cuts run", () => {
+    log.get.mockResolvedValue("log content");
+    errors.errors = [];
+    const smartRun = jest.fn();
+    OpenCutsReporter.mockImplementation(() => ({
+      smartRun
+    }));
     return reporter
       .sendOpenCutsRun(null, {
         result: "PASS"
       })
-      .then(r => expect(r).toEqual(undefined));
+      .then(r => {
+        expect(r).toEqual(undefined);
+        expect(smartRun).toHaveBeenCalledTimes(1);
+        expect(smartRun).toHaveBeenCalledWith(
+          "5e9d746c6346e112514cfec7",
+          "5e9d75406346e112514cfeca",
+          expect.any(String),
+          {
+            combination: [
+              { value: undefined, variable: "Environment" },
+              { value: undefined, variable: "Package" }
+            ],
+            comment: undefined,
+            logs: [{ content: "log content", name: "ubports-installer.log" }],
+            result: "PASS"
+          }
+        );
+      });
   });
 });
 
