@@ -36,7 +36,11 @@
 </script>
 
 {#each $prompts as { id, title, description, link, fields, confirm, dismissable }}
-  <Modal on:close={() => close(id)} showCloseButton={dismissable || false}>
+  <Modal
+    on:close={() => close(id)}
+    showCloseButton={dismissable || false}
+    isOpen
+  >
     <h4 slot="header">{title}</h4>
     <div slot="content">
       <SvelteMarkdown source={description} />
