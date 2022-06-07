@@ -391,14 +391,7 @@ class Core {
     } else if (error && error.message.includes("killed")) {
       throw error; // Used for exiting the installer
     } else {
-      return new Promise((resolve, reject) =>
-        errors.toUser(
-          error,
-          location,
-          () => resolve(this.step(step)), // try again
-          () => resolve(null) // ignore
-        )
-      );
+      return errors.toUser(error, location, () => this.step(step));
     }
   }
 

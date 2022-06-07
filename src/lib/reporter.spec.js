@@ -1,6 +1,8 @@
 process.argv = [null, null, "-vv"];
 const log = require("./log.js");
 jest.mock("./log.js");
+const errors = require("./errors.js");
+jest.mock("./errors.js");
 const { paste } = require("./paste.js");
 jest.mock("./paste.js");
 const cli = require("./cli.js");
@@ -87,26 +89,39 @@ describe("getDeviceLinkMarkdown()", () => {
 
 describe("getDebugInfo()", () => {
   it("should resolve debug without error", () => {
+    errors.errors = ["error one"];
     return reporter
       .getDebugInfo({ error: "Everything exploded", comment: "oh no" })
       .then(decodeURIComponent)
-      .then(r =>
-        expect(r).toContain(
-          "\noh no\n\n" + "**Error:**\n```\nEverything exploded\n```"
-        )
+      .then(
+        r =>
+          expect(r).toContain("\noh no\n\n") &&
+          expect(r).toContain("**Error:**\n```\nEverything exploded\n```")
       );
   });
   it("should resolve debug without error on unknown", () => {
+    errors.errors = [];
     return reporter
       .getDebugInfo({ error: "Unknown Error" })
       .then(decodeURIComponent)
-      .then(r => expect(r).not.toContain("**Error:**"));
+      .then(
+        r =>
+          expect(r).not.toContain("**Error:**") &&
+          expect(r).not.toContain("**Previous Errors:**")
+      );
   });
   it("should resolve debug without error on null", () => {
+    errors.errors = ["error one", "error two"];
     return reporter
       .getDebugInfo({})
       .then(decodeURIComponent)
-      .then(r => expect(r).not.toContain("**Error:**"));
+      .then(
+        r =>
+          expect(r).not.toContain("**Error:**") &&
+          expect(r).toContain("**Previous Errors:**") &&
+          expect(r).toContain("error one") &&
+          expect(r).toContain("error two")
+      );
   });
 });
 

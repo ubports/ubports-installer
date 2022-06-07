@@ -25,6 +25,7 @@ const log = require("./log.js");
 const { OpenCutsReporter } = require("open-cuts-reporter");
 const settings = require("./settings.js");
 const cli = require("./cli.js");
+const errors = require("./errors.js");
 const core = require("../core/core.js");
 const { prompt } = require("./prompt.js");
 const { paste } = require("./paste.js");
@@ -114,6 +115,13 @@ class Reporter {
         data.comment && `\n${data.comment?.trim()}\n`,
         ...(data.error && data.error !== "Unknown Error"
           ? ["**Error:**", "```", data.error, "```"]
+          : []),
+        ...(errors.errors?.length
+          ? [
+              "\n**Previous Errors:**\n```",
+              errors.errors.join("\n```\n```\n"),
+              "```"
+            ]
           : []),
         "<!-- thank you for reporting! -->\n"
       ]
