@@ -49,25 +49,22 @@ class ErrorHandler {
    * @param {Function} ignore callback
    */
   async toUser(error, errorLocation, restart, ignore) {
-    if (window.getMain()) {
-      return new Promise(resolve => {
-        const message = `Error: ${errorLocation || "Unknown"}: ${error}`;
-        const stack = error.stack ? "\nstack trace: " + error.stack : "";
-        log.error(message + stack);
-        const cont = continuePromise => {
-          this.errors.push(message + stack);
-          resolve(continuePromise ? continuePromise() : null);
-        };
-        mainEvent.emit(
-          "user:error",
-          message,
-          () => cont(restart),
-          () => cont(ignore)
-        );
-      });
-    } else {
-      errorHandler.die(error);
-    }
+    if (!window.getMain()) return errorHandler.die(error);
+    return new Promise(resolve => {
+      const message = `Error: ${errorLocation || "Unknown"}: ${error}`;
+      const stack = error.stack ? "\nstack trace: " + error.stack : "";
+      log.error(message + stack);
+      const cont = continuePromise => {
+        this.errors.push(message + stack);
+        resolve(continuePromise ? continuePromise() : null);
+      };
+      mainEvent.emit(
+        "user:error",
+        message,
+        () => cont(restart),
+        () => cont(ignore)
+      );
+    });
   }
 }
 
