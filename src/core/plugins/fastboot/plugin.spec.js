@@ -128,6 +128,74 @@ describe("fastboot plugin", () => {
       });
     });
   });
+  describe("createLogicalPartition()", () => {
+    it("should create logical partition", () => {
+      jest
+        .spyOn(fastbootPlugin.fastboot, "createLogicalPartition")
+        .mockResolvedValue();
+      return fastbootPlugin
+        .action__create_logical_partition({
+          partition: "partition_name",
+          size: 3221225472
+        })
+        .then(() => {
+          expect(
+            fastbootPlugin.fastboot.createLogicalPartition
+          ).toHaveBeenCalledWith("partition_name", 3221225472);
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            expect.stringMatching("Creating logical partition"),
+            true
+          );
+          fastbootPlugin.fastboot.createLogicalPartition.mockRestore();
+        });
+    });
+  });
+  describe("deleteLogicalPartition()", () => {
+    it("should delete logical partition", () => {
+      jest
+        .spyOn(fastbootPlugin.fastboot, "deleteLogicalPartition")
+        .mockResolvedValue();
+      return fastbootPlugin
+        .action__delete_logical_partition({
+          partition: "partition_name"
+        })
+        .then(() => {
+          expect(
+            fastbootPlugin.fastboot.deleteLogicalPartition
+          ).toHaveBeenCalledWith("partition_name");
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            expect.stringMatching("Deleting logical partition"),
+            true
+          );
+          fastbootPlugin.fastboot.deleteLogicalPartition.mockRestore();
+        });
+    });
+  });
+  describe("resizeLogicalPartition()", () => {
+    it("should resize logical partition", () => {
+      jest
+        .spyOn(fastbootPlugin.fastboot, "resizeLogicalPartition")
+        .mockResolvedValue();
+      return fastbootPlugin
+        .action__resize_logical_partition({
+          partition: "partition_name",
+          size: 3221225472
+        })
+        .then(() => {
+          expect(
+            fastbootPlugin.fastboot.resizeLogicalPartition
+          ).toHaveBeenCalledWith("partition_name", 3221225472);
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            expect.stringMatching("Resizing logical partition"),
+            true
+          );
+          fastbootPlugin.fastboot.resizeLogicalPartition.mockRestore();
+        });
+    });
+  });
   describe("wipe_super()", () => {
     it("should wipe super", () => {
       jest.spyOn(fastbootPlugin.fastboot, "wipeSuper").mockResolvedValue();

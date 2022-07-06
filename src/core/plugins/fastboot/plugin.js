@@ -210,6 +210,54 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
+   * fastboot:create_logical_partition action
+   * @returns {Promise}
+   */
+  action__create_logical_partition({ partition, size }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "circuit");
+      this.event.emit("user:write:status", "Creating logical partition", true);
+      this.event.emit(
+        "user:write:under",
+        "Creating logical partition: " + partition
+      );
+      return this.fastboot.createLogicalPartition(partition, size);
+    });
+  }
+
+  /**
+   * fastboot:delete_logical_partition action
+   * @returns {Promise}
+   */
+  action__delete_logical_partition({ partition }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "circuit");
+      this.event.emit("user:write:status", "Deleting logical partition", true);
+      this.event.emit(
+        "user:write:under",
+        "Deleting logical partition: " + partition
+      );
+      return this.fastboot.deleteLogicalPartition(partition);
+    });
+  }
+
+  /**
+   * fastboot:resize_logical_partition action
+   * @returns {Promise}
+   */
+  action__resize_logical_partition({ partition, size }) {
+    return Promise.resolve().then(() => {
+      this.event.emit("user:write:working", "circuit");
+      this.event.emit("user:write:status", "Resizing logical partition", true);
+      this.event.emit(
+        "user:write:under",
+        "Resizing logical partition: " + partition
+      );
+      return this.fastboot.resizeLogicalPartition(partition, size);
+    });
+  }
+
+  /**
    * fastboot:wipe_super action
    * @returns {Promise}
    */
