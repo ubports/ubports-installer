@@ -19,6 +19,11 @@
     <p>
       {$actionData.description}
     </p>
+    {#if $actionData.link}
+      <p>
+        <a href={$actionData.link}>More...</a>
+      </p>
+    {/if}
     {#if $actionData.button}
       <button
         class="btn btn-primary"
