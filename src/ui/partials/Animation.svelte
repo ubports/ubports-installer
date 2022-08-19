@@ -1,67 +1,8 @@
 <script>
-  import { onMount } from "svelte";
   import { animationType, animationVisible } from "../../stores.mjs";
-  import { tsParticles } from "tsparticles-engine";
-  import { loadFull } from "tsparticles";
   import CircuitBoard from "./CircuitBoard.svelte";
   import Squares from "./Squares.svelte";
-
-  onMount(updateAnimations);
-  animationType.subscribe(updateAnimations);
-  animationVisible.subscribe(updateAnimations);
-
-  function updateAnimations() {
-    if (
-      $animationType === "particles" &&
-      $animationVisible &&
-      document.getElementById("tsparticles")
-    ) {
-      document.getElementById("tsparticles").style = "display: inherit";
-      loadFull(tsParticles);
-      tsParticles
-        .load("tsparticles", {
-          particles: {
-            number: { value: 170, density: { enable: !1, value_area: 700 } },
-            color: "#6c757d",
-            opacity: 0.6,
-            size: {
-              value: 2.5,
-              random: !1,
-              anim: { enable: !0, speed: 3, size_min: 1, sync: !1 }
-            },
-            line_linked: {
-              enable: !0,
-              distance: 150,
-              color: "#6c757d",
-              opacity: 0.25,
-              width: 1
-            },
-            move: {
-              enable: !0,
-              speed: 1,
-              direction: "none",
-              random: !0,
-              straight: !1,
-              out_mode: "out",
-              bounce: !1,
-              attract: { enable: !1, rotateX: 600, rotateY: 1200 }
-            }
-          },
-          fpsLimit: 120
-        })
-        .catch(error => {
-          throw new Error(`Animation error: ${error}`);
-        });
-    } else if (document.getElementById("tsparticles")) {
-      document.getElementById("tsparticles").style = "display: none";
-    }
-  }
 </script>
-
-<!--
-  HACK particles can not be conditionally rendered to be reliably shown when transitioning from one working view to the next. We thus hide and show them using css rather than svelte's built-in conditional rendering. Unfortunately, svelte does not yet posess an equivalet to Vue's v-show field.
--->
-<div id="tsparticles" class="animation" />
 
 {#if $animationVisible && $animationType === "circuit"}
   <div class="animation">

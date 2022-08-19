@@ -139,7 +139,7 @@ class Core {
   setDevice(codename) {
     return Promise.resolve()
       .then(() => {
-        mainEvent.emit("user:write:working", "particles");
+        mainEvent.emit("user:write:working", "squares");
         mainEvent.emit("user:write:status", "Preparing installation", true);
         mainEvent.emit("user:write:under", `Fetching ${codename} config`);
       })

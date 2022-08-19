@@ -122,7 +122,7 @@ class HeimdallPlugin extends Plugin {
   action__wait() {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", "Waiting for device", true);
         this.event.emit("user:write:under", "Heimdall is scanning for devices");
       })

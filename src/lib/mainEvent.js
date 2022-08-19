@@ -96,7 +96,7 @@ You might see a confirmation dialog on your device next.`) +
         ]
       : []
   }).then(({ code }) => {
-    mainEvent.emit("user:write:working", "particles");
+    mainEvent.emit("user:write:working", "squares");
     mainEvent.emit("user:write:status", "Unlocking", true);
     mainEvent.emit(
       "user:write:under",

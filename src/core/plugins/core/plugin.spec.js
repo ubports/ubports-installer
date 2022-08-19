@@ -230,7 +230,7 @@ describe("core plugin", () => {
         .then(() => {
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:working",
-            "particles"
+            "squares"
           );
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:status",
@@ -256,7 +256,7 @@ describe("core plugin", () => {
         .then(() => {
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:working",
-            "particles"
+            "squares"
           );
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:status",
@@ -283,7 +283,7 @@ describe("core plugin", () => {
           expect(e.message).toEqual("checksum mismatch");
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:working",
-            "particles"
+            "squares"
           );
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:status",

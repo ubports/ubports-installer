@@ -98,7 +98,7 @@
   });
 
   ipcRenderer.on("user:configure", () => {
-    animationType.set("particles");
+    animationType.set("squares");
     push("/working");
     footerData.set({
       topText: `${$installConfigData.name} (${$installConfigData.codename})`,
