@@ -148,7 +148,7 @@ class CorePlugin extends Plugin {
             break;
           case "preparing":
             this.log.debug(`checking previously downloaded ${group} files`);
-            this.event.emit("user:write:working", "particles");
+            this.event.emit("user:write:working", "squares");
             this.event.emit("user:write:status", "Preparing download", true);
             this.event.emit("user:write:under", `Checking ${group} files...`);
           default:
@@ -157,7 +157,7 @@ class CorePlugin extends Plugin {
       }
     )
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:progress", 0);
         this.event.emit("user:write:speed", 0);
       })
@@ -175,7 +175,7 @@ class CorePlugin extends Plugin {
    */
   action__write({ group, file, content }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", `Writing ${group} config file`);
       this.event.emit("user:write:under", `Writing file...`);
       return fs.writeFile(
@@ -193,7 +193,7 @@ class CorePlugin extends Plugin {
   action__unpack({ group, files }) {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", `Unpacking ${group}`, true);
         this.event.emit("user:write:under", `Unpacking...`);
         return path.join(this.cachePath, this.props.config.codename, group);
@@ -218,7 +218,7 @@ class CorePlugin extends Plugin {
   action__manual_download({ group, file }) {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", "Manual download");
         this.event.emit("user:write:under", `Checking ${group} files...`);
         return checkFile(

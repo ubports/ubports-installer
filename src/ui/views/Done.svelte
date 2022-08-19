@@ -1,9 +1,7 @@
 <script>
   const { ipcRenderer } = require("electron");
 
-    import {
-    installConfigData
-  } from "../../stores.mjs";
+  import { installConfigData } from "../../stores.mjs";
 </script>
 
 <div class="row">

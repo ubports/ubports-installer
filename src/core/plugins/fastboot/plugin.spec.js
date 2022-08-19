@@ -102,6 +102,132 @@ describe("fastboot plugin", () => {
       });
     });
   });
+  describe("boot()", () => {
+    it("should boot custom image", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "boot").mockResolvedValue();
+      return fastbootPlugin
+        .action__boot({
+          partition: "boot",
+          file: "boot.img",
+          group: "firmware"
+        })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.boot).toHaveBeenCalledTimes(1);
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            expect.stringMatching("Your device is being rebooted...")
+          );
+          fastbootPlugin.fastboot.boot.mockRestore();
+        });
+    });
+  });
+  describe("continue()", () => {
+    it("should continue/resume booting", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "continue").mockResolvedValue();
+      return fastbootPlugin.action__continue().then(() => {
+        expect(fastbootPlugin.fastboot.continue).toHaveBeenCalledTimes(1);
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("Resuming boot")
+        );
+        fastbootPlugin.fastboot.continue.mockRestore();
+      });
+    });
+  });
+  describe("erase()", () => {
+    it("should erase partition", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "erase").mockResolvedValue();
+      return fastbootPlugin.action__erase({ partition: "dtbo" }).then(() => {
+        expect(fastbootPlugin.fastboot.erase).toHaveBeenCalledTimes(1);
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("Erasing dtbo partition")
+        );
+        fastbootPlugin.fastboot.erase.mockRestore();
+      });
+    });
+  });
+  describe("flash()", () => {
+    it("should flash partition", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "wait").mockResolvedValue();
+      jest.spyOn(fastbootPlugin.fastboot, "flash").mockResolvedValue();
+      return fastbootPlugin
+        .action__flash({
+          partitions: [
+            {
+              partition: "dtbo",
+              file: "dtbo.img",
+              group: "firmware"
+            },
+            {
+              partition: "recovery",
+              file: "recovery.img",
+              group: "firmware"
+            },
+            {
+              partition: "vbmeta",
+              file: "vbmeta.img",
+              group: "firmware"
+            }
+          ]
+        })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.wait).toHaveBeenCalledTimes(1);
+          expect(fastbootPlugin.fastboot.flash).toHaveBeenCalledTimes(1);
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            expect.stringMatching("Flashing firmware partitions using fastboot")
+          );
+          fastbootPlugin.fastboot.flash.mockRestore();
+          fastbootPlugin.fastboot.wait.mockRestore();
+        });
+    });
+  });
+  describe("format()", () => {
+    it("should format partition", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "format").mockResolvedValue();
+      return fastbootPlugin
+        .action__format({ partition: "userdata", type: "f2fs" })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.format).toHaveBeenCalledTimes(1);
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            expect.stringMatching("Formatting userdata partition")
+          );
+          fastbootPlugin.fastboot.format.mockRestore();
+        });
+    });
+  });
+  describe("reboot()", () => {
+    it("should reboot into system", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "reboot").mockResolvedValue();
+      return fastbootPlugin.action__reboot().then(() => {
+        expect(fastbootPlugin.fastboot.reboot).toHaveBeenCalledTimes(1);
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("system")
+        );
+        fastbootPlugin.fastboot.reboot.mockRestore();
+      });
+    });
+  });
+  describe("reboot_bootloader()", () => {
+    it("should reboot into bootloader", () => {
+      jest
+        .spyOn(fastbootPlugin.fastboot, "rebootBootloader")
+        .mockResolvedValue();
+      return fastbootPlugin.action__reboot_bootloader().then(() => {
+        expect(fastbootPlugin.fastboot.rebootBootloader).toHaveBeenCalledTimes(
+          1
+        );
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("bootloader")
+        );
+        fastbootPlugin.fastboot.rebootBootloader.mockRestore();
+      });
+    });
+  });
   describe("reboot_recovery()", () => {
     it("should reboot into recovery", () => {
       jest.spyOn(fastbootPlugin.fastboot, "rebootRecovery").mockResolvedValue();
@@ -125,6 +251,19 @@ describe("fastboot plugin", () => {
           expect.stringMatching("fastbootd")
         );
         fastbootPlugin.fastboot.rebootFastboot.mockRestore();
+      });
+    });
+  });
+  describe("set_active()", () => {
+    it("should set slot a as active", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "setActive").mockResolvedValue();
+      return fastbootPlugin.action__set_active({ slot: "a" }).then(() => {
+        expect(fastbootPlugin.fastboot.setActive).toHaveBeenCalledWith("a");
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("Activating slot a")
+        );
+        fastbootPlugin.fastboot.setActive.mockRestore();
       });
     });
   });
@@ -194,6 +333,19 @@ describe("fastboot plugin", () => {
           );
           fastbootPlugin.fastboot.resizeLogicalPartition.mockRestore();
         });
+    });
+  });
+  describe("wait()", () => {
+    it("should wait until devices are available for fastboot usage", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "wait").mockResolvedValue();
+      return fastbootPlugin.action__wait().then(() => {
+        expect(fastbootPlugin.fastboot.wait).toHaveBeenCalledTimes(1);
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:under",
+          expect.stringMatching("Fastboot is scanning for devices")
+        );
+        fastbootPlugin.fastboot.wait.mockRestore();
+      });
     });
   });
   describe("wipe_super()", () => {

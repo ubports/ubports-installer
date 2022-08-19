@@ -148,7 +148,7 @@ class AdbPlugin extends Plugin {
   action__reboot({ to_state }) {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", "Rebooting");
         this.event.emit("user:write:under", "Rebooting to " + to_state);
       })
@@ -164,7 +164,7 @@ class AdbPlugin extends Plugin {
     const _event = this.event;
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", "Reconnecting", true);
         this.event.emit("user:write:under", "Reconnecting to the device");
       })
@@ -189,7 +189,7 @@ class AdbPlugin extends Plugin {
   action__wait() {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", "Waiting for device", true);
         this.event.emit("user:write:under", "Adb is scanning for devices");
       })

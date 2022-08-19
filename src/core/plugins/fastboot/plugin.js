@@ -105,7 +105,7 @@ class FastbootPlugin extends Plugin {
    */
   action__reboot_bootloader() {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Rebooting", true);
       this.event.emit("user:write:under", "Rebooting to bootloader");
       return this.fastboot.rebootBootloader();
@@ -118,7 +118,7 @@ class FastbootPlugin extends Plugin {
    */
   action__reboot_fastboot() {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Rebooting", true);
       this.event.emit("user:write:under", "Rebooting to fastbootd");
       return this.fastboot.rebootFastboot();
@@ -131,7 +131,7 @@ class FastbootPlugin extends Plugin {
    */
   action__reboot_recovery() {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Rebooting", true);
       this.event.emit("user:write:under", "Rebooting to recovery");
       return this.fastboot.rebootRecovery();
@@ -144,7 +144,7 @@ class FastbootPlugin extends Plugin {
    */
   action__reboot() {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Rebooting", true);
       this.event.emit("user:write:under", "Rebooting system");
       return this.fastboot.reboot();
@@ -157,7 +157,7 @@ class FastbootPlugin extends Plugin {
    */
   action__continue() {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Continuing boot", true);
       this.event.emit("user:write:under", "Resuming boot");
       return this.fastboot.continue();
@@ -170,7 +170,7 @@ class FastbootPlugin extends Plugin {
    */
   action__set_active({ slot }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Setting slots", true);
       this.event.emit("user:write:under", `Activating slot ${slot}`);
       return this.fastboot.setActive(slot);
@@ -318,7 +318,7 @@ class FastbootPlugin extends Plugin {
    */
   action__boot({ group, file, partition }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Rebooting");
       this.event.emit("user:write:under", "Your device is being rebooted...");
       return this.fastboot.boot(
@@ -334,7 +334,7 @@ class FastbootPlugin extends Plugin {
    */
   action__update({ group, file }) {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:working", "particles");
+      this.event.emit("user:write:working", "squares");
       this.event.emit("user:write:status", "Updating system", true);
       this.event.emit(
         "user:write:under",
@@ -354,7 +354,7 @@ class FastbootPlugin extends Plugin {
   action__wait() {
     return Promise.resolve()
       .then(() => {
-        this.event.emit("user:write:working", "particles");
+        this.event.emit("user:write:working", "squares");
         this.event.emit("user:write:status", "Waiting for device", true);
         this.event.emit("user:write:under", "Fastboot is scanning for devices");
       })
