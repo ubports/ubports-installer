@@ -20,11 +20,8 @@
 
 const Plugin = require("../plugin.js");
 const api = require("./api.js");
-const fs = require("fs");
+const fs = require("fs/promises");
 const path = require("path");
-const util = require("util");
-
-const fsRename = util.promisify(fs.rename);
 
 /**
  * postmarketOS plugin
@@ -75,31 +72,33 @@ class PostmarketOSPlugin extends Plugin {
    * action rename_unpacked_files
    * @returns {Promise<void>}
    */
-  async action__rename_unpacked_files({ group, files }) {
-    this.event.emit("user:write:working", "squares");
-    this.event.emit("user:write:status", "Preparing files", true);
-    this.event.emit("user:write:under", "Preparing files");
-    const basepath = path.join(
-      this.cachePath,
-      this.props.config.codename,
-      group
-    );
-    files = files.map(file => ({
-      ...file,
-      path: path.join(basepath, file.name || path.basename(file.url))
-    }));
+  action__rename_unpacked_files({ group, files }) {
+    return Promise.resolve().then(async () => {
+      this.event.emit("user:write:working", "squares");
+      this.event.emit("user:write:status", "Preparing files", true);
+      this.event.emit("user:write:under", "Preparing files");
+      const basepath = path.join(
+        this.cachePath,
+        this.props.config.codename,
+        group
+      );
+      files = files.map(file => ({
+        ...file,
+        path: path.join(basepath, file.name || path.basename(file.url))
+      }));
 
-    // Detect which image is which type, see: https://gitlab.com/postmarketOS/build.postmarketos.org/-/issues/113
-    const rootfs_path = files
-      .find(file => !file.path.endsWith("boot.img.xz"))
-      .path.replace(/.xz$/, "");
-    const boot_path = files
-      .find(file => file.path.endsWith("boot.img.xz"))
-      .path.replace(/.xz$/, "");
-    return Promise.all([
-      fsRename(rootfs_path, path.join(basepath, "rootfs.img")),
-      fsRename(boot_path, path.join(basepath, "boot.img"))
-    ]);
+      // Detect which image is which type, see: https://gitlab.com/postmarketOS/build.postmarketos.org/-/issues/113
+      const rootfs_path = files
+        .find(file => !file.path.endsWith("boot.img.xz"))
+        .path.replace(/.xz$/, "");
+      const boot_path = files
+        .find(file => file.path.endsWith("boot.img.xz"))
+        .path.replace(/.xz$/, "");
+      await Promise.all([
+        fs.rename(rootfs_path, path.join(basepath, "rootfs.img")),
+        fs.rename(boot_path, path.join(basepath, "boot.img"))
+      ]);
+    });
   }
 
   /**
