@@ -1,12 +1,17 @@
 process.argv = [null, null, "-vv"];
 const mainEvent = { emit: jest.fn() };
 const log = { error: jest.fn(), debug: jest.fn(), info: jest.fn() };
+const asarLibs = require("../../helpers/asarLibs.js");
+jest.mock("../../helpers/asarLibs.js");
 beforeEach(() => {
   mainEvent.emit.mockReset();
   log.error.mockReset();
   log.debug.mockReset();
   log.info.mockReset();
+  asarLibs.unpack.mockClear();
 });
+
+const path = require("path");
 
 const { download, checkFile } = require("progressive-downloader");
 const { writeFile } = require("fs-extra");
@@ -209,11 +214,60 @@ describe("core plugin", () => {
   });
 
   describe("action__unpack()", () => {
-    it("should unpack", () =>
-      core.action__unpack({
-        group: "firmware",
-        files: [{ archive: "a.zip", dir: "a" }]
-      })); // TODO add assertions
+    it("should unpack to a child directory called 'unpacked'", () => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      return core
+        .action__unpack({
+          group: "firmware",
+          files: [{ archive: "a.zip", dir: "unpacked" }]
+        })
+        .then(() => {
+          expect(asarLibs.unpack).toHaveBeenCalledTimes(1);
+          expect(asarLibs.unpack).toHaveBeenCalledWith(
+            path.join("a/yggdrasil/firmware", "a.zip"),
+            path.join("a/yggdrasil/firmware", "unpacked"),
+            expect.any(Function)
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(3);
+        });
+    });
+    it("should unpack to directory where archive is located", () => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      return core
+        .action__unpack({
+          group: "firmware",
+          files: [{ archive: "a.zip" }]
+        })
+        .then(() => {
+          expect(asarLibs.unpack).toHaveBeenCalledTimes(1);
+          expect(asarLibs.unpack).toHaveBeenCalledWith(
+            path.join("a/yggdrasil/firmware", "a.zip"),
+            path.join("a/yggdrasil/firmware", "."),
+            expect.any(Function)
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(3);
+        });
+    });
+    it("should reject on unpack errors", () => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      asarLibs.unpack.mockImplementation((e, f, cb) =>
+        cb(new Error("test error"))
+      );
+      return core
+        .action__unpack({
+          group: "firmware",
+          files: [{ archive: "a.zip" }]
+        })
+        .catch(e => {
+          expect(e.message).toEqual("Failed to unpack: Error: test error");
+        });
+    });
   });
 
   describe("action__manual_download()", () => {
