@@ -56,7 +56,7 @@
   "dependencies": {
     "7zip-min": "^1.4.3",
     "axios": "^0.27.2",
-    "bootstrap": "^5.2.0",
+    "bootstrap": "^5.2.1",
     "cancelable-promise": "^4.3.0",
     "commander": "^9.4.0",
     "electron-open-link-in-browser": "^1.0.2",
@@ -66,14 +66,14 @@
     "graphql": "^16.6.0",
     "open-cuts-reporter": "^1.0.2",
     "progressive-downloader": "^1.0.7",
-    "promise-android-tools": "^4.0.11",
+    "promise-android-tools": "^4.0.13",
     "ps-tree": "^1.2.0",
     "semver": "^7.3.7",
     "sudo-prompt": "^9.2.1",
     "svelte-markdown": "^0.2.3",
     "sveltestrap": "^5.9.0",
     "systeminformation": "^5.12.6",
-    "winston": "^3.8.1",
+    "winston": "^3.8.2",
     "yaml": "^2.1.1"
   },
   "arkit": {
