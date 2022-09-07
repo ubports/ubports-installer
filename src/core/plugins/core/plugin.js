@@ -200,14 +200,23 @@ class CorePlugin extends Plugin {
       })
       .then(basepath =>
         Promise.all(
-          files.map(file =>
-            unpack(
-              path.join(basepath, file.archive),
-              path.join(basepath, file.dir)
-            )
-          )
+          files.map(file => {
+            const archive = path.join(basepath, file.archive);
+            const directory = path.join(basepath, file.dir || ".");
+            this.log.debug("Unpacking " + archive + " to: " + directory);
+            return new Promise(function (resolve, reject) {
+              unpack(archive, directory, err => {
+                if (err) {
+                  reject(Error("Failed to unpack: " + err));
+                } else {
+                  resolve();
+                }
+              });
+            });
+          })
         )
-      );
+      )
+      .then(() => Promise.resolve());
   }
 
   /**
