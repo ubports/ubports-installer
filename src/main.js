@@ -67,7 +67,7 @@ async function createWindow() {
   log.verbose("Versions: " + JSON.stringify(process.versions));
 
   mainWindow = new BrowserWindow({
-    width: cli.debug ? 1400 : 1000,
+    width: cli.inspect ? 1400 : 1000,
     minWidth: 800,
     height: 750,
     minHeight: 600,
@@ -117,7 +117,7 @@ async function createWindow() {
     })
   );
 
-  if (cli.debug) mainWindow.webContents.openDevTools();
+  if (cli.inspect) mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", function () {
     mainWindow = null;

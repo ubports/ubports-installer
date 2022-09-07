@@ -31,7 +31,7 @@ ${packageInfo.homepage}`;
 cli
   .version(packageInfo.version)
   .name(packageInfo.package ? packageInfo.name : "npm start --")
-  .usage("[-f <file>] [-v[v] [-d]")
+  .usage("[-f <file>] [-v[v] [-i]")
   .description(description)
   .option(
     "-f, --file <file>",
@@ -44,7 +44,7 @@ cli
     0
   )
   .option(
-    "-d, --debug",
+    "-i, --inspect",
     "Enable electron's web debugger to inspect the frontend",
     false
   )
