@@ -9,8 +9,9 @@ const log = {
 };
 
 const settings = {};
+const session = new (require("../helpers/session.js"))();
 
-const pluginArgs = [{}, "a", {}, log, settings];
+const pluginArgs = [{}, "a", {}, log, settings, session];
 
 const pluginIndex = new (require("./index.js"))(...pluginArgs);
 const originalPluginList = pluginIndex.plugins;
@@ -36,6 +37,7 @@ describe("PluginIndex", () => {
   });
   describe("action", () => {
     it("should run action", () => {
+      pluginIndex.session.reset();
       jest
         .spyOn(pluginIndex.plugins.adb, "action__format")
         .mockResolvedValue(1337);
@@ -46,9 +48,14 @@ describe("PluginIndex", () => {
         });
         expect(pluginIndex.plugins.adb.action__format).toHaveBeenCalledTimes(1);
         pluginIndex.plugins.adb.action__format.mockRestore();
+        expect(Array.from(pluginIndex.session.get())).toContainEqual([
+          "adb:format",
+          { error: null, args: { a: "b" } }
+        ]);
       });
     });
     it("should reject on error", done => {
+      pluginIndex.session.reset();
       jest
         .spyOn(pluginIndex.plugins.adb, "action__format")
         .mockRejectedValue("terrible");

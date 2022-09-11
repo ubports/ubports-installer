@@ -42,10 +42,11 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
  * @property {SystemimagePlugin} plugins.systemimage systemimage plugin
  */
 class PluginIndex {
-  constructor(props, cachePath, mainEvent, log, settings) {
+  constructor(props, cachePath, mainEvent, log, settings, session) {
     this.props = props;
     this.log = log;
     this.settings = settings;
+    this.session = session;
     this.event = mainEvent;
     const pluginArgs = [props, cachePath, this.event, log, settings];
     this.plugins = {
@@ -78,11 +79,12 @@ class PluginIndex {
   action(action) {
     return Promise.resolve(this.parsePluginId(action)).then(([p, f]) => {
       this.log.verbose(`running ${p} action ${f}`);
-      return this.plugins[p][`action__${f}`](action[`${p}:${f}`]).catch(
-        error => {
+      return this.plugins[p][`action__${f}`](action[`${p}:${f}`])
+        .then(r => this.session.push(...Object.entries(action)[0]) || r)
+        .catch(error => {
+          this.session.push(...Object.entries(action)[0], error);
           throw { error, action: `${p}:${f}` };
-        }
-      );
+        });
     });
   }
 

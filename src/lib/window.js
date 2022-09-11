@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * Copyright (C) 2017-2021 UBports Foundation <info@ubports.com>
+ * Copyright (C) 2017-2022 UBports Foundation <info@ubports.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,11 @@ class Window {
    */
   send(channel, ...args) {
     const main = this.getMain();
-    if (main) main.send(channel, ...args);
+    try {
+      if (main) main.send(channel, ...args);
+    } catch (error) {
+      throw new Error(`Failed to send ${channel}: ${error}`);
+    }
   }
 }
 
