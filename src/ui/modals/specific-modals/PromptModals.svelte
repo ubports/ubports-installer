@@ -46,63 +46,70 @@
       <SvelteMarkdown source={description} />
       {#if link}<a href={link}>More Information...</a>{/if}
       {#each fields as field}
-        <div class="row">
-          <label for="" class="col-3 col-form-label"
-            >{field.name || field.title}</label
-          >
-          <div class="col-9 d-flex align-items-center">
-            {#if field.type === "select"}
-              <select class="form-select" bind:value={formData[id][field.var]}>
-                {#each field.values as value}
-                  <option disabled={value.disabled} value={value.value}
-                    >{value.label}</option
-                  >
-                {/each}
-              </select>
-            {:else if field.type === "checkbox"}
-              <input
-                class="form-check-input"
-                type="checkbox"
-                bind:checked={formData[id][field.var]}
-              />
-            {:else if field.type === "text"}
-              <input
-                class="form-input"
-                type="text"
-                placeholder={field.placeholder}
-                bind:value={formData[id][field.var]}
-              />
-            {:else if field.type === "password"}
-              <input
-                class="form-input"
-                type="password"
-                placeholder={field.placeholder}
-                bind:value={formData[id][field.var]}
-              />
-            {:else if field.type === "readonly"}
-              <input
-                class="form-input"
-                type="text"
-                placeholder={field.placeholder}
-                bind:value={formData[id][field.var]}
-                readonly
-              />
-            {:else}
-              <SvelteMarkdown source={field.description} />
-            {/if}
-          </div>
-        </div>
-
-        {#if field.tooltip || field.link}
-          <dl class="row">
-            <dt class="col-3" />
-            <dd class="col-9">
-              {field.tooltip || ""}
-              {#if field.link}
-                <a href={field.link}>More...</a>
+        {#if field.type === "hidden"}
+          <!-- Hiding field {field.name || field.title} -->
+        {:else}
+          <div class="row">
+            <label for="" class="col-3 col-form-label"
+              >{field.name || field.title}</label
+            >
+            <div class="col-9 d-flex align-items-center">
+              {#if field.type === "select"}
+                <select
+                  class="form-select"
+                  bind:value={formData[id][field.var]}
+                >
+                  {#each field.values as value}
+                    <option disabled={value.disabled} value={value.value}
+                      >{value.label}</option
+                    >
+                  {/each}
+                </select>
+              {:else if field.type === "checkbox"}
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  bind:checked={formData[id][field.var]}
+                />
+              {:else if field.type === "text"}
+                <input
+                  class="form-input"
+                  type="text"
+                  placeholder={field.placeholder}
+                  bind:value={formData[id][field.var]}
+                />
+              {:else if field.type === "password"}
+                <input
+                  class="form-input"
+                  type="password"
+                  placeholder={field.placeholder}
+                  bind:value={formData[id][field.var]}
+                />
+              {:else if field.type === "readonly"}
+                <input
+                  class="form-input"
+                  type="text"
+                  placeholder={field.placeholder}
+                  bind:value={formData[id][field.var]}
+                  readonly
+                />
+              {:else}
+                <SvelteMarkdown source={field.description} />
               {/if}
-            </dd>
-          </dl>
+            </div>
+          </div>
+
+          {#if field.tooltip || field.link}
+            <dl class="row">
+              <dt class="col-3" />
+              <dd class="col-9">
+                {field.tooltip || ""}
+                {#if field.link}
+                  <a href={field.link}>More...</a>
+                {/if}
+              </dd>
+            </dl>
+          {/if}
         {/if}
       {/each}
     </div>
