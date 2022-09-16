@@ -19,7 +19,10 @@ const pmosPlugin = new (require("./plugin.js"))(
       interface: "someinterface"
     },
     config: {
-      codename: "somecodename"
+      codename: "config_codename"
+    },
+    os: {
+      codename: "os_codename"
     }
   },
   cachePath,
@@ -37,7 +40,7 @@ describe("postmarketos plugin", () => {
       expect(api.getImages).toHaveBeenCalledWith(
         "somerelease",
         "someinterface",
-        "somecodename"
+        "os_codename"
       );
       expect(ret[0]).toBeDefined();
       expect(ret[0].actions).toContainEqual({
@@ -64,7 +67,7 @@ describe("postmarketos plugin", () => {
       jest.spyOn(pmosPlugin.event, "emit").mockReturnValue();
 
       const group = "group";
-      const basepath = path.join(cachePath, "somecodename", group);
+      const basepath = path.join(cachePath, "config_codename", group);
       const files = [
         {
           url: "https://asdf.io/somethingelse.img.xz"
@@ -91,7 +94,7 @@ describe("postmarketos plugin", () => {
     it("should get interfaces", async () => {
       await pmosPlugin.remote_values__interfaces();
 
-      expect(api.getInterfaces).toHaveBeenCalledWith("somecodename");
+      expect(api.getInterfaces).toHaveBeenCalledWith("os_codename");
     });
   });
 
@@ -99,7 +102,7 @@ describe("postmarketos plugin", () => {
     it("should get releases", async () => {
       api.getReleases.mockResolvedValueOnce(["a", "b"]);
       const result = await pmosPlugin.remote_values__releases();
-      expect(api.getReleases).toHaveBeenCalledWith("somecodename");
+      expect(api.getReleases).toHaveBeenCalledWith("os_codename");
       expect(result).toContainEqual({
         label: "a",
         value: "a"

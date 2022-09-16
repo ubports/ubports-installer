@@ -37,7 +37,7 @@ class PostmarketOSPlugin extends Plugin {
       .getImages(
         this.props.settings["release"],
         this.props.settings["interface"],
-        this.props.config.codename
+        this.props.os.codename ?? this.props.config.codename
       )
       .then(files => [
         {
@@ -106,7 +106,9 @@ class PostmarketOSPlugin extends Plugin {
    * @returns {Promise<Array<Object>>}
    */
   remote_values__interfaces() {
-    return api.getInterfaces(this.props.config.codename);
+    return api.getInterfaces(
+      this.props.os.codename ?? this.props.config.codename
+    );
   }
 
   /**
@@ -114,12 +116,14 @@ class PostmarketOSPlugin extends Plugin {
    * @returns {Promise<Array<Object>>}
    */
   remote_values__releases() {
-    return api.getReleases(this.props.config.codename).then(releases =>
-      releases.map(release => ({
-        value: release,
-        label: release
-      }))
-    );
+    return api
+      .getReleases(this.props.os.codename ?? this.props.config.codename)
+      .then(releases =>
+        releases.map(release => ({
+          value: release,
+          label: release
+        }))
+      );
   }
 }
 
