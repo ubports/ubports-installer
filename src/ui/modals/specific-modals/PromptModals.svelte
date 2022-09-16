@@ -79,6 +79,14 @@
                 placeholder={field.placeholder}
                 bind:value={formData[id][field.var]}
               />
+            {:else if field.type === "readonly"}
+              <input
+                class="form-input"
+                type="text"
+                placeholder={field.placeholder}
+                bind:value={formData[id][field.var]}
+                readonly
+              />
             {:else}
               <SvelteMarkdown source={field.description} />
             {/if}
