@@ -24,7 +24,7 @@ const axios = require("axios");
 
 const baseURL = "https://images.postmarketos.org";
 
-const api = axios.create({ baseURL, timeout: 15000 });
+const api = axios.create({ baseURL, timeout: 60000 });
 
 /**
  * get interfaces from api
