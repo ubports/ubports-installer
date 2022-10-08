@@ -23,7 +23,7 @@ const axios = require("axios");
 
 const baseURL = "https://release.asteroidos.org/";
 
-const api = axios.create({ baseURL, timeout: 15000 });
+const api = axios.create({ baseURL, timeout: 60000 });
 
 /**
  * get images from api

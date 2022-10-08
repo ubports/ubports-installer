@@ -24,7 +24,7 @@ const path = require("path");
 
 const baseURL = require("../../../lib/cli.js").systemimage;
 
-const api = axios.create({ baseURL, timeout: 15000 });
+const api = axios.create({ baseURL, timeout: 60000 });
 
 const gpgFiles = [
   "image-signing.tar.xz",

@@ -25,7 +25,7 @@ const baseURL = "https://download.lineageos.org/api/v1/";
 const deviceBuildTypeURL = `${baseURL}types/`;
 const rootfsDefaultName = "lineageos_rootfs_";
 
-const api = axios.create({ baseURL, timeout: 15000 });
+const api = axios.create({ baseURL, timeout: 60000 });
 
 /**
  * get latest build from the api TODO make it better

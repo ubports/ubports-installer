@@ -23,7 +23,7 @@ const axios = require("axios");
 
 const api = axios.create({
   baseURL: "https://ubports.github.io/installer-configs/v2/",
-  timeout: 15000
+  timeout: 60000
 });
 
 /**
