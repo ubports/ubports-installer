@@ -33,11 +33,11 @@
     "test": "npx jest --coverage"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^22.0.2",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^14.1.0",
+    "@rollup/plugin-commonjs": "^23.0.0",
+    "@rollup/plugin-json": "^5.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
     "arkit": "^1.6.4",
-    "electron": "^20.3.1",
+    "electron": "^21.1.0",
     "electron-builder": "^23.6.0",
     "electron-packager": "^16.0.0",
     "electron-reload": "^1.5.0",
@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "7zip-min": "^1.4.3",
-    "axios": "^0.27.2",
+    "axios": "^1.1.2",
     "bootstrap": "^5.2.2",
     "cancelable-promise": "^4.3.0",
     "commander": "^9.4.1",
