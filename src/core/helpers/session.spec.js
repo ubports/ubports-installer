@@ -6,10 +6,10 @@ describe("Session", () => {
     expect(session.store).toBeInstanceOf(Map);
   });
   it("should store", () => {
-    session.push("fastboot:boot", { partition: "recovery" });
-    session.push("adb:shell");
-    session.push("adb:shell", null, "some error");
-    session.push("adb:shell");
+    session.set("fastboot:boot", { partition: "recovery" });
+    session.set("adb:shell");
+    session.set("adb:shell", null, "some error");
+    session.set("adb:shell");
     expect(Object.fromEntries(session.get())).toEqual({
       "adb:shell": { error: "some error", args: null },
       "fastboot:boot": { args: { partition: "recovery" }, error: null }

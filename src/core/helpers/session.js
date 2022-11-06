@@ -26,7 +26,7 @@ class Session {
     this.store = new Map();
   }
 
-  push(action, args, error = null) {
+  set(action, args, error = null) {
     if (!this.store.get(action)?.error) this.store.set(action, { args, error });
   }
 

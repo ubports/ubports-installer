@@ -42,9 +42,9 @@ class Window {
    * @param  {...any} args arguments to send
    */
   send(channel, ...args) {
-    const main = this.getMain();
     try {
-      if (main) main.send(channel, ...args);
+      const main = this.getMain();
+      main?.send(channel, ...args);
     } catch (error) {
       throw new Error(`Failed to send ${channel}: ${error}`);
     }

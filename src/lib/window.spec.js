@@ -37,9 +37,21 @@ describe("Window class", () => {
       expect(window.send("a", "b", { c: "d" })).toEqual(undefined);
       expect(mockWebContents.send).toHaveBeenCalledWith("a", "b", { c: "d" });
     });
-    it("should fail silently", () => {
+    it("should pass silently if window is null", () => {
       webContents.fromId.mockReturnValue(null);
       expect(window.send("a", "b", { c: "d" })).toEqual(undefined);
+    });
+    it("should throw on error", done => {
+      webContents.fromId.mockReturnValue({
+        send: () => {
+          throw "error";
+        }
+      });
+      try {
+        window.send("a", "b", { c: "d" });
+      } catch (e) {
+        done();
+      }
     });
   });
 });

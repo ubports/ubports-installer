@@ -80,9 +80,9 @@ class PluginIndex {
     return Promise.resolve(this.parsePluginId(action)).then(([p, f]) => {
       this.log.verbose(`running ${p} action ${f}`);
       return this.plugins[p][`action__${f}`](action[`${p}:${f}`])
-        .then(r => this.session.push(...Object.entries(action)[0]) || r)
+        .then(r => this.session.set(...Object.entries(action)[0]) || r)
         .catch(error => {
-          this.session.push(...Object.entries(action)[0], error);
+          this.session.set(...Object.entries(action)[0], error);
           throw { error, action: `${p}:${f}` };
         });
     });
