@@ -1,4 +1,6 @@
 import svelte from "rollup-plugin-svelte";
+import autoPreprocess from "svelte-preprocess";
+import typescript from "@rollup/plugin-typescript";
 import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
@@ -45,10 +47,12 @@ export default {
   },
   plugins: [
     svelte({
+      preprocess: autoPreprocess(),
       compilerOptions: {
         dev: !production
       }
     }),
+    typescript({ sourceMap: !production }),
     css({ output: "theme.css" }),
     resolve({
       browser: true,

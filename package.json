@@ -37,6 +37,8 @@
     "@rollup/plugin-json": "^5.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-typescript": "^9.0.2",
+    "@tsconfig/svelte": "^3.0.0",
     "arkit": "^1.6.4",
     "electron": "^22.0.0-beta.3",
     "electron-builder": "^23.6.0",
@@ -51,7 +53,10 @@
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-svelte": "^7.1.0",
     "svelte": "^3.52.0",
-    "svelte-spa-router": "^3.3.0"
+    "svelte-check": "^2.9.2",
+    "svelte-preprocess": "^4.10.7",
+    "svelte-spa-router": "^3.3.0",
+    "typescript": "^4.9.3"
   },
   "dependencies": {
     "7zip-min": "^1.4.3",

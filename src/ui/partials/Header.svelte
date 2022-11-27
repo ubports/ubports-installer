@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { version } from "../../../package.json";
   const { ipcRenderer } = require("electron");
 
