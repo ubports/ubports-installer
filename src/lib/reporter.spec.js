@@ -157,6 +157,7 @@ describe("sendOpenCutsRun()", () => {
   it("should send open-cuts run", () => {
     log.get.mockResolvedValue("log content");
     errors.errors = ["error one", "error two"];
+    core.session.getActionsDebugInfo.mockReturnValue("adb:shell: OK");
     const smartRun = jest.fn();
     OpenCutsReporter.mockImplementation(() => ({
       smartRun
@@ -179,8 +180,9 @@ describe("sendOpenCutsRun()", () => {
             ],
             comment: undefined,
             logs: [
-              { content: "log content", name: "ubports-installer.log" },
-              { content: "error one\n\nerror two", name: "ignored errors" }
+              { name: "actions", content: "adb:shell: OK" },
+              { name: "ubports-installer.log", content: "log content" },
+              { name: "ignored errors", content: "error one\n\nerror two" }
             ],
             result: "FAIL"
           }
@@ -190,6 +192,7 @@ describe("sendOpenCutsRun()", () => {
   it("should send open-cuts run", () => {
     log.get.mockResolvedValue("log content");
     errors.errors = [];
+    core.session.getActionsDebugInfo.mockReturnValue();
     const smartRun = jest.fn();
     OpenCutsReporter.mockImplementation(() => ({
       smartRun

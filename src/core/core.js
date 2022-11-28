@@ -28,6 +28,7 @@ const settings = require("../lib/settings.js");
 const errors = require("../lib/errors.js");
 const window = require("../lib/window.js");
 const api = require("./helpers/api.js");
+const Session = require("./helpers/session.js");
 const PluginIndex = require("./plugins/index.js");
 const packageInfo = require("../../package.json");
 const semver = require("semver");
@@ -47,6 +48,7 @@ const semver = require("semver");
  */
 class Core {
   constructor() {
+    this.session = new Session();
     this.props = {};
     this.reset();
     this.plugins = new PluginIndex(
@@ -54,7 +56,8 @@ class Core {
       cachePath,
       mainEvent,
       log,
-      settings
+      settings,
+      this.session
     );
   }
 
@@ -62,6 +65,7 @@ class Core {
    * reset run properties
    */
   reset() {
+    this.session.reset();
     this.props = {
       config: null,
       os: null,

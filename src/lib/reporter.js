@@ -190,6 +190,14 @@ class Reporter {
           }
         ],
         logs: [
+          ...(core.session.getActionsDebugInfo()
+            ? [
+                {
+                  name: "actions",
+                  content: core.session.getActionsDebugInfo()
+                }
+              ]
+            : []),
           {
             name: "ubports-installer.log",
             content: await logfile
