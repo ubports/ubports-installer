@@ -121,6 +121,90 @@ describe("systemimage plugin", () => {
             ])
           );
       });
+      it("should sort the channels based on stability", async () => {
+        api.getChannels.mockResolvedValueOnce([
+          {
+            hidden: false,
+            label: "20.04/rc",
+            value: "20.04/arm64/android9plus/rc"
+          },
+          {
+            hidden: false,
+            label: "16.04/stable",
+            value: "16.04/arm64/android9/stable"
+          },
+          {
+            hidden: false,
+            label: "16.04/rc",
+            value: "16.04/arm64/android9/rc"
+          }
+        ]);
+
+        const res = await systemimage.remote_values__channels();
+        expect(res).toEqual([
+          { label: "16.04/stable", value: "16.04/arm64/android9/stable" },
+          { label: "16.04/rc", value: "16.04/arm64/android9/rc" },
+          { label: "20.04/rc", value: "20.04/arm64/android9plus/rc" }
+        ]);
+      });
+      it("should rename labels when they are equal to values", async () => {
+        api.getChannels.mockResolvedValueOnce([
+          {
+            hidden: false,
+            label: "20.04/arm64/android9plus/rc",
+            value: "20.04/arm64/android9plus/rc"
+          },
+          {
+            hidden: false,
+            label: "16.04/arm64/android9/stable",
+            value: "16.04/arm64/android9/stable"
+          },
+          {
+            hidden: false,
+            label: "16.04/arm64/android9/rc",
+            value: "16.04/arm64/android9/rc"
+          }
+        ]);
+
+        const res = await systemimage.remote_values__channels();
+        expect(res).toEqual([
+          { label: "16.04/stable", value: "16.04/arm64/android9/stable" },
+          { label: "16.04/rc", value: "16.04/arm64/android9/rc" },
+          { label: "20.04/rc", value: "20.04/arm64/android9plus/rc" }
+        ]);
+      });
+      it("should sort higher stable versions first", async () => {
+        api.getChannels.mockResolvedValueOnce([
+          {
+            hidden: false,
+            label: "16.04/arm64/android9/stable",
+            value: "16.04/arm64/android9/stable"
+          },
+          {
+            hidden: false,
+            label: "16.04/arm64/android9/rc",
+            value: "16.04/arm64/android9/rc"
+          },
+          {
+            hidden: false,
+            label: "20.04/arm64/android9plus/rc",
+            value: "20.04/arm64/android9plus/rc"
+          },
+          {
+            hidden: false,
+            label: "20.04/arm64/android9plus/stable",
+            value: "20.04/arm64/android9plus/stable"
+          }
+        ]);
+
+        const res = await systemimage.remote_values__channels();
+        expect(res).toEqual([
+          { label: "20.04/stable", value: "20.04/arm64/android9plus/stable" },
+          { label: "20.04/rc", value: "20.04/arm64/android9plus/rc" },
+          { label: "16.04/stable", value: "16.04/arm64/android9/stable" },
+          { label: "16.04/rc", value: "16.04/arm64/android9/rc" }
+        ]);
+      });
     });
   });
 });
