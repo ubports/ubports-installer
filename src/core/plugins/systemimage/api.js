@@ -86,31 +86,28 @@ const getImages = (channel, device, wipe, enable = [], disable = []) =>
 /**
  * get channels from api
  * @param {String} device device codename
- * @returns {Promise<Array<String>>} channels
+ * @returns {Promise<Array<Object>>} channels
  * @throws {Error} message "unsupported" if 404 not found
  */
-const getChannels = device =>
-  api
-    .get("channels.json")
-    .then(({ data }) => Object.entries(data))
-    .then(channels =>
-      channels
-        .filter(
-          ([name, properties]) =>
-            !(
-              (
-                !properties ||
-                properties.redirect ||
-                (properties.alias && properties.hidden) ||
-                !properties.devices
-              ) // remove invalid channels
-            ) && properties.devices[device] // remove channels that don't serve this device
-        )
-        .map(([name, properties]) => ({
-          value: name,
-          label: name.replace("ubports-touch/", ""),
-          hidden: properties.hidden || false
-        }))
-    );
+async function getChannels(device) {
+  const { data } = await api.get("channels.json");
+  return Object.entries(data)
+    .filter(
+      ([name, properties]) =>
+        !(
+          (
+            !properties ||
+            properties.redirect ||
+            (properties.alias && properties.hidden) ||
+            !properties.devices
+          ) // remove invalid channels
+        ) && properties.devices[device] // remove channels that don't serve this device
+    )
+    .map(([name, properties]) => ({
+      value: name,
+      label: name.replace("ubports-touch/", ""),
+      hidden: properties.hidden || false
+    }));
+}
 
 module.exports = { getImages, getChannels };
