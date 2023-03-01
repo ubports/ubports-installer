@@ -33,7 +33,7 @@
       want to <a href="http://devices.ubuntu-touch.io">file a bug</a>.
     </p>
     <button
-      class="btn btn-default"
+      class="btn btn-outline-dark"
       style="width: 100%;"
       on:click={() => showSelectDeviceModal.set(true)}
       >Select device manually</button

@@ -21,17 +21,22 @@
       explore Ubuntu Touch.
     </p>
     <p>
-      Found something you don't like? <a
+      Found something you don't like?<br /><a
         href="https://github.com/ubports/ubports-touch">Tell us</a
       >, or help us change it!
     </p>
     <p>
       Development of Ubuntu Touch is driven by the <a href="https://ubports.com"
         >UBports Community</a
-      >. <a href="https://ubports.com/donate">Donate</a> now to allow us to
-      continue our mission!
+      >.
+    </p>
+    <p>
+      <a href="https://ubports.com/donate">Donate</a> now to allow us to continue
+      our mission!
+    </p>
+    <div class="col">
       <a
-        class="btn btn-default"
+        class="btn btn-outline-dark"
         style="width: 49%; margin-bottom: 10px; margin-right: 5px"
         href="https://ubports.com/join-us">Get involved</a
       >
@@ -40,7 +45,7 @@
         style="width: 49%; margin-bottom: 10px;"
         href="https://ubports.com/donate">Donate</a
       >
-    </p>
+    </div>
     <p>
       Got more devices you want to flash?
       <button

@@ -34,12 +34,13 @@
       > through the command-line.
     </p>
   </div>
-  <div slot="actions">
-    <button class="btn btn-default" on:click={close}>Dismiss</button>
-    <button class="btn btn-default" on:click={() => dismissUdev(false)}
-      >Don't ask me again</button
+  <div class="col" slot="actions">
+    <button class="btn btn-outline-dark px-2" on:click={close}>Dismiss</button>
+    <button
+      class="btn btn-outline-dark px-2"
+      on:click={() => dismissUdev(false)}>Don't ask me again</button
     >
-    <button class="btn btn-primary" on:click={() => dismissUdev(true)}
+    <button class="btn btn-primary px-2" on:click={() => dismissUdev(true)}
       >Set up rules automatically.</button
     >
   </div>
