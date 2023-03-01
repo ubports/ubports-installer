@@ -40,9 +40,9 @@ const getLatestBuild = (channel, device) =>
     .then(({ data }) => {
       return [
         {
-          url: data.response[data.response.length - 1].url,
+          url: data.response[0].url,
           checksum: {
-            sum: data.response[data.response.length - 1].id,
+            sum: data.response[0].id,
             algorithm: "sha256"
           },
           name: rootfsDefaultName + device + ".zip"
