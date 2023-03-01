@@ -14,7 +14,11 @@
   }
 
   function handleResultDoNotAskAgainButton() {
-    ipcRenderer.invoke("setSettingsValue", "never.opencuts", true);
+    ipcRenderer.invoke(
+      "setSettingsValue",
+      "never.reportInstallationResult",
+      true
+    );
     close();
   }
 
@@ -33,12 +37,8 @@
     </p>
     <p>
       The UBports Community uses <a
-        href="https://ubports.open-cuts.org/system/5e9d746c6346e112514cfec7"
-        >OPEN-CUTS, the open crowdsourced user testing suite</a
-      >
-      to manage manual testing and
-      <a href="https://github.com/ubports/ubports-installer/issues">GitHub</a> to
-      track bugs and feature requests for the UBports Installer. Since the installer
+        href="https://github.com/ubports/ubports-installer/issues">GitHub</a
+      > to track bugs and feature requests for the UBports Installer. Since the installer
       developers rarely have access to all the devices the installer supports, it
       is vital for them to also receive reports about what works.
     </p>
@@ -54,26 +54,27 @@
       indicates a more severe problem.
     </p>
   </div>
-  <div class="col" slot="actions">
+  <div class="justifier" slot="actions">
     {#if showDoNotAskAgainButton}
       <button
-        class="btn btn-outline-dark px-2"
+        class="btn btn-outline-dark px-2 m-2"
         id="resultDoNotAskAgain"
         on:click={() => handleResultDoNotAskAgainButton()}
         >No, don't ask me again</button
       >
+    {:else}
+      <button class="btn btn-outline-dark px-2 m-2" on:click={() => close()}
+        >Dismiss</button
+      >
     {/if}
-    <button class="btn btn-secondary px-2" on:click={() => close()}
-      >Dismiss</button
-    >
-    <button class="btn btn-success px-2" on:click={() => report("PASS")}
-      >PASS</button
-    >
-    <button class="btn btn-warning px-2" on:click={() => report("WONKY")}
+    <button class="btn btn-warning px-2 m-2" on:click={() => report("WONKY")}
       >WONKY</button
     >
-    <button class="btn btn-danger px-2" on:click={() => report("FAIL")}
+    <button class="btn btn-danger px-2 m-2" on:click={() => report("FAIL")}
       >FAIL</button
+    >
+    <button class="btn btn-success px-2 m-2" on:click={() => report("PASS")}
+      >PASS</button
     >
   </div>
 </Modal>

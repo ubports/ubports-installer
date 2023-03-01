@@ -79,6 +79,13 @@
                 placeholder={field.placeholder}
                 bind:value={formData[id][field.var]}
               />
+            {:else if field.type === "content"}
+              <textarea
+                class="form-input"
+                type="text"
+                placeholder={field.placeholder}
+                bind:value={formData[id][field.var]}
+              />
             {:else}
               <SvelteMarkdown source={field.description} />
             {/if}
@@ -98,8 +105,8 @@
         {/if}
       {/each}
     </div>
-    <div slot="actions">
-      <button class="btn btn-primary" on:click={() => handleSend(id)}>
+    <div class="justifier" slot="actions">
+      <button class="btn btn-primary px-2" on:click={() => handleSend(id)}>
         {confirm || "OK"}
       </button>
     </div>

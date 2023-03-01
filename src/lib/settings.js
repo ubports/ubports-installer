@@ -29,11 +29,8 @@ const settings = new Store({
       type: "boolean",
       default: true
     },
-    opencuts_token: {
-      type: "string"
-    },
     never: {
-      opencuts: {
+      reportInstallationResult: {
         type: "boolean",
         default: false
       },
