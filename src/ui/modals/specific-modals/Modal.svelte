@@ -24,7 +24,7 @@
   </ModalBody>
   <ModalFooter>
     {#if showCloseButton}
-      <Button color="primary" on:click={close}>Close</Button>
+      <button class="btn btn-first btn-outline-dark px-2" on:click={close}>Close</button>
     {/if}
     <slot name="actions" />
   </ModalFooter>

@@ -22,26 +22,20 @@ const packageInfo = require("../../package.json");
 const { osInfo } = require("systeminformation");
 const { path: cachePath } = require("./cache.js");
 const log = require("./log.js");
-const { OpenCutsReporter } = require("open-cuts-reporter");
-const settings = require("./settings.js");
 const cli = require("./cli.js");
 const errors = require("./errors.js");
 const core = require("../core/core.js");
 const { prompt } = require("./prompt.js");
-const { paste } = require("./paste.js");
 
 /**
- * OPEN-CUTS operating system mapping
+ * operating system mapping
  * @private
  */
-const OPENCUTS_OS = {
+const OS_MAPPING = {
   darwin: "macOS",
   linux: "Linux",
   win32: "Windows"
 };
-
-const MISSING_LOG =
-  "*N/A* <!-- Uploading logs failed. Please add them manually: https://github.com/ubports/ubports-installer#logs -->";
 
 /**
  * report errors or successes
@@ -98,36 +92,39 @@ class Reporter {
    * Generate a URL-encoded string to create a GitHub issue
    * @async
    * @param {Object} data - form data
-   * @param {String} runUrl - OPEN-CUTS run URL
    * @param {String} logUrl - pastbin URL
    * @returns {String} url-encoded string to create a GitHub issue
    */
-  async getDebugInfo(data, runUrl, logUrl) {
-    return encodeURIComponent(
-      [
-        `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
-        `Environment: \`${data.environment}\``,
-        `Device: ${this.getDeviceLinkMarkdown(data.device)}`,
-        `Target OS: ${core?.props?.os?.name}`,
-        `Settings: \`${JSON.stringify(core?.props?.settings || {})}\``,
-        `OPEN-CUTS run: ${runUrl || MISSING_LOG}`,
-        `Pastebin: ${logUrl || MISSING_LOG}`,
-        data.comment && `\n${data.comment?.trim()}\n`,
-        ...(data.error && data.error !== "Unknown Error"
-          ? ["**Error:**", "```", data.error, "```"]
-          : []),
-        ...(errors.errors?.length
-          ? [
-              "\n**Previous Errors:**\n```",
-              errors.errors.join("\n```\n```\n"),
-              "```"
-            ]
-          : []),
-        "<!-- thank you for reporting! -->\n"
-      ]
-        .filter(i => i)
-        .join("\n")
-    );
+  async getDebugInfo(data, logfile) {
+    return [
+      `<!-- Please do not edit any of the following, you can add a description further down. -->\n`,
+      `**UBports Installer \`${packageInfo.version}\` (${data.package})**\n`,
+      `- Environment`,
+      `\t- \`${data.environment}\``,
+      `- Device`,
+      `\t- ${this.getDeviceLinkMarkdown(data.device)}`,
+      `- Target OS`,
+      `\t- \`${core?.props?.os?.name}\``,
+      `\n### Settings`,
+      `\`\`\`\n${JSON.stringify(core?.props?.settings || {})}\n\`\`\``,
+      `\n### Log`,
+      `\`\`\`\n${logfile}\n\`\`\``,
+      ...(data.error && data.error !== "Unknown Error"
+        ? ["**Error:**", "```", data.error, "```"]
+        : []),
+      ...(errors.errors?.length
+        ? [
+            "\n**Previous Errors:**\n```",
+            errors.errors.join("\n```\n```\n"),
+            "```"
+          ]
+        : []),
+      `\n### Description\n`,
+      `<!-- Type any additional information below. -->`,
+      `<!-- Thank you for reporting! -->\n`
+    ]
+      .filter(i => i)
+      .join("\n");
   }
 
   /**
@@ -141,109 +138,6 @@ class Reporter {
   }
 
   /**
-   * Open a new GitHub issue in the default browser
-   * @async
-   * @param {String} data - form data
-   * @param {String} token - OPEN-CUTS API token
-   */
-  async sendBugReport(data, token) {
-    const logfile = await log.get();
-    const runUrl = this.sendOpenCutsRun(token, data, logfile).catch(() => null);
-    const logUrl = paste(logfile);
-    shell.openExternal(
-      `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
-        data.title
-      )}&body=${await this.getDebugInfo(data, await runUrl, await logUrl)}`
-    );
-    return;
-  }
-
-  /**
-   * Send an OPEN-CUTS run
-   * @async
-   * @param {String} [token] - OPEN-CUTS API token
-   * @param {Object} data - form data
-   * @param {Promise<String>} [logfile] - log file contents
-   * @returns {String} run url
-   * @throws if sending run failed
-   */
-  async sendOpenCutsRun(token, data, logfile = log.get()) {
-    const openCutsApi = new OpenCutsReporter({
-      url: "https://ubports.open-cuts.org",
-      token
-    });
-    return openCutsApi.smartRun(
-      "5e9d746c6346e112514cfec7",
-      "5e9d75406346e112514cfeca",
-      packageInfo.version,
-      {
-        result: data.result,
-        comment: data.comment,
-        combination: [
-          {
-            variable: "Environment",
-            value: data.hostOs
-          },
-          {
-            variable: "Package",
-            value: data.package
-          }
-        ],
-        logs: [
-          ...(core.session.getActionsDebugInfo()
-            ? [
-                {
-                  name: "actions",
-                  content: core.session.getActionsDebugInfo()
-                }
-              ]
-            : []),
-          {
-            name: "ubports-installer.log",
-            content: await logfile
-          },
-          ...(errors.errors?.length
-            ? [{ name: "ignored errors", content: errors.errors.join("\n\n") }]
-            : [])
-        ]
-      }
-    );
-  }
-
-  /**
-   * Get generic form fields
-   * @returns {Array<Object>} generic form fields
-   */
-  genericFormFields() {
-    return [
-      {
-        var: "device",
-        name: "Device",
-        type: "text",
-        placeholder: "Device codename",
-        value: core?.props?.config?.codename || "",
-        required: true
-      },
-      {
-        var: "package",
-        name: "Package",
-        type: "text",
-        placeholder: "What package of the Installer are you using?",
-        value: packageInfo.package || "source",
-        required: true
-      },
-      {
-        var: "hostOs",
-        name: "Host OS",
-        type: "text",
-        placeholder: "What operating system are you using?",
-        value: OPENCUTS_OS[process.platform],
-        required: true
-      }
-    ];
-  }
-
-  /**
    * Prepare form for an error report
    * @param {String} result pre-defined result
    * @param {String} error error message
@@ -252,7 +146,8 @@ class Reporter {
   async prepareErrorReport(result = "FAIL", error = "Unknown Error") {
     return {
       title: "Report an Error",
-      description: `Sorry to hear that the installer did not work for you. You can help the UBports community fix this issue by reporting your installation result. Edit the information below and click OK to submit. The installer will then automatically report a ${result} run to [ubports.open-cuts.org](https://ubports.open-cuts.org). After that, your webbrowser will open so you can create a bug report on GitHub.`,
+      description: `Sorry to hear that the installer did not work for you. You can help the UBports community fix this issue by reporting your installation result. Edit the information below and click Next to generate content for an issue report.`,
+      dismissable: true,
       fields: [
         {
           var: "title",
@@ -263,13 +158,29 @@ class Reporter {
           value: this.getIssueTitle(error)
         },
         {
-          var: "comment",
-          name: "Comment",
+          var: "device",
+          name: "Device",
           type: "text",
-          placeholder: "How can we reproduce this issue?",
+          placeholder: "Device codename",
+          value: core?.props?.config?.codename || "",
           required: true
         },
-        ...this.genericFormFields(result),
+        {
+          var: "package",
+          name: "Package",
+          type: "text",
+          placeholder: "What package of the Installer are you using?",
+          value: packageInfo.package || "source",
+          required: true
+        },
+        {
+          var: "hostOs",
+          name: "Host OS",
+          type: "text",
+          placeholder: "What operating system are you using?",
+          value: OS_MAPPING[process.platform],
+          required: true
+        },
         {
           var: "environment",
           name: "Environment",
@@ -279,38 +190,8 @@ class Reporter {
           required: true
         }
       ],
-      confirm: "Send",
+      confirm: "Next",
       extraData: { result, error }
-    };
-  }
-
-  /**
-   * Prepare form for a success report
-   * @returns {Promise<Object>} success report form
-   */
-  async prepareSuccessReport() {
-    return {
-      title: "Report Success",
-      description:
-        "You can help the UBports community improve the installer by reporting your installation result. Edit the information below and click OK to automatically submit a run with an attached log to [ubports.open-cuts.org](https://ubports.open-cuts.org).",
-      fields: [
-        {
-          var: "comment",
-          name: "Comment",
-          type: "text",
-          placeholder: "You can provide detailed information here...",
-          value: `Installed ${core?.props?.os?.name} on ${
-            core?.props?.config?.codename
-          } from a computer running ${await this.getEnvironment()}.`,
-          required: true
-        },
-        ...this.genericFormFields()
-      ],
-      confirm: "Send",
-      extraData: {
-        // HACK: Set WONKY if errors had been ignored, even if PASS was specified
-        result: errors.errors?.length ? "WONKY" : "PASS"
-      }
     };
   }
 
@@ -324,22 +205,7 @@ class Reporter {
       return prompt(await this.prepareErrorReport(result, error))
         .then(data => {
           if (data) {
-            this.sendBugReport(data, settings.get("opencuts_token"));
-          }
-        })
-        .catch(e => log.warn(`failed to report: ${e}`));
-    } else {
-      return prompt(await this.prepareSuccessReport())
-        .then(data => {
-          if (data) {
-            this.sendOpenCutsRun(settings.get("opencuts_token"), data).then(
-              url => {
-                log.info(
-                  `Thank you for reporting! You can view your run here: ${url}`
-                );
-                shell.openExternal(url);
-              }
-            );
+            this.sendBugReport(data);
           }
         })
         .catch(e => log.warn(`failed to report: ${e}`));
@@ -347,31 +213,39 @@ class Reporter {
   }
 
   /**
-   * Open a dialog to set the token
+   * Open a new GitHub issue in the default browser
+   * @async
+   * @param {String} data - form data
    */
-  tokenDialog() {
+  async sendBugReport(data) {
+    const logfile = await log.get();
+    const body = await this.getDebugInfo(data, logfile);
+
     return prompt({
-      title: "OPEN-CUTS API Token",
-      description:
-        "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your [OPEN-CUTS account](https://ubports.open-cuts.org/account).",
+      title: "Report information",
+      description: `Please copy the below text, press "Create Issue" and paste the copied text into the issue form.`,
+      dismissable: true,
       fields: [
         {
-          var: "token",
-          name: "Token",
-          type: "password",
-          value: settings.get("opencuts_token"),
-          placeholder: "get your token on ubports.open-cuts.org",
+          var: "content",
+          name: "Content",
+          type: "content",
           required: true,
-          tooltip: "You can find this on your account page",
-          link: "https://ubports.open-cuts.org/account"
+          placeholder:
+            "Please paste my content into the issue tracker, while the content is still there :-)",
+          value: body
         }
       ],
-      confirm: "Set token"
+      confirm: "Create Issue",
+      extraData: { body }
     })
-      .then(({ token }) => {
-        if (token) {
-          settings.set("opencuts_token", token.trim());
+      .then(_ => {
+        let issueUrl =
+          "https://github.com/ubports/ubports-installer/issues/new";
+        if (data) {
+          issueUrl += `?title=${encodeURIComponent(data.title)}`;
         }
+        shell.openExternal(issueUrl);
       })
       .catch(() => null);
   }

@@ -205,7 +205,7 @@ mainEvent.on("user:write:done", () => {
   log.info(
     "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
   );
-  if (!settings.get("never.opencuts")) {
+  if (!settings.get("never.reportInstallationResult")) {
     setTimeout(() => {
       window.send("user:report", true);
     }, 1500);

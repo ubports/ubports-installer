@@ -154,6 +154,16 @@ class MenuManager {
               )
           },
           {
+            label: "Never ask for installation result reporting",
+            checked: settings.get("never.reportInstallationResult"),
+            type: "checkbox",
+            click: () =>
+              settings.set(
+                "never.reportInstallationResult",
+                !settings.get("never.reportInstallationResult")
+              )
+          },
+          {
             label: "Never ask for udev rules",
             checked: settings.get("never.udev"),
             visible:
@@ -171,17 +181,6 @@ class MenuManager {
                 "never.windowsDrivers",
                 !settings.get("never.windowsDrivers")
               )
-          },
-          {
-            label: "Never ask for OPEN-CUTS automatic reporting",
-            checked: settings.get("never.opencuts"),
-            type: "checkbox",
-            click: () =>
-              settings.set("never.opencuts", !settings.get("never.opencuts"))
-          },
-          {
-            label: "OPEN-CUTS API Token",
-            click: () => reporter.tokenDialog(mainWindow)
           }
         ]
       },

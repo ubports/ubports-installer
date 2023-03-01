@@ -70,3 +70,9 @@ a:hover {
 .container {
   max-width: 50rem;
 }
+
+.justifier {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
