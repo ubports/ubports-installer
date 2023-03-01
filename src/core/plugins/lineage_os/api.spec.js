@@ -20,8 +20,8 @@ describe("lineage_os api", () => {
       return api.getLatestBuild("nightlies", "bacon").then(r =>
         expect(r).toEqual([
           {
-            checksum: { algorithm: "sha256", sum: "1337" },
-            url: "b",
+            checksum: { algorithm: "sha256", sum: "42" },
+            url: "a",
             name: "lineageos_rootfs_bacon.zip"
           }
         ])
