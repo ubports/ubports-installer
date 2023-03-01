@@ -35,8 +35,8 @@
     </p>
   </div>
   <div slot="actions">
-    <button class="btn btn-default" on:click={close}>Dismiss</button>
-    <button class="btn btn-default" on:click={() => dismissUdev(false)}
+    <button class="btn btn-outline-dark" on:click={close}>Dismiss</button>
+    <button class="btn btn-outline-dark" on:click={() => dismissUdev(false)}
       >Don't ask me again</button
     >
     <button class="btn btn-primary" on:click={() => dismissUdev(true)}

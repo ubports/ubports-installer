@@ -57,7 +57,7 @@
   <div slot="actions">
     {#if showDoNotAskAgainButton}
       <button
-        class="btn btn-default"
+        class="btn btn-outline-dark"
         id="resultDoNotAskAgain"
         on:click={() => handleResultDoNotAskAgainButton()}
         >No, don't ask me again</button

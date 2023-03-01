@@ -31,7 +31,7 @@
       >. <a href="https://ubports.com/donate">Donate</a> now to allow us to
       continue our mission!
       <a
-        class="btn btn-default"
+        class="btn btn-outline-dark"
         style="width: 49%; margin-bottom: 10px; margin-right: 5px"
         href="https://ubports.com/join-us">Get involved</a
       >

@@ -77,10 +77,10 @@
     </p>
   </div>
   <div slot="actions">
-    <button class="btn btn-default" on:click={() => handleTryAgainButton()}
+    <button class="btn btn-outline-dark" on:click={() => handleTryAgainButton()}
       >Try again</button
     >
-    <button class="btn btn-default" on:click={() => handleIgnoreButton()}
+    <button class="btn btn-outline-dark" on:click={() => handleIgnoreButton()}
       >Ignore</button
     >
     <button
