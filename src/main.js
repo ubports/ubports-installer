@@ -64,7 +64,8 @@ async function createWindow() {
   log.info(
     "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
-  log.verbose("Versions: " + JSON.stringify(process.versions));
+  log.verbose(`Running on: ${await reporter.getEnvironment()}`);
+  log.verbose(`Versions: ${JSON.stringify(process.versions)}`);
 
   mainWindow = new BrowserWindow({
     width: cli.inspect ? 1400 : 1000,
