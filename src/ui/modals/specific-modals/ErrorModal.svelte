@@ -76,16 +76,18 @@
       <a href="https://askubuntu.com">askubuntu</a>.
     </p>
   </div>
-  <div slot="actions">
-    <button class="btn btn-outline-dark" on:click={() => handleTryAgainButton()}
-      >Try again</button
+  <div class="col" slot="actions">
+    <button
+      class="btn btn-outline-dark px-2"
+      on:click={() => handleTryAgainButton()}>Try again</button
     >
-    <button class="btn btn-outline-dark" on:click={() => handleIgnoreButton()}
-      >Ignore</button
+    <button
+      class="btn btn-outline-dark px-2"
+      on:click={() => handleIgnoreButton()}>Ignore</button
     >
     <button
       id="btn-bugreport"
-      class="btn btn-primary"
+      class="btn btn-primary px-2"
       on:click={() => ipcRenderer.send("user:error:reply", "bugreport")}
       >Report a bug</button
     >
