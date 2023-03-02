@@ -14,7 +14,11 @@
   }
 
   function handleResultDoNotAskAgainButton() {
-    ipcRenderer.invoke("setSettingsValue", "never.opencuts", true);
+    ipcRenderer.invoke(
+      "setSettingsValue",
+      "never.reportInstallationResult",
+      true
+    );
     close();
   }
 
@@ -33,12 +37,8 @@
     </p>
     <p>
       The UBports Community uses <a
-        href="https://ubports.open-cuts.org/system/5e9d746c6346e112514cfec7"
-        >OPEN-CUTS, the open crowdsourced user testing suite</a
-      >
-      to manage manual testing and
-      <a href="https://github.com/ubports/ubports-installer/issues">GitHub</a> to
-      track bugs and feature requests for the UBports Installer. Since the installer
+        href="https://github.com/ubports/ubports-installer/issues">GitHub</a
+      > to track bugs and feature requests for the UBports Installer. Since the installer
       developers rarely have access to all the devices the installer supports, it
       is vital for them to also receive reports about what works.
     </p>

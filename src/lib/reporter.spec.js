@@ -7,13 +7,10 @@ const { paste } = require("./paste.js");
 jest.mock("./paste.js");
 const cli = require("./cli.js");
 jest.mock("./cli.js");
-const settings = require("./settings.js");
 const core = require("../core/core.js");
 jest.mock("../core/core.js");
 const { prompt } = require("./prompt.js");
 jest.mock("./prompt.js");
-const { OpenCutsReporter } = require("open-cuts-reporter");
-jest.mock("open-cuts-reporter");
 const { osInfo } = require("systeminformation");
 jest.mock("systeminformation");
 
@@ -132,16 +129,9 @@ describe("prepareErrorReport()", () => {
   });
 });
 
-describe("prepareSuccessReport()", () => {
-  it("should return success report object", () => {
-    return reporter.prepareSuccessReport().then(r => expect(r).toBeDefined);
-  });
-});
-
 describe("sendBugReport()", () => {
   it("should send bug report", () => {
     log.get.mockResolvedValue("log content");
-    jest.spyOn(reporter, "sendOpenCutsRun").mockRejectedValueOnce();
     return reporter
       .sendBugReport({
         title: "wasd"
@@ -153,77 +143,8 @@ describe("sendBugReport()", () => {
   });
 });
 
-describe("sendOpenCutsRun()", () => {
-  it("should send open-cuts run", () => {
-    log.get.mockResolvedValue("log content");
-    errors.errors = ["error one", "error two"];
-    core.session.getActionsDebugInfo.mockReturnValue("adb:shell: OK");
-    const smartRun = jest.fn();
-    OpenCutsReporter.mockImplementation(() => ({
-      smartRun
-    }));
-    return reporter
-      .sendOpenCutsRun(null, {
-        result: "FAIL"
-      })
-      .then(r => {
-        expect(r).toEqual(undefined);
-        expect(smartRun).toHaveBeenCalledTimes(1);
-        expect(smartRun).toHaveBeenCalledWith(
-          "5e9d746c6346e112514cfec7",
-          "5e9d75406346e112514cfeca",
-          expect.any(String),
-          {
-            combination: [
-              { value: undefined, variable: "Environment" },
-              { value: undefined, variable: "Package" }
-            ],
-            comment: undefined,
-            logs: [
-              { name: "actions", content: "adb:shell: OK" },
-              { name: "ubports-installer.log", content: "log content" },
-              { name: "ignored errors", content: "error one\n\nerror two" }
-            ],
-            result: "FAIL"
-          }
-        );
-      });
-  });
-  it("should send open-cuts run", () => {
-    log.get.mockResolvedValue("log content");
-    errors.errors = [];
-    core.session.getActionsDebugInfo.mockReturnValue();
-    const smartRun = jest.fn();
-    OpenCutsReporter.mockImplementation(() => ({
-      smartRun
-    }));
-    return reporter
-      .sendOpenCutsRun(null, {
-        result: "PASS"
-      })
-      .then(r => {
-        expect(r).toEqual(undefined);
-        expect(smartRun).toHaveBeenCalledTimes(1);
-        expect(smartRun).toHaveBeenCalledWith(
-          "5e9d746c6346e112514cfec7",
-          "5e9d75406346e112514cfeca",
-          expect.any(String),
-          {
-            combination: [
-              { value: undefined, variable: "Environment" },
-              { value: undefined, variable: "Package" }
-            ],
-            comment: undefined,
-            logs: [{ content: "log content", name: "ubports-installer.log" }],
-            result: "PASS"
-          }
-        );
-      });
-  });
-});
-
 describe("report()", () => {
-  ["PASS", "WONKY", "FAIL"].forEach(result => {
+  [/* "PASS", */ "WONKY", "FAIL"].forEach(result => {
     it(`should show ${result} report dialog with err msg`, () => {
       prompt.mockClear();
       prompt.mockResolvedValue({});
@@ -242,36 +163,6 @@ describe("report()", () => {
       prompt.mockClear();
       prompt.mockRejectedValue("some error");
       return reporter.report(result, null);
-    });
-  });
-});
-
-describe("tokenDialog()", () => {
-  it("should show token dialog and set value", () => {
-    prompt.mockClear();
-    prompt.mockResolvedValue({ token: "asdf" });
-    return reporter.tokenDialog().then(() => {
-      expect(prompt).toHaveBeenCalledTimes(1);
-      expect(settings.set).toHaveBeenCalledTimes(1);
-      expect(settings.set).toHaveBeenCalledWith("opencuts_token", "asdf");
-    });
-  });
-  it("should fail silently if token unset", () => {
-    prompt.mockClear();
-    settings.set.mockClear();
-    prompt.mockRejectedValue("some error");
-    return reporter.tokenDialog().then(() => {
-      expect(prompt).toHaveBeenCalledTimes(1);
-      expect(settings.set).toHaveBeenCalledTimes(0);
-    });
-  });
-  it("should fail silently on prompt error", () => {
-    prompt.mockClear();
-    settings.set.mockClear();
-    prompt.mockResolvedValue({ unxpected: "value" });
-    return reporter.tokenDialog().then(() => {
-      expect(prompt).toHaveBeenCalledTimes(1);
-      expect(settings.set).toHaveBeenCalledTimes(0);
     });
   });
 });

@@ -22,8 +22,6 @@ const packageInfo = require("../../package.json");
 const { osInfo } = require("systeminformation");
 const { path: cachePath } = require("./cache.js");
 const log = require("./log.js");
-const { OpenCutsReporter } = require("open-cuts-reporter");
-const settings = require("./settings.js");
 const cli = require("./cli.js");
 const errors = require("./errors.js");
 const core = require("../core/core.js");
@@ -31,10 +29,10 @@ const { prompt } = require("./prompt.js");
 const { paste } = require("./paste.js");
 
 /**
- * OPEN-CUTS operating system mapping
+ * operating system mapping
  * @private
  */
-const OPENCUTS_OS = {
+const OS_MAPPING = {
   darwin: "macOS",
   linux: "Linux",
   win32: "Windows"
@@ -98,11 +96,10 @@ class Reporter {
    * Generate a URL-encoded string to create a GitHub issue
    * @async
    * @param {Object} data - form data
-   * @param {String} runUrl - OPEN-CUTS run URL
    * @param {String} logUrl - pastbin URL
    * @returns {String} url-encoded string to create a GitHub issue
    */
-  async getDebugInfo(data, runUrl, logUrl) {
+  async getDebugInfo(data, logUrl) {
     return encodeURIComponent(
       [
         `**UBports Installer \`${packageInfo.version}\` (${data.package})**`,
@@ -110,7 +107,6 @@ class Reporter {
         `Device: ${this.getDeviceLinkMarkdown(data.device)}`,
         `Target OS: ${core?.props?.os?.name}`,
         `Settings: \`${JSON.stringify(core?.props?.settings || {})}\``,
-        `OPEN-CUTS run: ${runUrl || MISSING_LOG}`,
         `Pastebin: ${logUrl || MISSING_LOG}`,
         data.comment && `\n${data.comment?.trim()}\n`,
         ...(data.error && data.error !== "Unknown Error"
@@ -144,70 +140,16 @@ class Reporter {
    * Open a new GitHub issue in the default browser
    * @async
    * @param {String} data - form data
-   * @param {String} token - OPEN-CUTS API token
    */
-  async sendBugReport(data, token) {
+  async sendBugReport(data) {
     const logfile = await log.get();
-    const runUrl = this.sendOpenCutsRun(token, data, logfile).catch(() => null);
     const logUrl = paste(logfile);
     shell.openExternal(
       `https://github.com/ubports/ubports-installer/issues/new?title=${encodeURIComponent(
         data.title
-      )}&body=${await this.getDebugInfo(data, await runUrl, await logUrl)}`
+      )}&body=${await this.getDebugInfo(data, await logUrl)}`
     );
     return;
-  }
-
-  /**
-   * Send an OPEN-CUTS run
-   * @async
-   * @param {String} [token] - OPEN-CUTS API token
-   * @param {Object} data - form data
-   * @param {Promise<String>} [logfile] - log file contents
-   * @returns {String} run url
-   * @throws if sending run failed
-   */
-  async sendOpenCutsRun(token, data, logfile = log.get()) {
-    const openCutsApi = new OpenCutsReporter({
-      url: "https://ubports.open-cuts.org",
-      token
-    });
-    return openCutsApi.smartRun(
-      "5e9d746c6346e112514cfec7",
-      "5e9d75406346e112514cfeca",
-      packageInfo.version,
-      {
-        result: data.result,
-        comment: data.comment,
-        combination: [
-          {
-            variable: "Environment",
-            value: data.hostOs
-          },
-          {
-            variable: "Package",
-            value: data.package
-          }
-        ],
-        logs: [
-          ...(core.session.getActionsDebugInfo()
-            ? [
-                {
-                  name: "actions",
-                  content: core.session.getActionsDebugInfo()
-                }
-              ]
-            : []),
-          {
-            name: "ubports-installer.log",
-            content: await logfile
-          },
-          ...(errors.errors?.length
-            ? [{ name: "ignored errors", content: errors.errors.join("\n\n") }]
-            : [])
-        ]
-      }
-    );
   }
 
   /**
@@ -237,7 +179,7 @@ class Reporter {
         name: "Host OS",
         type: "text",
         placeholder: "What operating system are you using?",
-        value: OPENCUTS_OS[process.platform],
+        value: OS_MAPPING[process.platform],
         required: true
       }
     ];
@@ -252,7 +194,7 @@ class Reporter {
   async prepareErrorReport(result = "FAIL", error = "Unknown Error") {
     return {
       title: "Report an Error",
-      description: `Sorry to hear that the installer did not work for you. You can help the UBports community fix this issue by reporting your installation result. Edit the information below and click OK to submit. The installer will then automatically report a ${result} run to [ubports.open-cuts.org](https://ubports.open-cuts.org). After that, your webbrowser will open so you can create a bug report on GitHub.`,
+      description: `Sorry to hear that the installer did not work for you. You can help the UBports community fix this issue by reporting your installation result. Edit the information below and click OK to submit. The installer will then automatically report a ${result} run to [SnipBin](https://snip.hxrsh.in). After that, your webbrowser will open so you can create a bug report on GitHub.`,
       fields: [
         {
           var: "title",
@@ -285,36 +227,6 @@ class Reporter {
   }
 
   /**
-   * Prepare form for a success report
-   * @returns {Promise<Object>} success report form
-   */
-  async prepareSuccessReport() {
-    return {
-      title: "Report Success",
-      description:
-        "You can help the UBports community improve the installer by reporting your installation result. Edit the information below and click OK to automatically submit a run with an attached log to [ubports.open-cuts.org](https://ubports.open-cuts.org).",
-      fields: [
-        {
-          var: "comment",
-          name: "Comment",
-          type: "text",
-          placeholder: "You can provide detailed information here...",
-          value: `Installed ${core?.props?.os?.name} on ${
-            core?.props?.config?.codename
-          } from a computer running ${await this.getEnvironment()}.`,
-          required: true
-        },
-        ...this.genericFormFields()
-      ],
-      confirm: "Send",
-      extraData: {
-        // HACK: Set WONKY if errors had been ignored, even if PASS was specified
-        result: errors.errors?.length ? "WONKY" : "PASS"
-      }
-    };
-  }
-
-  /**
    * Prepare and send a report
    * @param {String} result PASS, WONKY, FAIL
    * @param {String} error error message or object
@@ -324,56 +236,11 @@ class Reporter {
       return prompt(await this.prepareErrorReport(result, error))
         .then(data => {
           if (data) {
-            this.sendBugReport(data, settings.get("opencuts_token"));
-          }
-        })
-        .catch(e => log.warn(`failed to report: ${e}`));
-    } else {
-      return prompt(await this.prepareSuccessReport())
-        .then(data => {
-          if (data) {
-            this.sendOpenCutsRun(settings.get("opencuts_token"), data).then(
-              url => {
-                log.info(
-                  `Thank you for reporting! You can view your run here: ${url}`
-                );
-                shell.openExternal(url);
-              }
-            );
+            this.sendBugReport(data);
           }
         })
         .catch(e => log.warn(`failed to report: ${e}`));
     }
-  }
-
-  /**
-   * Open a dialog to set the token
-   */
-  tokenDialog() {
-    return prompt({
-      title: "OPEN-CUTS API Token",
-      description:
-        "You can set an API token for UBports' open crowdsourced user testing suite. If the token is set, automatic reports will be linked to your [OPEN-CUTS account](https://ubports.open-cuts.org/account).",
-      fields: [
-        {
-          var: "token",
-          name: "Token",
-          type: "password",
-          value: settings.get("opencuts_token"),
-          placeholder: "get your token on ubports.open-cuts.org",
-          required: true,
-          tooltip: "You can find this on your account page",
-          link: "https://ubports.open-cuts.org/account"
-        }
-      ],
-      confirm: "Set token"
-    })
-      .then(({ token }) => {
-        if (token) {
-          settings.set("opencuts_token", token.trim());
-        }
-      })
-      .catch(() => null);
   }
 }
 

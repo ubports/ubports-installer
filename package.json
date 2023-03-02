@@ -64,7 +64,6 @@
     "form-data": "^4.0.0",
     "fs-extra": "^11.1.0",
     "graphql": "^16.6.0",
-    "open-cuts-reporter": "^1.0.2",
     "progressive-downloader": "^2.0.2",
     "promise-android-tools": "^4.0.13",
     "ps-tree": "^1.2.0",
