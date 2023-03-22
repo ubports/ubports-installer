@@ -9,17 +9,17 @@ isNpmInstalled=false
 echo "The script will try to install nodejs and npm on the machine."
 if command -v node &> /dev/null
 then
-    echo "nodejs is already installed on the machine"
+    echo "nodejs is already installed."
     isNodeInstalled=true
 fi
 if command -v npm &> /dev/null
 then
     isNpmInstalled=true
-    echo "npm is already installed on the machine."
+    echo "npm is already installed."
 fi
 if [ "$isNodeInstalled" = true ] && [ "$isNpmInstalled" = true ]
 then
-    echo "both node and npm is already installed on the machine.Nothing more to install."
+    echo "Both node and npm are already installed. Nothing more to install."
     exit
 fi
 
