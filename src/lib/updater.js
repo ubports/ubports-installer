@@ -19,6 +19,8 @@
 
 const axios = require("axios");
 const packageInfo = require("../../package.json");
+const semverGt = require("semver/functions/gt");
+const semverLt = require("semver/functions/lt");
 
 /**
  * UBports Installer version management
@@ -64,20 +66,18 @@ class Updater {
    * resolves update url if the installer is outdated, null otherwise
    * @returns {Promise<String>}
    */
-  isOutdated() {
-    return this.getLatestVersion().then(latest =>
-      packageInfo.version < latest ? this.updateUrl : null
-    );
+  async isOutdated() {
+    const latest = await this.getLatestVersion();
+    return semverLt(packageInfo.version, latest) ? this.updateUrl : null;
   }
 
   /**
    * resolves update url if the installer is a prerelease, null otherwise
    * @returns {Promise<String>}
    */
-  isPrerelease() {
-    return this.getLatestVersion().then(latest =>
-      packageInfo.version > latest ? this.updateUrl : null
-    );
+  async isPrerelease() {
+    const latest = await this.getLatestVersion();
+    return semverGt(packageInfo.version, latest) ? this.updateUrl : null;
   }
 }
 
