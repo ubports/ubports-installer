@@ -49,16 +49,7 @@ const semver = require("semver");
 class Core {
   constructor() {
     this.session = new Session();
-    this.props = {};
     this.reset();
-    this.plugins = new PluginIndex(
-      this.props,
-      cachePath,
-      mainEvent,
-      log,
-      settings,
-      this.session
-    );
   }
 
   /**
@@ -71,6 +62,14 @@ class Core {
       os: null,
       settings: {}
     };
+    this.plugins = new PluginIndex(
+      this.props,
+      cachePath,
+      mainEvent,
+      log,
+      settings,
+      this.session
+    );
   }
 
   /**
