@@ -65,7 +65,7 @@
     "fs-extra": "^11.1.0",
     "graphql": "^16.6.0",
     "open-cuts-reporter": "^1.0.2",
-    "progressive-downloader": "^2.0.2",
+    "progressive-downloader": "1.0.7",
     "promise-android-tools": "^4.0.13",
     "ps-tree": "^1.2.0",
     "semver": "^7.3.8",
