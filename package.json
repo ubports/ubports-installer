@@ -74,7 +74,7 @@
     "sveltestrap": "^5.10.0",
     "systeminformation": "^5.17.12",
     "winston": "^3.8.2",
-    "yaml": "^2.2.1"
+    "yaml": "^2.2.2"
   },
   "arkit": {
     "$schema": "https://arkit.pro/schema.json",
