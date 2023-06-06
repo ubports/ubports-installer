@@ -44,6 +44,7 @@ const getInterfaces = device =>
         if (i === "phosh") return { value: i, label: "Phosh" };
         if (i === "plasma-mobile") return { value: i, label: "Plasma Mobile" };
         if (i === "sxmo-de-sway") return { value: i, label: "SXMO Sway" };
+        if (i === "gnome-mobile") return { value: i, label: "GNOME Mobile" };
         return { value: i, label: i };
       });
     })
