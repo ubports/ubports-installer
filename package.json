@@ -72,7 +72,7 @@
     "sudo-prompt": "^9.2.1",
     "svelte-markdown": "^0.2.3",
     "sveltestrap": "^5.10.0",
-    "systeminformation": "^5.17.12",
+    "systeminformation": "^5.21.7",
     "winston": "^3.8.2",
     "yaml": "^2.2.2"
   },
