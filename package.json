@@ -38,7 +38,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.4.0",
     "arkit": "^1.6.4",
-    "electron": "^23.1.1",
+    "electron": "^24.8.5",
     "electron-builder": "^24.0.0",
     "electron-packager": "^17.1.1",
     "electron-reload": "^1.5.0",
