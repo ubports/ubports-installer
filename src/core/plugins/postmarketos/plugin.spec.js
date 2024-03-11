@@ -100,15 +100,16 @@ describe("postmarketos plugin", () => {
 
   describe("remote_values__releases()", () => {
     it("should get releases", async () => {
-      api.getReleases.mockResolvedValueOnce(["a", "b"]);
+      api.getReleases.mockResolvedValueOnce([{value: "a", label: "aA"},
+                                             {value: "b", label: "bB"}]);
       const result = await pmosPlugin.remote_values__releases();
       expect(api.getReleases).toHaveBeenCalledWith("os_codename");
       expect(result).toContainEqual({
-        label: "a",
+        label: "aA",
         value: "a"
       });
       expect(result).toContainEqual({
-        label: "b",
+        label: "bB",
         value: "b"
       });
     });

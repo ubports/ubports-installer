@@ -117,13 +117,7 @@ class PostmarketOSPlugin extends Plugin {
    */
   remote_values__releases() {
     return api
-      .getReleases(this.props.os.codename ?? this.props.config.codename)
-      .then(releases =>
-        releases.map(release => ({
-          value: release,
-          label: release
-        }))
-      );
+      .getReleases(this.props.os.codename ?? this.props.config.codename);
   }
 }
 

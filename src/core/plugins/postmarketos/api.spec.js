@@ -7,13 +7,19 @@ const MOCK_DATA = {
   releases: [
     {
       name: "edge",
+      pretty_name: "edge (unsupported)",
       devices: [
         {
           name: "somedevice",
+          pretty_name: "Some Device",
           interfaces: [
-            { name: "phosh" },
+            {
+                name: "phosh",
+                pretty_name: "Phosh"
+            },
             {
               name: "plasma-mobile",
+              pretty_name: "Plasma Mobile",
               images: [
                 {
                   timestamp: 0,
@@ -27,8 +33,14 @@ const MOCK_DATA = {
                 }
               ]
             },
-            { name: "sxmo-de-sway" },
-            { name: "other" }
+            {
+                name: "sxmo-de-sway",
+                pretty_name: "Sxmo (Sway)"
+            },
+            {
+                name: "other",
+                pretty_name: "Other"
+            }
           ]
         }
       ]
@@ -56,11 +68,11 @@ describe("postmarketos api", () => {
       });
       expect(result).toContainEqual({
         value: "sxmo-de-sway",
-        label: "SXMO Sway"
+        label: "Sxmo (Sway)"
       });
       expect(result).toContainEqual({
         value: "other",
-        label: "other"
+        label: "Other"
       });
     });
 
@@ -111,7 +123,7 @@ describe("postmarketos api", () => {
   describe("getReleases()", () => {
     it("should resolve releases", async () => {
       const result = await api.getReleases("somedevice");
-      expect(result).toEqual(["edge"]);
+      expect(result).toEqual([{"label": "edge (unsupported)", "value": "edge"}]);
     });
 
     it("should throw on 404", async () => {
