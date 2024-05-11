@@ -39,13 +39,8 @@ const getInterfaces = device =>
       const devices = data.releases.find(c => c.name === "edge").devices;
       const interfaces = devices
         .find(d => d.name.includes(device))
-        .interfaces.map(i => i.name);
-      return interfaces.map(i => {
-        if (i === "phosh") return { value: i, label: "Phosh" };
-        if (i === "plasma-mobile") return { value: i, label: "Plasma Mobile" };
-        if (i === "sxmo-de-sway") return { value: i, label: "SXMO Sway" };
-        return { value: i, label: i };
-      });
+        .interfaces.map(i => ({ value: i.name, label: i.pretty_name }));
+      return interfaces;
     })
     .catch(error => {
       if (error?.response?.status === 404) throw new Error("404");
@@ -97,7 +92,7 @@ const getReleases = device =>
       const releases = data.releases;
       return releases
         .filter(release => release.devices.find(d => d.name.includes(device)))
-        .map(release => release.name);
+        .map(i => ({ value: i.name, label: i.pretty_name }));
     })
     .catch(error => {
       if (error?.response?.status === 404) throw new Error("404");
