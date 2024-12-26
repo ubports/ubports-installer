@@ -1,5 +1,5 @@
 <script>
-  import { Accordion, AccordionItem } from "sveltestrap";
+  import { Accordion, AccordionItem } from "@sveltestrap/sveltestrap";
   import { createEventDispatcher } from "svelte";
   import Modal from "./Modal.svelte";
 

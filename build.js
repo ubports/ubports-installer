@@ -20,7 +20,8 @@
  */
 
 const builder = require("electron-builder");
-const cli = require("commander");
+const { Command } = require("commander");
+const cli = new Command();
 
 const PLATFORMS = ["darwin", "win32", "linux"];
 const PACKAGES = ["deb", "snap", "AppImage", "dmg", "portable", "dir"];

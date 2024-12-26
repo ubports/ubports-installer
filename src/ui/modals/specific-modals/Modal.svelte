@@ -6,7 +6,7 @@
     ModalBody,
     ModalFooter,
     ModalHeader
-  } from "sveltestrap";
+  } from "@sveltestrap/sveltestrap";
 
   export let showCloseButton = true;
   export let isOpen = false;
