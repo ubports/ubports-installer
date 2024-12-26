@@ -127,7 +127,7 @@ jobs:
       - name: archive artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ubports-installer
+          name: ubports-installer-${{ runner.os }}
           path: |
             dist/*.deb
             dist/*.AppImage
