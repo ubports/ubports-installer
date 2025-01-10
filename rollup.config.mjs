@@ -26,7 +26,7 @@ function serve() {
           shell: true
         }
       );
-      server.on("exit", code => setTimeout(() => outprocess.exit(code)), 100);
+      server.on("exit", code => setTimeout(() => process.exit(code), 100));
 
       process.on("SIGTERM", toExit);
       process.on("exit", toExit);
