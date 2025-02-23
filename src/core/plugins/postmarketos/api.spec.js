@@ -94,7 +94,7 @@ describe("postmarketos api", () => {
 
   describe("getImages()", () => {
     it("should resolve images", async () => {
-      const result = await api.getImages("edge", "plasma-mobile", "somedevice");
+      const result = await api.getImages("edge", "plasma-mobile", "somedevice", "somevariant");
       expect(result).toContainEqual({
         url: "someurl",
         checksum: {
@@ -112,7 +112,7 @@ describe("postmarketos api", () => {
         }
       });
 
-      const test = () => api.getImages("non", "existent", "stuff");
+      const test = () => api.getImages("non", "existent", "stuff", "here");
       await expect(test).rejects.toThrow("404");
 
       axios.get.mockRejectedValueOnce(new Error("other"));
