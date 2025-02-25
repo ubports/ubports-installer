@@ -16,7 +16,8 @@ const pmosPlugin = new (require("./plugin.js"))(
   {
     settings: {
       release: "somerelease",
-      interface: "someinterface"
+      interface: "someinterface",
+      variant: "somevariant"
     },
     config: {
       codename: "config_codename"
@@ -40,7 +41,8 @@ describe("postmarketos plugin", () => {
       expect(api.getImages).toHaveBeenCalledWith(
         "somerelease",
         "someinterface",
-        "os_codename"
+        "os_codename",
+        "somevariant"
       );
       expect(ret[0]).toBeDefined();
       expect(ret[0].actions).toContainEqual({
