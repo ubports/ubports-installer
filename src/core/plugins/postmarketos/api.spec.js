@@ -14,8 +14,8 @@ const MOCK_DATA = {
           pretty_name: "Some Device",
           interfaces: [
             {
-                name: "phosh",
-                pretty_name: "Phosh"
+              name: "phosh",
+              pretty_name: "Phosh"
             },
             {
               name: "plasma-mobile",
@@ -34,12 +34,12 @@ const MOCK_DATA = {
               ]
             },
             {
-                name: "sxmo-de-sway",
-                pretty_name: "Sxmo (Sway)"
+              name: "sxmo-de-sway",
+              pretty_name: "Sxmo (Sway)"
             },
             {
-                name: "other",
-                pretty_name: "Other"
+              name: "other",
+              pretty_name: "Other"
             }
           ]
         }
@@ -123,7 +123,7 @@ describe("postmarketos api", () => {
   describe("getReleases()", () => {
     it("should resolve releases", async () => {
       const result = await api.getReleases("somedevice");
-      expect(result).toEqual([{"label": "edge (unsupported)", "value": "edge"}]);
+      expect(result).toEqual([{ label: "edge (unsupported)", value: "edge" }]);
     });
 
     it("should throw on 404", async () => {

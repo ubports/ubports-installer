@@ -116,8 +116,9 @@ class PostmarketOSPlugin extends Plugin {
    * @returns {Promise<Array<Object>>}
    */
   remote_values__releases() {
-    return api
-      .getReleases(this.props.os.codename ?? this.props.config.codename);
+    return api.getReleases(
+      this.props.os.codename ?? this.props.config.codename
+    );
   }
 }
 

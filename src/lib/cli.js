@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { Command } = require('commander');
+const { Command } = require("commander");
 const cli = new Command();
 const log = require("./log.js");
 const packageInfo = require("../../package.json");

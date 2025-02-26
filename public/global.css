@@ -13,8 +13,9 @@ body {
 }
 
 * {
-  font-family: "Ubuntu", "HelveticaNeue-Light", "Helvetica Neue Light",
-    "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-family:
+    "Ubuntu", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue",
+    Helvetica, Arial, "Lucida Grande", sans-serif;
   -webkit-transition: all 0.3s;
   -moz-transition: all 0.3s;
   -o-transition: all 0.3s;
@@ -25,7 +26,10 @@ body {
   font-family: "Ubuntu";
   font-style: normal;
   font-weight: 400;
-  src: local("Ubuntu"), local("Ubuntu Regular"), local("Ubuntu-Regular"),
+  src:
+    local("Ubuntu"),
+    local("Ubuntu Regular"),
+    local("Ubuntu-Regular"),
     url("./fonts/Ubuntu.ttf") format("truetype");
 }
 
