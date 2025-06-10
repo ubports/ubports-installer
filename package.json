@@ -67,7 +67,7 @@
     "graphql": "^16.11.0",
     "open-cuts-reporter": "^1.0.2",
     "progressive-downloader": "1.0.8",
-    "promise-android-tools": "^4.0.13",
+    "promise-android-tools": "^5.0.1",
     "ps-tree": "^1.2.0",
     "semver": "^7.7.2",
     "sudo-prompt": "^9.2.1",
