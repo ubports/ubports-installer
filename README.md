@@ -1,4 +1,6 @@
-# UBports Installer ![Continuous Integration](https://github.com/ubports/ubports-installer/workflows/Continuous%20Integration/badge.svg) [![snap](https://snapcraft.io//ubports-installer/badge.svg)](https://snapcraft.io/ubports-installer) [![codecov](https://codecov.io/gh/ubports/ubports-installer/branch/master/graph/badge.svg?token=cEneFUUbgt)](https://codecov.io/gh/ubports/ubports-installer/)
+![Continuous Integration](https://github.com/ubports/ubports-installer/workflows/Continuous%20Integration/badge.svg) [![snap](https://snapcraft.io//ubports-installer/badge.svg)](https://snapcraft.io/ubports-installer) [![codecov](https://codecov.io/gh/ubports/ubports-installer/branch/master/graph/badge.svg?token=cEneFUUbgt)](https://codecov.io/gh/ubports/ubports-installer/)
+
+# UBports Installer
 
 Fear not! Installing [UBports](https://ubports.com) [Ubuntu Touch](https://ubuntu-touch.io) on your [device](https://devices.ubuntu-touch.io) is easy! Just download the UBports Installer package for your operating system and sit back and relax while your computer does all the rest. Installing third-party operating systems has never been so easy!
 
