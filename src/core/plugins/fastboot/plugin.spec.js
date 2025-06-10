@@ -17,15 +17,6 @@ const fastbootPlugin = new (require("./plugin.js"))(
 );
 
 describe("fastboot plugin", () => {
-  describe("kill()", () => {
-    it("should kill", () => {
-      jest.spyOn(fastbootPlugin.fastboot, "kill").mockResolvedValue();
-      return fastbootPlugin.kill().then(() => {
-        expect(fastbootPlugin.fastboot.kill).toHaveBeenCalledTimes(1);
-        fastbootPlugin.fastboot.kill.mockRestore();
-      });
-    });
-  });
   describe("wait()", () => {
     it("should wait", () => {
       jest.spyOn(fastbootPlugin.fastboot, "wait").mockResolvedValue();

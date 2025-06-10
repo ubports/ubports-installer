@@ -32,6 +32,7 @@ const Session = require("./helpers/session.js");
 const PluginIndex = require("./plugins/index.js");
 const packageInfo = require("../../package.json");
 const semver = require("semver");
+const { HierarchicalAbortController } = require("promise-android-tools");
 
 /**
  * properties
@@ -56,6 +57,12 @@ class Core {
    * reset run properties
    */
   reset() {
+    log.debug("Resetting plugins");
+
+    log.debug(`Current controller: ${this.controller}`);
+    if (this.controller) this.controller.abort();
+    this.controller = new HierarchicalAbortController();
+
     this.session.reset();
     this.props = {
       config: null,
@@ -68,7 +75,8 @@ class Core {
       mainEvent,
       log,
       settings,
-      this.session
+      this.session,
+      this.controller
     );
   }
 
@@ -79,18 +87,20 @@ class Core {
    * @returns {Promise}
    */
   prepare(file, restart = false) {
-    return Promise.all([
-      this.readConfigFile(file),
-      restart || this.plugins.init()
-    ])
+    log.debug(`prepare() - restart=${restart}`);
+
+    return Promise.all([this.readConfigFile(file), this.plugins.init()])
       .catch(e => errors.toUser(e, "initialization"))
       .then(() => {
         if (this.props.config) {
           this.selectOs();
         } else {
-          const wait = this.plugins
+          this.plugins
             .wait()
-            .catch(e => errors.toUser(e, "plugin wait()"))
+            .catch(e => {
+              if (e.name !== "AggregateError")
+                errors.toUser(e, "plugin wait()");
+            })
             .then(device => api.resolveAlias(device))
             .catch(
               e =>
@@ -105,7 +115,7 @@ class Core {
                 this.setDevice(device);
               }
             });
-          ipcMain.once("device:selected", () => (wait ? wait.cancel() : null));
+          ipcMain.once("device:selected", () => this.reset());
           api
             .getDeviceSelects()
             .then(out => {
@@ -117,14 +127,6 @@ class Core {
             });
         }
       });
-  }
-
-  /**
-   * kill subprocesses in plugins
-   */
-  kill() {
-    this.reset();
-    return this.plugins.kill();
   }
 
   /**

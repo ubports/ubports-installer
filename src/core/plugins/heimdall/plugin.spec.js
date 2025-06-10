@@ -15,15 +15,6 @@ const heimdallPlugin = new (require("./plugin.js"))(
 );
 
 describe("heimdall plugin", () => {
-  describe("kill()", () => {
-    it("should kill", () => {
-      jest.spyOn(heimdallPlugin.heimdall, "kill").mockResolvedValue();
-      return heimdallPlugin.kill().then(() => {
-        expect(heimdallPlugin.heimdall.kill).toHaveBeenCalledTimes(1);
-        heimdallPlugin.heimdall.kill.mockRestore();
-      });
-    });
-  });
   describe("flash()", () => {
     it("should flash", () => {
       jest.spyOn(heimdallPlugin.event, "emit").mockReturnValue();

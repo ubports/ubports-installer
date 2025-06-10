@@ -44,19 +44,21 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
-   * @returns {Promise}
-   */
-  kill() {
-    return this.fastboot.kill();
-  }
-
-  /**
    * wait for a device
    * @virtual
    * @returns {Promise<String>}
    */
-  wait() {
+  wait(signal) {
+    if (signal) {
+      signal.throwIfAborted();
+      return this.fastboot
+        ._withSignals(signal)
+        .wait()
+        .catch(e => {
+          if (error.name !== "AbortError") throw e;
+        })
+        .then(() => this.fastboot.getDeviceName());
+    }
     return this.fastboot.wait().then(() => this.fastboot.getDeviceName());
   }
 

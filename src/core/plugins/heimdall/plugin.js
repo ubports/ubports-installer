@@ -44,14 +44,6 @@ class HeimdallPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
-   * @returns {Promise}
-   */
-  kill() {
-    return this.heimdall.kill();
-  }
-
-  /**
    * Initialize this plugin
    * @returns {Promise<Boolean>}
    */
@@ -85,7 +77,17 @@ class HeimdallPlugin extends Plugin {
    * @virtual
    * @returns {Promise<String>}
    */
-  wait() {
+  wait(signal) {
+    if (signal) {
+      signal.throwIfAborted();
+      return this.heimdall
+        ._withSignals(signal)
+        .wait()
+        .catch(e => {
+          if (error.name !== "AbortError") throw e;
+        })
+        .then(() => "Unknown");
+    }
     return this.heimdall.wait().then(() => "Unknown");
   }
 

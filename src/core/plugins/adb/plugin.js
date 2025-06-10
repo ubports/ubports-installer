@@ -49,19 +49,21 @@ class AdbPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
-   * @returns {Promise}
-   */
-  kill() {
-    return this.adb.kill();
-  }
-
-  /**
    * wait for a device
    * @virtual
    * @returns {Promise<String>}
    */
-  wait() {
+  wait(signal) {
+    if (signal) {
+      signal.throwIfAborted();
+      return this.adb
+        ._withSignals(signal)
+        .wait()
+        .catch(e => {
+          if (error.name !== "AbortError") throw e;
+        })
+        .then(() => this.adb.getDeviceName());
+    }
     return this.adb.wait().then(() => this.adb.getDeviceName());
   }
 

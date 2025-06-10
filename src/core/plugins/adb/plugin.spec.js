@@ -21,15 +21,6 @@ describe("adb plugin", () => {
       });
     });
   });
-  describe("kill()", () => {
-    it("should kill", () => {
-      jest.spyOn(adbPlugin.adb, "kill").mockResolvedValue();
-      return adbPlugin.kill().then(() => {
-        expect(adbPlugin.adb.kill).toHaveBeenCalledTimes(1);
-        adbPlugin.adb.kill.mockRestore();
-      });
-    });
-  });
   describe("wait()", () => {
     it("should wait", () => {
       jest.spyOn(adbPlugin.adb, "wait").mockResolvedValue();
