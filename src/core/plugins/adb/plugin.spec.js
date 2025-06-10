@@ -20,12 +20,12 @@ describe("adb plugin", () => {
       });
     });
   });
-  describe("kill()", () => {
-    it("should kill", () => {
-      jest.spyOn(adbPlugin.adb, "kill").mockResolvedValue();
-      return adbPlugin.kill().then(() => {
-        expect(adbPlugin.adb.kill).toHaveBeenCalledTimes(1);
-        adbPlugin.adb.kill.mockRestore();
+  describe("abort()", () => {
+    it("should abort", () => {
+      jest.spyOn(adbPlugin.adb, "abort").mockResolvedValue();
+      return adbPlugin.abort().then(() => {
+        expect(adbPlugin.adb.abort).toHaveBeenCalledTimes(1);
+        adbPlugin.adb.abort.mockRestore();
       });
     });
   });

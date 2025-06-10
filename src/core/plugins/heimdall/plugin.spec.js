@@ -8,12 +8,12 @@ beforeEach(() => {
 const heimdallPlugin = new (require("./plugin.js"))({}, "a", mainEvent, log);
 
 describe("heimdall plugin", () => {
-  describe("kill()", () => {
-    it("should kill", () => {
-      jest.spyOn(heimdallPlugin.heimdall, "kill").mockResolvedValue();
-      return heimdallPlugin.kill().then(() => {
-        expect(heimdallPlugin.heimdall.kill).toHaveBeenCalledTimes(1);
-        heimdallPlugin.heimdall.kill.mockRestore();
+  describe("abort()", () => {
+    it("should abort", () => {
+      jest.spyOn(heimdallPlugin.heimdall, "abort").mockResolvedValue();
+      return heimdallPlugin.abort().then(() => {
+        expect(heimdallPlugin.heimdall.abort).toHaveBeenCalledTimes(1);
+        heimdallPlugin.heimdall.abort.mockRestore();
       });
     });
   });

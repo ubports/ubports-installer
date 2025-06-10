@@ -128,7 +128,7 @@ async function createWindow() {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", function () {
-  core.kill();
+  core.abort();
   log.info("Good bye!");
   setTimeout(() => {
     app.quit();

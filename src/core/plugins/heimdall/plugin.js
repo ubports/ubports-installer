@@ -44,11 +44,11 @@ class HeimdallPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
+   * abort all running tasks
    * @returns {Promise}
    */
-  kill() {
-    return this.heimdall.kill();
+  abort() {
+    return this.heimdall.abort();
   }
 
   /**

@@ -49,11 +49,11 @@ class AdbPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
+   * abort all running tasks
    * @returns {Promise}
    */
-  kill() {
-    return this.adb.kill();
+  abort() {
+    return this.adb.abort();
   }
 
   /**

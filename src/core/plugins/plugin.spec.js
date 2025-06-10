@@ -3,7 +3,7 @@ const Plugin = require("./plugin.js");
 it("should construct", () => expect(new Plugin()).toBeDefined());
 
 describe("virtuals", () => {
-  ["init", "kill"].forEach(virtual =>
+  ["init", "abort"].forEach(virtual =>
     it(`${virtual}() should resolve`, () => new Plugin()[virtual]())
   );
   ["wait"].forEach(virtual =>
