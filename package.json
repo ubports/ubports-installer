@@ -76,6 +76,9 @@
     "winston": "^3.17.0",
     "yaml": "^2.6.1"
   },
+  "engines": {
+    "node": "^18"
+  },
   "arkit": {
     "$schema": "https://arkit.pro/schema.json",
     "excludePatterns": [
