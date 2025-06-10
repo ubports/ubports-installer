@@ -63,11 +63,11 @@ class Plugin {
   }
 
   /**
-   * kill all running tasks
+   * abort all running tasks
    * @virtual
    * @returns {Promise}
    */
-  kill() {
+  abort() {
     return Promise.resolve();
   }
 

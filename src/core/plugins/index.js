@@ -133,12 +133,12 @@ class PluginIndex {
   }
 
   /**
-   * kill all running tasks
+   * abort all running tasks
    * @returns {Promise}
    */
-  kill() {
+  abort() {
     return Promise.all(
-      this.getPluginMappable().map(([_, plugin]) => plugin.kill())
+      this.getPluginMappable().map(([_, plugin]) => plugin.abort())
     );
   }
 

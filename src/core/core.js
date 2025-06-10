@@ -122,9 +122,9 @@ class Core {
   /**
    * kill subprocesses in plugins
    */
-  kill() {
+  abort() {
     this.reset();
-    return this.plugins.kill();
+    return this.plugins.abort();
   }
 
   /**

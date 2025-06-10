@@ -16,12 +16,12 @@ const fastbootPlugin = new (require("./plugin.js"))(
 );
 
 describe("fastboot plugin", () => {
-  describe("kill()", () => {
-    it("should kill", () => {
-      jest.spyOn(fastbootPlugin.fastboot, "kill").mockResolvedValue();
-      return fastbootPlugin.kill().then(() => {
-        expect(fastbootPlugin.fastboot.kill).toHaveBeenCalledTimes(1);
-        fastbootPlugin.fastboot.kill.mockRestore();
+  describe("abort()", () => {
+    it("should abort", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "abort").mockResolvedValue();
+      return fastbootPlugin.abort().then(() => {
+        expect(fastbootPlugin.fastboot.abort).toHaveBeenCalledTimes(1);
+        fastbootPlugin.fastboot.abort.mockRestore();
       });
     });
   });

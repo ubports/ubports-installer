@@ -44,11 +44,11 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
+   * abort all running tasks
    * @returns {Promise}
    */
-  kill() {
-    return this.fastboot.kill();
+  abort() {
+    return this.fastboot.abort();
   }
 
   /**

@@ -219,15 +219,15 @@ describe("Core module", () => {
     it.todo("should run preparations");
   });
 
-  describe("kill()", () => {
-    it("should kill", () => {
+  describe("abort()", () => {
+    it("should abort", () => {
       jest.spyOn(core, "reset").mockReturnValue();
-      jest.spyOn(core.plugins, "kill").mockResolvedValueOnce();
-      return core.kill().then(() => {
+      jest.spyOn(core.plugins, "abort").mockResolvedValueOnce();
+      return core.abort().then(() => {
         expect(core.reset).toHaveBeenCalledTimes(1);
         core.reset.mockRestore();
-        expect(core.plugins.kill).toHaveBeenCalledTimes(1);
-        core.plugins.kill.mockRestore();
+        expect(core.plugins.abort).toHaveBeenCalledTimes(1);
+        core.plugins.abort.mockRestore();
       });
     });
   });

@@ -110,7 +110,7 @@ describe("PluginIndex", () => {
     it("should return plugin array", () =>
       expect(pluginIndex.getPluginMappable()).toHaveLength(8));
   });
-  ["init", "kill"].forEach(target =>
+  ["init", "abort"].forEach(target =>
     describe(`${target}()`, () => {
       it(`should call ${target} on every plugin in the plugin array`, () => {
         const mock1 = {};
@@ -129,7 +129,7 @@ describe("PluginIndex", () => {
     })
   );
   describe("init()", () => {
-    // The happy path for init() is tested along with kill() above
+    // The happy path for init() is tested along with abort() above
     it("should log a warning and disable the plugin when it resolves with false", () => {
       const mock_resolvedFalse = { init: jest.fn().mockResolvedValue(false) };
       const mock_resolvedTrue = { init: jest.fn().mockResolvedValue(true) };
