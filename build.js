@@ -80,17 +80,6 @@ var buildConfig = {
       opts.arch.includes("arm") ? "x86" : "arm"
     }/**`
   ],
-  asarUnpack: [
-    // Unpack dependencies of packages containing binaries
-    "node_modules/jsonfile/**/*", // for fs-extra
-    "node_modules/at-least-node/**/*", // for fs-extra
-    "node_modules/graceful-fs/**/*", // for fs-extra
-    "node_modules/universalify/**/*", // for fs-extra
-    "node_modules/fs-extra/**/*", // for promise-android-tools
-    "node_modules/cancelable-promise/**/*", // for promise-android-tools
-    "node_modules/promise-android-tools/**/*", // for android-tools-bin
-    "node_modules/@babel/runtime/**/*" // for android-tools-bin
-  ],
   extraMetadata: {
     package: opts.package === "portable" ? "exe" : opts.package,
     ...opts.extraMetadata

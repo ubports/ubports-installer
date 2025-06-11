@@ -18,7 +18,7 @@
  */
 
 const Plugin = require("../plugin.js");
-const { Fastboot } = require("../../helpers/asarLibs.js").DeviceTools;
+const { Fastboot } = require("promise-android-tools");
 const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 /**

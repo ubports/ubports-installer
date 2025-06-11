@@ -18,7 +18,7 @@
  */
 
 const Plugin = require("../plugin.js");
-const { Heimdall } = require("../../helpers/asarLibs.js").DeviceTools;
+const { Heimdall } = require("promise-android-tools");
 const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 /**

@@ -18,7 +18,7 @@
  */
 
 const Plugin = require("../plugin.js");
-const { Adb } = require("../../helpers/asarLibs.js").DeviceTools;
+const { Adb } = require("promise-android-tools");
 const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 /**
