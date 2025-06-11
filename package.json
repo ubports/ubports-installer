@@ -29,7 +29,6 @@
     "start": "./start.sh",
     "lint": "npx prettier \"**/!(*.min.*)\" --ignore-path=.gitignore --arrow-parens=avoid --trailing-comma=none -uw",
     "docs": "npx jsdoc -c jsdoc-config.json",
-    "diagram": "npx arkit -f src/main.js",
     "test": "npx jest --coverage"
   },
   "devDependencies": {
@@ -38,7 +37,6 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
-    "arkit": "^1.6.4",
     "electron": "^33.4.11",
     "electron-builder": "^24.13.3",
     "electron-reload": "^1.5.0",
@@ -78,74 +76,5 @@
   },
   "engines": {
     "node": "^18"
-  },
-  "arkit": {
-    "$schema": "https://arkit.pro/schema.json",
-    "excludePatterns": [
-      "__mocks__",
-      "**/*.spec.*",
-      "src/core/plugins/plugin.js"
-    ],
-    "components": [
-      {
-        "type": "Lib",
-        "patterns": [
-          "src/lib/**/*.js"
-        ]
-      },
-      {
-        "type": "Core",
-        "patterns": [
-          "src/core/**/*.js"
-        ]
-      },
-      {
-        "type": "Plugins",
-        "patterns": [
-          "src/core/plugins/**/*.js"
-        ]
-      },
-      {
-        "type": "Component",
-        "patterns": [
-          "src/**/*.js"
-        ]
-      }
-    ],
-    "output": [
-      {
-        "direction": "horizontal",
-        "path": [
-          "dist/arkit.svg",
-          "dist/arkit.png"
-        ],
-        "groups": [
-          {
-            "first": true,
-            "components": [
-              "Component"
-            ]
-          },
-          {
-            "type": "Lib",
-            "components": [
-              "Lib"
-            ]
-          },
-          {
-            "type": "Core",
-            "components": [
-              "Core"
-            ]
-          },
-          {
-            "type": "Dependencies",
-            "components": [
-              "Dependency"
-            ]
-          }
-        ]
-      }
-    ]
   }
 }
