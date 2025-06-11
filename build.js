@@ -81,8 +81,7 @@ var buildConfig = {
     }/**`
   ],
   asarUnpack: [
-    // Unpack dependencies of pakcages containing binaries
-    "node_modules/7zip-min/*", // for 7zip-bin
+    // Unpack dependencies of packages containing binaries
     "node_modules/jsonfile/**/*", // for fs-extra
     "node_modules/at-least-node/**/*", // for fs-extra
     "node_modules/graceful-fs/**/*", // for fs-extra

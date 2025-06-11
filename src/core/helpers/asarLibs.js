@@ -17,7 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const util = require("util");
 const path = require("path");
 const packageInfo = require("../../../package.json");
 
@@ -35,6 +34,5 @@ function asarLibPathHack(lib) {
 
 module.exports = {
   asarLibPathHack,
-  unpack: util.promisify(require(asarLibPathHack("7zip-min")).unpack),
   DeviceTools: require(asarLibPathHack("promise-android-tools"))
 };

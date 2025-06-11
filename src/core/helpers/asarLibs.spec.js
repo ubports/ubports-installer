@@ -5,7 +5,7 @@ packageInfo.package = null;
 
 const asarLibs = require("./asarLibs.js");
 
-const libs = ["unpack", "DeviceTools"];
+const libs = ["DeviceTools"];
 
 libs.forEach(lib =>
   it(`should export ${lib}`, () => expect(asarLibs[lib]).toBeDefined())
