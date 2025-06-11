@@ -164,11 +164,7 @@ class PluginIndex {
           reject(e);
         });
 
-      onCancel(() =>
-        waitPromises.forEach(p => {
-          p.cancel();
-        })
-      );
+      onCancel(() => waitPromises.forEach(p => (p.cancel ? p.cancel() : null)));
     });
   }
 
