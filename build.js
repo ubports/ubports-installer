@@ -116,8 +116,6 @@ switch (opts.os) {
       },
       deb: {
         depends: [
-          "gconf2",
-          "gconf-service",
           "libnotify4",
           "libappindicator1",
           "libxtst6",
