@@ -137,7 +137,7 @@ class Reporter {
    */
   getIssueTitle(error) {
     if (!error) return "";
-    else return error.replace(new RegExp(cachePath, "g"), "$CACHE");
+    else return error.replaceAll(cachePath, "$CACHE");
   }
 
   /**
