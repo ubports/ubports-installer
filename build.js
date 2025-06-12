@@ -117,7 +117,6 @@ switch (opts.os) {
       deb: {
         depends: [
           "libnotify4",
-          "libappindicator1",
           "libxtst6",
           "libnss3",
           "android-tools-adb",
