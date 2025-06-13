@@ -19,7 +19,7 @@ apps:
   ubports-installer:
     command: ./app/ubports-installer --no-sandbox
     extensions:
-      - gnome
+      - gnome-3-38
     plugs:
       - home
       - browser-support
