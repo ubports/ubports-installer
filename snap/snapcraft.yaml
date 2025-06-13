@@ -19,7 +19,7 @@ apps:
   ubports-installer:
     command: ./app/ubports-installer --no-sandbox
     extensions:
-      - gnome-3-38
+      - gnome
     plugs:
       - home
       - browser-support
@@ -32,10 +32,9 @@ parts:
     plugin: dump
     source: .
     build-snaps:
-      - node/16/stable
+      - node/18/stable
     build-packages:
       - npm
-      - libgconf-2-4
     stage-packages:
       - libusb-1.0-0
       - libnss3
@@ -48,7 +47,6 @@ parts:
       https_proxy="${https_proxy:-}"
       echo "https_proxy: " $https_proxy
       echo "http_proxy: " $http_proxy
-      echo "updating npm" && npm install npm@latest -g
       echo "installing dependencies" && npx cross-env ELECTRON_GET_USE_PROXY=true GLOBAL_AGENT_HTTPS_PROXY=$https_proxy npm install || sleep 15 && npx cross-env ELECTRON_GET_USE_PROXY=true GLOBAL_AGENT_HTTPS_PROXY=$https_proxy npm install
       echo "rollup" && npm run build
       [ `uname -m` == "aarch64" ] && UBPORTS_ARCH=arm64 || UBPORTS_ARCH=x64
