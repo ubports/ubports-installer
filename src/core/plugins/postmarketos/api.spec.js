@@ -42,6 +42,40 @@ const MOCK_DATA = {
               pretty_name: "Other"
             }
           ]
+        },
+        {
+          name: "somedevicewithvariant",
+          pretty_name: "Some Device With Variant",
+          interfaces: [
+            {
+              name: "phosh",
+              pretty_name: "Phosh"
+            },
+            {
+              name: "plasma-mobile",
+              pretty_name: "Plasma Mobile",
+              images: [
+                {
+                  timestamp: 0,
+                  url: "someurl-somedevicewithvariant-somevariant",
+                  sha256: "sha256-first"
+                },
+                {
+                  timestamp: 0,
+                  url: "someurl-somedevicewithvariant-anothervariant",
+                  sha256: "sha256-other"
+                }
+              ]
+            },
+            {
+              name: "sxmo-de-sway",
+              pretty_name: "Sxmo (Sway)"
+            },
+            {
+              name: "other",
+              pretty_name: "Other"
+            }
+          ]
         }
       ]
     }
@@ -104,6 +138,22 @@ describe("postmarketos api", () => {
       });
     });
 
+    it("should resolve images with variants", async () => {
+      const result = await api.getImages(
+        "edge",
+        "plasma-mobile",
+        "somedevicewithvariant",
+        "somevariant"
+      );
+      expect(result).toContainEqual({
+        url: "someurl-somedevicewithvariant-somevariant",
+        checksum: {
+          sum: "sha256-first",
+          algorithm: "sha256"
+        }
+      });
+    });
+
     it("should throw on 404", async () => {
       axios.get.mockReset();
       axios.get.mockRejectedValueOnce({
@@ -112,7 +162,7 @@ describe("postmarketos api", () => {
         }
       });
 
-      const test = () => api.getImages("non", "existent", "stuff");
+      const test = () => api.getImages("non", "existent", "stuff", "here");
       await expect(test).rejects.toThrow("404");
 
       axios.get.mockRejectedValueOnce(new Error("other"));
