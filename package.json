@@ -69,7 +69,7 @@
     "semver": "^7.7.2",
     "sudo-prompt": "^9.2.1",
     "svelte-markdown": "^0.4.1",
-    "systeminformation": "^5.27.1",
+    "systeminformation": "^5.27.2",
     "winston": "^3.17.0",
     "yaml": "^2.8.0"
   },
