@@ -57,7 +57,7 @@
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
     "cancelable-promise": "^4.3.1",
-    "commander": "^12.1.0",
+    "commander": "^14.0.0",
     "electron-open-link-in-browser": "^1.0.2",
     "electron-store": "^8.2.0",
     "form-data": "^4.0.3",
