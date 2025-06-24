@@ -85,7 +85,7 @@ async function createWindow() {
   // Make sure links are opened in browser
   mainWindow.webContents.on("will-navigate", (e, url) => {
     // TODO replace all the shell.openExternal calls in the svelte code with href's
-    if (url !== e.sender.getURL()) {
+    if (url !== mainWindow.webContents.getURL()) {
       e.preventDefault();
       shell.openExternal(url).then(() => {
         log.verbose("Opened external: " + url);
