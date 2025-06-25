@@ -220,6 +220,35 @@ class CorePlugin extends Plugin {
   }
 
   /**
+   * core:unpack_move action
+   * @param {Object} param0 {group, files}
+   * @returns {Promise}
+   */
+  action__unpack_move({ group, files }) {
+    return Promise.resolve()
+      .then(() => {
+        this.event.emit("user:write:working", "squares");
+        this.event.emit(
+          "user:write:status",
+          `Moving unpacked ${group} files`,
+          true
+        );
+        this.event.emit("user:write:under", `Moving unpacked files...`);
+        return path.join(this.cachePath, this.props.config.codename, group);
+      })
+      .then(basepath =>
+        Promise.all(
+          files.map(file => {
+            const src = path.join(basepath, file.src);
+            const dst = path.join(basepath, file.dst);
+            return this.moveFiles(src, dst);
+          })
+        )
+      )
+      .then(() => Promise.resolve());
+  }
+
+  /**
    * core:manual_download action
    * @param {Object} param0 {group, file}
    * @returns {Promise}
@@ -295,6 +324,44 @@ class CorePlugin extends Plugin {
             });
         }
       });
+  }
+
+  moveFiles(sourceDir, targetDir) {
+    return new Promise((resolve, reject) => {
+      fs.readdir(sourceDir, (err, files) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        files.forEach(file => {
+          const oldPath = path.join(sourceDir, file);
+          const newPath = path.join(targetDir, file);
+          const stat = fs.lstatSync(oldPath);
+
+          if (stat.isDirectory()) {
+            moveFiles(oldPath, targetDir)
+              .then(() => {
+                if (files.indexOf(file) === files.length - 1) {
+                  resolve();
+                }
+              })
+              .catch(err => reject(err));
+          } else if (stat.isFile()) {
+            fs.rename(oldPath, newPath, err => {
+              if (err) {
+                reject(err);
+                return;
+              }
+
+              if (files.indexOf(file) === files.length - 1) {
+                resolve();
+              }
+            });
+          }
+        });
+      });
+    });
   }
 }
 

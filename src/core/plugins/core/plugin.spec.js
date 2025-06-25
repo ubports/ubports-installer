@@ -273,6 +273,46 @@ describe("core plugin", () => {
     });
   });
 
+  describe("action__unpack_move()", () => {
+    it("should move a source directory 'unpacked/EXTRACTED_FROM_TAR' to a destination directory called 'unpacked'", () => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      jest
+        .spyOn(core, "moveFiles")
+        .mockImplementation((src, dst) => Promise.resolve());
+      return core
+        .action__unpack_move({
+          group: "firmware",
+          files: [{ src: "unpacked/EXTRACTED_FROM_TAR", dst: "unpacked" }]
+        })
+        .then(() => {
+          expect(core.moveFiles).toHaveBeenCalledTimes(1);
+          expect(core.moveFiles).toHaveBeenCalledWith(
+            path.join("a/yggdrasil/firmware", "unpacked/EXTRACTED_FROM_TAR"),
+            path.join("a/yggdrasil/firmware", "unpacked")
+          );
+          expect(mainEvent.emit).toHaveBeenCalledTimes(3);
+        });
+    });
+    it("should reject on move errors", () => {
+      jest
+        .spyOn(mainEvent, "emit")
+        .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
+      jest
+        .spyOn(core, "moveFiles")
+        .mockImplementation((src, dst) => new Error("test error"));
+      return core
+        .action__unpack_move({
+          group: "firmware",
+          files: [{ src: "unpacked/EXTRACTED_FROM_TAR", dst: "unpacked" }]
+        })
+        .catch(e => {
+          expect(e.message).toEqual("Failed to unpack: Error: test error");
+        });
+    });
+  });
+
   describe("action__manual_download()", () => {
     it("should resolve if checksum was verified", () => {
       jest
