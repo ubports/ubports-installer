@@ -61,6 +61,11 @@ mainEvent.on("restart", () => {
 });
 
 async function createWindow() {
+  if (mainWindow) {
+    log.debug("mainWindow already exists, skipping creation");
+    return Promise.resolve(mainWindow);
+  }
+
   log.info(
     "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
@@ -123,9 +128,23 @@ async function createWindow() {
   mainWindow.on("closed", function () {
     mainWindow = null;
   });
+
+  return Promise.resolve(mainWindow);
 }
 
-app.on("ready", createWindow);
+async function setMenu() {
+  return Promise.resolve().then(() => {
+    log.debug("Setting up application menu");
+    menuManager.setMenu(mainWindow);
+  });
+}
+
+app.on("activate", function () {
+  createWindow().then(() => setMenu());
+});
+app.on("ready", function () {
+  createWindow().then(() => setMenu());
+});
 
 app.on("window-all-closed", function () {
   core.kill();
@@ -134,15 +153,4 @@ app.on("window-all-closed", function () {
     app.quit();
     process.exit(0);
   }, 2000);
-});
-
-app.on("activate", function () {
-  if (mainWindow === null) {
-    createWindow();
-  }
-});
-
-// Set application menu
-app.on("ready", function () {
-  menuManager.setMenu(mainWindow);
 });
