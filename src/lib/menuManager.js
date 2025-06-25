@@ -37,6 +37,13 @@ class MenuManager {
         role: "window",
         submenu: [
           {
+            label: "Restart UBports Installer",
+            click: () => {
+              mainEvent.emit("restart");
+            }
+          },
+          { type: "separator" },
+          {
             label: "Minimize",
             accelerator: "CmdOrCtrl+M",
             role: "minimize"
@@ -63,36 +70,12 @@ class MenuManager {
               packageInfo.package !== "snap" && process.platform === "linux"
           },
           {
-            label: "Report a bug",
-            click: () => window.send("user:report")
-          },
-          {
             label: "Developer tools",
             click: () => mainWindow.webContents.openDevTools()
           },
           {
             label: "Clean cached files",
             click: () => cache.clean()
-          },
-          {
-            label: "Open settings config file",
-            click: () => {
-              settings.openInEditor();
-            },
-            visible: settings.size
-          },
-          {
-            label: "Reset settings",
-            click: () => {
-              settings.clear();
-            },
-            visible: settings.size
-          },
-          {
-            label: "Restart UBports Installer",
-            click: () => {
-              mainEvent.emit("restart");
-            }
           }
         ]
       },
@@ -100,7 +83,7 @@ class MenuManager {
         label: "Settings",
         submenu: [
           {
-            label: "Animations",
+            label: "Disable animations",
             checked: settings.get("animations"),
             type: "checkbox",
             click: () => {
@@ -146,12 +129,35 @@ class MenuManager {
                 "never.windowsDrivers",
                 !settings.get("never.windowsDrivers")
               )
+          },
+          { type: "separator" },
+          {
+            label: "Open settings config file",
+            click: () => {
+              settings.openInEditor();
+            },
+            visible: settings.size
+          },
+          {
+            label: "Reset settings",
+            click: () => {
+              settings.clear();
+            },
+            visible: settings.size
           }
         ]
       },
       {
         label: "Help",
         submenu: [
+          {
+            label: "Troubleshooting",
+            click: () =>
+              shell.openExternal(
+                "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
+              )
+          },
+          { type: "separator" },
           {
             label: "Bug tracker",
             click: () =>
@@ -163,13 +169,7 @@ class MenuManager {
             label: "Report a bug",
             click: () => window.send("user:report")
           },
-          {
-            label: "Troubleshooting",
-            click: () =>
-              shell.openExternal(
-                "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
-              )
-          },
+          { type: "separator" },
           {
             label: "UBports Forums",
             click: () => shell.openExternal("https://forums.ubports.com")
@@ -191,14 +191,6 @@ class MenuManager {
         label: "About",
         submenu: [
           {
-            label: "About the UBports Foundation...",
-            click: () => shell.openExternal("https://ubports.com")
-          },
-          {
-            label: "About Ubuntu Touch...",
-            click: () => shell.openExternal("https://ubuntu-touch.io")
-          },
-          {
             label: "Donate",
             click: () => shell.openExternal("https://ubports.com/donate")
           },
@@ -218,6 +210,15 @@ class MenuManager {
                   packageInfo.version +
                   "/LICENSE"
               )
+          },
+          { type: "separator" },
+          {
+            label: "About the UBports Foundation...",
+            click: () => shell.openExternal("https://ubports.com")
+          },
+          {
+            label: "About Ubuntu Touch...",
+            click: () => shell.openExternal("https://ubuntu-touch.io")
           }
         ]
       }
