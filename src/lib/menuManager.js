@@ -24,7 +24,6 @@ const udev = require("./udev.js");
 const settings = require("./settings.js");
 const cache = require("./cache.js");
 const mainEvent = require("./mainEvent.js");
-const reporter = require("./reporter.js");
 
 class MenuManager {
   /**
@@ -33,40 +32,6 @@ class MenuManager {
    */
   getMenuTemplate(mainWindow) {
     return [
-      {
-        label: "About",
-        submenu: [
-          {
-            label: "About the UBports Foundation...",
-            click: () => shell.openExternal("https://ubports.com")
-          },
-          {
-            label: "About Ubuntu Touch...",
-            click: () => shell.openExternal("https://ubuntu-touch.io")
-          },
-          {
-            label: "Donate",
-            click: () => shell.openExternal("https://ubports.com/donate")
-          },
-          {
-            label: "Source",
-            click: () =>
-              shell.openExternal(
-                "https://github.com/ubports/ubports-installer/tree/" +
-                  packageInfo.version
-              )
-          },
-          {
-            label: "License",
-            click: () =>
-              shell.openExternal(
-                "https://github.com/ubports/ubports-installer/blob/" +
-                  packageInfo.version +
-                  "/LICENSE"
-              )
-          }
-        ]
-      },
       {
         label: "Window",
         role: "window",
@@ -219,6 +184,40 @@ class MenuManager {
           {
             label: "Telegram",
             click: () => shell.openExternal("https://t.me/WelcomePlus")
+          }
+        ]
+      },
+      {
+        label: "About",
+        submenu: [
+          {
+            label: "About the UBports Foundation...",
+            click: () => shell.openExternal("https://ubports.com")
+          },
+          {
+            label: "About Ubuntu Touch...",
+            click: () => shell.openExternal("https://ubuntu-touch.io")
+          },
+          {
+            label: "Donate",
+            click: () => shell.openExternal("https://ubports.com/donate")
+          },
+          {
+            label: "Source",
+            click: () =>
+              shell.openExternal(
+                "https://github.com/ubports/ubports-installer/tree/" +
+                  packageInfo.version
+              )
+          },
+          {
+            label: "License",
+            click: () =>
+              shell.openExternal(
+                "https://github.com/ubports/ubports-installer/blob/" +
+                  packageInfo.version +
+                  "/LICENSE"
+              )
           }
         ]
       }
