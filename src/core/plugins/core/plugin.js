@@ -35,7 +35,7 @@ class CorePlugin extends Plugin {
    */
   action__end() {
     return Promise.resolve().then(() => {
-      this.event.emit("user:write:done");
+      this.event.emit("user:write:done", this.props.os.name);
       this.event.emit(
         "user:write:status",
         this.props.os.name + " successfully installed!",

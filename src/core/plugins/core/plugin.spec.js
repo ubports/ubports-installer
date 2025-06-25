@@ -30,7 +30,10 @@ describe("core plugin", () => {
     it("should display end screen", () => {
       return core.action__end().then(r => {
         expect(r).toEqual(undefined);
-        expect(mainEvent.emit).toHaveBeenCalledWith("user:write:done");
+        expect(mainEvent.emit).toHaveBeenCalledWith(
+          "user:write:done",
+          "Ubuntu Touch"
+        );
         expect(mainEvent.emit).toHaveBeenCalledWith(
           "user:write:status",
           "Ubuntu Touch successfully installed!",

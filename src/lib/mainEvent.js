@@ -199,11 +199,12 @@ mainEvent.on("user:write:progress", progress => {
 });
 
 // Installation successfull
-mainEvent.on("user:write:done", () => {
+mainEvent.on("user:write:done", name => {
   window.send("user:write:done");
   window.send("user:write:speed");
+  if (!name) name = "Ubuntu Touch";
   log.info(
-    "All done! Your device will now reboot and complete the installation. Enjoy exploring Ubuntu Touch!"
+    `All done! Your device will now reboot and complete the installation. Enjoy exploring ${name}!`
   );
   if (!settings.get("never.reportInstallationResult")) {
     setTimeout(() => {
