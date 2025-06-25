@@ -68,9 +68,9 @@ async function createWindow() {
   log.verbose(`Versions: ${JSON.stringify(process.versions)}`);
 
   mainWindow = new BrowserWindow({
-    width: cli.inspect ? 1400 : 1000,
+    width: cli.inspect ? 1440 : 1280,
     minWidth: 800,
-    height: 750,
+    height: 900,
     minHeight: 600,
     icon: path.join(__dirname, "../build/icons/icon.png"),
     title: "UBports Installer (" + packageInfo.version + ")",
