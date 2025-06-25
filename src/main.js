@@ -135,7 +135,7 @@ async function createWindow() {
 async function setMenu() {
   return Promise.resolve().then(() => {
     log.debug("Setting up application menu");
-    menuManager.setMenu(mainWindow);
+    menuManager.setMenu();
   });
 }
 

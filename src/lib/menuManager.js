@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { shell, Menu } = require("electron");
 const packageInfo = require("../../package.json");
-const { BrowserWindow, shell, Menu } = require("electron");
 const window = require("./window.js");
 const udev = require("./udev.js");
 const settings = require("./settings.js");
@@ -28,13 +28,35 @@ const mainEvent = require("./mainEvent.js");
 class MenuManager {
   /**
    * build global application menu
-   * @param {BrowserWindow} mainWindow main UBports Installer window
    */
-  getMenuTemplate(mainWindow) {
+  getMenuTemplate() {
+    const isMac = process.platform === "darwin";
+
     return [
+      // { role: 'appMenu' }
+      ...(isMac
+        ? [
+            {
+              label: "UBports Installer (" + packageInfo.version + ")",
+              role: "appMenu",
+              submenu: [
+                { role: "about" },
+                { type: "separator" },
+                { role: "services" },
+                { type: "separator" },
+                { role: "hide" },
+                { role: "hideOthers" },
+                { role: "unhide" },
+                { type: "separator" },
+                { role: "quit" }
+              ]
+            }
+          ]
+        : []),
+      // { role: 'fileMenu' }
       {
-        label: "Window",
-        role: "window",
+        label: "File",
+        role: "fileMenu",
         submenu: [
           {
             label: "Restart UBports Installer",
@@ -43,25 +65,44 @@ class MenuManager {
             }
           },
           { type: "separator" },
-          {
-            label: "Minimize",
-            accelerator: "CmdOrCtrl+M",
-            role: "minimize"
-          },
-          {
-            label: "Close",
-            accelerator: "CmdOrCtrl+W",
-            role: "close"
-          },
-          {
-            label: "Quit",
-            accelerator: "CmdOrCtrl+Q",
-            role: "close"
-          }
+          isMac ? { role: "close" } : { role: "quit" }
         ]
       },
+      // { role: 'viewMenu' }
+      {
+        label: "View",
+        role: "viewMenu",
+        submenu: [
+          { role: "toggleDevTools" },
+          { type: "separator" },
+          { role: "resetZoom" },
+          { role: "zoomIn" },
+          { role: "zoomOut" },
+          { type: "separator" },
+          { role: "togglefullscreen" }
+        ]
+      },
+      // { role: 'windowMenu' }
+      {
+        label: "Window",
+        role: "windowMenu",
+        submenu: [
+          { role: "minimize" },
+          { role: "zoom" },
+          ...(isMac
+            ? [
+                { type: "separator" },
+                { role: "front" },
+                { type: "separator" },
+                { role: "window" }
+              ]
+            : [{ role: "close" }])
+        ]
+      },
+      // { role: 'toolsMenu' }
       {
         label: "Tools",
+        role: "toolsMenu",
         submenu: [
           {
             label: "Set udev rules",
@@ -70,17 +111,15 @@ class MenuManager {
               packageInfo.package !== "snap" && process.platform === "linux"
           },
           {
-            label: "Developer tools",
-            click: () => mainWindow.webContents.openDevTools()
-          },
-          {
             label: "Clean cached files",
             click: () => cache.clean()
           }
         ]
       },
+      // { role: 'settingsMenu' }
       {
         label: "Settings",
+        role: "settingsMenu",
         submenu: [
           {
             label: "Disable animations",
@@ -147,8 +186,10 @@ class MenuManager {
           }
         ]
       },
+      // { role: 'help' }
       {
         label: "Help",
+        role: "help",
         submenu: [
           {
             label: "Troubleshooting",
@@ -187,8 +228,10 @@ class MenuManager {
           }
         ]
       },
+      // { role: 'aboutMenu' }
       {
         label: "About",
+        role: "aboutMenu",
         submenu: [
           {
             label: "Donate",
@@ -227,12 +270,9 @@ class MenuManager {
 
   /**
    * set global application menu
-   * @param {BrowserWindow} mainWindow main UBports Installer window
    */
-  setMenu(mainWindow) {
-    Menu.setApplicationMenu(
-      Menu.buildFromTemplate(this.getMenuTemplate(mainWindow))
-    );
+  setMenu() {
+    Menu.setApplicationMenu(Menu.buildFromTemplate(this.getMenuTemplate()));
   }
 }
 
