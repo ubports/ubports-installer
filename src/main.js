@@ -61,6 +61,11 @@ mainEvent.on("restart", () => {
 });
 
 async function createWindow() {
+  if (mainWindow) {
+    log.debug("mainWindow already exists, skipping creation");
+    return Promise.resolve(mainWindow);
+  }
+
   log.info(
     "Welcome to the UBports Installer version " + packageInfo.version + "!"
   );
@@ -68,9 +73,9 @@ async function createWindow() {
   log.verbose(`Versions: ${JSON.stringify(process.versions)}`);
 
   mainWindow = new BrowserWindow({
-    width: cli.inspect ? 1400 : 1000,
+    width: cli.inspect ? 1440 : 1280,
     minWidth: 800,
-    height: 750,
+    height: 900,
     minHeight: 600,
     icon: path.join(__dirname, "../build/icons/icon.png"),
     title: "UBports Installer (" + packageInfo.version + ")",
@@ -123,9 +128,23 @@ async function createWindow() {
   mainWindow.on("closed", function () {
     mainWindow = null;
   });
+
+  return Promise.resolve(mainWindow);
 }
 
-app.on("ready", createWindow);
+async function setMenu() {
+  return Promise.resolve().then(() => {
+    log.debug("Setting up application menu");
+    menuManager.setMenu();
+  });
+}
+
+app.on("activate", function () {
+  createWindow().then(() => setMenu());
+});
+app.on("ready", function () {
+  createWindow().then(() => setMenu());
+});
 
 app.on("window-all-closed", function () {
   core.kill();
@@ -134,15 +153,4 @@ app.on("window-all-closed", function () {
     app.quit();
     process.exit(0);
   }, 2000);
-});
-
-app.on("activate", function () {
-  if (mainWindow === null) {
-    createWindow();
-  }
-});
-
-// Set application menu
-app.on("ready", function () {
-  menuManager.setMenu(mainWindow);
 });

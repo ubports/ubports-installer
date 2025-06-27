@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const { shell, Menu } = require("electron");
 const packageInfo = require("../../package.json");
-const { BrowserWindow, shell, Menu } = require("electron");
 const window = require("./window.js");
 const udev = require("./udev.js");
 const settings = require("./settings.js");
@@ -28,33 +28,81 @@ const mainEvent = require("./mainEvent.js");
 class MenuManager {
   /**
    * build global application menu
-   * @param {BrowserWindow} mainWindow main UBports Installer window
    */
-  getMenuTemplate(mainWindow) {
+  getMenuTemplate() {
+    const isMac = process.platform === "darwin";
+
     return [
+      // { role: 'appMenu' }
+      ...(isMac
+        ? [
+            {
+              label: "UBports Installer (" + packageInfo.version + ")",
+              role: "appMenu",
+              submenu: [
+                { role: "about" },
+                { type: "separator" },
+                { role: "services" },
+                { type: "separator" },
+                { role: "hide" },
+                { role: "hideOthers" },
+                { role: "unhide" },
+                { type: "separator" },
+                { role: "quit" }
+              ]
+            }
+          ]
+        : []),
+      // { role: 'fileMenu' }
       {
-        label: "Window",
-        role: "window",
+        label: "File",
+        role: "fileMenu",
         submenu: [
           {
-            label: "Minimize",
-            accelerator: "CmdOrCtrl+M",
-            role: "minimize"
+            label: "Restart UBports Installer",
+            click: () => {
+              mainEvent.emit("restart");
+            }
           },
-          {
-            label: "Close",
-            accelerator: "CmdOrCtrl+W",
-            role: "close"
-          },
-          {
-            label: "Quit",
-            accelerator: "CmdOrCtrl+Q",
-            role: "close"
-          }
+          { type: "separator" },
+          isMac ? { role: "close" } : { role: "quit" }
         ]
       },
+      // { role: 'viewMenu' }
+      {
+        label: "View",
+        role: "viewMenu",
+        submenu: [
+          { role: "toggleDevTools" },
+          { type: "separator" },
+          { role: "resetZoom" },
+          { role: "zoomIn" },
+          { role: "zoomOut" },
+          { type: "separator" },
+          { role: "togglefullscreen" }
+        ]
+      },
+      // { role: 'windowMenu' }
+      {
+        label: "Window",
+        role: "windowMenu",
+        submenu: [
+          { role: "minimize" },
+          { role: "zoom" },
+          ...(isMac
+            ? [
+                { type: "separator" },
+                { role: "front" },
+                { type: "separator" },
+                { role: "window" }
+              ]
+            : [{ role: "close" }])
+        ]
+      },
+      // { role: 'toolsMenu' }
       {
         label: "Tools",
+        role: "toolsMenu",
         submenu: [
           {
             label: "Set udev rules",
@@ -63,44 +111,18 @@ class MenuManager {
               packageInfo.package !== "snap" && process.platform === "linux"
           },
           {
-            label: "Report a bug",
-            click: () => window.send("user:report")
-          },
-          {
-            label: "Developer tools",
-            click: () => mainWindow.webContents.openDevTools()
-          },
-          {
             label: "Clean cached files",
             click: () => cache.clean()
-          },
-          {
-            label: "Open settings config file",
-            click: () => {
-              settings.openInEditor();
-            },
-            visible: settings.size
-          },
-          {
-            label: "Reset settings",
-            click: () => {
-              settings.clear();
-            },
-            visible: settings.size
-          },
-          {
-            label: "Restart UBports Installer",
-            click: () => {
-              mainEvent.emit("restart");
-            }
           }
         ]
       },
+      // { role: 'settingsMenu' }
       {
         label: "Settings",
+        role: "settingsMenu",
         submenu: [
           {
-            label: "Animations",
+            label: "Disable animations",
             checked: settings.get("animations"),
             type: "checkbox",
             click: () => {
@@ -146,12 +168,37 @@ class MenuManager {
                 "never.windowsDrivers",
                 !settings.get("never.windowsDrivers")
               )
+          },
+          { type: "separator" },
+          {
+            label: "Open settings config file",
+            click: () => {
+              settings.openInEditor();
+            },
+            visible: settings.size
+          },
+          {
+            label: "Reset settings",
+            click: () => {
+              settings.clear();
+            },
+            visible: settings.size
           }
         ]
       },
+      // { role: 'help' }
       {
         label: "Help",
+        role: "help",
         submenu: [
+          {
+            label: "Troubleshooting",
+            click: () =>
+              shell.openExternal(
+                "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
+              )
+          },
+          { type: "separator" },
           {
             label: "Bug tracker",
             click: () =>
@@ -163,13 +210,7 @@ class MenuManager {
             label: "Report a bug",
             click: () => window.send("user:report")
           },
-          {
-            label: "Troubleshooting",
-            click: () =>
-              shell.openExternal(
-                "https://docs.ubports.com/en/latest/userguide/install.html#troubleshooting"
-              )
-          },
+          { type: "separator" },
           {
             label: "UBports Forums",
             click: () => shell.openExternal("https://forums.ubports.com")
@@ -187,17 +228,11 @@ class MenuManager {
           }
         ]
       },
+      // { role: 'aboutMenu' }
       {
         label: "About",
+        role: "aboutMenu",
         submenu: [
-          {
-            label: "About the UBports Foundation...",
-            click: () => shell.openExternal("https://ubports.com")
-          },
-          {
-            label: "About Ubuntu Touch...",
-            click: () => shell.openExternal("https://ubuntu-touch.io")
-          },
           {
             label: "Donate",
             click: () => shell.openExternal("https://ubports.com/donate")
@@ -218,6 +253,15 @@ class MenuManager {
                   packageInfo.version +
                   "/LICENSE"
               )
+          },
+          { type: "separator" },
+          {
+            label: "About the UBports Foundation...",
+            click: () => shell.openExternal("https://ubports.com")
+          },
+          {
+            label: "About Ubuntu Touch...",
+            click: () => shell.openExternal("https://ubuntu-touch.io")
           }
         ]
       }
@@ -226,12 +270,9 @@ class MenuManager {
 
   /**
    * set global application menu
-   * @param {BrowserWindow} mainWindow main UBports Installer window
    */
-  setMenu(mainWindow) {
-    Menu.setApplicationMenu(
-      Menu.buildFromTemplate(this.getMenuTemplate(mainWindow))
-    );
+  setMenu() {
+    Menu.setApplicationMenu(Menu.buildFromTemplate(this.getMenuTemplate()));
   }
 }
 
