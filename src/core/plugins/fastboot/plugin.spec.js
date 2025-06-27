@@ -1,5 +1,6 @@
-const path = require("path");
 const mainEvent = { emit: jest.fn() };
+const { buildPath } = require("../../helpers/fileutil.js");
+
 beforeEach(() => mainEvent.emit.mockReset());
 
 const CODENAME = "CODENAME";
@@ -46,6 +47,24 @@ describe("fastboot plugin", () => {
           expect(fastbootPlugin.fastboot.update).toHaveBeenCalledTimes(1);
           expect(fastbootPlugin.fastboot.update).toHaveBeenCalledWith(
             expect.stringMatching(/.*group.image/),
+            undefined
+          );
+          fastbootPlugin.fastboot.update.mockRestore();
+        });
+    });
+    it("should properly escape paths", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "update").mockResolvedValue();
+      return fastbootPlugin
+        .action__update({ group: "group with spaces  ", file: "  im age" })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.update).toHaveBeenCalledTimes(1);
+          expect(fastbootPlugin.fastboot.update).toHaveBeenCalledWith(
+            buildPath(
+              fastbootPlugin.cachePath,
+              fastbootPlugin.props.config.codename,
+              "group with spaces  ",
+              "  im age"
+            ),
             undefined
           );
           fastbootPlugin.fastboot.update.mockRestore();
@@ -120,6 +139,32 @@ describe("fastboot plugin", () => {
           fastbootPlugin.fastboot.boot.mockRestore();
         });
     });
+    it("should properly escape paths", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "boot").mockResolvedValue();
+      return fastbootPlugin
+        .action__boot({
+          partition: "boot",
+          file: "boot.img",
+          group: "firm ware"
+        })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.boot).toHaveBeenCalledTimes(1);
+          expect(fastbootPlugin.fastboot.boot).toHaveBeenCalledWith(
+            buildPath(
+              fastbootPlugin.cachePath,
+              fastbootPlugin.props.config.codename,
+              "firm ware",
+              "boot.img"
+            ),
+            "boot"
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            expect.stringMatching("Your device is being rebooted...")
+          );
+          fastbootPlugin.fastboot.boot.mockRestore();
+        });
+    });
   });
   describe("continue()", () => {
     it("should continue/resume booting", () => {
@@ -177,6 +222,75 @@ describe("fastboot plugin", () => {
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:under",
             expect.stringMatching("Flashing firmware partitions using fastboot")
+          );
+          fastbootPlugin.fastboot.flash.mockRestore();
+          fastbootPlugin.fastboot.wait.mockRestore();
+        });
+    });
+    it("should escape paths", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "wait").mockResolvedValue();
+      jest.spyOn(fastbootPlugin.fastboot, "flash").mockResolvedValue();
+      return fastbootPlugin
+        .action__flash({
+          partitions: [
+            {
+              partition: "dtbo",
+              file: "dtbo.img",
+              group: "firm ware"
+            },
+            {
+              partition: "recovery",
+              file: "recovery image.img",
+              group: "firmware"
+            },
+            {
+              partition: "vbmeta",
+              file: "vb me ta.img",
+              group: "firmware"
+            }
+          ]
+        })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.wait).toHaveBeenCalledTimes(1);
+          expect(fastbootPlugin.fastboot.flash).toHaveBeenCalledTimes(1);
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:under",
+            expect.stringMatching("Flashing firmware partitions using fastboot")
+          );
+          expect(fastbootPlugin.fastboot.flash).toHaveBeenCalledWith(
+            [
+              {
+                file: buildPath(
+                  fastbootPlugin.cachePath,
+                  fastbootPlugin.props.config.codename,
+                  "firm ware",
+                  "dtbo.img"
+                ),
+                group: "firm ware",
+                partition: "dtbo"
+              },
+              {
+                file: buildPath(
+                  fastbootPlugin.cachePath,
+                  fastbootPlugin.props.config.codename,
+                  "firmware",
+                  "recovery image.img"
+                ),
+                group: "firmware",
+                partition: "recovery"
+              },
+              {
+                file: buildPath(
+                  fastbootPlugin.cachePath,
+                  fastbootPlugin.props.config.codename,
+                  "firmware",
+                  "vb me ta.img"
+                ),
+                group: "firmware",
+                partition: "vbmeta"
+              }
+            ],
+            expect.any(Function)
           );
           fastbootPlugin.fastboot.flash.mockRestore();
           fastbootPlugin.fastboot.wait.mockRestore();
@@ -360,7 +474,38 @@ describe("fastboot plugin", () => {
         })
         .then(() => {
           expect(fastbootPlugin.fastboot.wipeSuper).toHaveBeenCalledWith(
-            path.join(CACHE_PATH, CODENAME, "group", "file")
+            buildPath(
+              fastbootPlugin.cachePath,
+              fastbootPlugin.props.config.codename,
+              "group",
+              "file"
+            )
+          );
+          expect(mainEvent.emit).toHaveBeenCalledWith(
+            "user:write:status",
+            expect.stringMatching("super"),
+            true
+          );
+          fastbootPlugin.fastboot.wipeSuper.mockRestore();
+        });
+    });
+    it("should properly escape paths", () => {
+      jest.spyOn(fastbootPlugin.fastboot, "wipeSuper").mockResolvedValue();
+      return fastbootPlugin
+        .action__wipe_super({
+          image: {
+            group: "group with spaces   ",
+            file: "file with spaces   because we can"
+          }
+        })
+        .then(() => {
+          expect(fastbootPlugin.fastboot.wipeSuper).toHaveBeenCalledWith(
+            buildPath(
+              fastbootPlugin.cachePath,
+              fastbootPlugin.props.config.codename,
+              "group with spaces   ",
+              "file with spaces   because we can"
+            )
           );
           expect(mainEvent.emit).toHaveBeenCalledWith(
             "user:write:status",
