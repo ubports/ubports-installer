@@ -1,11 +1,18 @@
 const mainEvent = { emit: jest.fn() };
 const log = { warn: jest.fn() };
+const { buildPath } = require("../../helpers/fileutil.js");
+
 beforeEach(() => {
   mainEvent.emit.mockReset();
   log.warn.mockReset();
 });
 
-const heimdallPlugin = new (require("./plugin.js"))({}, "a", mainEvent, log);
+const heimdallPlugin = new (require("./plugin.js"))(
+  { config: { codename: "herolte" } },
+  "a",
+  mainEvent,
+  log
+);
 
 describe("heimdall plugin", () => {
   describe("kill()", () => {
@@ -15,6 +22,66 @@ describe("heimdall plugin", () => {
         expect(heimdallPlugin.heimdall.kill).toHaveBeenCalledTimes(1);
         heimdallPlugin.heimdall.kill.mockRestore();
       });
+    });
+  });
+  describe("flash()", () => {
+    it("should flash", () => {
+      jest.spyOn(heimdallPlugin.event, "emit").mockReturnValue();
+      jest
+        .spyOn(heimdallPlugin.heimdall, "flash")
+        .mockImplementation(partitions => Promise.resolve());
+      return heimdallPlugin
+        .action__flash({
+          partitions: [
+            {
+              partition: "BOOT",
+              file: "boot-reboot-recovery-herolte.img",
+              group: "firmware"
+            }
+          ]
+        })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(heimdallPlugin.event.emit).toHaveBeenCalledTimes(3);
+          expect(heimdallPlugin.heimdall.flash).toHaveBeenCalledTimes(1);
+          heimdallPlugin.event.emit.mockRestore();
+          heimdallPlugin.heimdall.flash.mockRestore();
+        });
+    });
+    it("should properly escape paths", () => {
+      jest.spyOn(heimdallPlugin.event, "emit").mockReturnValue();
+      jest
+        .spyOn(heimdallPlugin.heimdall, "flash")
+        .mockImplementation(partitions => Promise.resolve());
+      return heimdallPlugin
+        .action__flash({
+          partitions: [
+            {
+              partition: "BOOT",
+              file: "sub directory/boot-reboot-recovery-herolte.img",
+              group: "Ubuntu Touch"
+            }
+          ]
+        })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(heimdallPlugin.event.emit).toHaveBeenCalledTimes(3);
+          expect(heimdallPlugin.heimdall.flash).toHaveBeenCalledTimes(1);
+          expect(heimdallPlugin.heimdall.flash).toHaveBeenCalledWith([
+            {
+              file: buildPath(
+                heimdallPlugin.cachePath,
+                heimdallPlugin.props.config.codename,
+                "Ubuntu Touch",
+                "sub directory/boot-reboot-recovery-herolte.img"
+              ),
+              group: "Ubuntu Touch",
+              partition: "BOOT"
+            }
+          ]);
+          heimdallPlugin.event.emit.mockRestore();
+          heimdallPlugin.heimdall.flash.mockRestore();
+        });
     });
   });
   describe("wait()", () => {

@@ -18,8 +18,8 @@
  */
 
 const Plugin = require("../plugin.js");
-const path = require("path");
 const { Heimdall } = require("../../helpers/asarLibs.js").DeviceTools;
+const { buildPath } = require("../../helpers/fileutil.js");
 
 /**
  * heimdall actions plugin
@@ -104,7 +104,7 @@ class HeimdallPlugin extends Plugin {
       return this.heimdall.flash(
         partitions.map(file => ({
           ...file,
-          file: path.join(
+          file: buildPath(
             this.cachePath,
             this.props.config.codename,
             file.group,
