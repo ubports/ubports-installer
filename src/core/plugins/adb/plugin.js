@@ -18,8 +18,8 @@
  */
 
 const Plugin = require("../plugin.js");
-const path = require("path");
 const { Adb } = require("../../helpers/asarLibs.js").DeviceTools;
+const { buildPath } = require("../../helpers/fileutil.js");
 
 /**
  * adb plugin
@@ -99,7 +99,7 @@ class AdbPlugin extends Plugin {
       );
       return this.adb
         .sideload(
-          path.join(this.cachePath, this.props.config.codename, group, file),
+          buildPath(this.cachePath, this.props.config.codename, group, file),
           p => this.event.emit("user:write:progress", p * 100)
         )
         .then(() => this.event.emit("user:write:progress", 0));
@@ -121,7 +121,7 @@ class AdbPlugin extends Plugin {
       return this.adb
         .push(
           files.map(file =>
-            path.join(this.cachePath, this.props.config.codename, group, file)
+            buildPath(this.cachePath, this.props.config.codename, group, file)
           ),
           dest,
           p => this.event.emit("user:write:progress", p * 100)
