@@ -19,6 +19,7 @@ apps:
   ubports-installer:
     environment:
       PATH: ${SNAP}/usr/bin:$PATH
+      LD_LIBRARY_PATH: ${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/android:${SNAP}/usr/lib
       USE_SYSTEM_TOOLS: 1
     command: ./app/ubports-installer --no-sandbox
     extensions:
@@ -43,6 +44,7 @@ parts:
       - libnss3
       - adb
       - fastboot
+      - p7zip-full
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
