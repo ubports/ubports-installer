@@ -30,7 +30,10 @@ const path = require("path");
  * @returns {string}
  */
 const buildPathForTools = (basepath, codename, group, file) => {
-  return path.join(basepath, codename, group, file);
+  const joinedPath = path.join(basepath, codename, group, file);
+
+  // Surround with quotes to ensure paths with spaces are not broken
+  return `"${joinedPath}"`;
 };
 
 module.exports = {

@@ -9,7 +9,7 @@ describe("buildPathForTools()", () => {
       "firmware",
       "modem.img"
     );
-    const expectedPath = "cache/axolotl/firmware/modem.img".replaceAll(
+    const expectedPath = '"cache/axolotl/firmware/modem.img"'.replaceAll(
       "/",
       path.sep
     );
@@ -23,7 +23,7 @@ describe("buildPathForTools()", () => {
       "update file.zip"
     );
     const expectedPath =
-      "cache   directory/otter/Ubuntu Touch/update file.zip".replaceAll(
+      '"cache   directory/otter/Ubuntu Touch/update file.zip"'.replaceAll(
         "/",
         path.sep
       );
@@ -37,7 +37,7 @@ describe("buildPathForTools()", () => {
       "  update.zip  "
     );
     const expectedPath =
-      "  cache  /  otter  /  UbuntuTouch  /  update.zip  ".replaceAll(
+      '"  cache  /  otter  /  UbuntuTouch  /  update.zip  "'.replaceAll(
         "/",
         path.sep
       );
@@ -52,7 +52,7 @@ describe("buildPathForTools()", () => {
       "  update file.zip   "
     );
     const expectedPath =
-      "  cache   directory  /FP5/  Ubuntu Touch  /  update file.zip   ".replaceAll(
+      '"  cache   directory  /FP5/  Ubuntu Touch  /  update file.zip   "'.replaceAll(
         "/",
         path.sep
       );
