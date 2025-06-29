@@ -173,16 +173,15 @@ class MenuManager {
           {
             label: "Open settings config file",
             click: () => {
+              if (!settings.size) settings.clear();
               settings.openInEditor();
-            },
-            visible: settings.size
+            }
           },
           {
             label: "Reset settings",
             click: () => {
               settings.clear();
-            },
-            visible: settings.size
+            }
           }
         ]
       },
