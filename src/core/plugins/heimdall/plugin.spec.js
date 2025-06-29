@@ -1,6 +1,6 @@
 const mainEvent = { emit: jest.fn() };
 const log = { warn: jest.fn() };
-const { buildPath } = require("../../helpers/fileutil.js");
+const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 beforeEach(() => {
   mainEvent.emit.mockReset();
@@ -69,7 +69,7 @@ describe("heimdall plugin", () => {
           expect(heimdallPlugin.heimdall.flash).toHaveBeenCalledTimes(1);
           expect(heimdallPlugin.heimdall.flash).toHaveBeenCalledWith([
             {
-              file: buildPath(
+              file: buildPathForTools(
                 heimdallPlugin.cachePath,
                 heimdallPlugin.props.config.codename,
                 "Ubuntu Touch",

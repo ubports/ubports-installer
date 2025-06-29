@@ -1,9 +1,9 @@
 const path = require("path");
 const fileutil = require("./fileutil.js");
 
-describe("buildPath()", () => {
+describe("buildPathForTools()", () => {
   it("should return normal path", () => {
-    const builtPath = fileutil.buildPath(
+    const builtPath = fileutil.buildPathForTools(
       "cache",
       "axolotl",
       "firmware",
@@ -16,7 +16,7 @@ describe("buildPath()", () => {
     expect(builtPath).toEqual(expectedPath);
   });
   it("should path with whitespaces within items", () => {
-    const builtPath = fileutil.buildPath(
+    const builtPath = fileutil.buildPathForTools(
       "cache   directory",
       "otter",
       "Ubuntu Touch",
@@ -30,7 +30,7 @@ describe("buildPath()", () => {
     expect(builtPath).toEqual(expectedPath);
   });
   it("should path with whitespaces around items", () => {
-    const builtPath = fileutil.buildPath(
+    const builtPath = fileutil.buildPathForTools(
       "  cache  ",
       "  otter  ",
       "  UbuntuTouch  ",
@@ -45,7 +45,7 @@ describe("buildPath()", () => {
   });
 
   it("should path with whitespaces within and around items", () => {
-    const builtPath = fileutil.buildPath(
+    const builtPath = fileutil.buildPathForTools(
       "  cache   directory  ",
       "FP5",
       "  Ubuntu Touch  ",

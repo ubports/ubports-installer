@@ -29,10 +29,10 @@ const path = require("path");
  * @param file The actual file
  * @returns {string}
  */
-const buildPath = (basepath, codename, group, file) => {
+const buildPathForTools = (basepath, codename, group, file) => {
   return path.join(basepath, codename, group, file);
 };
 
 module.exports = {
-  buildPath
+  buildPathForTools
 };

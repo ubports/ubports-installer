@@ -2,7 +2,7 @@ const mainEvent = { emit: jest.fn() };
 beforeEach(() => mainEvent.emit.mockReset());
 const log = require("../../../lib/log.js");
 jest.mock("../../../lib/log.js");
-const { buildPath } = require("../../helpers/fileutil.js");
+const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 const adbPlugin = new (require("./plugin.js"))(
   { config: { codename: "bacon" } },
@@ -89,7 +89,7 @@ describe("adb plugin", () => {
           expect(adbPlugin.event.emit).toHaveBeenCalledTimes(5);
           expect(adbPlugin.adb.sideload).toHaveBeenCalledTimes(1);
           expect(adbPlugin.adb.sideload).toHaveBeenCalledWith(
-            buildPath(
+            buildPathForTools(
               adbPlugin.cachePath,
               adbPlugin.props.config.codename,
               "Ubuntu Touch",
@@ -140,7 +140,7 @@ describe("adb plugin", () => {
           expect(adbPlugin.adb.push).toHaveBeenCalledTimes(1);
           expect(adbPlugin.adb.push).toHaveBeenCalledWith(
             [
-              buildPath(
+              buildPathForTools(
                 adbPlugin.cachePath,
                 adbPlugin.props.config.codename,
                 "Ubuntu Touch",
