@@ -18,8 +18,8 @@
  */
 
 const Plugin = require("../plugin.js");
-const path = require("path");
-const { Heimdall } = require("../../helpers/asarLibs.js").DeviceTools;
+const { Heimdall } = require("promise-android-tools");
+const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 /**
  * heimdall actions plugin
@@ -41,14 +41,6 @@ class HeimdallPlugin extends Plugin {
         log.command(`${event}: ${JSON.stringify(r)}`)
       )
     );
-  }
-
-  /**
-   * kill all running tasks
-   * @returns {Promise}
-   */
-  kill() {
-    return this.heimdall.kill();
   }
 
   /**
@@ -85,7 +77,17 @@ class HeimdallPlugin extends Plugin {
    * @virtual
    * @returns {Promise<String>}
    */
-  wait() {
+  wait(signal) {
+    if (signal) {
+      signal.throwIfAborted();
+      return this.heimdall
+        ._withSignals(signal)
+        .wait()
+        .catch(e => {
+          if (error.name !== "AbortError") throw e;
+        })
+        .then(() => "Unknown");
+    }
     return this.heimdall.wait().then(() => "Unknown");
   }
 
@@ -104,7 +106,7 @@ class HeimdallPlugin extends Plugin {
       return this.heimdall.flash(
         partitions.map(file => ({
           ...file,
-          file: path.join(
+          file: buildPathForTools(
             this.cachePath,
             this.props.config.codename,
             file.group,

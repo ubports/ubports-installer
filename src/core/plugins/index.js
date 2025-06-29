@@ -17,8 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { CancelablePromise } = require("cancelable-promise");
-
 const AdbPlugin = require("./adb/plugin.js");
 const AsteroidOsPlugin = require("./asteroid_os/plugin.js");
 const LineageOSPlugin = require("./lineage_os/plugin.js");
@@ -27,6 +25,7 @@ const CorePlugin = require("./core/plugin.js");
 const FastbootPlugin = require("./fastboot/plugin.js");
 const HeimdallPlugin = require("./heimdall/plugin.js");
 const SystemimagePlugin = require("./systemimage/plugin.js");
+const { HierarchicalAbortController } = require("promise-android-tools");
 
 /**
  * Index of UBports Installer plugins
@@ -40,14 +39,16 @@ const SystemimagePlugin = require("./systemimage/plugin.js");
  * @property {FastbootPlugin} plugins.fastboot fastboot plugin
  * @property {HeimdallPlugin} plugins.heimdall heimdall plugin
  * @property {SystemimagePlugin} plugins.systemimage systemimage plugin
+ * @property {HierarchicalAbortController} plugins.contoller controller for signalling
  */
 class PluginIndex {
-  constructor(props, cachePath, mainEvent, log, settings, session) {
+  constructor(props, cachePath, mainEvent, log, settings, session, controller) {
     this.props = props;
     this.log = log;
     this.settings = settings;
     this.session = session;
     this.event = mainEvent;
+    this.controller = controller;
     const pluginArgs = [props, cachePath, this.event, log, settings];
     this.plugins = {
       adb: new AdbPlugin(...pluginArgs),
@@ -133,42 +134,30 @@ class PluginIndex {
   }
 
   /**
-   * kill all running tasks
-   * @returns {Promise}
-   */
-  kill() {
-    return Promise.all(
-      this.getPluginMappable().map(([_, plugin]) => plugin.kill())
-    );
-  }
-
-  /**
    * detect devices using all plugins
    * @returns {Promise}
    */
   wait() {
-    const _this = this;
-    return new CancelablePromise(function (resolve, reject, onCancel) {
-      const waitPromises = _this.getPluginMappable().map(([name, plugin]) => {
-        return plugin.wait().catch(error => {
-          delete _this.plugins[name];
-          return _this.__pluginErrorHandler(name, error);
-        });
-      });
-      CancelablePromise.race(waitPromises)
-        .then(state => {
-          waitPromises.forEach(p => (p.cancel ? p.cancel() : null));
-          resolve(state);
-        })
-        .catch(e => {
-          reject(e);
-        });
+    this.log.debug("Starting to wait");
 
-      onCancel(() => waitPromises.forEach(p => (p.cancel ? p.cancel() : null)));
-    });
+    return Promise.any(
+      this.getPluginMappable().map(([pluginName, plugin]) => {
+        return plugin.wait(this.controller.signal).then(name => {
+          this.log.debug(`wait resolved for ${pluginName} with: ${name}`);
+          if (!name) return Promise.reject();
+
+          this.controller.abort();
+          return Promise.resolve(name);
+        });
+      })
+    );
   }
 
   __pluginErrorHandler(name, error) {
+    if (error.name === "AbortError") {
+      this.log.verbose(`Aborting ${name}: ${error}`);
+      return;
+    }
     try {
       error.message = JSON.stringify({
         message: JSON.parse(error.message)?.message || error.message,

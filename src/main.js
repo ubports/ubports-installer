@@ -147,7 +147,7 @@ app.on("ready", function () {
 });
 
 app.on("window-all-closed", function () {
-  core.kill();
+  core.reset();
   log.info("Good bye!");
   setTimeout(() => {
     app.quit();

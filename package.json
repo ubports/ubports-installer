@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",
-    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
@@ -42,9 +42,9 @@
     "electron-reload": "^1.5.0",
     "jest": "^29.7.0",
     "jsdoc": "^4.0.4",
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.2",
     "prettier-plugin-svelte": "^3.4.0",
-    "rollup": "^4.42.0",
+    "rollup": "^4.44.1",
     "rollup-plugin-css-only": "^4.5.2",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-svelte": "^7.2.2",
@@ -53,10 +53,9 @@
   },
   "dependencies": {
     "@sveltestrap/sveltestrap": "^6.2.8",
-    "7zip-min": "^1.4.5",
-    "axios": "^1.9.0",
-    "bootstrap": "^5.3.6",
-    "cancelable-promise": "^4.3.1",
+    "7zip-min": "^2.1.0",
+    "axios": "^1.10.0",
+    "bootstrap": "^5.3.7",
     "commander": "^12.1.0",
     "electron-open-link-in-browser": "^1.0.2",
     "electron-store": "^8.2.0",
@@ -64,16 +63,16 @@
     "fs-extra": "^11.3.0",
     "graphql": "^16.11.0",
     "progressive-downloader": "1.0.8",
-    "promise-android-tools": "^4.0.13",
+    "promise-android-tools": "^6.0.0",
     "ps-tree": "^1.2.0",
     "semver": "^7.7.2",
     "sudo-prompt": "^9.2.1",
     "svelte-markdown": "^0.4.1",
-    "systeminformation": "^5.27.1",
+    "systeminformation": "^5.27.7",
     "winston": "^3.17.0",
     "yaml": "^2.8.0"
   },
   "engines": {
-    "node": "^18"
+    "node": ">=20"
   }
 }

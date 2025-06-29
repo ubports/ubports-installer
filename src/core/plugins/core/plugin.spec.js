@@ -1,14 +1,14 @@
 process.argv = [null, null, "-vv"];
 const mainEvent = { emit: jest.fn() };
 const log = { error: jest.fn(), debug: jest.fn(), info: jest.fn() };
-const asarLibs = require("../../helpers/asarLibs.js");
-jest.mock("../../helpers/asarLibs.js");
+const _7z = require("7zip-min");
+jest.mock("7zip-min");
 beforeEach(() => {
   mainEvent.emit.mockReset();
   log.error.mockReset();
   log.debug.mockReset();
   log.info.mockReset();
-  asarLibs.unpack.mockClear();
+  _7z.unpack.mockClear();
 });
 
 const path = require("path");
@@ -227,8 +227,8 @@ describe("core plugin", () => {
           files: [{ archive: "a.zip", dir: "unpacked" }]
         })
         .then(() => {
-          expect(asarLibs.unpack).toHaveBeenCalledTimes(1);
-          expect(asarLibs.unpack).toHaveBeenCalledWith(
+          expect(_7z.unpack).toHaveBeenCalledTimes(1);
+          expect(_7z.unpack).toHaveBeenCalledWith(
             path.join("a/yggdrasil/firmware", "a.zip"),
             path.join("a/yggdrasil/firmware", "unpacked"),
             expect.any(Function)
@@ -246,8 +246,8 @@ describe("core plugin", () => {
           files: [{ archive: "a.zip" }]
         })
         .then(() => {
-          expect(asarLibs.unpack).toHaveBeenCalledTimes(1);
-          expect(asarLibs.unpack).toHaveBeenCalledWith(
+          expect(_7z.unpack).toHaveBeenCalledTimes(1);
+          expect(_7z.unpack).toHaveBeenCalledWith(
             path.join("a/yggdrasil/firmware", "a.zip"),
             path.join("a/yggdrasil/firmware", "."),
             expect.any(Function)
@@ -259,9 +259,7 @@ describe("core plugin", () => {
       jest
         .spyOn(mainEvent, "emit")
         .mockImplementation((e, f, g, cb) => (cb ? cb() : null));
-      asarLibs.unpack.mockImplementation((e, f, cb) =>
-        cb(new Error("test error"))
-      );
+      _7z.unpack.mockImplementation((e, f, cb) => cb(new Error("test error")));
       return core
         .action__unpack({
           group: "firmware",

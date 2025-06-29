@@ -17,8 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { CancelablePromise } = require("cancelable-promise");
-
 /**
  * UBports Installer plugin
  * @abstract
@@ -63,21 +61,12 @@ class Plugin {
   }
 
   /**
-   * kill all running tasks
-   * @virtual
-   * @returns {Promise}
-   */
-  kill() {
-    return Promise.resolve();
-  }
-
-  /**
    * wait for a device
    * @virtual
-   * @returns {CancelablePromise<String>}
+   * @returns {Promise<String>}
    */
-  wait() {
-    return new CancelablePromise(() => {});
+  wait(signal) {
+    return Promise.resolve("");
   }
 }
 

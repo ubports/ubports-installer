@@ -18,8 +18,8 @@
  */
 
 const Plugin = require("../plugin.js");
-const path = require("path");
-const { Fastboot } = require("../../helpers/asarLibs.js").DeviceTools;
+const { Fastboot } = require("promise-android-tools");
+const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 /**
  * fastboot plugin
@@ -44,19 +44,21 @@ class FastbootPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
-   * @returns {Promise}
-   */
-  kill() {
-    return this.fastboot.kill();
-  }
-
-  /**
    * wait for a device
    * @virtual
    * @returns {Promise<String>}
    */
-  wait() {
+  wait(signal) {
+    if (signal) {
+      signal.throwIfAborted();
+      return this.fastboot
+        ._withSignals(signal)
+        .wait()
+        .catch(e => {
+          if (error.name !== "AbortError") throw e;
+        })
+        .then(() => this.fastboot.getDeviceName());
+    }
     return this.fastboot.wait().then(() => this.fastboot.getDeviceName());
   }
 
@@ -195,7 +197,7 @@ class FastbootPlugin extends Plugin {
           this.fastboot.flash(
             partitions.map(file => ({
               ...file,
-              file: path.join(
+              file: buildPathForTools(
                 this.cachePath,
                 this.props.config.codename,
                 file.group,
@@ -270,7 +272,7 @@ class FastbootPlugin extends Plugin {
         "Wiping and repartitioning super partition using fastbootd"
       );
       return this.fastboot.wipeSuper(
-        path.join(
+        buildPathForTools(
           this.cachePath,
           this.props.config.codename,
           image.group,
@@ -322,7 +324,12 @@ class FastbootPlugin extends Plugin {
       this.event.emit("user:write:status", "Rebooting");
       this.event.emit("user:write:under", "Your device is being rebooted...");
       return this.fastboot.boot(
-        path.join(this.cachePath, this.props.config.codename, group, file),
+        buildPathForTools(
+          this.cachePath,
+          this.props.config.codename,
+          group,
+          file
+        ),
         partition
       );
     });
@@ -341,7 +348,12 @@ class FastbootPlugin extends Plugin {
         "Applying fastboot update zip. This may take a while..."
       );
       return this.fastboot.update(
-        path.join(this.cachePath, this.props.config.codename, group, file),
+        buildPathForTools(
+          this.cachePath,
+          this.props.config.codename,
+          group,
+          file
+        ),
         this?.props?.settings?.wipe
       );
     });

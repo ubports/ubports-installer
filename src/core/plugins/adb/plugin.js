@@ -18,8 +18,8 @@
  */
 
 const Plugin = require("../plugin.js");
-const path = require("path");
-const { Adb } = require("../../helpers/asarLibs.js").DeviceTools;
+const { Adb } = require("promise-android-tools");
+const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 /**
  * adb plugin
@@ -49,19 +49,21 @@ class AdbPlugin extends Plugin {
   }
 
   /**
-   * kill all running tasks
-   * @returns {Promise}
-   */
-  kill() {
-    return this.adb.kill();
-  }
-
-  /**
    * wait for a device
    * @virtual
    * @returns {Promise<String>}
    */
-  wait() {
+  wait(signal) {
+    if (signal) {
+      signal.throwIfAborted();
+      return this.adb
+        ._withSignals(signal)
+        .wait()
+        .catch(e => {
+          if (error.name !== "AbortError") throw e;
+        })
+        .then(() => this.adb.getDeviceName());
+    }
     return this.adb.wait().then(() => this.adb.getDeviceName());
   }
 
@@ -99,7 +101,12 @@ class AdbPlugin extends Plugin {
       );
       return this.adb
         .sideload(
-          path.join(this.cachePath, this.props.config.codename, group, file),
+          buildPathForTools(
+            this.cachePath,
+            this.props.config.codename,
+            group,
+            file
+          ),
           p => this.event.emit("user:write:progress", p * 100)
         )
         .then(() => this.event.emit("user:write:progress", 0));
@@ -121,7 +128,12 @@ class AdbPlugin extends Plugin {
       return this.adb
         .push(
           files.map(file =>
-            path.join(this.cachePath, this.props.config.codename, group, file)
+            buildPathForTools(
+              this.cachePath,
+              this.props.config.codename,
+              group,
+              file
+            )
           ),
           dest,
           p => this.event.emit("user:write:progress", p * 100)

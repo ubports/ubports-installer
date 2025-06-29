@@ -21,8 +21,16 @@ const Plugin = require("../plugin.js");
 const fs = require("fs-extra");
 const path = require("path");
 const { download, checkFile } = require("progressive-downloader");
-const { unpack } = require("../../helpers/asarLibs.js");
 const window = require("../../../lib/window.js");
+
+const _7z = require("7zip-min");
+if ("electron" in process.versions) {
+  _7z.config({
+    binaryPath: _7z
+      .getConfig()
+      .binaryPath.replace("app.asar", "app.asar.unpacked")
+  });
+}
 
 /**
  * core plugin
@@ -205,7 +213,7 @@ class CorePlugin extends Plugin {
             const directory = path.join(basepath, file.dir || ".");
             this.log.debug("Unpacking " + archive + " to: " + directory);
             return new Promise(function (resolve, reject) {
-              unpack(archive, directory, err => {
+              _7z.unpack(archive, directory, err => {
                 if (err) {
                   reject(Error("Failed to unpack: " + err));
                 } else {
