@@ -17,6 +17,9 @@ base: core20
 
 apps:
   ubports-installer:
+    environment:
+      PATH: ${SNAP}/usr/bin:$PATH
+      USE_SYSTEM_TOOLS: true
     command: ./app/ubports-installer --no-sandbox
     extensions:
       - gnome-3-38
@@ -38,6 +41,8 @@ parts:
     stage-packages:
       - libusb-1.0-0
       - libnss3
+      - adb
+      - fastboot
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
