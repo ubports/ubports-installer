@@ -1,5 +1,5 @@
 const mainEvent = { emit: jest.fn() };
-const { buildPath } = require("../../helpers/fileutil.js");
+const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 beforeEach(() => mainEvent.emit.mockReset());
 
@@ -59,7 +59,7 @@ describe("fastboot plugin", () => {
         .then(() => {
           expect(fastbootPlugin.fastboot.update).toHaveBeenCalledTimes(1);
           expect(fastbootPlugin.fastboot.update).toHaveBeenCalledWith(
-            buildPath(
+            buildPathForTools(
               fastbootPlugin.cachePath,
               fastbootPlugin.props.config.codename,
               "group with spaces  ",
@@ -150,7 +150,7 @@ describe("fastboot plugin", () => {
         .then(() => {
           expect(fastbootPlugin.fastboot.boot).toHaveBeenCalledTimes(1);
           expect(fastbootPlugin.fastboot.boot).toHaveBeenCalledWith(
-            buildPath(
+            buildPathForTools(
               fastbootPlugin.cachePath,
               fastbootPlugin.props.config.codename,
               "firm ware",
@@ -260,7 +260,7 @@ describe("fastboot plugin", () => {
           expect(fastbootPlugin.fastboot.flash).toHaveBeenCalledWith(
             [
               {
-                file: buildPath(
+                file: buildPathForTools(
                   fastbootPlugin.cachePath,
                   fastbootPlugin.props.config.codename,
                   "firm ware",
@@ -270,7 +270,7 @@ describe("fastboot plugin", () => {
                 partition: "dtbo"
               },
               {
-                file: buildPath(
+                file: buildPathForTools(
                   fastbootPlugin.cachePath,
                   fastbootPlugin.props.config.codename,
                   "firmware",
@@ -280,7 +280,7 @@ describe("fastboot plugin", () => {
                 partition: "recovery"
               },
               {
-                file: buildPath(
+                file: buildPathForTools(
                   fastbootPlugin.cachePath,
                   fastbootPlugin.props.config.codename,
                   "firmware",
@@ -474,7 +474,7 @@ describe("fastboot plugin", () => {
         })
         .then(() => {
           expect(fastbootPlugin.fastboot.wipeSuper).toHaveBeenCalledWith(
-            buildPath(
+            buildPathForTools(
               fastbootPlugin.cachePath,
               fastbootPlugin.props.config.codename,
               "group",
@@ -500,7 +500,7 @@ describe("fastboot plugin", () => {
         })
         .then(() => {
           expect(fastbootPlugin.fastboot.wipeSuper).toHaveBeenCalledWith(
-            buildPath(
+            buildPathForTools(
               fastbootPlugin.cachePath,
               fastbootPlugin.props.config.codename,
               "group with spaces   ",
