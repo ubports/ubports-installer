@@ -19,7 +19,7 @@ apps:
   ubports-installer:
     environment:
       PATH: ${SNAP}/usr/bin:$PATH
-      USE_SYSTEM_TOOLS: true
+      USE_SYSTEM_TOOLS: 1
     command: ./app/ubports-installer --no-sandbox
     extensions:
       - gnome-3-38
