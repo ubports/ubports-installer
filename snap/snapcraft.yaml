@@ -32,11 +32,11 @@ apps:
       - raw-usb
 
 layout:
-  /bin/adb:
+  /usr/bin/adb:
     symlink: $SNAP/usr/bin/adb
-  /bin/fastboot:
+  /usr/bin/fastboot:
     symlink: $SNAP/usr/bin/fastboot
-  /bin/heimdall:
+  /usr/bin/heimdall:
     symlink: $SNAP/usr/bin/heimdall
 
 parts:
