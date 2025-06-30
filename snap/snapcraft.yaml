@@ -44,6 +44,7 @@ parts:
       - libnss3
       - adb
       - fastboot
+      - heimdall-flash
       - p7zip-full
     override-pull: |
       snapcraftctl pull
