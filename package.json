@@ -59,7 +59,7 @@
     "cancelable-promise": "^4.3.1",
     "commander": "^12.1.0",
     "electron-open-link-in-browser": "^1.0.2",
-    "electron-store": "^8.2.0",
+    "electron-store": "^10.1.0",
     "form-data": "^4.0.3",
     "fs-extra": "^11.3.0",
     "graphql": "^16.11.0",
