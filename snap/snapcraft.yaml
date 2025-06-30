@@ -31,6 +31,14 @@ apps:
       - adb-support
       - raw-usb
 
+layout:
+  /bin/adb:
+    symlink: $SNAP/usr/bin/adb
+  /bin/fastboot:
+    symlink: $SNAP/usr/bin/fastboot
+  /bin/heimdall:
+    symlink: $SNAP/usr/bin/heimdall
+
 parts:
   ubports-installer:
     plugin: dump
