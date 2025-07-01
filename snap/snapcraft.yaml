@@ -17,10 +17,6 @@ base: core20
 
 apps:
   ubports-installer:
-    environment:
-      PATH: ${SNAP}/usr/bin:$PATH
-      LD_LIBRARY_PATH: ${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/android:${SNAP}/usr/lib
-      USE_SYSTEM_TOOLS: 1
     command: ./app/ubports-installer --no-sandbox
     extensions:
       - gnome-3-38
@@ -30,14 +26,6 @@ apps:
       - network
       - adb-support
       - raw-usb
-
-layout:
-  /usr/bin/adb:
-    symlink: $SNAP/usr/bin/adb
-  /usr/bin/fastboot:
-    symlink: $SNAP/usr/bin/fastboot
-  /usr/bin/heimdall:
-    symlink: $SNAP/usr/bin/heimdall
 
 parts:
   ubports-installer:
@@ -50,10 +38,6 @@ parts:
     stage-packages:
       - libusb-1.0-0
       - libnss3
-      - adb
-      - fastboot
-      - heimdall-flash
-      - p7zip-full
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
