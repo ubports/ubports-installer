@@ -37,7 +37,8 @@ class PostmarketOSPlugin extends Plugin {
       .getImages(
         this.props.settings["release"],
         this.props.settings["interface"],
-        this.props.os.codename ?? this.props.config.codename
+        this.props.os.codename ?? this.props.config.codename,
+        this.props.settings["variant"] ?? ""
       )
       .then(files => [
         {
