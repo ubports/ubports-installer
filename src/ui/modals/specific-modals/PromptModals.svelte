@@ -54,9 +54,21 @@
             {#if field.type === "select"}
               <select class="form-select" bind:value={formData[id][field.var]}>
                 {#each field.values as value}
-                  <option disabled={value.disabled} value={value.value}
-                    >{value.label}</option
-                  >
+                  {#if value.value}
+                    <option disabled={value.disabled} value={value.value}
+                      >{value.label}</option
+                    >
+                  {:else if value.grouped_values}
+                    <optgroup label={value.label} disabled={value.disabled}>
+                      {#each value.grouped_values as opt}
+                        <option disabled={opt.disabled} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      {/each}
+                    </optgroup>
+                  {:else}
+                    <option disabled=true>{value.label}</option>
+                  {/if}
                 {/each}
               </select>
             {:else if field.type === "checkbox"}
