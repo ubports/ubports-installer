@@ -135,12 +135,10 @@ unmount system",
           expect(r).toEqual([
             {
               hidden: false,
-              label: "16.04/stable",
               value: "ubports-touch/16.04/stable"
             },
             {
               hidden: true,
-              label: "17.04/stable",
               value: "17.04/stable"
             }
           ])

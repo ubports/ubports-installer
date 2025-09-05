@@ -131,6 +131,26 @@ class MenuManager {
             }
           },
           {
+            label: "Show development Ubuntu Touch releases",
+            checked: settings.get("systemimage.showDevelopmentReleases"),
+            type: "checkbox",
+            click: () =>
+              settings.set(
+                "systemimage.showDevelopmentReleases",
+                !settings.get("systemimage.showDevelopmentReleases")
+              )
+          },
+          {
+            label: "Show end-of-life Ubuntu Touch releases",
+            checked: settings.get("systemimage.showEolReleases"),
+            type: "checkbox",
+            click: () =>
+              settings.set(
+                "systemimage.showEolReleases",
+                !settings.get("systemimage.showEolReleases")
+              )
+          },
+          {
             label: "Show hidden System-Image Channels",
             checked: settings.get("systemimage.showHiddenChannels"),
             type: "checkbox",

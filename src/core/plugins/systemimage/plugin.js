@@ -21,18 +21,6 @@ const path = require("path");
 const Plugin = require("../plugin.js");
 const api = require("./api.js");
 
-const SORT_ORDER = ["stable", "rc", "devel"];
-
-/**
- * Gets a sorting weight for a channel
- * @param {String} channel the channel name
- * @returns {Number} channel weight for sorting
- */
-function getChannelWeight(channel) {
-  const parts = channel.split("/");
-  return SORT_ORDER.indexOf(parts[parts.length - 1]);
-}
-
 /**
  * systemimage plugin
  * @extends Plugin
@@ -100,52 +88,152 @@ class SystemimagePlugin extends Plugin {
    * @returns {Promise<Array<Object>>}
    */
   async remote_values__channels() {
-    const channels = await api.getChannels(this.props.config.codename);
-    const sortedByStability = channels.sort((a, b) => {
-      const weight = getChannelWeight(a.value) - getChannelWeight(b.value);
-      if (weight !== 0) {
-        return weight;
+    const showDevel = this.settings.get("systemimage.showDevelopmentReleases");
+    const showEol = this.settings.get("systemimage.showEolReleases");
+    const showHidden = this.settings.get("systemimage.showHiddenChannels");
+
+    const [channels, metarelease] = await Promise.all([
+      api.getChannels(this.props.config.codename),
+      api.getMetarelease(),
+    ]);
+
+    let channelsParsed = channels.map(({ value, hidden }) => {
+      const prettyStabilities = {
+        "stable": "Stable",
+        "rc": "Release candidate",
+        "devel": "Development",
+        "daily": "Daily builds",
+      };
+
+      let seriesIndex = metarelease.findIndex(
+        ({ systemImageChannels }) => systemImageChannels[value]);
+
+      if (seriesIndex == -1) {
+        return { label: value, value, _hidden: hidden , _seriesIndex: seriesIndex };
       }
 
-      // if stability is the same, sort descending by version number
-      const aVersion = parseFloat(a.value.split("/")[0]) || 0;
-      const bVersion = parseFloat(b.value.split("/")[0]) || 0;
-      return bVersion - aVersion;
-    });
-    const versionOrder = Array.from(
-      new Set(sortedByStability.map(({ value }) => value.split("/")[0]))
-    );
-    // second sort to group the versions together and make sure the latest one with stable is on the top
-    const sorted = channels.sort((a, b) => {
-      const aVersion = a.value.split("/")[0];
-      const bVersion = b.value.split("/")[0];
+      let series = metarelease[seriesIndex];
+      let stability = series.systemImageChannels[value].stability;
 
-      return versionOrder.indexOf(aVersion) - versionOrder.indexOf(bVersion);
+      // XXX: for 16.04, 20.04 consistency
+      if (stability == "daily" && series.series.localeCompare("20.04") <= 0)
+        stability = "devel";
+
+      let label = `${series.series} ${prettyStabilities[stability] || stability}`;
+
+      return {
+        label, value,
+        _hidden: hidden,
+        _seriesIndex: seriesIndex,
+        _stability: stability
+      };
     });
-    const visible = sorted
-      .filter(({ value, hidden }) => !hidden && !value.endsWith("/edge"))
-      .map(({ value, label }) => {
-        if (value !== label) {
-          return { value, label };
+
+    // Group channels by series
+    const STABILITY_ORDER = ["stable", "rc", "daily", "devel"];
+
+    let groups = [];
+    for (let i = 0; i < metarelease.length; i++) {
+      let grouped_values = channelsParsed
+        // Hidden channels will be handled last
+        .filter(({ _hidden, _seriesIndex }) => !_hidden && _seriesIndex == i)
+        .sort((a, b) => {
+          let aWeight = STABILITY_ORDER.indexOf(a._stability);
+          if (aWeight == -1) aWeight = STABILITY_ORDER.length;
+
+          let bWeight = STABILITY_ORDER.indexOf(b._stability);
+          if (bWeight == -1) bWeight = STABILITY_ORDER.length;
+
+          return aWeight - bWeight;
+        });
+
+      if (grouped_values.length > 0) {
+        let labelSuffix =
+            metarelease[i].supportStatus == "development" ? " (Development release)"
+          : metarelease[i].supportStatus == "end-of-life" ? " (End-of-life)"
+          : "";
+          
+        groups.push({
+          label: `${metarelease[i].series}${labelSuffix}`,
+          grouped_values,
+          _seriesIndex: i,
+        });
+      }
+    }
+
+    // Now sort series by its support status, then by version.
+    const SUPPORT_STATUS_ORDER = ["supported", "development", "end-of-life"];
+    groups = groups.sort((a, b) => {
+      let aSeries = metarelease[a._seriesIndex]
+      let bSeries = metarelease[b._seriesIndex];
+
+      if (aSeries.supportStatus != bSeries.supportStatus) {
+        let aWeight = SUPPORT_STATUS_ORDER.indexOf(aSeries.supportStatus);
+        if (aWeight == -1) aWeight = SUPPORT_STATUS_ORDER.length;
+
+        let bWeight = SUPPORT_STATUS_ORDER.indexOf(bSeries.supportStatus);
+        if (bWeight == -1) bWeight = SUPPORT_STATUS_ORDER.length;
+
+        return aWeight - bWeight;
+      }
+
+      let versionCompare = aSeries.series.localeCompare(bSeries.series);
+      // For development releases, sort older, closer-to-release releases first.
+      // Otherwise sort newer releases first.
+      if (aSeries.supportStatus == "development") {
+        return versionCompare;
+      } else {
+        return -versionCompare;
+      }
+    });
+
+    // Filter devel and EoL releases unless requested or no other releases
+    // available.
+    let seenSupported = false
+    let seenDevel = false;
+    groups = groups.filter((group) => {
+      let { supportStatus } = metarelease[group._seriesIndex];
+      if (supportStatus === "supported") {
+        seenSupported = true;
+        return true;
+      } else if (supportStatus === "development") {
+        if (seenSupported && !showDevel) {
+          return false;
+        } else {
+          seenDevel = true;
+          return true;
         }
+      } else if (supportStatus == "end-of-life") {
+        if ((seenSupported || seenDevel) && !showEol) {
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        // ???
+        return true;
+      }
+    });
 
-        const split = value.split("/");
-        return {
-          label: `${split[0]}/${split[split.length - 1]}`,
-          value
-        };
+    // Mark the current release as such if it's a supported release.
+    if (groups.length > 0) {
+      let firstSeries = metarelease[groups[0]._seriesIndex];
+      if (firstSeries.supportStatus == "supported") {
+        groups[0].label += " (Current release)";
+      }
+    }
+
+    // Finally, include hidden and ungroupped channels
+    let others = channelsParsed.filter(
+      ({ _hidden, _seriesIndex }) => (_hidden && showHidden) || _seriesIndex == -1);
+    if (others.length > 0) {
+      groups.push({
+        label: "Others/hidden channels",
+        grouped_values: others,
       });
-    const hidden = this.settings.get("systemimage.showHiddenChannels")
-      ? sorted.filter(({ hidden }) => hidden)
-      : [];
+    }
 
-    return [
-      ...visible.map(({ value, label }) => ({ value, label })),
-      ...(hidden.length
-        ? [{ label: "--- hidden channels ---", disabled: true }]
-        : []),
-      ...hidden.map(({ value, label }) => ({ value, label }))
-    ];
+    return groups;
   }
 }
 
