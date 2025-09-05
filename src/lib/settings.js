@@ -44,6 +44,14 @@ const settings = new Store({
       }
     },
     systemimage: {
+      showDevelopmentReleases: {
+        type: "boolean",
+        default: false
+      },
+      showEolReleases: {
+        type: "boolean",
+        default: false,
+      },
       showHiddenChannels: {
         type: "boolean",
         default: false

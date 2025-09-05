@@ -18,11 +18,13 @@
  */
 
 const axios = require("axios");
+const https = require("https");
 const path = require("path");
 
 /** @module systemimage */
 
 const baseURL = require("../../../lib/cli.js").systemimage;
+const metareleaseURL = require("../../../lib/cli.js").metarelease;
 
 const api = axios.create({ baseURL, timeout: 60000 });
 
@@ -105,9 +107,25 @@ async function getChannels(device) {
     )
     .map(([name, properties]) => ({
       value: name,
-      label: name.replace("ubports-touch/", ""),
       hidden: properties.hidden || false
     }));
 }
 
-module.exports = { getImages, getChannels };
+/**
+ * Get Ubuntu Touch releases from metarelease.
+ * Sees https://releases.ubuntu-touch.io/schemas/meta-release.schema.json
+ * @returns {Promise<Array<Object>>} list of Ubuntu Touch releases
+ */
+async function getMetarelease() {
+  return axios.get(metareleaseURL, {
+    timeout: 60000,
+    // Worksaround https://github.com/nodejs/node/issues/54359
+    httpsAgent: new https.Agent({
+      autoSelectFamilyAttemptTimeout: 500,
+    })
+  }).catch(error => {
+    throw new Error(error?.response?.status || "no network");
+  }).then(({ data }) => data);
+}
+
+module.exports = { getImages, getChannels, getMetarelease };
