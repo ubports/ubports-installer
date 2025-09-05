@@ -54,6 +54,11 @@ cli
     "Set a custom systemimage server url",
     "https://system-image.ubports.com/"
   )
+  .option(
+    "--metarelease <url>",
+    "Set a custom Ubuntu Touch metarelease url",
+    "https://releases.ubuntu-touch.io/meta-release.json"
+  )
   .parse(process.argv);
 
 log.setLevel(cli.opts().verbose || 0);
