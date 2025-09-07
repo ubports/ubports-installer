@@ -52,10 +52,11 @@ const getInterfaces = device =>
  * @param {String} release release
  * @param {String} ui user interface
  * @param {String} device device codename
+ * @param {String} variant (optional) kernel variant
  * @returns {Promise<Array<Object>>} images array
  * @throws {Error} message "no network" if request failed
  */
-const getImages = (release, ui, device) =>
+const getImages = (release, ui, device, variant = "") =>
   api
     .get("/bpo/index.json")
     .then(({ data }) => {
@@ -65,7 +66,12 @@ const getImages = (release, ui, device) =>
       // The first two are the latest rootfs and boot image
       const ts_latest = images[0].timestamp;
       return images
-        .filter(i => i.timestamp === ts_latest)
+        .filter(i =>
+          variant
+            ? i.url.includes(`${device}-${variant}`) &&
+              i.timestamp === ts_latest
+            : i.timestamp === ts_latest
+        )
         .map(i => ({
           url: i.url,
           checksum: {
