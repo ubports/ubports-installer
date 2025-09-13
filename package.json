@@ -54,7 +54,7 @@
   "dependencies": {
     "@sveltestrap/sveltestrap": "^6.2.8",
     "7zip-min": "^1.4.5",
-    "axios": "^1.10.0",
+    "axios": "^1.12.1",
     "bootstrap": "^5.3.7",
     "cancelable-promise": "^4.3.1",
     "commander": "^12.1.0",
