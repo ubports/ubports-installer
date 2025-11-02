@@ -26,7 +26,7 @@
   },
   "scripts": {
     "build": "npx rollup -c",
-    "start": "./start.sh",
+    "start": "cross-env-shell ./start.sh",
     "lint": "npx prettier \"**/!(*.min.*)\" --ignore-path=.gitignore --arrow-parens=avoid --trailing-comma=none -uw",
     "docs": "npx jsdoc -c jsdoc-config.json",
     "test": "npx jest --coverage"
@@ -37,6 +37,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
+    "cross-env": "^7.0.3",
     "electron": "^33.4.11",
     "electron-builder": "^24.13.3",
     "electron-reload": "^1.5.0",
