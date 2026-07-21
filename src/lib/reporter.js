@@ -243,7 +243,7 @@ class Reporter {
         let issueUrl =
           "https://github.com/ubports/ubports-installer/issues/new";
         if (data) {
-          issueUrl += `?title=${encodeURIComponent(data.title)}`;
+          issueUrl += `?title=${encodeURIComponent(data.title)}&body=${encodeURIComponent(body)}`;
         }
         shell.openExternal(issueUrl);
       })
