@@ -90,6 +90,7 @@ var buildConfig = {
     "node_modules/fs-extra/**/*", // for promise-android-tools
     "node_modules/cancelable-promise/**/*", // for promise-android-tools
     "node_modules/promise-android-tools/**/*", // for android-tools-bin
+    "node_modules/android-tools-bin/**/*", // for promise-android-tools (native binaries)
     "node_modules/@babel/runtime/**/*" // for android-tools-bin
   ],
   extraMetadata: {
