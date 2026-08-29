@@ -55,7 +55,7 @@ cli
     "-e, --extra-metadata [JSON]",
     "extra data for package.json",
     JSON.parse,
-    "{}"
+    {}
   )
   .parse(process.argv);
 
