@@ -73,6 +73,9 @@
     "winston": "^3.17.0",
     "yaml": "^2.8.0"
   },
+  "overrides": {
+    "7zip-bin": "^5.2.0"
+  },
   "engines": {
     "node": "^18"
   }
