@@ -170,7 +170,7 @@ switch (opts.os) {
 const build = () =>
   builder
     .build({
-      targets: builder.createTargets([targetOs]),
+      targets: builder.createTargets([targetOs], null, opts.arch),
       config: buildConfig
     })
     .then(() => console.log("build complete"))
