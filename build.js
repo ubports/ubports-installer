@@ -21,6 +21,8 @@
 
 const builder = require("electron-builder");
 const { Command } = require("commander");
+const fs = require("fs");
+const path = require("path");
 const cli = new Command();
 
 const PLATFORMS = ["darwin", "win32", "linux"];
@@ -59,6 +61,16 @@ cli
 
 const opts = cli.opts();
 
+const toolsArch = opts.arch.includes("arm") ? "arm" : "x86";
+const hasNativeTools = fs.existsSync(
+  path.join(
+    __dirname,
+    "node_modules/android-tools-bin/dist",
+    opts.os,
+    toolsArch
+  )
+);
+
 var targetOs;
 var buildConfig = {
   appId: "com.ubports.installer",
@@ -76,13 +88,18 @@ var buildConfig = {
       p => `!node_modules/android-tools-bin/dist/${p}`
     ),
     // exclude binaries for other architectures
-    `!node_modules/android-tools-bin/dist/**/${
-      opts.arch.includes("arm") ? "x86" : "arm"
-    }/**`
+    ...(hasNativeTools
+      ? [
+          `!node_modules/android-tools-bin/dist/**/${
+            toolsArch === "arm" ? "x86" : "arm"
+          }/**`
+        ]
+      : [])
   ],
   asarUnpack: [
     // Unpack dependencies of pakcages containing binaries
     "node_modules/7zip-min/*", // for 7zip-bin
+    "node_modules/android-tools-bin/**/*",
     "node_modules/jsonfile/**/*", // for fs-extra
     "node_modules/at-least-node/**/*", // for fs-extra
     "node_modules/graceful-fs/**/*", // for fs-extra
