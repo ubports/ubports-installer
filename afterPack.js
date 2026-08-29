@@ -19,6 +19,28 @@
 
 const fs = require("fs-extra");
 const path = require("path");
+const { Arch } = require("electron-builder");
+
+/**
+ * Make the x86 android tools discoverable on arm. android-tools-bin resolves
+ * arm64 to its "arm" directory, but ships no native binaries there for windows
+ * or darwin, so alias it to the x86 tools, which run under emulation. Does
+ * nothing on platforms that do ship native arm binaries.
+ * @param {any} context - context
+ */
+function aliasArmTools(context) {
+  const os = context.electronPlatformName;
+  const toolsDir = path.join(
+    context.packager.getResourcesDir(context.appOutDir),
+    "app.asar.unpacked/node_modules/android-tools-bin/dist",
+    os
+  );
+
+  if (fs.existsSync(path.join(toolsDir, "arm"))) return;
+
+  fs.copySync(path.join(toolsDir, "x86"), path.join(toolsDir, "arm"));
+  console.log(`aliased android-tools-bin ${os}/x86 to ${os}/arm`);
+}
 
 /**
  * Wrap the packaged application to avoid having to use double dashes -- before passing command-line arguments
@@ -27,6 +49,10 @@ const path = require("path");
 module.exports = async function (context) {
   const distDir = context.appOutDir;
   var wrapperScript;
+
+  if (context.arch === Arch.arm64 || context.arch === Arch.armv7l) {
+    aliasArmTools(context);
+  }
 
   if (context.targets.find(target => target.name === "deb")) {
     wrapperScript = `#!/bin/bash

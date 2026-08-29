@@ -112,7 +112,8 @@ var buildConfig = {
   extraMetadata: {
     package: opts.package === "portable" ? "exe" : opts.package,
     ...opts.extraMetadata
-  }
+  },
+  afterPack: "./afterPack.js"
 };
 
 const target = {
@@ -140,8 +141,7 @@ switch (opts.os) {
           "android-tools-fastboot",
           "heimdall-flash"
         ]
-      },
-      afterPack: "./afterPack.js"
+      }
     });
     break;
   case "win32":
