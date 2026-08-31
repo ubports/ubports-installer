@@ -25,11 +25,11 @@
     "ubports-installer": "src/main.js"
   },
   "scripts": {
-    "build": "npx rollup -c",
+    "build": "pnpm exec rollup -c",
     "start": "./start.sh",
-    "lint": "npx prettier \"**/!(*.min.*)\" --ignore-path=.gitignore --arrow-parens=avoid --trailing-comma=none -uw",
-    "docs": "npx jsdoc -c jsdoc-config.json",
-    "test": "npx jest --coverage"
+    "lint": "pnpm exec prettier \"**/!(*.min.*)\" --ignore-path=.gitignore --arrow-parens=avoid --trailing-comma=none -uw",
+    "docs": "pnpm exec jsdoc -c jsdoc-config.json",
+    "test": "pnpm exec jest --coverage"
   },
   "devDependencies": {
     "@electron/packager": "^20.3.0",
@@ -75,5 +75,9 @@
   },
   "engines": {
     "node": "^24"
+  },
+  "devEngines": {
+    "runtime": { "name": "node", "version": "^24" },
+    "packageManager": { "name": "pnpm", "version": "11.25.0" }
   }
 }

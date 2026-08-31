@@ -1,0 +1,20 @@
+allowBuilds:
+  electron-winstaller: true
+auditConfig:
+  ignoreGhsas:
+    # Svelte SSR vulnerable to XSS - we don't use SSR and we don't show
+    # untrusted data
+    - GHSA-pr6f-5x2q-rwfp
+    # Svelte SSR attribute spreading adds attributes from the prototype chain
+    # - we don't use SSR and also how is this even a vulnerability???
+    - GHSA-crpf-4hrx-3jrp
+    # Svelte vulnerable to XSS - we don't show untrusted data
+    - GHSA-rcqx-6q8c-2c42
+    # Svelte vulnerable to XSS with SSR and contenteditable - we use neither
+    # and we have no untrusted data to show
+    - GHSA-phwv-c562-gvmh
+    # Another Svelte SSR XSS
+    - GHSA-f7gr-6p89-r883
+    # Svelte SSR dynamic elements - we don't use SSR and this is not even a
+    # vulnerability
+    - GHSA-m56q-vw4c-c2cp
