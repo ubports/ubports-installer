@@ -61,6 +61,13 @@ cli
 
 const opts = cli.opts();
 
+if (!fs.existsSync(path.join(__dirname, "public/build/bundle.js"))) {
+  console.error(
+    "public/build/bundle.js is missing, run 'npm run build' before packaging"
+  );
+  process.exit(1);
+}
+
 const toolsArch = opts.arch.includes("arm") ? "arm" : "x86";
 const hasNativeTools = fs.existsSync(
   path.join(
