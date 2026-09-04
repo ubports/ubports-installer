@@ -109,8 +109,15 @@ parts:
     override-build: |
       cd $SNAPCRAFT_PART_SRC
 
+      # Also ensure we have a valid Git user as Snapcrafting in
+      # Multipass might leave the detected mail address invalid.
+      git config --global user.email 2>&1 1>/dev/null || \
+          git config --global user.email "root@localhost.local"
+      git config --global user.name 2>&1 1>/dev/null || \
+          git config --global user.name "Root Localhost"
+
       # This project applies patches on top of Git and must be reset
-      # accordingly in case a previous snapcraft attempt failed.
+      # accordingly in case a previous Snapcraft build attempt failed.
       git config --global --add safe.directory .
       git submodule update --init --recursive --recommend-shallow
       git submodule foreach 'git config --global --add safe.directory $path'
