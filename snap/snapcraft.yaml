@@ -15,10 +15,15 @@ grade: stable
 confinement: strict
 base: core20
 
+layout:
+  /usr/lib/p7zip:
+    symlink: $SNAP/usr/lib/p7zip
+
 apps:
   ubports-installer:
     environment:
       USE_SYSTEM_TOOLS: "true"
+      USE_SYSTEM_7ZA: "true"
     command: ./app/ubports-installer --no-sandbox
     extensions:
       - gnome-3-38
@@ -142,6 +147,7 @@ parts:
       - npm
     stage-packages:
       - libnss3
+      - p7zip-full
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
