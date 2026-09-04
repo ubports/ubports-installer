@@ -63,6 +63,8 @@ parts:
       mkdir -p $SNAPCRAFT_PART_INSTALL/usr/bin
       rm -f $SNAPCRAFT_PART_INSTALL/usr/bin/heimdall
       cp -a ./bin/heimdall $SNAPCRAFT_PART_INSTALL/usr/bin/
+    prime:
+      - -usr/share
 
   android-tools:
     plugin: cmake
@@ -170,6 +172,7 @@ parts:
     prime:
       - -node_modules
       - -lib/node_modules
+      - -usr/share
       - -**/arm/**
       - -**/arm64/**
       - -**/ia32/**
