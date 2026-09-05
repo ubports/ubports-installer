@@ -31,7 +31,7 @@ ${packageInfo.homepage}`;
 
 cli
   .version(packageInfo.version)
-  .name(packageInfo.package ? packageInfo.name : "npm start --")
+  .name(packageInfo.package ? packageInfo.name : "pnpm start --")
   .usage("[-f <file>] [-v[v] [-i]")
   .description(description)
   .option(

@@ -22,20 +22,20 @@ If the installer runs into an error, it will usually present you with the option
 
 ## Set up for development
 
-Ensure you have properly installed [`nodejs` and `npm`](https://nodejs.org/en/download/package-manager/).
+Ensure you have properly installed [`nodejs`](https://nodejs.org/en/download/package-manager/) and [`pnpm`](https://pnpm.io/installation).
 
 ```
 git clone https://github.com/ubports/ubports-installer.git
 cd ubports-installer
 
-npm install
+pnpm install
 ```
 
-### Run with npm
+### Run with pnpm
 
 ```
-$ npm start -- -h
-Usage: npm start -- [-f <file>] [-v[v] [-d]
+$ pnpm start -- -h
+Usage: pnpm start -- [-f <file>] [-v[v] [-d]
 
 UBports Installer (0.7.2-beta) source for linux
 GPL-3.0 UBports Foundation <info@ubports.com>
@@ -54,7 +54,7 @@ Options:
 
 ### Lint
 
-Before filing a PR, please make sure you follow our coding style by running `npm run lint`.
+Before filing a PR, please make sure you follow our coding style by running `pnpm lint`.
 
 ### Build packages
 

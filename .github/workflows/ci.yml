@@ -15,32 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
         with:
-          node-version: "18"
-
-      - name: Cache node modules
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - name: npm ci
-        run: npm ci
-      - name: npm audit
-        run: npm audit --production
-      - name: npm run lint
-        run: npm run lint
-      - name: npm run docs
-        run: npm run docs
+          cache: true
+      - run: pnpm audit --prod
+      - run: pnpm lint
+      - run: pnpm run docs
 
   test:
     name: Test ${{ matrix.os }}
@@ -51,34 +32,19 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
         with:
-          node-version: "18"
+          cache: true
 
-      - name: Cache node modules
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - name: test
-        run: |
-          npm ci
-          npm run test
+      - run: pnpm test
 
       - name: codecov.io
         if: contains(runner.os, 'Linux')
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
-          file: coverage/lcov.info
+          disable_search: true
+          files: coverage/lcov.info
           verbose: true
 
   build:
@@ -90,27 +56,11 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v2
         with:
-          node-version: "18"
-
-      - name: Cache node modules
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: prepare build
-        run: |
-          npm ci
-          npm run build
+          cache: true
+      - run: pnpm build
       - name: build linux
         if: contains(runner.os, 'Linux')
         run: |
@@ -125,7 +75,7 @@ jobs:
         run: |
           node ./build.js -o win32 -p portable -a x64
       - name: archive artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ubports-installer-${{ runner.os }}
           path: |
@@ -135,7 +85,7 @@ jobs:
             dist/*.exe
       - name: upload release assets
         if: github.event_name == 'release'
-        uses: actions/github-script@v4
+        uses: actions/github-script@v8
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
