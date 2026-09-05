@@ -15,8 +15,23 @@ grade: stable
 confinement: strict
 base: core20
 
+layout:
+  /usr/bin/adb:
+    symlink: $SNAP/usr/bin/adb
+  /usr/bin/fastboot:
+    symlink: $SNAP/usr/bin/fastboot
+  /usr/bin/heimdall:
+    symlink: $SNAP/usr/bin/heimdall
+  /usr/bin/7za:
+    symlink: $SNAP/usr/bin/7za
+  /usr/lib/p7zip:
+    symlink: $SNAP/usr/lib/p7zip
+
 apps:
   ubports-installer:
+    environment:
+      USE_SYSTEM_TOOLS: "true"
+      USE_SYSTEM_7ZA: "true"
     command: ./app/ubports-installer --no-sandbox
     extensions:
       - gnome-3-38
@@ -28,7 +43,117 @@ apps:
       - raw-usb
 
 parts:
+  heimdall:
+    # Don't use the cmake plugin as Heimdall doesn't install
+    # anything and causes the build step to fail otherwise.
+    plugin: nil
+    source: https://github.com/Benjamin-Dobell/Heimdall.git
+    source-tag: v1.4.2
+    build-snaps:
+      - cmake
+    build-packages:
+      - g++
+      - zlib1g-dev
+      - libusb-1.0-0-dev
+    override-build: |
+      cd $SNAPCRAFT_PART_BUILD
+      rm -f ./bin/heimdall
+
+      cmake $SNAPCRAFT_PART_SRC \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+          -DCMAKE_EXE_LINKER_FLAGS="-static" \
+          -DPKG_CONFIG_ARGN="pkg-config --static" \
+          -DDISABLE_FRONTEND=ON
+      make -j$(nproc --all)
+
+      [ ! -f ./bin/heimdall ] && exit 1
+
+      mkdir -p $SNAPCRAFT_PART_INSTALL/usr/bin
+      rm -f $SNAPCRAFT_PART_INSTALL/usr/bin/heimdall
+      cp -a ./bin/heimdall $SNAPCRAFT_PART_INSTALL/usr/bin/
+    prime:
+      - -usr/share
+
+  android-tools:
+    plugin: cmake
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_EXE_LINKER_FLAGS="-static"
+      - -DPKG_CONFIG_ARGN="pkg-config --static"
+      - -DCMAKE_C_COMPILER=/usr/bin/clang-12
+      - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-12
+      - -DCMAKE_C_FLAGS="-I/snap/protobuf/current/include"
+      - -DCMAKE_CXX_FLAGS="-I/snap/protobuf/current/include"
+      - -DProtobuf_PROTOC_EXECUTABLE=/opt/ubports-installer-build/bin/protoc
+      - -DProtobuf_DIR=/snap/protobuf/current
+      - -DProtobuf_USE_STATIC_LIBS=ON
+      - -DProtobuf_LIBRARY=/snap/protobuf/current/lib/libprotobuf.a
+      - -DProtobuf_INCLUDE_DIR=/snap/protobuf/current/include
+      - -DANDROID_TOOLS_USE_BUNDLED_FMT=ON
+      - -DANDROID_TOOLS_USE_BUNDLED_LIBUSB=ON
+      - -DANDROID_TOOLS_LIBUSB_ENABLE_UDEV=ON
+    source: https://github.com/nmeum/android-tools.git
+    source-tag: 37.0.0
+    build-snaps:
+      - cmake
+      - protobuf
+    build-packages:
+      - clang-12
+      - libstdc++-10-dev
+      - patch
+      - dpkg-dev
+      - libpcre2-dev
+      - googletest
+      - libbrotli-dev
+      - libzstd-dev
+      - liblz4-dev
+      - perl
+      - libgtest-dev
+      - libudev-dev
+    override-pull: |
+      snapcraftctl pull
+    override-build: |
+      cd $SNAPCRAFT_PART_SRC
+
+      # Also ensure we have a valid Git user as Snapcrafting in
+      # Multipass might leave the detected mail address invalid.
+      git config --global user.email 2>&1 1>/dev/null || \
+          git config --global user.email "root@localhost.local"
+      git config --global user.name 2>&1 1>/dev/null || \
+          git config --global user.name "Root Localhost"
+
+      # This project applies patches on top of Git and must be reset
+      # accordingly in case a previous Snapcraft build attempt failed.
+      git config --global --add safe.directory .
+      git submodule update --init --recursive --recommend-shallow
+      git submodule foreach 'git config --global --add safe.directory $path'
+      find .git/ -type f,d -name rebase-apply -exec rm -rf {} \;
+
+      # Workaround:
+      # protoc from 20.04 gets confused by optional proto3 fields
+      # protoc from the Snap supports them through an argument,
+      # so wrap the invokation and reference in the cmake-parameters.
+      # Clean all of this up and replace with apt's protoc once
+      # we moved the installer to core24.
+      mkdir -p /opt/ubports-installer-build/bin
+      echo -e "#!/bin/bash\n/snap/bin/protoc \$@ --experimental_allow_proto3_optional" > /opt/ubports-installer-build/bin/protoc
+      chmod 755 /opt/ubports-installer-build/bin/protoc
+
+      snapcraftctl build
+    prime:
+      - usr/bin/adb
+      - usr/bin/fastboot
+      - usr/bin/img2simg
+      - usr/bin/simg2img
+      - usr/bin/make_f2fs
+      - usr/bin/mke2fs.android
+      - usr/bin/e2fsdroid
+      - usr/lib
+
   ubports-installer:
+    after:
+      - heimdall
+      - android-tools
     plugin: dump
     source: .
     build-snaps:
@@ -36,8 +161,8 @@ parts:
     build-packages:
       - npm
     stage-packages:
-      - libusb-1.0-0
       - libnss3
+      - p7zip-full
     override-pull: |
       snapcraftctl pull
       snapcraftctl set-version `cat $SNAPCRAFT_PROJECT_DIR/package.json | grep version | sed s/'  \"version\": \"'//g | sed s/'\",'//g`
@@ -60,6 +185,7 @@ parts:
     prime:
       - -node_modules
       - -lib/node_modules
+      - -usr/share
       - -**/arm/**
       - -**/arm64/**
       - -**/ia32/**
