@@ -16,6 +16,14 @@ confinement: strict
 base: core20
 
 layout:
+  /usr/bin/adb:
+    symlink: $SNAP/usr/bin/adb
+  /usr/bin/fastboot:
+    symlink: $SNAP/usr/bin/fastboot
+  /usr/bin/heimdall:
+    symlink: $SNAP/usr/bin/heimdall
+  /usr/bin/7za:
+    symlink: $SNAP/usr/bin/7za
   /usr/lib/p7zip:
     symlink: $SNAP/usr/lib/p7zip
 
@@ -47,14 +55,14 @@ parts:
       - g++
       - zlib1g-dev
       - libusb-1.0-0-dev
-    stage-packages:
-      - libusb-1.0-0
     override-build: |
       cd $SNAPCRAFT_PART_BUILD
       rm -f ./bin/heimdall
 
       cmake $SNAPCRAFT_PART_SRC \
           -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+          -DCMAKE_EXE_LINKER_FLAGS="-static" \
+          -DPKG_CONFIG_ARGN="pkg-config --static" \
           -DDISABLE_FRONTEND=ON
       make -j$(nproc --all)
 
@@ -70,6 +78,8 @@ parts:
     plugin: cmake
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_EXE_LINKER_FLAGS="-static"
+      - -DPKG_CONFIG_ARGN="pkg-config --static"
       - -DCMAKE_C_COMPILER=/usr/bin/clang-12
       - -DCMAKE_CXX_COMPILER=/usr/bin/clang++-12
       - -DCMAKE_C_FLAGS="-I/snap/protobuf/current/include"
@@ -100,10 +110,6 @@ parts:
       - perl
       - libgtest-dev
       - libudev-dev
-    stage-packages:
-      - libbrotli1
-      - libzstd1
-      - liblz4-1
     override-pull: |
       snapcraftctl pull
     override-build: |
