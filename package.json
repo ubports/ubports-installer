@@ -58,6 +58,7 @@
     "bootstrap": "^5.3.7",
     "cancelable-promise": "^4.3.1",
     "commander": "^12.1.0",
+    "dpkg-compare-versions": "^1.0.3",
     "electron-open-link-in-browser": "^1.0.2",
     "electron-store": "^8.2.0",
     "form-data": "^4.0.4",
