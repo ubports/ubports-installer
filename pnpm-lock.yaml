@@ -299,11 +299,11 @@ importers:
         specifier: ^4.0.4
         version: 4.0.5
       prettier:
-        specifier: ^3.6.2
-        version: 3.9.6
+        specifier: ^3.9.8
+        version: 3.9.8
       prettier-plugin-svelte:
         specifier: ^3.4.0
-        version: 3.5.2(prettier@3.9.6)(svelte@4.2.20)
+        version: 3.5.2(prettier@3.9.8)(svelte@4.2.20)
       rollup:
         specifier: ^4.44.1
         version: 4.63.1
@@ -2486,8 +2486,8 @@ packages:
       prettier: ^3.0.0
       svelte: ^3.2.0 || ^4.0.0-next.0 || ^5.0.0-next.0
 
-  prettier@3.9.6:
-    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
+  prettier@3.9.8:
+    resolution: {integrity: sha512-WRFq3Wn3WId7LLROfMLdH7xaFr2jR62wU8nLO6rQUOLOxNZUviyJQs1M0iIhLexSFy+L+w0ch66wtoO2jRjG0A==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3327,7 +3327,7 @@ snapshots:
       fs-extra: 10.1.0
       isbinaryfile: 4.0.10
       minimist: 1.2.8
-      plist: 3.1.0
+      plist: 3.1.1
     transitivePeerDependencies:
       - supports-color
 
@@ -3381,7 +3381,7 @@ snapshots:
       dir-compare: 4.2.0
       fs-extra: 11.4.0
       minimatch: 9.0.9
-      plist: 3.1.0
+      plist: 3.1.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4761,7 +4761,7 @@ snapshots:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.7.4
+      semver: 7.8.5
       serialize-error: 7.0.1
     optional: true
 
@@ -5495,11 +5495,11 @@ snapshots:
 
   node-abi@4.35.0:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.5
 
   node-api-version@0.2.1:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.5
 
   node-gyp@12.4.0:
     dependencies:
@@ -5508,7 +5508,7 @@ snapshots:
       graceful-fs: 4.2.11
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.7.4
+      semver: 7.8.5
       tar: 7.5.22
       tinyglobby: 0.2.17
       undici: 6.28.0
@@ -5648,12 +5648,12 @@ snapshots:
     dependencies:
       commander: 9.5.0
 
-  prettier-plugin-svelte@3.5.2(prettier@3.9.6)(svelte@4.2.20):
+  prettier-plugin-svelte@3.5.2(prettier@3.9.8)(svelte@4.2.20):
     dependencies:
-      prettier: 3.9.6
+      prettier: 3.9.8
       svelte: 4.2.20
 
-  prettier@3.9.6: {}
+  prettier@3.9.8: {}
 
   pretty-format@29.7.0:
     dependencies:
