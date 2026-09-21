@@ -62,7 +62,7 @@
     "electron-store": "^8.2.0",
     "form-data": "^4.0.4",
     "fs-extra": "^11.3.0",
-    "graphql": "^16.11.0",
+    "graphql": "^17.0.2",
     "progressive-downloader": "1.0.8",
     "promise-android-tools": "^4.0.13",
     "ps-tree": "^1.2.0",
