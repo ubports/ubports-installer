@@ -17,11 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const axios = require("axios");
+const { createHttpClient } = require("../../lib/http.js");
 
 /** @module api */
 
-const api = axios.create({
+const api = createHttpClient({
   baseURL: "https://ubports.github.io/installer-configs/v2/",
   timeout: 60000
 });

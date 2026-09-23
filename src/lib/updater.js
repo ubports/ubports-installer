@@ -17,10 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const axios = require("axios");
+const { createHttpClient } = require("./http.js");
 const packageInfo = require("../../package.json");
 const semverGt = require("semver/functions/gt");
 const semverLt = require("semver/functions/lt");
+
+const api = createHttpClient();
 
 /**
  * UBports Installer version management
@@ -42,7 +44,7 @@ class Updater {
     if (this.cache.latest) {
       return this.cache.latest;
     } else {
-      return axios
+      return api
         .get(
           "https://api.github.com/repos/ubports/ubports-installer/releases/latest",
           {

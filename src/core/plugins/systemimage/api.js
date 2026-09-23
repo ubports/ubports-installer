@@ -17,14 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const axios = require("axios");
+const { createHttpClient } = require("../../../lib/http.js");
 const path = require("path");
 
 /** @module systemimage */
 
 const baseURL = require("../../../lib/cli.js").systemimage;
 
-const api = axios.create({ baseURL, timeout: 60000 });
+const api = createHttpClient({ baseURL, timeout: 60000 });
 
 const gpgFiles = [
   "image-signing.tar.xz",

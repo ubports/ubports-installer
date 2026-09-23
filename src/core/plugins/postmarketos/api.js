@@ -18,13 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const axios = require("axios");
+const { createHttpClient } = require("../../../lib/http.js");
 
 /** @module postmarketOS */
 
 const baseURL = "https://images.postmarketos.org";
 
-const api = axios.create({ baseURL, timeout: 60000 });
+const api = createHttpClient({ baseURL, timeout: 60000 });
 
 /**
  * get interfaces from api
