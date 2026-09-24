@@ -2,6 +2,7 @@ const mainEvent = { emit: jest.fn() };
 beforeEach(() => mainEvent.emit.mockReset());
 const log = require("../../../lib/log.js");
 jest.mock("../../../lib/log.js");
+const { buildPathForTools } = require("../../helpers/fileutil.js");
 
 const adbPlugin = new (require("./plugin.js"))(
   { config: { codename: "bacon" } },
@@ -76,6 +77,30 @@ describe("adb plugin", () => {
           adbPlugin.adb.sideload.mockRestore();
         });
     });
+    it("should properly escape paths", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest
+        .spyOn(adbPlugin.adb, "sideload")
+        .mockImplementation((path, cb) => Promise.resolve(cb(1)));
+      return adbPlugin
+        .action__sideload({ group: "Ubuntu Touch", file: "main update.zip" })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(adbPlugin.event.emit).toHaveBeenCalledTimes(5);
+          expect(adbPlugin.adb.sideload).toHaveBeenCalledTimes(1);
+          expect(adbPlugin.adb.sideload).toHaveBeenCalledWith(
+            buildPathForTools(
+              adbPlugin.cachePath,
+              adbPlugin.props.config.codename,
+              "Ubuntu Touch",
+              "main update.zip"
+            ),
+            expect.any(Function)
+          );
+          adbPlugin.event.emit.mockRestore();
+          adbPlugin.adb.sideload.mockRestore();
+        });
+    });
   });
 
   describe("action__push()", () => {
@@ -94,6 +119,37 @@ describe("adb plugin", () => {
           expect(r).toEqual(undefined);
           expect(adbPlugin.event.emit).toHaveBeenCalledTimes(5);
           expect(adbPlugin.adb.push).toHaveBeenCalledTimes(1);
+          adbPlugin.event.emit.mockRestore();
+          adbPlugin.adb.push.mockRestore();
+        });
+    });
+    it("should properly escape paths", () => {
+      jest.spyOn(adbPlugin.event, "emit").mockReturnValue();
+      jest
+        .spyOn(adbPlugin.adb, "push")
+        .mockImplementation((files, dest, cb) => Promise.resolve(cb(1)));
+      return adbPlugin
+        .action__push({
+          group: "Ubuntu Touch",
+          files: ["main update.zip"],
+          dest: "awesome folder_with weird-formatting  "
+        })
+        .then(r => {
+          expect(r).toEqual(undefined);
+          expect(adbPlugin.event.emit).toHaveBeenCalledTimes(5);
+          expect(adbPlugin.adb.push).toHaveBeenCalledTimes(1);
+          expect(adbPlugin.adb.push).toHaveBeenCalledWith(
+            [
+              buildPathForTools(
+                adbPlugin.cachePath,
+                adbPlugin.props.config.codename,
+                "Ubuntu Touch",
+                "main update.zip"
+              )
+            ],
+            "awesome folder_with weird-formatting  ",
+            expect.any(Function)
+          );
           adbPlugin.event.emit.mockRestore();
           adbPlugin.adb.push.mockRestore();
         });
