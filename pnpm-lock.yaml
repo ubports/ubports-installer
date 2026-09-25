@@ -225,6 +225,9 @@ importers:
       commander:
         specifier: ^12.1.0
         version: 12.1.0
+      dpkg-compare-versions:
+        specifier: ^1.0.3
+        version: 1.0.3
       electron-open-link-in-browser:
         specifier: ^1.0.2
         version: 1.0.2
@@ -1462,6 +1465,9 @@ packages:
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
+
+  dpkg-compare-versions@1.0.3:
+    resolution: {integrity: sha512-iFzCz1i/b4cX5fhZLOtCJOC7vwZkGTArZGXELVFiX0SF/YQiZF9Vb+psneG1DTUmLlz2BRcuTF9i0xb+KxEP3w==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -4414,6 +4420,8 @@ snapshots:
       dotenv: 16.6.1
 
   dotenv@16.6.1: {}
+
+  dpkg-compare-versions@1.0.3: {}
 
   dunder-proto@1.0.1:
     dependencies:
