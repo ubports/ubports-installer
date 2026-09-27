@@ -378,7 +378,8 @@ class Core {
       return new Promise((resolve, reject) => mainEvent.emit("user:low-power"));
     } else if (
       error.message.includes("bootloader locked") ||
-      error.message.includes("enable unlocking")
+      error.message.includes("enable unlocking") ||
+      error.message.includes("by lock control")
     ) {
       return this.step(this.props.config.handlers.bootloader_locked).then(() =>
         this.step(step)
