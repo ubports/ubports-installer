@@ -72,7 +72,7 @@
     "svelte-markdown": "^0.4.1",
     "systeminformation": "^5.27.7",
     "winston": "^3.17.0",
-    "yaml": "^2.8.0"
+    "yaml": "^2.9.1"
   },
   "engines": {
     "node": "^24"
