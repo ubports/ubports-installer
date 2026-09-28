@@ -323,8 +323,8 @@ importers:
         specifier: ^4.2.20
         version: 4.2.20
       svelte-spa-router:
-        specifier: ^4.0.1
-        version: 4.0.2
+        specifier: ^5.0.1
+        version: 5.1.1(svelte@4.2.20)
 
 packages:
 
@@ -2822,8 +2822,10 @@ packages:
     peerDependencies:
       svelte: ^4.0.0
 
-  svelte-spa-router@4.0.2:
-    resolution: {integrity: sha512-T1WYYk+ymwCr5m5U+n91k4dRAT6cw5HgmoPaI/TpKgAmuugymFoSBlfzkcKIK83QH4H8gUMn4tdQ0B9enFBM6g==}
+  svelte-spa-router@5.1.1:
+    resolution: {integrity: sha512-/9PiiyS2jQIXlP+NlKRcPl/Bgwm6WTCTmJq8TZw5IShEbozwcfpX2V3YEL4lAVgJJ2Ni+ipAH7aYVEupeNwtHA==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   svelte@4.2.20:
     resolution: {integrity: sha512-eeEgGc2DtiUil5ANdtd8vPwt9AgaMdnuUFnPft9F5oMvU/FHu5IHFic+p1dR/UOB7XU2mX2yHW+NcTch4DCh5Q==}
@@ -3333,7 +3335,7 @@ snapshots:
       fs-extra: 10.1.0
       isbinaryfile: 4.0.10
       minimist: 1.2.8
-      plist: 3.1.0
+      plist: 3.1.1
     transitivePeerDependencies:
       - supports-color
 
@@ -3387,7 +3389,7 @@ snapshots:
       dir-compare: 4.2.0
       fs-extra: 11.4.0
       minimatch: 9.0.9
-      plist: 3.1.0
+      plist: 3.1.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4769,7 +4771,7 @@ snapshots:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.7.4
+      semver: 7.8.5
       serialize-error: 7.0.1
     optional: true
 
@@ -5503,11 +5505,11 @@ snapshots:
 
   node-abi@4.35.0:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.5
 
   node-api-version@0.2.1:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.5
 
   node-gyp@12.4.0:
     dependencies:
@@ -5516,7 +5518,7 @@ snapshots:
       graceful-fs: 4.2.11
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.7.4
+      semver: 7.8.5
       tar: 7.5.22
       tinyglobby: 0.2.17
       undici: 6.28.0
@@ -6000,9 +6002,10 @@ snapshots:
       marked: 5.1.2
       svelte: 4.2.20
 
-  svelte-spa-router@4.0.2:
+  svelte-spa-router@5.1.1(svelte@4.2.20):
     dependencies:
       regexparam: 2.0.2
+      svelte: 4.2.20
 
   svelte@4.2.20:
     dependencies:
