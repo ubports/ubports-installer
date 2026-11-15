@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const { Command } = require("commander");
+const { Command, InvalidArgumentError } = require("commander");
 const cli = new Command();
 const log = require("./log.js");
 const packageInfo = require("../../package.json");
@@ -29,10 +29,18 @@ ${packageInfo.license} ${packageInfo.author}
 ${packageInfo.description}
 ${packageInfo.homepage}`;
 
+function myParseInt(value) {
+  const parsedValue = parseInt(value, 10);
+  if (isNaN(parsedValue)) {
+    throw new InvalidArgumentError("Not a number.");
+  }
+  return parsedValue;
+}
+
 cli
   .version(packageInfo.version)
   .name(packageInfo.package ? packageInfo.name : "pnpm start --")
-  .usage("[-f <file>] [-v[v] [-i]")
+  .usage("[-f <file>] [-v[v]] [-i] [-b <version>]")
   .description(description)
   .option(
     "-f, --file <file>",
@@ -48,6 +56,11 @@ cli
     "-i, --inspect",
     "Enable electron's web debugger to inspect the frontend",
     false
+  )
+  .option(
+    "-b, --build <version>",
+    "Select system image build version",
+    myParseInt
   )
   .option(
     "--systemimage <url>",

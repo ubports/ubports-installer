@@ -4,11 +4,38 @@ jest.mock("electron");
 const axios = require("axios");
 jest.mock("axios");
 axios.create.mockReturnValue(axios);
+const cli = require("../../../lib/cli.js");
+jest.mock("../../../lib/cli.js");
 const api = require("./api.js");
 
-const files = [
+const images = [
   {
-    checksum: { algorithm: "sha256", sum: "1337" },
+    version: 2,
+    type: "full",
+    files: [
+      {
+        checksum: "1336",
+        path: "asdf.img",
+        signature: "asdf.img.asc"
+      }
+    ]
+  },
+  {
+    version: 3,
+    type: "full",
+    files: [
+      {
+        checksum: "1337",
+        path: "asdf.img",
+        signature: "asdf.img.asc"
+      }
+    ]
+  }
+];
+
+const getExpectedFiles = (checksum = "1337") => [
+  {
+    checksum: { algorithm: "sha256", sum: checksum },
     url: "https://system-image.ubports.com/asdf.img"
   },
   { url: "https://system-image.ubports.com/asdf.img.asc" },
@@ -26,31 +53,9 @@ const files = [
   }
 ];
 
-describe("systemimage api", () => {
-  describe("getImages", () => {
-    it("should resolve images", () => {
-      axios.get.mockResolvedValueOnce({
-        data: {
-          images: [
-            {
-              type: "full",
-              files: [
-                {
-                  checksum: "1337",
-                  path: "asdf.img",
-                  signature: "asdf.img.asc"
-                }
-              ]
-            }
-          ]
-        }
-      });
-      return api
-        .getImages("16.04/stable", "bacon", true, ["developer_mode"], ["mtp"])
-        .then(r =>
-          expect(r).toEqual({
-            commands:
-              "format system\n\
+const expectedCommands =
+  "\
+format system\n\
 load_keyring image-master.tar.xz image-master.tar.xz.asc\n\
 load_keyring image-signing.tar.xz image-signing.tar.xz.asc\n\
 mount system\n\
@@ -58,8 +63,33 @@ format data\n\
 update asdf.img asdf.img.asc\n\
 enable developer_mode\n\
 disable mtp\n\
-unmount system",
-            files
+unmount system";
+
+describe("systemimage api", () => {
+  describe("getImages", () => {
+    afterEach(() => {
+      delete cli.build;
+    });
+    it("should resolve images", () => {
+      axios.get.mockResolvedValueOnce({ data: { images } });
+      return api
+        .getImages("16.04/stable", "bacon", true, ["developer_mode"], ["mtp"])
+        .then(r =>
+          expect(r).toEqual({
+            commands: expectedCommands,
+            files: getExpectedFiles()
+          })
+        );
+    });
+    it("should find requested image version", () => {
+      cli.build = 2;
+      axios.get.mockResolvedValueOnce({ data: { images } });
+      return api
+        .getImages("16.04/stable", "bacon", true, ["developer_mode"], ["mtp"])
+        .then(r =>
+          expect(r).toEqual({
+            commands: expectedCommands,
+            files: getExpectedFiles("1336")
           })
         );
     });
@@ -67,6 +97,14 @@ unmount system",
       axios.get.mockResolvedValueOnce({ data: { images: [] } });
       api.getImages("stable", "lenok").catch(e => {
         expect(e.message).toEqual("no image on channel stable");
+        done();
+      });
+    });
+    it("should reject if there are no images with the version requested", done => {
+      cli.build = 1;
+      axios.get.mockResolvedValueOnce({ data: { images } });
+      api.getImages("16.04/stable", "bacon", true).catch(e => {
+        expect(e.message).toEqual("no image on channel 16.04/stable");
         done();
       });
     });
