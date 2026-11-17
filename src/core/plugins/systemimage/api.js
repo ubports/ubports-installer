@@ -20,11 +20,12 @@
 const axios = require("axios");
 const https = require("https");
 const path = require("path");
+const cli = require("../../../lib/cli.js");
 
 /** @module systemimage */
 
-const baseURL = require("../../../lib/cli.js").systemimage;
-const metareleaseURL = require("../../../lib/cli.js").metarelease;
+const baseURL = cli.systemimage;
+const metareleaseURL = cli.metarelease;
 
 const api = axios.create({ baseURL, timeout: 60000 });
 
@@ -48,7 +49,15 @@ const getImages = (channel, device, wipe, enable = [], disable = []) =>
     .catch(error => {
       throw new Error(error?.response?.status || "no network");
     })
-    .then(({ data }) => data.images.filter(({ type }) => type === "full").pop())
+    .then(({ data }) =>
+      data.images
+        .filter(
+          ({ type, version }) =>
+            type === "full" &&
+            (cli.build === undefined || version === cli.build)
+        )
+        .pop()
+    )
     .then(image => {
       if (image) return image;
       else throw new Error(`no image on channel ${channel}`);
